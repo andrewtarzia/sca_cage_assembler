@@ -14,28 +14,12 @@ Date Created: 08 Mar 2019
 import os
 import sys
 import glob
-
-
-def setup_dirs(xyzs):
-    '''Setup directories for a series of XYZ files (in xyzs).
-
-    '''
-
-    for i in xyzs:
-        file = i.replace('.xyz', '')
-        print(file)
-        os.system('mkdir '+file)
-        os.system('cp '+i+' '+file+'/')
-        if os.path.isfile('xctrl') is False:
-            print('copy an xctrl file in this dir!', os.getcwd())
-            sys.exit('exitting.')
-        else:
-            os.system('cp xctrl '+file+'/')
-
+sys.path.insert(0, '/home/atarzia/thesource/')
+import GFN_functions
 
 if __name__ == "__main__":
     xyzs = glob.glob('*.xyz')
-    setup_dirs(xyzs)
+    GFN_functions.setup_dirs(xyzs)
     # select a GFN execution.
     GFN_exec = '/home/atarzia/software/xtb190301/bin/xtb'
     print('most setup should be in the xctrl file that is in this directory!')

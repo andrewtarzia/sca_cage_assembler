@@ -15,74 +15,9 @@ import os
 import sys
 import glob
 import json
-import MDAnalysis as mda
-from MDAnalysis.analysis import align
-from MDAnalysis.analysis.rms import rmsd
-
-
-def calculate_RMSD(results_part, structure_name, init_structure_dir):
-    '''Calculate RMSD of GFN output structure compared to initial structure.
-
-    Code from James Pegg.
-
-    '''
-    # read in initial structure
-    initial_structure_file = init_structure_dir+file+'.xyz'
-    ref = mda.Universe(initial_structure_file)
-    # read in new structure
-    new_structure_file = 'xtbopt.xyz'
-    mobile = mda.Universe(new_structure_file)
-    # RMSD of all atoms
-    RMSD = rmsd(mobile.atoms.positions,
-                ref.atoms.positions,
-                center=True, superposition=True)
-    results_part['RMSD'] = RMSD
-    return results_part
-
-
-def get_results(results_part, output_file):
-    """Get the numbers from output file.
-
-    Obtained results (in a.u.):
-        - free energies (FE)
-        - absolute energy (TE)
-        - SCC energy (SCE)
-        - deltaG (GT)
-        - deltaH (HT)
-
-    """
-    for line in open(output_file, 'r'):
-        # free energy in a.u.
-        if 'TOTAL FREE ENERGY' in line:
-            l = line.rstrip().split('<===')
-            FE_au = l[0].strip()
-            # print(FE_au)
-            results_part['FE'] = FE_au
-        if 'total E       :' in line:
-            l = line.rstrip().split(':')
-            TE_au = l[1].strip()
-            # print(TE_au)
-            results_part['TE'] = TE_au
-        if 'SCC energy    :' in line:
-            l = line.rstrip().split(':')
-            SCE_au = l[1].strip()
-            # print(TE_au)
-            results_part['SCE'] = SCE_au
-        if 'G(T)' in line:
-            l = line.rstrip().split(' ')
-            new_l = [i for i in l if i != '']
-            # print(new_l)
-            GT_au = new_l[1].strip()
-            # print(GT_au)
-            results_part['GT'] = GT_au
-        if 'H(T)' in line and 'H(0)-H(T)+PV' not in line:
-            l = line.rstrip().split(' ')
-            new_l = [i for i in l if i != '']
-            # print(new_l)
-            HT_au = new_l[1].strip()
-            # print(HT_au)
-            results_part['HT'] = HT_au
-    return results_part
+sys.path.insert(0, '/home/atarzia/thesource/')
+import comparisons
+import GFN_functions
 
 
 if __name__ == "__main__":
@@ -106,18 +41,18 @@ Usage: analyze_GFN.py dir
     for i in xyzs:
         file = i.replace('.xyz', '')
         # print(file)
-        results[file] = {}
         out = file+'.output'
         os.chdir(file+'/')
         # determine properties from GFN output file.
-        results[file] = get_results(results[file], out)
+        results[file] = GFN_functions.get_energies(out)
         # calculate RMSD of all structures to input XYZ
         # obviously skip if SPE calculation
         if 'SPE' in targ_dir:
             results[file]['RMSD'] = 0
         else:
-            results[file] = calculate_RMSD(results[file], file,
-                                           init_structure_dir=initial_struct_dir)
+            results[file] = comparisons.calculate_RMSD(
+                                results[file], file,
+                                init_structure_dir=initial_struct_dir)
         os.chdir(analysis_dir)
         # print('done')
         # break
