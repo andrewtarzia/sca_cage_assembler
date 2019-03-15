@@ -49,7 +49,7 @@ def get_guests(paper):
         'acetonitrile': 'CC#N',
         'water': 'O',
         '2-formylpyridine': 'C1=CC=NC(=C1)C=O',
-        'diethyl ether': 'CCOCC',
+        'diethylether': 'CCOCC',
         'pyridine': 'C1=CC=NC=C1',
         'tetrahydrofuran': 'C1CCOC1',
         'mesitylene': 'CC1=CC(=CC(=C1)C)C',
