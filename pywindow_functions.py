@@ -10,6 +10,7 @@ Author: Andrew Tarzia
 Date Created: 15 Mar 2019
 """
 
+from rdkit.Chem import AllChem as Chem
 import pywindow as pw
 
 
@@ -28,7 +29,24 @@ def rebuild_system(file):
     return rebuild_molsys
 
 
-def run_analysis(rebuilt_structure, file_prefix, verbose=False):
+def run_on_cage(file, prop_file, mole_file):
+    '''Run all desired analysis on a single built cage molecule.
+
+    Output cage with COM atoms and properties to JSON.
+
+    '''
+    # Import optimised cage into pyWindow, via RDkit mol file
+    cage_rd = Chem.MolFromMolFile(file)
+    cage_sys = pw.MolecularSystem.load_rdkit_mol(cage_rd)
+    cage_mol = cage_sys.system_to_molecule()
+    # Perform full pyWindow analysis
+    cage_mol.full_analysis()
+    # Dump pyWindow properties into JSON and cage into xyz
+    cage_mol.dump_properties_json(prop_file)
+    cage_mol.dump_molecule(mole_file, include_coms=True)
+
+
+def run_on_rebuilt(rebuilt_structure, file_prefix, verbose=False):
     '''Run all desired analysis on each molecule in rebuilt structure.
         (modified version of Example6 of pywindow examples.)
 
@@ -68,7 +86,7 @@ def run_analysis(rebuilt_structure, file_prefix, verbose=False):
     return result_dict
 
 
-def append_and_write(result_dict, structure, file):
+def append_and_write_COMs(result_dict, structure, file):
     '''Append all COMs in result dict as the atoms below to the ASE structure
     and output to file.
 
