@@ -37,4 +37,4 @@ Usage: get_RMSD.py struct1 struct2
     mobile = mda.Universe(new_structure_file)
     RMSD = rmsd(mobile.atoms.positions, ref.atoms.positions, center=True,
                 superposition=True)
-    print(RMSD)
+    print(xyz1, xyz2, '--->', RMSD)
