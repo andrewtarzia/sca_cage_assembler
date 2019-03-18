@@ -38,8 +38,8 @@ def get_energies(output_file):
         - free energies (FE)
         - absolute energy (TE)
         - SCC energy (SCE)
-        - deltaG (GT)
-        - deltaH (HT)
+        - G (GT)
+        - H (HT)
 
     """
     results_part = {}
