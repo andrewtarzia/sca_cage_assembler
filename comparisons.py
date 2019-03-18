@@ -11,7 +11,6 @@ Date Created: 15 Mar 2019
 """
 
 import MDAnalysis as mda
-from MDAnalysis.analysis import align
 from MDAnalysis.analysis.rms import rmsd
 
 
@@ -22,7 +21,7 @@ def calculate_RMSD(results_part, structure_name, init_structure_dir):
 
     '''
     # read in initial structure
-    initial_structure_file = init_structure_dir+file+'.xyz'
+    initial_structure_file = init_structure_dir+structure_name+'.xyz'
     ref = mda.Universe(initial_structure_file)
     # read in new structure
     new_structure_file = 'xtbopt.xyz'
