@@ -17,22 +17,143 @@ import sys
 import os
 from rdkit.Chem import AllChem as Chem
 from rdkit.Chem import Draw
-import os
 import json
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from ase.visualize import view
-from ase.io import read
 import copy
-import stk
 from stk.molecular.molecules import MacroMoleculeBuildError
 sys.path.insert(0, '/home/atarzia/thesource/')
 import stk_functions
 import pywindow_functions
 
-def plots_amines2(final_db, ald_colo, DB):
-    return None
+
+def output_precursor_struct(data, filename, DB, prop1, prop2, sorter,
+                            rev=False):
+    '''Produce figure ranking precursors by 'sorter'
+
+    '''
+    smiles_done = []
+    max_c = 9
+    if rev is False:
+        sorted_data = data.sort_values(by=[sorter])
+    else:
+        sorted_data = data.sort_values(by=[sorter], ascending=False)
+    sorted_mols = []
+    sorted_props = []
+    sorted_NAMES = []
+    for i, row in sorted_data.iterrows():
+        NAME = DB+row.bb2+'.mol'
+        smiles = Chem.MolToSmiles(Chem.MolFromMolFile(NAME))
+        if smiles not in smiles_done:
+            sorted_NAMES.append(row.bb1+'_'+row.bb2+'_'+row.topo)
+            smiles_done.append(smiles)
+            sorted_mols.append(Chem.MolFromSmiles(smiles))
+            sorted_props.append((row[prop1], row[prop2]))
+    ranges = np.arange(0, len(sorted_mols)+1, max_c)
+    # print(ranges)
+    for i in ranges:
+        if i > max_c:
+            break
+        # print(a, i)
+        _set = sorted_mols[i: i+max_c]
+        _set_props = sorted_props[i: i+max_c]
+        if len(_set) == 0:
+            break
+        print(sorted_NAMES[i: i+max_c])
+        img = Draw.MolsToGridImage(_set, molsPerRow=3,
+                                   subImgSize=(125, 125),
+                                   # legends=[str(round(i[0], 3))+' ('+str(round(i[1], 2))+')'
+                                   legends=[str(round(i[1], 2))
+                                            for i in _set_props],
+                                   useSVG=False)
+        img.save(filename+'_'+str(i)+'.png')
+
+
+def plots_amines2(final_db, ald_colo, DB, des_topo):
+    #########################################################################
+    fig, ax = plt.subplots()
+    for i in ald_colo:
+        data = final_db[final_db.bb1 == i]
+        ax.scatter(data.w_max, data.p_diam_opt, c=ald_colo[i], alpha=0.8,
+                   edgecolor='k', marker='o', s=80, label=i)
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.set_xlabel('max window size [$\mathrm{\AA}$]', fontsize=16)
+    ax.set_ylabel('pore diameter [$\mathrm{\AA}$]', fontsize=16)
+    ax.set_xlim(0, 40)
+    ax.set_ylim(0, 40)
+    ax.legend(fontsize=12)
+    fig.tight_layout()
+    fig.savefig("pdiam_VS_wmax_2f.pdf",
+                dpi=720, bbox_inches='tight')
+    plt.close()
+    #########################################################################
+    for topo in des_topo:
+        temp_db = final_db[final_db.topo == topo]
+        fig, ax = plt.subplots()
+        for i in ald_colo:
+            data = temp_db[temp_db.bb1 == i]
+            ax.scatter(data.w_max, data.p_diam_opt, c=ald_colo[i], alpha=0.8,
+                       edgecolor='k', marker='o', s=80, label=i)
+        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.set_xlabel('max window size [$\mathrm{\AA}$]', fontsize=16)
+        ax.set_ylabel('pore diameter [$\mathrm{\AA}$]', fontsize=16)
+        ax.set_xlim(0, 40)
+        ax.set_ylim(0, 40)
+        ax.legend(fontsize=12)
+        fig.tight_layout()
+        fig.savefig("pdiam_VS_wmax_2f_"+topo+".pdf",
+                    dpi=720, bbox_inches='tight')
+        plt.close()
+    #########################################################################
+    for i in ald_colo:
+        fig, ax = plt.subplots()
+        data = final_db[final_db.bb1 == i]
+        ax.scatter(data.SA2, data.p_diam_opt, c=ald_colo[i], alpha=0.8,
+                   edgecolor='k', marker='o', s=80, label=i)
+        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.set_xlabel('SAscore of amine', fontsize=16)
+        ax.set_ylabel('pore diameter [$\mathrm{\AA}$]', fontsize=16)
+        ax.set_xlim(0, 10)
+        ax.set_ylim(0, 40)
+        ax.legend(fontsize=12)
+        fig.tight_layout()
+        fig.savefig("pdiam_VS_SA2_2f_"+i+".pdf",
+                    dpi=720, bbox_inches='tight')
+        plt.close()
+    #########################################################################
+    for i in ald_colo:
+        fig, ax = plt.subplots()
+        data = final_db[final_db.bb1 == i]
+        ax.scatter(data.assym/data.w_no, data.p_diam_opt, c=ald_colo[i],
+                   alpha=0.8,
+                   edgecolor='k', marker='o', s=80, label=i)
+        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.set_xlabel('average asymmetry in window size [$\mathrm{\AA}$]', fontsize=16)
+        ax.set_ylabel('pore diameter [$\mathrm{\AA}$]', fontsize=16)
+        ax.set_xlim(0, 20)
+        ax.set_ylim(0, 40)
+        ax.legend(fontsize=12)
+        fig.tight_layout()
+        fig.savefig("pdiam_VS_asym_2f_"+i+".pdf",
+                    dpi=720, bbox_inches='tight')
+        plt.close()
+    #########################################################################
+    for a in ald_colo:
+        data = final_db[final_db.bb1 == a]
+        filename = 'candidate_amines2f_'+a
+        output_precursor_struct(data, filename, DB,
+                                sorter='SA2',
+                                prop1='SA2', prop2='p_diam_opt')
+    #########################################################################
+    for a in ald_colo:
+        data = final_db[final_db.bb1 == a]
+        filename = 'candidate_amines2f_'+a+'_largepore'
+        output_precursor_struct(data, filename, DB,
+                                sorter='p_diam_opt', rev=True,
+                                prop1='SA2', prop2='p_diam_opt')
+    #########################################################################
+
 
 def plots_amines3(final_db, ald_colo, DB):
     #########################################################################
@@ -123,7 +244,8 @@ def plots_amines3(final_db, ald_colo, DB):
     for i in ald_colo:
         fig, ax = plt.subplots()
         data = final_2_db[final_2_db.bb1 == i]
-        ax.scatter(data.assym/data.w_no, data.p_diam_opt, c=ald_colo[i], alpha=0.8,
+        ax.scatter(data.assym/data.w_no, data.p_diam_opt, c=ald_colo[i],
+                   alpha=0.8,
                    edgecolor='k', marker='o', s=80, label=i)
         ax.tick_params(axis='both', which='major', labelsize=16)
         ax.set_xlabel('average asymmetry in window size [$\mathrm{\AA}$]', fontsize=16)
@@ -186,37 +308,32 @@ def plots_amines3(final_db, ald_colo, DB):
         plt.close()
     #########################################################################
     for a in ald_colo:
-        smiles_done = []
-        data = final_2_db[final_2_db.bb1 == a]
-        counts = 0
-        max_c = 9
-        sorted_data = data.sort_values(by=['SA2'])
-        sorted_mols = []
-        sorted_props = []
-        for i, row in sorted_data.iterrows():
-            NAME = DB+row.bb2+'.mol'
-            smiles = Chem.MolToSmiles(Chem.MolFromMolFile(NAME))
-            if smiles not in smiles_done:
-                smiles_done.append(smiles)
-                sorted_mols.append(Chem.MolFromSmiles(smiles))
-                sorted_props.append((row.SA2, row.p_diam_opt))
-        ranges = np.arange(0, len(sorted_mols)+1, max_c)
-        print(ranges)
-        for i in ranges:
-            if i > max_c:
-                break
-            print(a, i)
-            _set = sorted_mols[i: i+max_c]
-            _set_props = sorted_props[i: i+max_c]
-            if len(_set) == 0:
-                break
-            img = Draw.MolsToGridImage(_set, molsPerRow=3, subImgSize=(125, 125),
-                                       # legends=[str(round(i[0], 3))+' ('+str(round(i[1], 2))+')'
-                                       legends=[str(round(i[1], 2))
-                                                for i in _set_props],
-                                       useSVG=False)
-            img.save('candidate_amines2f_'+a+'_'+str(i)+'.png')
+        data = final_db[final_db.bb1 == a]
+        filename = 'candidate_amines3f_'+a
+        output_precursor_struct(data, filename, DB,
+                                sorter='SA2',
+                                prop1='SA2', prop2='p_diam_opt')
     #########################################################################
+
+
+def check_output_numbers(precursor_dir, DB, topology_options, prefix):
+    # Check that the number output files matches the expected number based on
+    # inputs
+    print(len(glob.glob(precursor_dir+'*mol')), 'precusrors in', precursor_dir)
+    print(len(glob.glob(DB+'*mol')), 'precusrors in', DB)
+    print(len(topology_options), 'possible topologies per cage')
+    n_cages = len(glob.glob(precursor_dir+'*mol'))
+    n_cages *= len(glob.glob(DB+'*mol')) * len(topology_options)
+    print('>>', n_cages, 'cages')
+    print(len(glob.glob('*'+prefix+'*_opt*mol')), 'cages optimized')
+    # Check that the number output files matches expected number based on
+    # inputs
+    opt_cages = len(glob.glob('*'+prefix+'*_opt*mol'))
+    print('>>', opt_cages, 'cages')
+    print(len(glob.glob('*_properties.json')),
+          'cage properties calculated')
+    print(len(glob.glob('*_PWout.xyz')),
+          'cage window structures output')
 
 
 def check_done(NAME, output_csv):
@@ -398,7 +515,7 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_, dir='', opt=False)
                 struct = stk.StructUnit(file+'_opt.mol')
             struct.energy.macromodel(16, macromod_)
             for i in struct.energy.values:
-                energies.append(struct.energy.values[i])
+                energies[NAME] = struct.energy.values[i]
                 calculated[NAME] = struct.energy.values[i]
         else:
             print('already calculated')
@@ -443,18 +560,22 @@ def screening_cages(dataset, des_topo, SA_data):
         if row.topo not in des_topo:
             continue
         # remove those with pore diamter < 3.4 angstrom
-        # (Computationally-inspired discovery of an unsymmetrical porous organic cage)
+        # (Computationally-inspired discovery of an unsymmetrical porous
+        # organic cage)
         if row.p_diam_opt < 3.4:
             continue
         # remove those that have no windows
         if row.assym == -2:
             continue
         # remove those with max window diamter < 2.8 angstrom
-        # (Computationally-inspired discovery of an unsymmetrical porous organic cage)
+        # (Computationally-inspired discovery of an unsymmetrical porous
+        # organic cage)
         if row.p_diam_opt < 2.8:
             continue
         # recalculate assymetry - remove cases with assymetry > 1
         NAME = row.bb1+'_'+row.bb2+'_'+row.topo
+        if row.p_diam_opt > 25:
+            print(NAME)
         prop_file = NAME+'_opt_properties.json'
         with open(prop_file, 'r') as f:
             data = json.load(f)
@@ -485,7 +606,6 @@ def brute_analysis(output_csv, amine_type,
                 'aldehyde3': 'r', 'aldehyde4': 'g'}
     full_dataset = pd.read_csv(output_csv)
     working_dataset = copy.deepcopy(full_dataset)
-    print(working_dataset.iloc[0])
     prec_ey_file = precursor_dir+'all_prec_ey.json'
     cage_ey_file = 'all_cage_ey.json'
     # get energies of bb1
@@ -539,46 +659,49 @@ def brute_analysis(output_csv, amine_type,
     # screen cages
     final_db = screening_cages(dataset=working_dataset, des_topo=des_topo,
                                SA_data=SA_data)
-    print(len(final_db), 'cages remaining after screening!')
-
-    print('doing all plotting')
-    if amine_type =='2':
-        plots_amines2(final_db=final_db, ald_colo=ald_colo, DB=DB)
-    if amine_type =='3':
+    print('>>> ', len(final_db), 'cages remaining after screening!')
+    print('>>> doing all plotting')
+    if amine_type == '2':
+        plots_amines2(final_db=final_db, ald_colo=ald_colo, DB=DB,
+                      des_topo=des_topo)
+    if amine_type == '3':
         plots_amines3(final_db=final_db, ald_colo=ald_colo, DB=DB)
-    print('done!')
+    print('>>> done!')
 
 
 def main():
     """Run script.
 
     """
-    if (not len(sys.argv) == 4):
+    if (not len(sys.argv) == 5):
         print("""
-Usage: build_cages.py amine_type output_file wipe
+Usage: build_cages.py amine_type output_file wipe run_build
     amine_type: whether to use amines2f or amines3f (2 or 3).
     output_file: file to output results
-    wipe: t/T if wipe output file""")
+    wipe: t/T if wipe output file
+    run_build: t/T if you want to run the build stage""")
         sys.exit()
     else:
         amine_type = sys.argv[1]
         output_file = sys.argv[2]
         wipe = sys.argv[3]
+        run_b = sys.argv[4]
 
     macromod_ = '/home/atarzia/software/schrodinger_install'
     precursor_dir = '/home/atarzia/projects/andrew_marsh_structures/precursor_lib/'
     # get precursor files
     precursor_files = sorted(glob.glob(precursor_dir+'*.mol'))
     precursor_names = [i.replace(precursor_dir, '') for i in precursor_files]
-    precursor_struc = [stk.StructUnit3(i) for i in precursor_files]  # read in mol files
+    # read in mol files
+    precursor_struc = [stk.StructUnit3(i) for i in precursor_files]
     big_DB = '/data/atarzia/precursor_DBs/reaxys_sorted/'
-    if amine_type =='2':
+    if amine_type == '2':
         amines2f = big_DB+'amines2f/'
         # synthetic accessibility DBs
         amine_SA = pd.read_csv(amines2f+'score_output_amines2f.csv')
         print(len(glob.glob(amines2f+'*mol')), 'precusrors in', amines2f)
         # diamines (alde3+amine2)
-        topology_names = ['2p3', '4p6', '4p62', '6p9'] #'dodec', '8p12',  ]
+        topology_names = ['2p3', '4p6', '4p62', '6p9']  # 'dodec', '8p12',  ]
         topology_options = [stk.two_plus_three.TwoPlusThree(),
                             stk.two_plus_three.FourPlusSix(),
                             stk.two_plus_three.FourPlusSix2(),
@@ -588,8 +711,8 @@ Usage: build_cages.py amine_type output_file wipe
         DB = amines2f
         amines = glob.glob(DB+'*.mol')
         prefix = 'amine2f'
-        des_topo = ['2p3', '4p6', '4p62', '6p9']
-    elif amine_type =='3':
+        des_topo = ['2p3', '4p6', '6p9']  # '4p62',
+    elif amine_type == '3':
         amines3f = big_DB+'amines3f/'
         # synthetic accessibility DBs
         amine_SA = pd.read_csv(amines3f+'score_output_amines3f.csv')
@@ -598,14 +721,14 @@ Usage: build_cages.py amine_type output_file wipe
         topology_names = ['1p1', '4p4']  # , '2p2']
         topology_options = [
                     stk.three_plus_three.OnePlusOne(
-                    # place bb1 on vertex (0), bb2 on vertex (1)
-                    bb_positions={0: [0], 1: [1]}),
+                        # place bb1 on vertex (0), bb2 on vertex (1)
+                        bb_positions={0: [0], 1: [1]}),
                     stk.three_plus_three.FourPlusFour(
-                    # place bb1 on vertex (0, 2), bb2 on vertex (1, 3)
-                    bb_positions={0: [0, 3, 5, 6], 1: [1, 2, 4, 7]})
+                        # place bb1 on vertex (0, 2), bb2 on vertex (1, 3)
+                        bb_positions={0: [0, 3, 5, 6], 1: [1, 2, 4, 7]})
                     # stk.three_plus_three.TwoPlusTwo(
-                    # place bb1 on vertex (0, 2), bb2 on vertex (1, 3)
-                    # bb_positions={0: [0, 2], 1: [1, 3]})]
+                        # place bb1 on vertex (0, 2), bb2 on vertex (1, 3)
+                        # bb_positions={0: [0, 2], 1: [1, 3]})]
                     ]
         DB = amines3f
         amines = glob.glob(DB+'*.mol')
@@ -618,27 +741,11 @@ Usage: build_cages.py amine_type output_file wipe
         with open(output_csv, 'w') as f:
             f.write('name,bb1,SA1,bb2,SA2,topo,max_diam,p_diam,p_vol,p_diam_opt')
             f.write(',p_vol_opt,w_no,w_max,w_min,w_avg,w_diff,collapse,assym\n')
-
-    brute_cage_build(precursor_struc, precursor_names, precursor_files,
-                     topology_names, topology_options, amines, DB, amine_type,
-                     output_csv, macromod_)
-
-    # Check that the number output files matches the expected number based on inputs
-    print(len(glob.glob(precursor_dir+'*mol')), 'precusrors in', precursor_dir)
-    print(len(glob.glob(DB+'*mol')), 'precusrors in', DB)
-    print(len(topology_options), 'possible topologies per cage')
-    n_cages = len(glob.glob(precursor_dir+'*mol')) * len(glob.glob(DB+'*mol')) * len(topology_options)
-    print('>>', n_cages, 'cages')
-    print(len(glob.glob('*'+prefix+'*_opt*mol')), 'cages optimized')
-
-    # Check that the number output files matches the expected number based on inputs
-    opt_cages = len(glob.glob('*_opt*mol'))
-    print('>>', opt_cages, 'cages')
-    print(len(glob.glob('*_properties.json')),
-          'cage properties calculated')
-    print(len(glob.glob('*_PWout.xyz')),
-          'cage window structures output')
-
+    if run_b.lower() == 't':
+        brute_cage_build(precursor_struc, precursor_names, precursor_files,
+                         topology_names, topology_options, amines, DB,
+                         amine_type, output_csv, macromod_)
+    check_output_numbers(precursor_dir, DB, topology_options, prefix)
     brute_analysis(output_csv, amine_type,
                    precursor_dir, precursor_files, DB, amines,
                    macromod_, des_topo, amine_SA)
