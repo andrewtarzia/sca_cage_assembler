@@ -46,6 +46,24 @@ def draw_smiles_to_svg(smiles, filename):
                    options=o)
 
 
+def mol_list2grid(mol_dict, filename, mol_per_row, subImgSize=(200, 200)):
+    '''Produce a grid of molecules in mol_list.
+
+    mol_dict (dict) - {name: SMILES}
+
+    '''
+    mols = []
+    names = []
+    for name in mol_dict:
+        names.append(name)
+        mols.append(Chem.MolFromSmiles(mol_dict[name]))
+    img = Draw.MolsToGridImage(mols, molsPerRow=mol_per_row,
+                               subImgSize=subImgSize,
+                               legends=names,
+                               useSVG=False)
+    img.save(filename+'.png')
+
+
 def read_mol_txt_file(filename):
     """Function to read molecule SMILES and information from txt file.
 
