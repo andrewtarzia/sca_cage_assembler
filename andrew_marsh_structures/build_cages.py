@@ -125,13 +125,14 @@ def plots_amines2(final_db, ald_colo, DB, des_topo):
     for i in ald_colo:
         fig, ax = plt.subplots()
         data = final_db[final_db.bb1 == i]
-        ax.scatter(data.assym/data.w_no, data.p_diam_opt, c=ald_colo[i],
+        ax.scatter(data.asym, data.p_diam_opt, c=ald_colo[i],
                    alpha=0.8,
                    edgecolor='k', marker='o', s=80, label=i)
         ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.set_xlabel('average asymmetry in window size [$\mathrm{\AA}$]', fontsize=16)
+        ax.set_xlabel('average asymmetry in window size [$\mathrm{\AA}$]',
+                      fontsize=16)
         ax.set_ylabel('pore diameter [$\mathrm{\AA}$]', fontsize=16)
-        ax.set_xlim(0, 20)
+        ax.set_xlim(0, 5)
         ax.set_ylim(0, 40)
         ax.legend(fontsize=12)
         fig.tight_layout()
@@ -244,13 +245,14 @@ def plots_amines3(final_db, ald_colo, DB):
     for i in ald_colo:
         fig, ax = plt.subplots()
         data = final_2_db[final_2_db.bb1 == i]
-        ax.scatter(data.assym/data.w_no, data.p_diam_opt, c=ald_colo[i],
+        ax.scatter(data.asym, data.p_diam_opt, c=ald_colo[i],
                    alpha=0.8,
                    edgecolor='k', marker='o', s=80, label=i)
         ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.set_xlabel('average asymmetry in window size [$\mathrm{\AA}$]', fontsize=16)
+        ax.set_xlabel('average asymmetry in window size [$\mathrm{\AA}$]',
+                      fontsize=16)
         ax.set_ylabel('pore diameter [$\mathrm{\AA}$]', fontsize=16)
-        ax.set_xlim(0, 12)
+        ax.set_xlim(0, 5)
         ax.set_ylim(0, 20)
         ax.legend(fontsize=12)
         fig.tight_layout()
@@ -392,7 +394,7 @@ def brute_cage_build(precursor_struc, precursor_names, precursor_files,
                     max_diam, p_diam, p_vol = '-', '-', '-'
                     p_diam_opt, p_vol_opt = '-', '-'
                     w_no, w_max, w_min, w_avg = '-', '-', '-', '-'
-                    w_diff, collapsed, assymetry = '-', '-', '-'
+                    w_diff, collapsed, asymetry = '-', '-', '-'
                     with open(prop_file, 'r') as f:
                         data = json.load(f)
                     bb1 = NAME.split('_')[0]
@@ -406,11 +408,11 @@ def brute_cage_build(precursor_struc, precursor_names, precursor_files,
                     if data['windows']['diameters'] is None:
                         w_no, w_max, w_min, w_avg, w_diff = '0', '0', '0', '0', '0'
                         collapse = '2'  # unsure
-                        assymetry = '-2'
+                        asymetry = '-2'
                     elif len(data['windows']['diameters']) == 0:
                         w_no, w_max, w_min, w_avg, w_diff = '0', '0', '0', '0', '0'
                         collapse = '1'  # collapsed
-                        assymetry = '-2'
+                        asymetry = '-2'
                     else:
                         if max(data['windows']['diameters']) < 200:
                             w_no = str(len(data['windows']['diameters']))
@@ -671,7 +673,7 @@ Usage: build_cages.py amine_type output_file wipe run_build
     if wipe.lower() == 't':
         with open(output_csv, 'w') as f:
             f.write('name,bb1,SA1,bb2,SA2,topo,max_diam,p_diam,p_vol,p_diam_opt')
-            f.write(',p_vol_opt,w_no,w_max,w_min,w_avg,w_diff,collapse,assym\n')
+            f.write(',p_vol_opt,w_no,w_max,w_min,w_avg,w_diff,collapse,asym\n')
     if run_b.lower() == 't':
         brute_cage_build(precursor_struc, precursor_names, precursor_files,
                          topology_names, topology_options, amines, DB,
