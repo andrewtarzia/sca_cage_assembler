@@ -16,7 +16,7 @@ import sys
 import glob
 import json
 sys.path.insert(0, '/home/atarzia/thesource/')
-import comparisons
+import calculations
 import GFN_functions
 
 
@@ -50,7 +50,7 @@ Usage: analyze_GFN.py dir
         if 'SPE' in targ_dir:
             results[file]['RMSD'] = 0
         else:
-            results[file] = comparisons.calculate_RMSD(
+            results[file] = calculations.calculate_RMSD(
                                 results[file], file,
                                 init_structure_dir=initial_struct_dir)
         os.chdir(analysis_dir)
