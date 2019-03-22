@@ -13,8 +13,8 @@ Date Created: 19 Feb 2019
 import sys
 from ase import Atom
 from ase.io import read
-from ase.visualize import view
 import pywindow as pw
+
 
 def convert_CIF_2_PDB(file):
     '''Convert CIF to PDB file and output for pywindow to read.
