@@ -22,10 +22,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
-from stk.molecular.molecules import MacroMoleculeBuildError
 sys.path.insert(0, '/home/atarzia/thesource/')
 import stk_functions
+import calculations
 import pywindow_functions
+import rdkit_functions
 
 
 def output_precursor_struct(data, filename, DB, prop1, prop2, sorter,
@@ -63,7 +64,6 @@ def output_precursor_struct(data, filename, DB, prop1, prop2, sorter,
         print(sorted_NAMES[i: i+max_c])
         img = Draw.MolsToGridImage(_set, molsPerRow=3,
                                    subImgSize=(125, 125),
-                                   # legends=[str(round(i[0], 3))+' ('+str(round(i[1], 2))+')'
                                    legends=[str(round(i[1], 2))
                                             for i in _set_props],
                                    useSVG=False)
@@ -366,31 +366,12 @@ def brute_cage_build(precursor_struc, precursor_names, precursor_files,
                 mole_file = NAME+'_opt_PWout.xyz'
                 print('doing:', NAME, ' -- amine:', j, 'of', no_amines)
                 if os.path.isfile(NAME+'_opt.mol') is False:
-                    # run optimization
-                    try:
-                        cage = stk.Cage([prec, bb_amine], topo)
-                        cage.write(NAME+'.mol')
-                        stk.macromodel_opt(cage, macromodel_path=macromod_,
-                                           settings={'restricted': False,
-                                                     'timeout': None,
-                                                     'force_field': 16,
-                                                     'max_iter': 2500,
-                                                     'gradient': 0.05,
-                                                     'md': True
-                                                    },
-                                           md={'timeout': None,
-                                               'force_field': 16,
-                                               'temp': 700,
-                                               'confs': 50,
-                                               'time_step': 1.0,
-                                               'eq_time': 10,
-                                               'sim_time': 200,
-                                               'max_iter': 2500,
-                                               'gradient': 0.05
-                                              })
-                        cage.write(NAME+'_opt.mol')
-                    except MacroMoleculeBuildError:
-                        pass
+                    # build cage and run optimization
+                    cage = stk_functions.build_and_opt_cage(prefix=NAME,
+                                                            BB1=prec,
+                                                            BB2=bb_amine,
+                                                            topology=topo,
+                                                            macromod_=macromod_)
                 # check if completed and run pywindow if so
                 if os.path.isfile(NAME+'_opt.mol') is True:
                     if os.path.isfile(prop_file) is False:
@@ -466,86 +447,7 @@ def brute_cage_build(precursor_struc, precursor_names, precursor_files,
                         f.write('\n')
 
 
-def get_OPLS3_energy_of_list(out_file, structures, macromod_, dir='', opt=False):
-    '''Get OPLS3 single point energy of a list of structures.
-
-    Keyword Arguments:
-        file (str) - file that tracks the structures done to avoid redoing
-        structures (list) - list of structure files
-        dir (str) - directory where structures are if not in working dir
-        opt (bool) - True if optimization is required using macromodel
-    '''
-    with open(out_file, 'r') as f:
-        calculated = json.load(f)
-    energies = {}
-    for file in structures:
-        print(file)
-        NAME = file.replace(dir, '').replace('.mol', '')
-        # optimize
-        if NAME not in calculated and opt is True:
-            struct = stk.StructUnit(file)
-            print('doing opt')
-            stk.macromodel_opt(struct,
-                               macromodel_path=macromod_,
-                               settings={'restricted': False,
-                                         'timeout': None,
-                                         'force_field': 16,
-                                         'max_iter': 2500,
-                                         'gradient': 0.05,
-                                         'md': True},
-                               md={'timeout': None,
-                                   'force_field': 16,
-                                   'temp': 700,
-                                   'confs': 50,
-                                   'time_step': 1.0,
-                                   'eq_time': 10,
-                                   'sim_time': 200,
-                                   'max_iter': 2500,
-                                   'gradient': 0.05})
-            # get energy
-            struct.energy.macromodel(16, macromod_)
-            for i in struct.energy.values:
-                energies[NAME] = struct.energy.values[i]
-                calculated[NAME] = struct.energy.values[i]
-        elif NAME not in calculated and opt is False:
-            print('extracting energy')
-            try:
-                struct = stk.StructUnit(file)
-            except TypeError:
-                struct = stk.StructUnit(file+'_opt.mol')
-            struct.energy.macromodel(16, macromod_)
-            for i in struct.energy.values:
-                energies[NAME] = struct.energy.values[i]
-                calculated[NAME] = struct.energy.values[i]
-        else:
-            print('already calculated')
-            energies[NAME] = calculated[NAME]
-    # save energies of calculated precursors to avoid recalculation
-    with open(out_file, 'w') as f:
-        json.dump(calculated, f)
-    return energies
-
-
-def get_formation_energies(data):
-    '''Calculate formation energies based on prod - react energies.
-
-    '''
-    # by definition
-    H2O_energy = 0.0
-    form_energies = []
-    stoich = {'1p1': {'bb1': 1, 'bb2': 1, 'h2o': 3},
-              '4p4': {'bb1': 4, 'bb2': 4, 'h2o': 12},
-              '2p3': {'bb1': 2, 'bb2': 3, 'h2o': 6},
-              '4p6': {'bb1': 4, 'bb2': 6, 'h2o': 12},
-              '4p62': {'bb1': 4, 'bb2': 6, 'h2o': 12},
-              '6p9': {'bb1': 6, 'bb2': 9, 'h2o': 18}}
-    for i, row in data.iterrows():
-        FE = (row.cage_ey + stoich[row.topo]['h2o'] * H2O_energy) - (row.bb1_ey * stoich[row.topo]['bb1'] + row.bb2_ey * stoich[row.topo]['bb2'])
-        form_energies.append(FE)
-    return form_energies
-
-
-def screening_cages(dataset, des_topo, SA_data):
+def screening_process(dataset, des_topo, SA_data):
     '''Screen cages based on some filters in this function.
 
     Returns new DataFrame
@@ -610,20 +512,22 @@ def brute_analysis(output_csv, amine_type,
     cage_ey_file = 'all_cage_ey.json'
     # get energies of bb1
     print('getting bb1 energies')
-    energies = get_OPLS3_energy_of_list(out_file=prec_ey_file,
-                                        structures=precursor_files,
-                                        dir=precursor_dir,
-                                        macromod_=macromod_, opt=True)
+    energies = stk_functions.get_OPLS3_energy_of_list(out_file=prec_ey_file,
+                                                      structures=precursor_files,
+                                                      dir=precursor_dir,
+                                                      macromod_=macromod_,
+                                                      opt=True)
     bb1_energies = []
     for i, row in working_dataset.iterrows():
         bb1_energies.append(energies[row.bb1])
     working_dataset['bb1_ey'] = bb1_energies
     # get energies of bb2
     print('getting bb2 energies')
-    energies = get_OPLS3_energy_of_list(out_file=prec_ey_file,
-                                        structures=amines,
-                                        dir=DB,
-                                        macromod_=macromod_, opt=True)
+    energies = stk_functions.get_OPLS3_energy_of_list(out_file=prec_ey_file,
+                                                      structures=amines,
+                                                      dir=DB,
+                                                      macromod_=macromod_,
+                                                      opt=True)
     bb2_energies = []
     for i, row in working_dataset.iterrows():
         bb2_energies.append(energies[row.bb2])
@@ -635,17 +539,17 @@ def brute_analysis(output_csv, amine_type,
         NAME = row.bb1+'_'+row.bb2+'_'+row.topo
         cage_file = NAME
         cage_files.append(cage_file)
-    energies = get_OPLS3_energy_of_list(out_file=cage_ey_file,
-                                        structures=cage_files,
-                                        dir='',
-                                        macromod_=macromod_,
-                                        opt=False)
+    energies = stk_functions.get_OPLS3_energy_of_list(out_file=cage_ey_file,
+                                                      structures=cage_files,
+                                                      dir='',
+                                                      macromod_=macromod_,
+                                                      opt=False)
     cage_energies = []
     for i, row in working_dataset.iterrows():
         NAME = row.bb1+'_'+row.bb2+'_'+row.topo
         cage_energies.append(energies[NAME])
     working_dataset['cage_ey'] = cage_energies
-    working_dataset['form_ey'] = get_formation_energies(working_dataset)
+    working_dataset['form_ey'] = calculations.get_formation_energies(working_dataset)
     # calculate the most stable (by formation energy) of each topology
     # for a pair of BB
     # add column to final DB of relative form energy (0 if most stable topo)
@@ -657,8 +561,8 @@ def brute_analysis(output_csv, amine_type,
         energies.append(row.form_ey - min(FEs))
     working_dataset['rel_form_ey'] = energies
     # screen cages
-    final_db = screening_cages(dataset=working_dataset, des_topo=des_topo,
-                               SA_data=SA_data)
+    final_db = screening_process(dataset=working_dataset, des_topo=des_topo,
+                                 SA_data=SA_data)
     print('>>> ', len(final_db), 'cages remaining after screening!')
     print('>>> doing all plotting')
     if amine_type == '2':
@@ -694,6 +598,9 @@ Usage: build_cages.py amine_type output_file wipe run_build
     precursor_names = [i.replace(precursor_dir, '') for i in precursor_files]
     # read in mol files
     precursor_struc = [stk.StructUnit3(i) for i in precursor_files]
+    precursor_smiles = [Chem.MolToSmiles(i.mol) for i in precursor_struc]
+    rdkit_functions.mol_list2grid(mol_dict=dict(zip(precursor_names, precursor_smiles)),
+                                  filename='aldehyde_precusors', mol_per_row=2)
     big_DB = '/data/atarzia/precursor_DBs/reaxys_sorted/'
     if amine_type == '2':
         amines2f = big_DB+'amines2f/'
