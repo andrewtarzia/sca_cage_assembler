@@ -423,7 +423,8 @@ def brute_cage_build(precursor_struc, precursor_names, precursor_files,
                                 w_diff = None
                             if w_diff is None:
                                 w_diff = '-5'
-                            assymetry = str(stk_functions.get_asymmetry(data))
+                            # asymetry = str(stk_functions.get_asymmetry(data))
+                            asymetry = str(w_diff)
                             coll_flag = stk_functions.is_collapse(
                                 topo=topo, avg_diff=w_diff,
                                 max_window_diam=w_max,
@@ -438,12 +439,12 @@ def brute_cage_build(precursor_struc, precursor_names, precursor_files,
                         else:
                             w_no, w_max, w_min, w_avg, w_diff = '-1', '-1', '-1', '-1', '-1'
                             collapse = '2'  # unsure
-                            assymetry = '-1'
+                            asymetry = '-1'
                     with open(output_csv, 'a') as f:
                         f.write(NAME+','+bb1+','+SA1+','+bb2+','+SA2+','+topo+',')
                         f.write(max_diam+','+p_diam+','+p_vol+','+p_diam_opt+',')
                         f.write(p_vol_opt+','+w_no+','+w_max+','+w_min+','+w_avg+',')
-                        f.write(w_diff+','+collapse+','+assymetry)
+                        f.write(w_diff+','+collapse+','+asymetry)
                         f.write('\n')
 
 
@@ -459,32 +460,55 @@ def screening_process(dataset, des_topo, SA_data):
     # iterate through and collect amine buidling blocks that produce cages
     # with reasonable properties
     for i, row in dataset.iterrows():
+        ################################
+        # remove certain topologies
         if row.topo not in des_topo:
             continue
+        ################################
         # remove those with pore diamter < 3.4 angstrom
         # (Computationally-inspired discovery of an unsymmetrical porous
         # organic cage)
         if row.p_diam_opt < 3.4:
             continue
+        NAME = row.bb1+'_'+row.bb2+'_'+row.topo
+        if row.p_diam_opt > 25:
+            print('p_diam > 25:', NAME)
+        ################################
         # remove those that have no windows
-        if row.assym == -2:
+        if row.w_no == 0:
             continue
+        ################################
+        # remove structures with no. windows < expected for topology
+        if row.w_no < stk_functions.expected_window(row.topo):
+            continue
+        ################################
         # remove those with max window diamter < 2.8 angstrom
         # (Computationally-inspired discovery of an unsymmetrical porous
         # organic cage)
-        if row.p_diam_opt < 2.8:
+        if row.w_max < 2.8:
             continue
-        # recalculate assymetry - remove cases with assymetry > 1
-        NAME = row.bb1+'_'+row.bb2+'_'+row.topo
-        if row.p_diam_opt > 25:
-            print(NAME)
-        prop_file = NAME+'_opt_properties.json'
-        with open(prop_file, 'r') as f:
-            data = json.load(f)
-        asymmetry = stk_functions.get_asymmetry(data)
-        row.assym = asymmetry
-        # remove structures with no. windows < expected for topology
-        if row.w_no < stk_functions.expected_window(row.topo):
+        ################################
+        # recalculate asymetry - remove cases with asymetry > XX
+        # do not use the asymetry defined ni stk_functions (deprecated)
+        # It does not handle different window types. Use stk window_difference
+        # function
+        # prop_file = NAME+'_opt_properties.json'
+        # with open(prop_file, 'r') as f:
+        #     data = json.load(f)
+        # asymmetry = stk_functions.get_asymmetry(data)
+        # print(asymmetry)
+        # asymmetry =
+        # print(asymmetry)
+        # row.asym = asymmetry
+        asymmetry = row.w_diff
+        # no windows found
+        if asymmetry == 'None':
+            continue
+        row.asym = float(asymmetry)
+        if row.asym < 0:
+            continue
+        if row.asym > 2:
+            print('asymmetry > 2:', NAME)
             continue
         # get synthetic accessibility of amines
         row.SA2 = float(SA_data[SA_data['name'] == row.bb2].SC)

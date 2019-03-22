@@ -42,7 +42,10 @@ def get_asymmetry(data):
 
     The sum of all the windows' pair differences represents the asymmetry
     of the individual, Asymmetry parameter in eqn (1)
+
+    Deprecated 22/03/19 -- Andrew Tarzia
     """
+    print('you should not be using this.')
     window_sizes = data['windows']['diameters']
     total = 0
     for i, a in enumerate(window_sizes):
