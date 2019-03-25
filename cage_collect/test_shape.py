@@ -41,20 +41,16 @@ Usage: test_shape.py run_calc
         for calc in calculation_list:
             pdb_file, _ = conversion.convert_CIF_2_PDB(calc)
             del _  # we don't need the ASE structure in this case
-
-        sys.exit('finish the code ya dud')
-
         # rebuild system
         rebuilt_structure = pywindow_functions.rebuild_system(file=pdb_file)
         rebuilt_structure.make_modular()
-        # run analysis
-        COM_dict = pywindow_functions.run_analysis(rebuilt_structure,
-                                                   file_prefix=file.replace('.cif', ''),
-                                                   verbose=False)
-        # append atoms to ASE structure as pseudo atoms and write out new CIF
-        pywindow_functions.append_and_write(COM_dict, ASE_structure, file)
-    else:
-        sys.exit('make a plot ya dud')
+        # run analysis on rebuilt system (extracts all cages)
+        _ = pywindow_functions.analyze_rebuilt(rebuilt_structure,
+                                               file_prefix=pre_op,
+                                               atom_limit=20,
+                                               include_coms=False,
+                                               verbose=False)
+        del _  # not needed again
 
 
 if __name__ == "__main__":
