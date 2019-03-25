@@ -58,13 +58,14 @@ Usage: test_shape.py
                                                verbose=False)
         del _  # not needed again
         # determine independant cages based on pore diameters
+        # actually, at this stage we just optimize all of them
         indep_cages = {}
         for js in glob.glob(pre_op+'*.json'):
             with open(js, 'r') as f:
                 data = json.load(f)
-            if data['pore_diameter_opt']['diameter'] > 0:
-                ID = js.rstrip('.json')
-                indep_cages[ID] = data['pore_diameter_opt']['diameter']
+            # if data['pore_diameter_opt']['diameter'] > 0:
+            ID = js.rstrip('.json')
+            indep_cages[ID] = data['pore_diameter_opt']['diameter']
         print(indep_cages)
         # check shape persistency of each independant cage
         cage_output = {}
