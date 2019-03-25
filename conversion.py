@@ -10,7 +10,6 @@ Author: Andrew Tarzia
 Date Created: 15 Mar 2019
 """
 
-from ase import Atom
 from ase.io import read
 
 
