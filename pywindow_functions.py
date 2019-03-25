@@ -29,7 +29,20 @@ def rebuild_system(file):
     return rebuild_molsys
 
 
-def run_on_cage(file, prop_file, mole_file):
+def analyze_cage(cage, propfile=None, structfile=None, include_coms=True):
+    '''Analyze cage already loaded into pywindow.
+
+    '''
+    # Perform full pyWindow analysis
+    cage.full_analysis()
+    # Dump pyWindow properties into JSON and cage into xyz
+    if propfile is not None:
+        cage.dump_properties_json(propfile)
+    if structfile is not None:
+        cage.dump_molecule(structfile, include_coms=include_coms)
+
+
+def analyze_cage_from_MOL(file, prop_file, mole_file, include_coms=True):
     '''Run all desired analysis on a single built cage molecule.
 
     Output cage with COM atoms and properties to JSON.
@@ -39,19 +52,26 @@ def run_on_cage(file, prop_file, mole_file):
     cage_rd = Chem.MolFromMolFile(file)
     cage_sys = pw.MolecularSystem.load_rdkit_mol(cage_rd)
     cage_mol = cage_sys.system_to_molecule()
-    # Perform full pyWindow analysis
-    cage_mol.full_analysis()
-    # Dump pyWindow properties into JSON and cage into xyz
-    cage_mol.dump_properties_json(prop_file)
-    cage_mol.dump_molecule(mole_file, include_coms=True)
+    analyze_cage(cage=cage_mol, propfile=prop_file,
+                 structfile=mole_file, include_coms=include_coms)
 
 
-def run_on_rebuilt(rebuilt_structure, file_prefix, verbose=False):
+def analyze_rebuilt(rebuilt_structure, file_prefix, atom_limit,
+                    include_coms=True, verbose=False):
     '''Run all desired analysis on each molecule in rebuilt structure.
         (modified version of Example6 of pywindow examples.)
 
-    Output COM coodinates for all molecules to dictionary to add to ASE
-    structure.
+    Keyword Arguments:
+        rebuilt_structure (Molecule) - Pywindow rebuilt unitcell with cage
+            molecules
+        file_prefix (str) - file naming convention
+        atom_limit (int) - number of atoms used as cutoff for analysis
+        include_coms (bool) - whether output PDB includes window COMs
+        verbose (bool) - [Default = False]
+
+    Returns:
+        result_dict (dictionary) - dictionary of window information for all
+            cages
 
     '''
     result_dict = {}
@@ -59,7 +79,7 @@ def run_on_rebuilt(rebuilt_structure, file_prefix, verbose=False):
         print('Analysing molecule {0} out of {1}'.format(
             molecule + 1, len(rebuilt_structure.molecules)))
         mol = rebuilt_structure.molecules[molecule]
-        if mol.no_of_atoms < 20:
+        if mol.no_of_atoms < atom_limit:
             continue
         try:
             analysis = mol.full_analysis()
@@ -72,7 +92,7 @@ def run_on_rebuilt(rebuilt_structure, file_prefix, verbose=False):
         # Each molecule can be saved separately
         mol.dump_molecule(
             file_prefix+"_{0}.pdb".format(molecule),
-            include_coms=True,
+            include_coms=include_coms,
             override=True)
         mol.dump_properties_json(
             file_prefix+"_{0}.json".format(molecule),
