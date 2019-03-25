@@ -11,6 +11,7 @@ Date Created: 18 Mar 2019
 """
 
 import stk
+import sys
 from stk.molecular.molecules import MacroMoleculeBuildError
 import json
 
@@ -54,6 +55,47 @@ def get_asymmetry(data):
                 diff = abs(a - b)
                 total += diff
     return total
+
+
+def optimize_structunit(infile, outfile,  exec, md=None,
+                        settings=None, method='OPLS'):
+    '''Read file into StructUnit and run optimization via method.
+
+    '''
+    # use standard settings applied in andrew_marsh work if md/settings is None
+    if method == 'OPLS':
+        if md is None:
+            MD = {'timeout': None,
+                  'force_field': 16,
+                  'temp': 700,
+                  'confs': 50,
+                  'time_step': 1.0,
+                  'eq_time': 10,
+                  'sim_time': 200,
+                  'max_iter': 2500,
+                  'gradient': 0.05}
+        else:
+            MD = md
+        if settings is None:
+            Settings = {'restricted': False,
+                        'timeout': None,
+                        'force_field': 16,
+                        'max_iter': 2500,
+                        'gradient': 0.05,
+                        'md': True}
+        else:
+            Settings = settings
+
+        struct = stk.StructUnit(infile)
+        print('doing opt')
+        stk.macromodel_opt(struct,
+                           macromodel_path=exec,
+                           settings=Settings,
+                           md=MD)
+        struct.write(outfile)
+    else:
+        print('no other method is implemented yet.')
+        sys.exit('exitting')
 
 
 def get_OPLS3_energy_of_list(out_file, structures, macromod_,
