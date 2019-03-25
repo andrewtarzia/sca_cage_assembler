@@ -377,9 +377,9 @@ def brute_cage_build(precursor_struc, precursor_names, precursor_files,
                 # check if completed and run pywindow if so
                 if os.path.isfile(NAME+'_opt.mol') is True:
                     if os.path.isfile(prop_file) is False:
-                        pywindow_functions.run_on_cage(file=NAME+'_opt.mol',
-                                                       prop_file=prop_file,
-                                                       mole_file=mole_file)
+                        pywindow_functions.analyze_cage(file=NAME+'_opt.mol',
+                                                        prop_file=prop_file,
+                                                        mole_file=mole_file)
                 # if pywindow is complete then analyse the cage and write out
                 if os.path.isfile(prop_file) is True:
                     if check_done(NAME, output_csv) is True:
