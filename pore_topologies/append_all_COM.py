@@ -107,7 +107,7 @@ def append_and_write(result_dict, structure, file):
             print('----------')
             print(wCOM)
             window_com = Atom(symbol='He',
-                            position=wCOM)
+                              position=wCOM)
             structure.append(window_com)
             print('----------')
         # add optimized cage pore COM
