@@ -11,10 +11,8 @@ Date Created: 08 Mar 2019
 
 """
 
-import os
 import sys
 import json
-from collections import Counter
 import matplotlib.pyplot as plt
 
 
