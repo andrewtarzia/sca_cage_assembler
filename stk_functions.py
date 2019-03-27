@@ -85,14 +85,15 @@ def optimize_structunit(infile, outfile,  exec, md=None,
                         'md': True}
         else:
             Settings = settings
-
-        struct = stk.StructUnit(infile)
+        print(infile)
+        struct = load_StructUnit(infile)
         print('doing opt')
         stk.macromodel_opt(struct,
                            macromodel_path=exec,
                            settings=Settings,
                            md=MD)
         struct.write(outfile)
+        print(outfile)
     else:
         print('no other method is implemented yet.')
         sys.exit('exitting')
@@ -140,7 +141,7 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
         NAME = file.replace(dir, '').replace('.mol', '')
         # optimize
         if NAME not in calculated and opt is True:
-            struct = stk.StructUnit(file)
+            struct = load_StructUnit(file)
             print('doing opt')
             stk.macromodel_opt(struct,
                                macromodel_path=macromod_,
@@ -154,9 +155,9 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
         elif NAME not in calculated and opt is False:
             print('extracting energy')
             try:
-                struct = stk.StructUnit(file)
+                struct = load_StructUnit(file)
             except TypeError:
-                struct = stk.StructUnit(file+'_opt.mol')
+                struct = load_StructUnit(file+'_opt.mol')
             struct.energy.macromodel(16, macromod_)
             for i in struct.energy.values:
                 energies[NAME] = struct.energy.values[i]
@@ -168,6 +169,17 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
     with open(out_file, 'w') as f:
         json.dump(calculated, f)
     return energies
+
+
+def load_StructUnit(file):
+    '''Load StructUnit class with the cache turned off to avoid misreading of
+    file.
+
+    '''
+    stk.OPTIONS['cache'] = False  # turn caching off for loading
+    struct = stk.StructUnit(file)
+    stk.OPTIONS['cache'] = True  # turn caching back on
+    return struct
 
 
 def build_and_opt_cage(prefix, BB1, BB2, topology, macromod_,
