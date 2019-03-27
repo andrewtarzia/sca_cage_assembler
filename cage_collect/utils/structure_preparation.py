@@ -30,6 +30,7 @@ def write_entry(file, string):
     with open(file, 'a') as f:
         f.write(string)
 
+
 if __name__ == "__main__":
     if (not len(sys.argv) == 2):
         print("""

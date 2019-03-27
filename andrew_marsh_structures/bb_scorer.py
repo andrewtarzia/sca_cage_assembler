@@ -62,35 +62,6 @@ def get_ML(smi, model):
     return ML[0]
 
 
-def score_molecules(molecule_paths):
-    """
-    Args:
-        list - str: paths to mol files.
-
-    Returns:
-        dictionary
-            key: str:Mol in inchi.
-            value: float/int: Scores for each mol file.
-
-    By Steven Bennett - not currently in use.
-    """
-    scores = defaultdict(list)
-    scs_model = SCScorer()
-    scs_model.restore(src_dir+'scscore/models/full_reaxys_model_1024bool/model.ckpt-10654.as_numpy.json.gz')
-    rf_model = joblib.load(src_dir+'rf_model.joblib')
-    for idx, mol in enumerate(molecule_paths):
-        smi = rdkit.MolToSmiles(rdkit.MolFromMolFile(mol))
-        (smi, sco) = scs_model.get_score_from_smi(smi)
-        # SA_score prediction
-        SA_score = (SAScore(rdkit.MolFromSmiles(smi)))
-        #SCS_score prediction
-        SCS_score = sco
-        # Converts the mol file to rdkit mol, then to fingerprint (vector length 1x1024) and makes the prediction using random forest model.
-        ML_model = rf_model.predict([mol2fp(rdkit.MolFromMolFile(mol))])
-        scores[smi].append((SCS_score, SA_score, ML_model[0]))
-    return scores
-
-
 def main():
     """Run script.
 
