@@ -62,6 +62,21 @@ def output_precursor_struct(data, filename, DB, prop1, prop2, sorter,
         if len(_set) == 0:
             break
         print(sorted_NAMES[i: i+max_c])
+        # temporary code to copy structures to cage_structure_folder
+        # all optimized cages with bb1 and bb2 (any topologies)
+        To_dir = '/home/atarzia/projects/andrew_marsh_structures/output/cage_structures/'
+        for ID in sorted_NAMES[i: i+max_c]:
+            print(ID)
+            NAME2 = ID.split('_')[0]+'_'+ID.split('_')[1]+'_'+ID.split('_')[2]+'_'
+            print(NAME2)
+            for CG in glob.glob(NAME2+'*_opt.mol'):
+                print(CG)
+                # to highlight which topology gave the top ranked result
+                if CG == ID+'_opt.mol':
+                    new_CG = CG.replace('_opt.mol', '_opt_top.mol')
+                    os.system('cp '+CG+' '+To_dir+new_CG)
+                else:
+                    os.system('cp '+CG+' '+To_dir)
         img = Draw.MolsToGridImage(_set, molsPerRow=3,
                                    subImgSize=(125, 125),
                                    legends=[str(round(i[1], 2))
