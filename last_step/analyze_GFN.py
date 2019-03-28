@@ -29,11 +29,11 @@ Usage: analyze_GFN.py dir
         sys.exit()
     else:
         targ_dir = sys.argv[1]
-    initial_dir = os.getcwd()+'/'
-    analysis_dir = initial_dir+targ_dir
+    initial_dir = os.getcwd() + '/'
+    analysis_dir = initial_dir + targ_dir
     print('analyzing', analysis_dir)
-    output_file = targ_dir+'.json'
-    initial_struct_dir = initial_dir+'init_structures/'
+    output_file = targ_dir + '.json'
+    initial_struct_dir = initial_dir + 'init_structures/'
     xyzs = sorted(glob.glob('*.xyz'))
     # change into dir
     os.chdir(analysis_dir)
@@ -41,8 +41,8 @@ Usage: analyze_GFN.py dir
     for i in xyzs:
         file = i.replace('.xyz', '')
         # print(file)
-        out = file+'.output'
-        os.chdir(file+'/')
+        out = file + '.output'
+        os.chdir(file + '/')
         # determine properties from GFN output file.
         results[file] = GFN_functions.get_energies(out)
         # calculate RMSD of all structures to input XYZ
@@ -50,9 +50,8 @@ Usage: analyze_GFN.py dir
         if 'SPE' in targ_dir:
             results[file]['RMSD'] = 0
         else:
-            results[file] = calculations.calculate_RMSD(
-                                results[file], file,
-                                init_structure_dir=initial_struct_dir)
+            results[file] = calculations.calculate_RMSD(results[file], file,
+                                                        init_structure_dir=initial_struct_dir)
         os.chdir(analysis_dir)
         # print('done')
         # break
