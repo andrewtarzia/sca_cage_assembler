@@ -14,6 +14,8 @@ Date Created: 08 Mar 2019
 import sys
 import json
 import matplotlib.pyplot as plt
+sys.path.insert(0, '/home/atarzia/thesource/')
+from plotting import parity_plot, flat_line, histogram_plot_1
 
 
 def calculate_formation_energy(prod, react):
@@ -154,12 +156,7 @@ def list_of_reactions():
     return lor
 
 
-def flat_line(ax, x, y, w=0, C='k', m='x'):
-    ax.plot([x-w, x, x+w], [y, y, y], c=C)
-    ax.scatter(x, y, marker=m, c=C)
-
-
-def figure_5(filename, RFEs):
+def figure_5(filename, RFEs, perimine=False):
     '''Recreate figure 5 in DOI: 10.1021/acs.chemmater.7b04323
 
     '''
@@ -176,21 +173,55 @@ def figure_5(filename, RFEs):
     for i in RFEs:
         if i in des_species:
             X_values.append(X_positions[RFEs[i][2]])
-            Y_values.append(RFEs[i][0] * 2625.50)
+            if perimine is False:
+                Y_values.append(RFEs[i][0] * 2625.50)
+            elif perimine is True:
+                Y_values.append(RFEs[i][0] * 2625.50 / RFEs[i][1])
     for i, X in enumerate(X_values):
         flat_line(ax, x=X, y=Y_values[i], w=1.5, C='purple')
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_xlabel('cluster size', fontsize=16)
-    ax.set_ylabel('free energy of formation [kJ/mol]', fontsize=16)
+    if perimine is False:
+        ax.set_ylabel('free energy of formation [kJ/mol]', fontsize=16)
+        ax.set_ylim(-600, 20)
+    elif perimine is True:
+        ax.set_ylabel('free energy of formation \n per imine bond [kJ/mol]',
+                      fontsize=16)
+        ax.set_ylim(-50, -15)
     ax.set_xlim(0, 30)
-    ax.set_ylim(-600, 20)
     ax.set_xticks(list(X_positions.values()))
     ax.set_xticklabels(list(X_positions.keys()))
     fig.tight_layout()
     fig.savefig(filename, dpi=720, bbox_inches='tight')
 
 
-def figure_6(filename, RFEs):
+def figure_5_parity(filename, RFEs):
+    '''Recreate figure 5 in DOI: 10.1021/acs.chemmater.7b04323
+
+    '''
+    # hardcode the MP2 energies (cc-pVDZ) extracted from the paper
+    # include no waters/imine bonds formed
+    des_species = {'(TFB)1(DACH)1(H2O)-1': (-25.5, 1),
+                   '(TFB)1(DACH)2(H2O)-2': (-45.2, 2),
+                   '(TFB)1(DACH)3(H2O)-3': (-61.1, 3),
+                   '(TFB)2(DACH)3(H2O)-5': (-197.5, 5),
+                   '(TFB)2(DACH)3(H2O)-6': (-244.8, 6),
+                   '(TFB)2(DACH)4(H2O)-6': (-220.5, 6),
+                   '(TFB)3(DACH)5(H2O)-9': (-360.9, 9),
+                   '(TFB)4(DACH)6(H2O)-12': (-528.9, 12)}
+
+    MP2_values = []
+    GFN_values = []
+    for i in des_species:
+        MP2_values.append(des_species[i][0] / des_species[i][1])
+        GFN_values.append(RFEs[i][0] * 2625.50 / des_species[i][1])
+    parity_plot(X=MP2_values, Y=GFN_values, outfile=filename,
+                xtitle='MP2 free energy per imine bond [kJ/mol]',
+                ytitle='GFN free energy per imine bond [kJ/mol]',
+                lim=(-50, -15))
+
+
+def figure_6(filename, RFEs, perimine=False):
     '''Recreate figure 6 in DOI: 10.1021/acs.chemmater.7b04323
 
     '''
@@ -207,18 +238,50 @@ def figure_6(filename, RFEs):
     for i in RFEs:
         if i in des_species:
             X_values.append(X_positions[RFEs[i][2]])
-            Y_values.append(RFEs[i][0] * 2625.50)
+            if perimine is False:
+                Y_values.append(RFEs[i][0] * 2625.50)
+            elif perimine is True:
+                Y_values.append(RFEs[i][0] * 2625.50 / RFEs[i][1])
     for i, X in enumerate(X_values):
         flat_line(ax, x=X, y=Y_values[i], w=1.5, C='orange')
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_xlabel('cluster size', fontsize=16)
-    ax.set_ylabel('free energy of formation [kJ/mol]', fontsize=16)
-    ax.set_xlim(0, 30)
-    ax.set_ylim(-600, 20)
+    if perimine is False:
+        ax.set_ylabel('free energy of formation [kJ/mol]', fontsize=16)
+        ax.set_ylim(-600, 20)
+    elif perimine is True:
+        ax.set_ylabel('free energy of formation \n per imine bond [kJ/mol]',
+                      fontsize=16)
+        ax.set_ylim(-70, -20)
     ax.set_xticks(list(X_positions.values()))
     ax.set_xticklabels(list(X_positions.keys()))
     fig.tight_layout()
     fig.savefig(filename, dpi=720, bbox_inches='tight')
+
+
+def figure_6_parity(filename, RFEs):
+    '''Recreate figure 5 in DOI: 10.1021/acs.chemmater.7b04323
+
+    '''
+    # hardcode the MP2 energies (cc-pVDZ) extracted from the paper
+    # include no waters/imine bonds formed
+    des_species = {'(TFB)1(PDA)1(H2O)-1': (-34.4, 1),
+                   '(TFB)1(PDA)2(H2O)-2': (-67.4, 2),
+                   '(TFB)1(PDA)3(H2O)-3': (-94.6, 3),
+                   '(TFB)2(PDA)3(H2O)-5': (-231, 5),
+                   '(TFB)2(PDA)3(H2O)-6': (-267, 6),
+                   '(TFB)2(PDA)4(H2O)-6': (-208, 6),
+                   '(TFB)4(PDA)6(H2O)-12': (-334.3, 12)}
+
+    MP2_values = []
+    GFN_values = []
+    for i in des_species:
+        MP2_values.append(des_species[i][0] / des_species[i][1])
+        GFN_values.append(RFEs[i][0] * 2625.50 / des_species[i][1])
+    parity_plot(X=MP2_values, Y=GFN_values, outfile=filename,
+                xtitle='MP2 free energy per imine bond [kJ/mol]',
+                ytitle='GFN free energy per imine bond [kJ/mol]',
+                lim=(-70, -20))
 
 
 def table_3(filename, RFEs):
@@ -251,7 +314,7 @@ def table_3(filename, RFEs):
                label='GFN2-xTB')
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_xlabel('structure', fontsize=16)
-    ax.set_ylabel('free energy of formation \n per imine bondes [kJ/mol]',
+    ax.set_ylabel('free energy of formation \n per imine bond [kJ/mol]',
                   fontsize=16)
     ax.set_xlim(0, 8)
     ax.set_ylim(-50, -30)
@@ -262,14 +325,14 @@ def table_3(filename, RFEs):
     fig.savefig(filename, dpi=720, bbox_inches='tight')
 
 
-if __name__ == "__main__":
+def main():
     if (not len(sys.argv) == 3):
         print("""
 Usage: calculate_energies.py JSON energy
     JSON: JSON file to run analysis on.
     energy: which energy to use
         ('FE': free energy, 'TE': E_elec, 'HT': H(T=298K), 'GT': G(T=298K))
-        ('RMSD': outputs the RMSD of all structures in LATEX table format)
+        ('RMSD': outputs histogram of RMSD of all structures)
 """)
         sys.exit()
     else:
@@ -279,7 +342,7 @@ Usage: calculate_energies.py JSON energy
     with open(JSON, 'r') as outfile:
         data = json.load(outfile)
     if EY != 'RMSD':
-        new_JSON = JSON.replace('.json', '_RFE_'+EY+'.json')
+        new_JSON = JSON.replace('.json', '_RFE_' + EY + '.json')
         RFEs = {}
         # iterate over desired reactions and calculate RFE
         for R in list_of_reactions():
@@ -300,18 +363,37 @@ Usage: calculate_energies.py JSON energy
         #     print(i, RFEs[i][0] * 2625.50)
         with open(new_JSON, 'w') as outfile:
             json.dump(RFEs, outfile)
-        fig5 = JSON.replace('.json', '_fig5_'+EY+'.pdf')
-        fig6 = JSON.replace('.json', '_fig6_'+EY+'.pdf')
-        tab3 = JSON.replace('.json', '_tab3_'+EY+'.pdf')
+        fig5 = JSON.replace('.json', '_fig5_' + EY + '.pdf')
+        fig5_perimine = JSON.replace('.json', '_fig5_' + EY + '_perimine.pdf')
+        fig5_parity = JSON.replace('.json', '_fig5_' + EY + '_parity.pdf')
+        fig6 = JSON.replace('.json', '_fig6_' + EY + '.pdf')
+        fig6_perimine = JSON.replace('.json', '_fig6_' + EY + '_perimine.pdf')
+        fig6_parity = JSON.replace('.json', '_fig6_' + EY + '_parity.pdf')
+        tab3 = JSON.replace('.json', '_tab3_' + EY + '.pdf')
         # recreate plots from paper:
         # Figure 5
         figure_5(fig5, RFEs)
+        figure_5(fig5_perimine, RFEs, perimine=True)
+        figure_5_parity(fig5_parity, RFEs)
         # Figure 6
         figure_6(fig6, RFEs)
+        figure_6(fig6_perimine, RFEs, perimine=True)
+        figure_6_parity(fig6_parity, RFEs)
         # Table 3 as a plot
         table_3(tab3, RFEs)
     elif EY == 'RMSD':
+        RMSD_hist = JSON.replace('.json', '_' + EY + '_hist.pdf')
         species = sorted(list(data.keys()))
         print(species)
+        to_plot = []
         for i in species:
-            print(i+' & '+str(round(data[i][EY], 4))+" \\\ ")
+            print(i + ' & ' + str(round(data[i][EY], 4)) + " \\\ ")
+            to_plot.append(data[i][EY])
+        histogram_plot_1(Y=to_plot, X_range=(-0.1, 1), width=0.05,
+                         alpha=0.6, color='#FF7900', edgecolor='k',
+                         outfile=RMSD_hist, xtitle='RMSD [$\mathrm{\AA}$]',
+                         density=False)
+
+
+if __name__ == "__main__":
+    main()
