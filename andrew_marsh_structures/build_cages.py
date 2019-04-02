@@ -44,45 +44,45 @@ def output_precursor_struct(data, filename, DB, prop1, prop2, sorter,
     sorted_props = []
     sorted_NAMES = []
     for i, row in sorted_data.iterrows():
-        NAME = DB+row.bb2+'.mol'
+        NAME = DB + row.bb2 + '.mol'
         smiles = Chem.MolToSmiles(Chem.MolFromMolFile(NAME))
         if smiles not in smiles_done:
-            sorted_NAMES.append(row.bb1+'_'+row.bb2+'_'+row.topo)
+            sorted_NAMES.append(row.bb1 + '_' + row.bb2 + '_' + row.topo)
             smiles_done.append(smiles)
             sorted_mols.append(Chem.MolFromSmiles(smiles))
             sorted_props.append((row[prop1], row[prop2]))
-    ranges = np.arange(0, len(sorted_mols)+1, max_c)
+    ranges = np.arange(0, len(sorted_mols) + 1, max_c)
     # print(ranges)
     for i in ranges:
         if i > max_c:
             break
         # print(a, i)
-        _set = sorted_mols[i: i+max_c]
-        _set_props = sorted_props[i: i+max_c]
+        _set = sorted_mols[i: i + max_c]
+        _set_props = sorted_props[i: i + max_c]
         if len(_set) == 0:
             break
-        print(sorted_NAMES[i: i+max_c])
+        print(sorted_NAMES[i: i + max_c])
         # temporary code to copy structures to cage_structure_folder
         # all optimized cages with bb1 and bb2 (any topologies)
         To_dir = '/home/atarzia/projects/andrew_marsh_structures/output/cage_structures/'
-        for ID in sorted_NAMES[i: i+max_c]:
+        for ID in sorted_NAMES[i: i + max_c]:
             print(ID)
-            NAME2 = ID.split('_')[0]+'_'+ID.split('_')[1]+'_'+ID.split('_')[2]+'_'
+            NAME2 = ID.split('_')[0] + '_' + ID.split('_')[1] + '_' + ID.split('_')[2] + '_'
             print(NAME2)
-            for CG in glob.glob(NAME2+'*_opt.mol'):
+            for CG in glob.glob(NAME2 + '*_opt.mol'):
                 print(CG)
                 # to highlight which topology gave the top ranked result
-                if CG == ID+'_opt.mol':
+                if CG == ID + '_opt.mol':
                     new_CG = CG.replace('_opt.mol', '_opt_top.mol')
-                    os.system('cp '+CG+' '+To_dir+new_CG)
+                    os.system('cp ' + CG + ' ' + To_dir + new_CG)
                 else:
-                    os.system('cp '+CG+' '+To_dir)
+                    os.system('cp ' + CG + ' ' + To_dir)
         img = Draw.MolsToGridImage(_set, molsPerRow=3,
                                    subImgSize=(125, 125),
                                    legends=[str(round(i[1], 2))
                                             for i in _set_props],
                                    useSVG=False)
-        img.save(filename+'_'+str(i)+'.png')
+        img.save(filename + '_' + str(i) + '.png')
 
 
 def plots_amines2(final_db, ald_colo, DB, des_topo):
