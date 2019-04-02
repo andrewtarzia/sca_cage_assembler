@@ -18,7 +18,7 @@ import json
 
 def expected_window(topo):
     e_wind = {'dodec': 12, '4p6': 4, '4p62': 4,
-              '8p12': 6,  '6p9': 5, '2p3': 3,
+              '8p12': 6, '6p9': 5, '2p3': 3,
               '4p4': 6, '1p1': 3, '2p2': 4}
     return e_wind[topo]
 
@@ -51,13 +51,13 @@ def get_asymmetry(data):
     total = 0
     for i, a in enumerate(window_sizes):
         for j, b in enumerate(window_sizes[i:]):
-            if i != j+i:
+            if i != j + i:
                 diff = abs(a - b)
                 total += diff
     return total
 
 
-def optimize_structunit(infile, outfile,  exec, md=None,
+def optimize_structunit(infile, outfile, exec, md=None,
                         settings=None, method='OPLS'):
     '''Read file into StructUnit and run optimization via method.
 
@@ -183,7 +183,7 @@ def load_StructUnit(file):
 
 
 def build_and_opt_cage(prefix, BB1, BB2, topology, macromod_,
-                       md=None, settings=None):
+                       md=None, settings=None, pdb=None):
     '''
 
     Keyword Arguments:
@@ -194,6 +194,7 @@ def build_and_opt_cage(prefix, BB1, BB2, topology, macromod_,
         macromod_ (str) - location of macromodel
         md (dict) - settings for MacroModel MD
         settings (dict) - settings for MacroModel Opt
+        xyz (bool) - otuput XYZ file of optimized cage (default is None)
     '''
     # use standard settings applied in andrew_marsh work if md/settings is None
     if md is None:
@@ -217,11 +218,13 @@ def build_and_opt_cage(prefix, BB1, BB2, topology, macromod_,
                     'md': True}
     try:
         cage = stk.Cage([BB1, BB2], topology)
-        cage.write(prefix+'.mol')
+        cage.write(prefix + '.mol')
         stk.macromodel_opt(cage, macromodel_path=macromod_,
                            settings=Settings,
                            md=MD)
-        cage.write(prefix+'_opt.mol')
+        cage.write(prefix + '_opt.mol')
+        if pdb is True:
+            cage.write(prefix + '_opt.pdb')
         return cage
     except MacroMoleculeBuildError:
         pass
