@@ -11,6 +11,7 @@ Date Created: 15 Mar 2019
 """
 
 from rdkit.Chem import AllChem as Chem
+from ase.atoms import Atom
 import pywindow as pw
 
 
@@ -91,11 +92,11 @@ def analyze_rebuilt(rebuilt_structure, file_prefix, atom_limit,
             print(analysis, '\n')
         # Each molecule can be saved separately
         mol.dump_molecule(
-            file_prefix+"_{0}.pdb".format(molecule),
+            file_prefix + "_{0}.pdb".format(molecule),
             include_coms=include_coms,
             override=True)
         mol.dump_properties_json(
-            file_prefix+"_{0}.json".format(molecule),
+            file_prefix + "_{0}.json".format(molecule),
             override=True)
         # output COM, window size and COM, and COM of pore optimized
         result_dict[molecule] = (analysis['centre_of_mass'],
@@ -128,7 +129,7 @@ def append_and_write_COMs(result_dict, structure, file):
             print('----------')
             print(wCOM)
             window_com = Atom(symbol='He',
-                            position=wCOM)
+                              position=wCOM)
             structure.append(window_com)
             print('----------')
         # add optimized cage pore COM
