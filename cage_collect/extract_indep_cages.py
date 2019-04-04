@@ -38,7 +38,13 @@ Usage: extract_indep_cages.py CIF
     print('===================================================')
     print('Results of pyWindow analysis on all indep cages:')
     print('===================================================')
-    print(res)
+    for i in res:
+        try:
+            print('cage {}:'.format(i))
+            print('has {} windows of diameter:'.format(len(res[i][1]['diameters'])))
+            print(res[i][1]['diameters'])
+        except TypeError:
+            print(res[i])
 
 
 if __name__ == "__main__":

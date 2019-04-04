@@ -102,7 +102,7 @@ Usage: structure_preparation.py out_file
                         atoms_removed += 1
                     else:
                         output_lines.append(line)
-            elif '_atom_site_label' in line and '_atom_site_type_symbol' in cif_lines[i+1]:
+            elif '_atom_site_label' in line and '_atom_site_type_symbol' in cif_lines[i + 1]:
                 switch = 1
                 output_lines.append(line)
             else:
