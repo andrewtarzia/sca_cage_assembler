@@ -17,7 +17,7 @@ import glob
 import json
 import pywindow as pw
 sys.path.insert(0, '/home/atarzia/thesource/')
-import conversion
+import IO_tools
 import plotting
 import pywindow_functions
 import stk_functions
@@ -45,7 +45,7 @@ Usage: test_shape.py
         pdb_file = calc.replace('.cif', '.pdb')
         print(pdb_file, pre_op)
         if os.path.isfile(pdb_file) is False:
-            pdb_file, _ = conversion.convert_CIF_2_PDB(calc)
+            pdb_file, _ = IO_tools.convert_CIF_2_PDB(calc)
             del _  # we don't need the ASE structure in this case
         # rebuild system
         rebuilt_structure = pywindow_functions.rebuild_system(file=pdb_file)

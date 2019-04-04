@@ -19,7 +19,7 @@ import pandas as pd
 sys.path.insert(0, '/home/atarzia/thesource/')
 import stk_functions
 import pywindow_functions
-from conversion import convert_PDB_2_XYZ
+from IO_tools import convert_PDB_2_XYZ
 
 
 def check_done(NAME, output_csv):

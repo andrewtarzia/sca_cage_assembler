@@ -13,17 +13,8 @@ Date Created: 04 Mar 2019
 
 import glob
 import sys
-import pymatgen as pmg
-from pymatgen.io.cif import CifParser
-
-
-def read_cif_pmg(file, primitive=False):
-    '''A function to read CIFs with pymatgen and suppress warnings.
-
-    '''
-    s = CifParser(file, occupancy_tolerance=100)
-    struct = s.get_structures(primitive=primitive)[0]
-    return struct
+sys.path.insert(0, '/home/atarzia/thesource/')
+from IO_tools import read_cif_pmg
 
 
 def write_entry(file, CIF, NA):
@@ -36,7 +27,8 @@ def write_entry(file, CIF, NA):
 
     '''
     with open(file, 'a') as f:
-        f.write(CIF+','+str(NA)+'\n')
+        f.write(CIF + ',' + str(NA) + '\n')
+
 
 if __name__ == "__main__":
     if (not len(sys.argv) == 2):

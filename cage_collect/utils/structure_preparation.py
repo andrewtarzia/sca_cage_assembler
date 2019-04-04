@@ -14,9 +14,8 @@ Date Created: 05 Mar 2019
 import glob
 import sys
 import pandas as pd
-import pymatgen as pmg
-from pymatgen.io.cif import CifParser
-from cage_collect.utils.analyse_CIFs import read_cif_pmg
+sys.path.insert(0, '/home/atarzia/thesource/')
+from IO_tools import read_cif_pmg
 
 
 def write_entry(file, string):
@@ -57,7 +56,7 @@ Usage: structure_preparation.py out_file
         # if cif != 'KOJXAJ_extracted.cif':
         #     continue
         cif_out_string = '---------------------------------------------\n'
-        cif_out_string += cif+':\n'
+        cif_out_string += cif + ':\n'
         REFCODE = cif.split('_')[0]
         try:
             solvent = CIF_init_DB[CIF_init_DB['CSD'] == REFCODE].iloc[0]['solvent']
@@ -108,7 +107,7 @@ Usage: structure_preparation.py out_file
                 output_lines.append(line)
             else:
                 output_lines.append(line)
-        cif_out_string += '--> '+str(atoms_removed)+' atoms removed in total.\n'
+        cif_out_string += '--> ' + str(atoms_removed) + ' atoms removed in total.\n'
         # print(cif_out_string)
         # write out modified CIF
         with open(cif_out_1, 'w') as f:
@@ -119,7 +118,7 @@ Usage: structure_preparation.py out_file
             structure_pmg = read_cif_pmg(cif, primitive=True)
             cif_out_string += '- structure read into pymatgen.\n'
             cif_out_string += '- converted to primitive cell and P1 symm. \n'
-            cif_out_string += '- saved to '+cif_out_2+'. \n'
+            cif_out_string += '- saved to ' + cif_out_2 + '. \n'
             structure_pmg.to(filename=cif_out_2, fmt='cif')
         except ValueError:
             cif_out_string += '- structure failed to load into pymatgen.\n'

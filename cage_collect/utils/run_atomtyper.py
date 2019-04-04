@@ -52,12 +52,13 @@ Usage: run_atomtyper.py file view version
     elif version == '2':
         import os
         # use atom_typer to write .gin file for GULP energy calculation
-        # python2 /home/atarzia/AuToGraFS/atomtyper.py -f CuOH2_CuBDC2_int.cif -l ~/AuToGraFS/libraries/uff4mof.csv -r ~/AuToGraFS/libraries/rappe.csv
+        # python2 /home/atarzia/AuToGraFS/atomtyper.py -f CuOH2_CuBDC2_int.cif
+        # -l ~/AuToGraFS/libraries/uff4mof.csv -r ~/AuToGraFS/libraries/rappe.csv
         TYPER_DIR = "/home/atarzia/software/atomtyper/"
         TYPER_LIB = TYPER_DIR
-        TYPER = TYPER_DIR+"atomtyper.py"
-        TYPER_l = TYPER_LIB+"uff4mof.csv"
-        TYPER_r = TYPER_LIB+"rappe.csv"
-        os.system("python2 "+TYPER+" -f "+file+" -l "+TYPER_l+" -r "+TYPER_r)
+        TYPER = TYPER_DIR + "atomtyper.py"
+        TYPER_l = TYPER_LIB + "uff4mof.csv"
+        TYPER_r = TYPER_LIB + "rappe.csv"
+        os.system("python2 " + TYPER + " -f " + file + " -l " + TYPER_l + " -r " + TYPER_r)
     else:
         sys.exit('incorrect version selected. Exitting.')

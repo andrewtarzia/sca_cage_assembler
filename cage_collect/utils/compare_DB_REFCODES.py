@@ -12,6 +12,7 @@ Date Created: 14 Feb 2019 (Happy Valentine's Day)
 """
 import sys
 
+
 def read_gcd(file):
     '''Read REFCODES from gcd file from ConQuest.
 
@@ -20,6 +21,7 @@ def read_gcd(file):
     for line in open(file, 'r'):
         REFCODES.append(line.rstrip())
     return REFCODES
+
 
 if __name__ == "__main__":
     if (not len(sys.argv) == 2):
@@ -42,7 +44,7 @@ Usage: compare_DB_REFCODES.py test_DB
         for i in test_REFCODES:
             if i not in base_REFCODES:
                 intest.append(i)
-                f.write(i+'\n')
+                f.write(i + '\n')
     print('--------------------------------')
     print('%s in test but not in base' % (len(intest)))
     print('--------------------------------')
@@ -52,7 +54,7 @@ Usage: compare_DB_REFCODES.py test_DB
         for i in base_REFCODES:
             if i not in test_REFCODES:
                 inbase.append(i)
-                f.write(i+'\n')
+                f.write(i + '\n')
     print('--------------------------------')
     print('%s in base but not in test' % (len(inbase)))
     print('--------------------------------')

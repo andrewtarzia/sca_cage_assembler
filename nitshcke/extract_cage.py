@@ -13,7 +13,7 @@ import sys
 import pywindow as pw
 sys.path.insert(0, '/home/atarzia/thesource/')
 import pywindow_functions
-import conversion
+import IO_tools
 
 if __name__ == "__main__":
     if (not len(sys.argv) == 2):
@@ -25,7 +25,7 @@ Usage: extract_cage.py CIF
     else:
         file = sys.argv[1]
     file_prefix = file.replace('.cif', '')
-    pdb_file, ASE_structure = conversion.convert_CIF_2_PDB(file)
+    pdb_file, ASE_structure = IO_tools.convert_CIF_2_PDB(file)
     # rebuild system
     rebuilt_structure = pywindow_functions.rebuild_system(file=pdb_file)
     rebuilt_structure.make_modular()
@@ -43,4 +43,4 @@ Usage: extract_cage.py CIF
             pdb_output,
             include_coms=False,
             override=True)
-        _, _ = conversion.convert_PDB_2_XYZ(pdb_output)
+        _, _ = IO_tools.convert_PDB_2_XYZ(pdb_output)

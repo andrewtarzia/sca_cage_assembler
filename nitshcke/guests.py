@@ -13,7 +13,7 @@ import sys
 from rdkit.Chem import AllChem as Chem
 sys.path.insert(0, '/home/atarzia/thesource/')
 import rdkit_functions
-import conversion
+import IO_tools
 
 def get_guests(paper):
     guests = {
@@ -117,4 +117,4 @@ Usage: guests.py paper
         Chem.MolToMolFile(mol, filename=guest+'.mol')
         # save to xyz file
         Chem.MolToPDBFile(mol, filename=guest+'.pdb')
-        conversion.convert_PDB_2_XYZ(file=guest+'.pdb')
+        IO_tools.convert_PDB_2_XYZ(file=guest+'.pdb')

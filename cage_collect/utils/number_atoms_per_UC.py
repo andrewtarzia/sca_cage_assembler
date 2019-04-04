@@ -11,9 +11,9 @@ Date Created: 17 Feb 2019
 
 """
 
-import glob
 from ase.io import read
 import pymatgen as pmg
+
 
 def write_entry(file, number, DOI, CSD, NA_ase, NA_pmg):
     '''Write entry to CIF DB file that contains all names and references for a
@@ -21,7 +21,8 @@ def write_entry(file, number, DOI, CSD, NA_ase, NA_pmg):
 
     '''
     with open('CIF_atom_DB.txt', 'a') as f:
-        f.write(file+','+number+','+DOI+','+CSD+','+NA_ase+','+NA_pmg+'\n')
+        f.write(file + ',' + number + ',' + DOI + ',' + CSD + ',' + NA_ase + ',' + NA_pmg + '\n')
+
 
 if __name__ == "__main__":
     # prepare names file
@@ -35,12 +36,12 @@ if __name__ == "__main__":
         file, number, DOI, CSD = item
         print(file, number, DOI, CSD)
         try:
-            structure_ase = read(CSD+'.cif')
+            structure_ase = read(CSD + '.cif')
             NA_ase = len(structure_ase)
         except RuntimeError:
             NA_ase = 0
         try:
-            structure_pmg = pmg.Structure.from_file(CSD+'.cif')
+            structure_pmg = pmg.Structure.from_file(CSD + '.cif')
             NA_pmg = len(structure_pmg)
         except ValueError:
             NA_pmg = 0

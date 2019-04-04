@@ -11,7 +11,6 @@ Date Created: 14 Feb 2019 (Happy Valentine's Day)
 
 """
 import glob
-import numpy as np
 
 
 def write_entry(file, number, DOI, CSD):
@@ -20,14 +19,14 @@ def write_entry(file, number, DOI, CSD):
 
     '''
     with open('CIF_DB.txt', 'a') as f:
-        f.write(file+','+number+','+DOI+','+CSD+'\n')
+        f.write(file + ',' + number + ',' + DOI + ',' + CSD + '\n')
 
 
 def get_entries(file):
     '''Extract full entry strings from CIF.
 
     '''
-    with open(file , 'r') as f:
+    with open(file, 'r') as f:
         lines = f.readlines()
     # this is a hack that relies on the CCDC formatting.
     joined = '______'.join(lines)
@@ -42,7 +41,8 @@ def get_entries(file):
 
 
 def get_number(entry):
-    '''Extract CCDC number from CIF string in _database_code_depnum_ccdc_archive line.
+    '''Extract CCDC number from CIF string in
+    _database_code_depnum_ccdc_archive line.
 
     '''
     for line in entry:
@@ -59,10 +59,11 @@ def get_doi(entry):
     for i, line in enumerate(entry):
         if '_citation_year' in line:
             # its on the next line
-            DOI = entry[i+1].rstrip()
+            DOI = entry[i + 1].rstrip()
             DOI = DOI.split(' ')
             DOI = DOI[1]
             return DOI
+
 
 def get_csd(entry):
     '''Extract CSD REFCODE from CIF string in XX lineself.
@@ -76,9 +77,10 @@ def write_CIF(entry, number):
     '''Write entry string to CIF named after CCDC number.
 
     '''
-    with open(number+'.cif', 'w') as f:
+    with open(number + '.cif', 'w') as f:
         for string in entry:
             f.write(string)
+
 
 if __name__ == "__main__":
     # prepare names file
