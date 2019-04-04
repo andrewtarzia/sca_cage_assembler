@@ -3,7 +3,7 @@
 # Distributed under the terms of the MIT License.
 
 """
-Functions that are useful for converting structure files
+Functions that are useful for reading/writing structure files
 
 Author: Andrew Tarzia
 
@@ -11,6 +11,7 @@ Date Created: 15 Mar 2019
 """
 
 from ase.io import read
+from pymatgen.io.cif import CifParser
 
 
 def convert_CIF_2_PDB(file):
@@ -39,3 +40,12 @@ def convert_PDB_2_XYZ(file):
     structure.write(xyz_file)
     print('conversion done.')
     return xyz_file, structure
+
+
+def read_cif_pmg(file, primitive=False):
+    '''A function to read CIFs with pymatgen and suppress warnings.
+
+    '''
+    s = CifParser(file, occupancy_tolerance=100)
+    struct = s.get_structures(primitive=primitive)[0]
+    return struct
