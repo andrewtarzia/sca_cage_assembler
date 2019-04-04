@@ -3,11 +3,17 @@
 # Distributed under the terms of the MIT License.
 
 """
-Script to get RMSD between two structures.
+Script to test the shape persistency of a cage molecule.
+
+1 - run full pyWindow analysis
+2 - extract all independant cages
+3 - run energy minimization/MD on independant cages
+    optimization method can be swapped out. Default is OPLS3 with macromodel
+4 - rerun pyWindow analysis to determine shape persistency
 
 Author: Andrew Tarzia
 
-Date Created: 08 Mar 2019
+Date Created: 22 Mar 2019
 
 """
 
@@ -20,7 +26,7 @@ sys.path.insert(0, '/home/atarzia/thesource/')
 import IO_tools
 import plotting
 import pywindow_functions
-import stk_functions
+from stk_functions import optimize_structunit
 
 
 def main():
@@ -56,11 +62,11 @@ Usage: test_shape.py
                                                atom_limit=20,
                                                include_coms=False,
                                                verbose=False)
-        del _  # not needed again
+        del _  # not needed
         # determine independant cages based on pore diameters
         # actually, at this stage we just optimize all of them
         indep_cages = {}
-        for js in glob.glob(pre_op+'*.json'):
+        for js in glob.glob(pre_op + '*.json'):
             with open(js, 'r') as f:
                 data = json.load(f)
             # if data['pore_diameter_opt']['diameter'] > 0:
@@ -72,24 +78,24 @@ Usage: test_shape.py
         for ID in indep_cages:
             newID = ID.replace('preop', 'postop')
             # run MD with OPLS if output file does not exist
-            if os.path.isfile(newID+'.pdb') is False:
+            if os.path.isfile(newID + '.pdb') is False:
                 print('doing optimization of cage:', ID)
-                stk_functions.optimize_structunit(
-                        infile=ID+'.pdb',
-                        outfile=newID+'.pdb',
+                optimize_structunit(
+                        infile=ID + '.pdb',
+                        outfile=newID + '.pdb',
                         exec='/home/atarzia/software/schrodinger_install',
                         method='OPLS',
                         settings=None,
                         md=None)
                 print('done')
             # analyze optimized cage with pyWindow and output to JSON
-            if os.path.isfile(newID+'.json') is False:
-                cagesys = pw.MolecularSystem.load_file(newID+'.pdb')
+            if os.path.isfile(newID + '.json') is False:
+                cagesys = pw.MolecularSystem.load_file(newID + '.pdb')
                 cage = cagesys.system_to_molecule()
                 pywindow_functions.analyze_cage(cage=cage,
-                                                propfile=newID+'.json',
+                                                propfile=newID + '.json',
                                                 structfile=None)
-            with open(newID+'.json', 'r') as f:
+            with open(newID + '.json', 'r') as f:
                 data = json.load(f)
             new_pore_diam = data['pore_diameter_opt']['diameter']
             cage_output[newID] = (indep_cages[ID], new_pore_diam)
@@ -105,7 +111,7 @@ Usage: test_shape.py
                              outfile=calc.replace('.cif', '.pdf'),
                              xtitle='XRD pore diameter [$\mathrm{\AA}$]',
                              ytitle='opt. pore diameter [$\mathrm{\AA}$]',
-                             lim=(0, round(max([max(ploty), max(plotx)]))+1),
+                             lim=(0, round(max([max(ploty), max(plotx)])) + 1),
                              )
 
 
