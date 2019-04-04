@@ -10,10 +10,32 @@ Author: Andrew Tarzia
 Date Created: 18 Mar 2019
 """
 
+from glob import glob
 import stk
 import sys
 from stk.molecular.molecules import MacroMoleculeBuildError
 import json
+
+
+def build_population(directory, fgs=['bromine'], suffix='.mol'):
+    '''Reads all SUFFIX files in directory into an stk population.
+
+    Keyword Arguments:
+        directory (str) - directory containing molecules
+        fgs (list) - list of functional groups on the molecules. Defaults to Br
+        suffix (str) - file type (default .mol)
+
+    Returns:
+        popn (stk.Population()) - population of molecules
+
+    '''
+    mols = []
+    for file in glob(directory + '*' + suffix):
+        mol = stk.StructUnit(file, fgs,
+                             name=file.rstrip(suffix).replace(directory, ''))
+        mols.append(mol)
+    popn = stk.Population(*mols)
+    return popn
 
 
 def expected_window(topo):
