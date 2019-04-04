@@ -17,6 +17,44 @@ from stk.molecular.molecules import MacroMoleculeBuildError
 import json
 
 
+def build_ABCBA(core, liga, link):
+    '''Build ABCBA ligand using linear stk polymer.
+
+    Keyword Arguments:
+        core (stk.StructUnit) - molecule to use as core
+        liga (stk.StructUnit) - molecule to use as liga
+        link (stk.StructUnit) - molecule to use as link
+
+    Returns:
+        polymer (stk.Polymer()) - polymer molecule pre optimization
+
+    '''
+    polymer = stk.Polymer([liga, link, core, link, liga],
+                          stk.Linear(repeating_unit='ABCBA',
+                                     orientation=[0, 0, 0, 1, 1],
+                                     n=1, ends='fg'))
+    return polymer
+
+
+def build_ABA(core, liga):
+    '''Build ABCBA ligand using linear stk polymer.
+
+    Keyword Arguments:
+        core (stk.StructUnit) - molecule to use as core
+        liga (stk.StructUnit) - molecule to use as liga
+        link (stk.StructUnit) - molecule to use as link
+
+    Returns:
+        polymer (stk.Polymer()) - polymer molecule pre optimization
+
+    '''
+    polymer = stk.Polymer([liga, core, liga],
+                          stk.Linear(repeating_unit='ACA',
+                                     orientation=[0, 0, 1],
+                                     n=1, ends='fg'))
+    return polymer
+
+
 def build_population(directory, fgs=['bromine'], suffix='.mol'):
     '''Reads all SUFFIX files in directory into an stk population.
 
