@@ -39,7 +39,7 @@ def main():
     liga_pop = build_population(directory=liga_dir, fgs=['bromine'])
     link_pop = build_population(directory=link_dir, fgs=['bromine'])
 
-    # build ABCBA polymer
+    # build ABCBA molecule
     pop_ids = (0, 0, 0)  # core, ligand, linker
     large_part = build_ABCBA(core=core_pop[pop_ids[0]],
                              liga=liga_pop[pop_ids[1]],
@@ -52,7 +52,7 @@ def main():
     large_part.dump(join(mole_dir, json_file))
     mol_file = prefix + '_ABCBA.mol'
     large_part.write(join(mole_dir, mol_file))
-    # energy minimize polymer
+    # energy minimize molecule
     rdkit_ETKDG(large_part)
     # output energy minimized
     json_file = prefix + '_ABCBA_opt.json'
@@ -60,7 +60,7 @@ def main():
     mol_file = prefix + '_ABCBA_opt.mol'
     large_part.write(join(mole_dir, mol_file))
 
-    # build ABA polymer
+    # build ABA molecule
     pop_ids = (0, 0, 0)  # core, ligand, linker
     small_part = build_ABA(core=core_pop[0],
                            liga=liga_pop[0])
@@ -71,7 +71,7 @@ def main():
     small_part.dump(join(mole_dir, json_file))
     mol_file = prefix + '_ABA.mol'
     small_part.write(join(mole_dir, mol_file))
-    # energy minimize polymer
+    # energy minimize molecule
     rdkit_ETKDG(small_part)
     # output energy minimized
     json_file = prefix + '_ABA_opt.json'
