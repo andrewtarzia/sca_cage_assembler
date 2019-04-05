@@ -66,6 +66,17 @@ def get_molecule(type, popns, pop_ids, N=1, mole_dir='./'):
     molecule.dump(join(mole_dir, json_file))
     mol_file = prefix + '_' + type + '_opt.mol'
     molecule.write(join(mole_dir, mol_file))
+    # make N conformers of the polymer molecule
+    cids = Chem.EmbedMultipleConfs(mol=molecule.mol, numConfs=N,
+                                   params=Chem.ETKDG())
+    # output each conformer to 3D structure if desired
+    # for cid in cids:
+    #     print(cid)
+    #     mol_file = prefix + '_' + type + '_' + str(cid) + '_opt.mol'
+    #     molecule.write(path=join(mole_dir, mol_file), conformer=cid)
+    return cids, molecule
+
+
 def main():
     if (not len(sys.argv) == 1):
         print("""
