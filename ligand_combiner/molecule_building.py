@@ -12,10 +12,26 @@ Date Created: 04 Apr 2019
 """
 
 import sys
+from rdkit.Chem import AllChem as Chem
 from os.path import join
 from stk import rdkit_ETKDG
 sys.path.insert(0, '/home/atarzia/thesource/')
 from stk_functions import build_population, build_ABCBA, build_ABA
+
+
+def get_geometrical_properties(mol, type, cids):
+    '''Calculate the geometrical properties of all conformers
+
+    '''
+    for cid in cids:
+        print(cid)
+        targ_mol = mol.mol.GetConformer(cid)
+        bb = mol.building_blocks[0]
+        print([i.func_group_infos[0].name for i in mol.building_blocks])
+        print(mol.fg_centroid(fg_id=1, conformer=cid))
+        print(mol.bonder_ids)
+        print(targ_mol)
+        sys.exit()
 
 
 def get_molecule(type, popns, pop_ids, N=1, mole_dir='./'):
@@ -104,12 +120,20 @@ def main():
                                                popns=(core_pop, liga_pop, link_pop),
                                                pop_ids=pop_ids, N=5,
                                                mole_dir=mole_dir)
+    # get properties - save to molecule as attribute
+    ABCBA_molecule = get_geometrical_properties(mol=ABCBA_molecule,
+                                                type='ABCBA',
+                                                cids=ABCBA_confs)
     # build ABA molecule
     pop_ids = (0, 0, 0)  # core, ligand, linker
     ABA_confs, ABA_molecule = get_molecule(type='ABA',
                                            popns=(core_pop, liga_pop, link_pop),
                                            pop_ids=pop_ids, N=5,
                                            mole_dir=mole_dir)
+    # get properties - save to molecule as attribute
+    ABA_molecule = get_geometrical_properties(mol=ABA_molecule,
+                                              type='ABA',
+                                              cids=ABA_confs)
 
 
 if __name__ == "__main__":
