@@ -10,7 +10,6 @@ Author: Andrew Tarzia
 Date Created: 15 Mar 2019
 """
 import sys
-import pywindow as pw
 sys.path.insert(0, '/home/atarzia/thesource/')
 import pywindow_functions
 import IO_tools
@@ -38,7 +37,7 @@ Usage: extract_cage.py CIF
             continue
         print(mol.full_analysis(), '\n')
         # Each molecule can be saved separately
-        pdb_output = file_prefix+"_{0}.pdb".format(molecule)
+        pdb_output = file_prefix + "_{0}.pdb".format(molecule)
         mol.dump_molecule(
             pdb_output,
             include_coms=False,
