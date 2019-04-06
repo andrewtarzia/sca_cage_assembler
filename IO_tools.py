@@ -11,6 +11,7 @@ Date Created: 15 Mar 2019
 """
 
 from ase.io import read
+from ase.io.xyz import write_xyz
 from pymatgen.io.cif import CifParser
 
 
@@ -28,8 +29,9 @@ def convert_CIF_2_PDB(file):
     return pdb_file, structure
 
 
-def convert_PDB_2_XYZ(file):
-    '''Convert PDB to XYZ file, save and return structure
+def convert_PDB_2_XYZ(file, comment=None):
+    '''Convert PDB to standard (NOT exteneded) XYZ file, save and
+    return structure
 
     '''
     xyz_file = file.replace('.pdb', '.xyz')
@@ -37,7 +39,12 @@ def convert_PDB_2_XYZ(file):
     structure = read(file)
     # view(structure)
     # input()
-    structure.write(xyz_file)
+    if comment is None:
+        cmt = 'This is an XYZ structure.'
+    else:
+        cmt = comment
+    write_xyz(xyz_file, images=structure, comment=cmt,
+              columns=['symbols', 'positions'])
     print('conversion done.')
     return xyz_file, structure
 
