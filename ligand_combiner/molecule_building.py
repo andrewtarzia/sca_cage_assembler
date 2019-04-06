@@ -12,6 +12,8 @@ Date Created: 04 Apr 2019
 """
 
 import sys
+from ase.atoms import Atoms, Atom
+import numpy as np
 from rdkit.Chem import AllChem as Chem
 from os.path import join
 from stk import rdkit_ETKDG
@@ -143,6 +145,28 @@ def get_geometrical_properties(mol, type, cids):
 
 
 
+
+        # output for viz
+        if type = 'ABCBA':
+            mol.write(path='testing_'+str(cid)+'_mol.pdb', conformer=cid)
+            POIs = Atoms()
+            POIs.append(Atom(symbol='C', position=conf_dict['liga1']['pos']))
+            POIs.append(Atom(symbol='C', position=conf_dict['link1']['pos']))
+            POIs.append(Atom(symbol='C', position=conf_dict['core1']['pos']))
+            POIs.append(Atom(symbol='C', position=conf_dict['link2']['pos']))
+            POIs.append(Atom(symbol='C', position=conf_dict['liga2']['pos']))
+            POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
+            POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
+            POIs.write('testing_'+str(cid)+'_POIs.xyz')
+        elif type = 'ABA':
+            mol.write(path='testing_'+str(cid)+'_mol.pdb', conformer=cid)
+            POIs = Atoms()
+            POIs.append(Atom(symbol='C', position=conf_dict['liga1']['pos']))
+            POIs.append(Atom(symbol='C', position=conf_dict['core1']['pos']))
+            POIs.append(Atom(symbol='C', position=conf_dict['liga2']['pos']))
+            POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
+            POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
+            POIs.write('testing_'+str(cid)+'_POIs.xyz')
         sys.exit()
     return mol
 
