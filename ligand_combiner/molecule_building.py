@@ -38,6 +38,33 @@ def get_atom_coord(molecule, conf, atom_type):
     # get coordinates
     coord = conformer.GetAtomPosition(des_atom_idx)
     return np.array([*coord])
+
+
+def get_binding_N_coord(molecule, conf, bb):
+    '''Get the single (assumption) binding N in a building block bb using the
+    building_block_cores of molecule.
+
+    '''
+    # assumes that the ligand block is always building block index '0'
+    # get coord of possible Ns
+    N_coords = [get_atom_coord(molecule=i, conf=conf, atom_type='N')
+                for i in molecule.building_block_cores(0)]
+    print('n coords', N_coords)
+    # output the coord closest to bb COM
+    dist_to_COM = []
+    cent = bb.center_of_mass()
+    print('COM', cent)
+    for coord in N_coords:
+        print('c', coord)
+        # calculate catesian distance
+        distance = np.linalg.norm(coord - cent)
+        print('d', distance)
+        dist_to_COM.append(distance)
+    closest_N_coord = N_coords[dist_to_COM.index(min(dist_to_COM))]
+    print('closest n', closest_N_coord)
+    return closest_N_coord
+
+
 def get_geometrical_properties(mol, type, cids):
     '''Calculate the geometrical properties of all conformers
 
