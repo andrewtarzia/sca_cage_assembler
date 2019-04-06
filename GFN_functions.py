@@ -22,7 +22,8 @@ def setup_dirs(xyzs):
     for i in xyzs:
         file = i.replace('.xyz', '')
         print(file)
-        os.system('mkdir ' + file)
+        if os.path.isdir(file) is False:
+            os.system('mkdir ' + file)
         os.system('cp ' + i + ' ' + file + '/')
         if os.path.isfile('xctrl') is False:
             print('copy an xctrl file in this dir!', os.getcwd())
