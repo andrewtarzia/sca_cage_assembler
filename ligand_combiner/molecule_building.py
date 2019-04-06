@@ -69,15 +69,82 @@ def get_geometrical_properties(mol, type, cids):
     '''Calculate the geometrical properties of all conformers
 
     '''
+    # new attribute for mol
+    mol.geom_prop = {}
     for cid in cids:
-        print(cid)
-        targ_mol = mol.mol.GetConformer(cid)
-        bb = mol.building_blocks[0]
-        print([i.func_group_infos[0].name for i in mol.building_blocks])
-        print(mol.fg_centroid(fg_id=1, conformer=cid))
-        print(mol.bonder_ids)
-        print(targ_mol)
+
+        print([i.center_of_mass(conformer=cid) for i in mol.building_blocks])
+
+
+        # sys.exit()
+
+        # dictinary per conformer
+        conf_dict = {}
+        # type dependant dictionary - check the number of BB is correct
+        if type == 'ABCBA' and len(mol.building_blocks) == 5:
+            # add checks that file name matches the expected ordering
+            if 'lig_' in mol.building_blocks[0].file:
+                print('lig1')
+                conf_dict['liga1'] = {
+                    'pos': mol.building_blocks[0].center_of_mass(conformer=cid),
+                    'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
+                                                 bb=mol.building_blocks[0])}
+            else:
+                raise Exception('building block ordering is off.')
+            if 'link_' in mol.building_blocks[1].file:
+                conf_dict['link1'] = {
+                    'pos': mol.building_blocks[1].center_of_mass(conformer=cid)}
+            else:
+                raise Exception('building block ordering is off.')
+            if 'core_' in mol.building_blocks[2].file:
+                conf_dict['core1'] = {
+                    'pos': mol.building_blocks[2].center_of_mass(conformer=cid)}
+            else:
+                raise Exception('building block ordering is off.')
+            if 'link_' in mol.building_blocks[3].file:
+                conf_dict['link2'] = {
+                    'pos': mol.building_blocks[3].center_of_mass(conformer=cid)}
+            else:
+                raise Exception('building block ordering is off.')
+            if 'lig_' in mol.building_blocks[4].file:
+                print('lig2')
+                conf_dict['liga2'] = {
+                    'pos': mol.building_blocks[4].center_of_mass(conformer=cid),
+                    'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
+                                                 bb=mol.building_blocks[4])}
+            else:
+                raise Exception('building block ordering is off.')
+        elif type == 'ABA' and len(mol.building_blocks) == 3:
+            if 'lig_' in mol.building_blocks[0].file:
+                print('lig1')
+                conf_dict['liga1'] = {
+                    'pos': mol.building_blocks[0].center_of_mass(conformer=cid),
+                    'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
+                                                 bb=mol.building_blocks[0])}
+            else:
+                raise Exception('building block ordering is off.')
+            if 'core_' in mol.building_blocks[1].file:
+                conf_dict['core1'] = {
+                    'pos': mol.building_blocks[1].center_of_mass(conformer=cid)}
+            else:
+                raise Exception('building block ordering is off.')
+            if 'lig_' in mol.building_blocks[2].file:
+                print('lig2')
+                conf_dict['liga2'] = {
+                    'pos': mol.building_blocks[2].center_of_mass(conformer=cid),
+                    'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
+                                                 bb=mol.building_blocks[2])}
+            else:
+                raise Exception('building block ordering is off.')
+        else:
+            raise Exception('something went wrong here, either type or build process')
+        mol.geom_prop[cid] = conf_dict
+        print(cid, mol.geom_prop[cid])
+
+
+
         sys.exit()
+    return mol
 
 
 def get_molecule(type, popns, pop_ids, N=1, mole_dir='./'):
