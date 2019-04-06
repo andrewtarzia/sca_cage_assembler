@@ -19,6 +19,25 @@ sys.path.insert(0, '/home/atarzia/thesource/')
 from stk_functions import build_population, build_ABCBA, build_ABA
 
 
+def get_atom_coord(molecule, conf, atom_type):
+    '''Get the cartesian coordinates of 1 atom of type 'atom_type' in confomer
+    'conf' in 'molecule'.
+
+    '''
+    # Get the conformer from the rdkit instance.
+    conformer = molecule.GetConformer(conf)
+    # check that there is only one atom of type atom_type
+    count_type = 0
+    for atom in molecule.GetAtoms():
+        if atom.GetSymbol() == atom_type:
+            des_atom_idx = atom.GetIdx()
+            count_type += 1
+    if count_type > 1:
+        raise Exception('more then one {} in molecule'.format(atom_type))
+
+    # get coordinates
+    coord = conformer.GetAtomPosition(des_atom_idx)
+    return np.array([*coord])
 def get_geometrical_properties(mol, type, cids):
     '''Calculate the geometrical properties of all conformers
 
