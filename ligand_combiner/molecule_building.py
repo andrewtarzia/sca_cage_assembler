@@ -62,79 +62,77 @@ def bb_center_of_mass(molecule, conf, bb_idx, frag_id):
             else:
                 return None
 
-def get_geometrical_properties(mol, type, cids):
+
+def get_geometrical_properties(mol, cids, type):
     '''Calculate the geometrical properties of all conformers
 
     '''
     # new attribute for mol
     mol.geom_prop = {}
     for cid in cids:
-
-        print([i.center_of_mass(conformer=cid) for i in mol.building_blocks])
-
-
-        # sys.exit()
-
         # dictinary per conformer
         conf_dict = {}
-        # type dependant dictionary - check the number of BB is correct
-        if type == 'ABCBA' and len(mol.building_blocks) == 5:
-            # add checks that file name matches the expected ordering
-            if 'lig_' in mol.building_blocks[0].file:
-                print('lig1')
-                conf_dict['liga1'] = {
-                    'pos': mol.building_blocks[0].center_of_mass(conformer=cid),
-                    'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
-                                                 bb=mol.building_blocks[0])}
-            else:
-                raise Exception('building block ordering is off.')
-            if 'link_' in mol.building_blocks[1].file:
-                conf_dict['link1'] = {
-                    'pos': mol.building_blocks[1].center_of_mass(conformer=cid)}
-            else:
-                raise Exception('building block ordering is off.')
-            if 'core_' in mol.building_blocks[2].file:
-                conf_dict['core1'] = {
-                    'pos': mol.building_blocks[2].center_of_mass(conformer=cid)}
-            else:
-                raise Exception('building block ordering is off.')
-            if 'link_' in mol.building_blocks[3].file:
-                conf_dict['link2'] = {
-                    'pos': mol.building_blocks[3].center_of_mass(conformer=cid)}
-            else:
-                raise Exception('building block ordering is off.')
-            if 'lig_' in mol.building_blocks[4].file:
-                print('lig2')
-                conf_dict['liga2'] = {
-                    'pos': mol.building_blocks[4].center_of_mass(conformer=cid),
-                    'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
-                                                 bb=mol.building_blocks[4])}
-            else:
-                raise Exception('building block ordering is off.')
-        elif type == 'ABA' and len(mol.building_blocks) == 3:
-            if 'lig_' in mol.building_blocks[0].file:
-                print('lig1')
-                conf_dict['liga1'] = {
-                    'pos': mol.building_blocks[0].center_of_mass(conformer=cid),
-                    'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
-                                                 bb=mol.building_blocks[0])}
-            else:
-                raise Exception('building block ordering is off.')
-            if 'core_' in mol.building_blocks[1].file:
-                conf_dict['core1'] = {
-                    'pos': mol.building_blocks[1].center_of_mass(conformer=cid)}
-            else:
-                raise Exception('building block ordering is off.')
-            if 'lig_' in mol.building_blocks[2].file:
-                print('lig2')
-                conf_dict['liga2'] = {
-                    'pos': mol.building_blocks[2].center_of_mass(conformer=cid),
-                    'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
-                                                 bb=mol.building_blocks[2])}
-            else:
-                raise Exception('building block ordering is off.')
-        else:
-            raise Exception('something went wrong here, either type or build process')
+        conf_dict['COM'] = mol.center_of_mass(conformer=cid)
+        if type == 'ABCBA':
+            # first binder
+            conf_dict['liga1'] = {
+                # frag_id is hardcoded under the assumption that
+                # the ordering is maintained from Polymer buidling
+                'pos': bb_center_of_mass(molecule=mol, conf=cid,
+                                         bb_idx=0, frag_id=0),
+                'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
+                                             frag_id=0)}
+            # second binder
+            conf_dict['liga2'] = {
+                # frag_id is hardcoded under the assumption that
+                # the ordering is maintained from Polymer buidling
+                'pos': bb_center_of_mass(molecule=mol, conf=cid,
+                                         bb_idx=0, frag_id=1),
+                'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
+                                             frag_id=1)}
+            # first linker
+            conf_dict['link1'] = {
+                # frag_id is hardcoded under the assumption that
+                # the ordering is maintained from Polymer buidling
+                'pos': bb_center_of_mass(molecule=mol, conf=cid,
+                                         bb_idx=1, frag_id=0)}
+            # second linker
+            conf_dict['link2'] = {
+                # frag_id is hardcoded under the assumption that
+                # the ordering is maintained from Polymer buidling
+                'pos': bb_center_of_mass(molecule=mol, conf=cid,
+                                         bb_idx=1, frag_id=1)}
+            # core
+            conf_dict['core1'] = {
+                # frag_id is hardcoded under the assumption that
+                # the ordering is maintained from Polymer buidling
+                # there is only one core, so this is fine.
+                'pos': bb_center_of_mass(molecule=mol, conf=cid,
+                                         bb_idx=2, frag_id=0)}
+        elif type == 'ABA':
+            # first binder
+            conf_dict['liga1'] = {
+                # frag_id is hardcoded under the assumption that
+                # the ordering is maintained from Polymer buidling
+                'pos': bb_center_of_mass(molecule=mol, conf=cid,
+                                         bb_idx=0, frag_id=0),
+                'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
+                                             frag_id=0)}
+            # second binder
+            conf_dict['liga2'] = {
+                # frag_id is hardcoded under the assumption that
+                # the ordering is maintained from Polymer buidling
+                'pos': bb_center_of_mass(molecule=mol, conf=cid,
+                                         bb_idx=0, frag_id=1),
+                'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
+                                             frag_id=1)}
+            # core
+            conf_dict['core1'] = {
+                # frag_id is hardcoded under the assumption that
+                # the ordering is maintained from Polymer buidling
+                # there is only one core, so this is fine.
+                'pos': bb_center_of_mass(molecule=mol, conf=cid,
+                                         bb_idx=1, frag_id=0)}
         mol.geom_prop[cid] = conf_dict
         print(cid, mol.geom_prop[cid])
 
@@ -252,8 +250,8 @@ def main():
                                                mole_dir=mole_dir)
     # get properties - save to molecule as attribute
     ABCBA_molecule = get_geometrical_properties(mol=ABCBA_molecule,
-                                                type='ABCBA',
-                                                cids=ABCBA_confs)
+                                                cids=ABCBA_confs,
+                                                type='ABCBA')
     # build ABA molecule
     pop_ids = (0, 0, 0)  # core, ligand, linker
     ABA_confs, ABA_molecule = get_molecule(type='ABA',
@@ -262,8 +260,8 @@ def main():
                                            mole_dir=mole_dir)
     # get properties - save to molecule as attribute
     ABA_molecule = get_geometrical_properties(mol=ABA_molecule,
-                                              type='ABA',
-                                              cids=ABA_confs)
+                                              cids=ABA_confs,
+                                              type='ABA')
 
 
 if __name__ == "__main__":
