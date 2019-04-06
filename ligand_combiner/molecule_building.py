@@ -21,51 +21,46 @@ sys.path.insert(0, '/home/atarzia/thesource/')
 from stk_functions import build_population, build_ABCBA, build_ABA
 
 
-def get_atom_coord(molecule, conf, atom_type):
-    '''Get the cartesian coordinates of 1 atom of type 'atom_type' in confomer
-    'conf' in 'molecule'.
-
-    '''
-    # Get the conformer from the rdkit instance.
-    conformer = molecule.GetConformer(conf)
-    # check that there is only one atom of type atom_type
-    count_type = 0
-    for atom in molecule.GetAtoms():
-        if atom.GetSymbol() == atom_type:
-            des_atom_idx = atom.GetIdx()
-            count_type += 1
-    if count_type > 1:
-        raise Exception('more then one {} in molecule'.format(atom_type))
-
-    # get coordinates
-    coord = conformer.GetAtomPosition(des_atom_idx)
-    return np.array([*coord])
-
-
-def get_binding_N_coord(molecule, conf, bb):
-    '''Get the single (assumption) binding N in a building block bb using the
+def get_binding_N_coord(molecule, conf, frag_id):
+    '''Get the single (assumption) binding N in ligand building block using the
     building_block_cores of molecule.
 
     '''
     # assumes that the ligand block is always building block index '0'
     # get coord of possible Ns
-    N_coords = [get_atom_coord(molecule=i, conf=conf, atom_type='N')
-                for i in molecule.building_block_cores(0)]
-    print('n coords', N_coords)
-    # output the coord closest to bb COM
-    dist_to_COM = []
-    cent = bb.center_of_mass()
-    print('COM', cent)
-    for coord in N_coords:
-        print('c', coord)
-        # calculate catesian distance
-        distance = np.linalg.norm(coord - cent)
-        print('d', distance)
-        dist_to_COM.append(distance)
-    closest_N_coord = N_coords[dist_to_COM.index(min(dist_to_COM))]
-    print('closest n', closest_N_coord)
-    return closest_N_coord
+    for i, frag in enumerate(molecule.building_block_cores(0)):
+        if i == frag_id:
+            frag_c = frag.GetConformer(conf)
+            for atom in frag.GetAtoms():
+                atom_id = atom.GetIdx()
+                atom_position = frag_c.GetAtomPosition(atom_id)
+                atom_position = np.array([*atom_position])
+                type = frag.GetAtomWithIdx(atom_id).GetSymbol()
+                if type == 'N':
+                    return atom_position
 
+
+def bb_center_of_mass(molecule, conf, bb_idx, frag_id):
+    '''Get the center_of_mass of the core of the building block with bb_idx
+    and frag_id post building.
+
+    '''
+    for i, frag in enumerate(molecule.building_block_cores(bb_idx)):
+        if i == frag_id:
+            center = np.array([0., 0., 0.])
+            total_mass = 0.
+            frag_c = frag.GetConformer(conf)
+            if frag.GetAtoms():
+                for atom in frag.GetAtoms():
+                    atom_id = atom.GetIdx()
+                    atom_position = frag_c.GetAtomPosition(atom_id)
+                    atom_position = np.array([*atom_position])
+                    mass = frag.GetAtomWithIdx(atom_id).GetMass()
+                    total_mass += mass
+                    center += mass * atom_position
+                return np.divide(center, total_mass)
+            else:
+                return None
 
 def get_geometrical_properties(mol, type, cids):
     '''Calculate the geometrical properties of all conformers
