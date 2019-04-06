@@ -21,7 +21,7 @@ if __name__ == "__main__":
     xyzs = glob.glob('*.xyz')
     GFN_functions.setup_dirs(xyzs)
     # select a GFN execution.
-    GFN_exec = '/home/atarzia/software/xtb190301/bin/xtb'
+    GFN_exec = '/home/atarzia/software/xtb_190318/bin/xtb'
     print('most setup should be in the xctrl file that is in this directory!')
     print('''Option 1: -I xctrl --hess  <<< SPE, no solvent
     Option 2: -I xctrl --hess --gbsa <<< SPE, w solvent in xctrl
