@@ -52,6 +52,9 @@ Usage: run_GFN.py suffix
     count = 0
     for i in xyzs:
         file = i.replace('.xyz', '')
+        #############
+        # add a check for already completed job some how?!
+        ############
         print('doing {}, which is {} out of {}'.format(file, count, total))
         out = file + '.output'
         os.chdir(file + '/')
