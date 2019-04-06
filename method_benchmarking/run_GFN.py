@@ -48,9 +48,11 @@ Usage: run_GFN.py suffix
         part_2 = '-I xctrl --ohess --gbsa >'
 
     failed = []
+    total = len(xyzs)
+    count = 0
     for i in xyzs:
         file = i.replace('.xyz', '')
-        print(file)
+        print('doing {}, which is {} out of {}'.format(file, count, total))
         out = file + '.output'
         os.chdir(file + '/')
         exec = GFN_exec + ' ' + i + ' ' + part_2 + ' ' + out
@@ -59,6 +61,7 @@ Usage: run_GFN.py suffix
             failed.append(xyzs)
         os.chdir('../')
         print('done')
+        count += 1
 
     print('--------------------------------------')
     print('all calculations done. failed XYZs:')
