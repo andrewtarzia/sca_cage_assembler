@@ -143,31 +143,29 @@ def get_geometrical_properties(mol, type, cids):
         mol.geom_prop[cid] = conf_dict
         print(cid, mol.geom_prop[cid])
 
-
-
-
         # output for viz
-        if type = 'ABCBA':
+        if type == 'ABCBA':
             mol.write(path='testing_'+str(cid)+'_mol.pdb', conformer=cid)
             POIs = Atoms()
+            POIs.append(Atom(symbol='H', position=conf_dict['COM']))
             POIs.append(Atom(symbol='C', position=conf_dict['liga1']['pos']))
-            POIs.append(Atom(symbol='C', position=conf_dict['link1']['pos']))
+            # POIs.append(Atom(symbol='C', position=conf_dict['link1']['pos']))
             POIs.append(Atom(symbol='C', position=conf_dict['core1']['pos']))
-            POIs.append(Atom(symbol='C', position=conf_dict['link2']['pos']))
+            # POIs.append(Atom(symbol='C', position=conf_dict['link2']['pos']))
             POIs.append(Atom(symbol='C', position=conf_dict['liga2']['pos']))
             POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
             POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
             POIs.write('testing_'+str(cid)+'_POIs.xyz')
-        elif type = 'ABA':
+        elif type == 'ABA':
             mol.write(path='testing_'+str(cid)+'_mol.pdb', conformer=cid)
             POIs = Atoms()
+            POIs.append(Atom(symbol='H', position=conf_dict['COM']))
             POIs.append(Atom(symbol='C', position=conf_dict['liga1']['pos']))
             POIs.append(Atom(symbol='C', position=conf_dict['core1']['pos']))
             POIs.append(Atom(symbol='C', position=conf_dict['liga2']['pos']))
             POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
             POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
             POIs.write('testing_'+str(cid)+'_POIs.xyz')
-        sys.exit()
     return mol
 
 
