@@ -76,6 +76,25 @@ def build_population(directory, fgs=['bromine'], suffix='.mol'):
     return popn
 
 
+def topo_2_noimines(topology):
+    '''Returns the number of imines formed to build the given topology
+
+    Currently defined:
+        TwoPlusThree topologies
+        ThreePlusThree topologies
+
+    '''
+    n_imines_dict = {'2p3': 6,
+                     '4p6': 12,
+                     '4p62': 12,
+                     '6p9': 18,
+                     'dodec': 60,
+                     '8p12': 24,
+                     '1p1': 3,
+                     '4p4': 12}
+    return n_imines_dict[topology]
+
+
 def expected_window(topo):
     '''Returns the number of windows expected for the given topology
 
