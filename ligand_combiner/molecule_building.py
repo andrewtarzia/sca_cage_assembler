@@ -180,8 +180,6 @@ def get_geometrical_properties(mol, cids, type):
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=1, frag_id=0)}
         mol.geom_prop[cid] = conf_dict
-        # print(cid, mol.geom_prop[cid])
-
         # output for viz
         if type == 'ABCBA':
             mol.write(path='testing_' + str(cid) + '_mol.pdb', conformer=cid)
@@ -228,7 +226,7 @@ def get_geometrical_properties(mol, cids, type):
         if abs(NBBN_dihedral) > 20:
             mol.geom_prop[cid]['skip'] = True
             continue
-        print(cid, NBBN_dihedral)
+        # print(cid, NBBN_dihedral)
         mol.geom_prop[cid]['NN_v'] = mol.geom_prop[cid]['liga1']['N_pos'] \
                                      - mol.geom_prop[cid]['liga2']['N_pos']
         mol.geom_prop[cid]['BCBC_v'] = mol.geom_prop[cid]['liga1']['pos'] \
@@ -239,25 +237,36 @@ def get_geometrical_properties(mol, cids, type):
                                      - mol.geom_prop[cid]['liga2']['N_pos']
         print(mol.geom_prop[cid])
 
+        print('NN_v', mol.geom_prop[cid]['NN_v'])
+        print('BCBC_v', mol.geom_prop[cid]['BCBC_v'])
+        print('BCN_1', mol.geom_prop[cid]['BCN_1'])
+        print('BCN_2', mol.geom_prop[cid]['BCN_2'])
+
         print(np.linalg.norm(mol.geom_prop[cid]['NN_v']),
               np.linalg.norm(mol.geom_prop[cid]['BCBC_v']),
               np.linalg.norm(mol.geom_prop[cid]['BCN_1']),
               np.linalg.norm(mol.geom_prop[cid]['BCN_2']))
 
         # get desired angles in radian
-        mol.geom_prop[cid]['BCBC_BCN_1'] = angle_between(mol.geom_prop[cid]['BCBC_v'],
-                                                         mol.geom_prop[cid]['BCN_1'])
-        mol.geom_prop[cid]['BCBC_BCN_2'] = angle_between(mol.geom_prop[cid]['BCBC_v'],
-                                                         mol.geom_prop[cid]['BCN_2'])
-        mol.geom_prop[cid]['NN_BCN_1'] = angle_between(mol.geom_prop[cid]['NN_v'],
-                                                       mol.geom_prop[cid]['BCN_1'])
-        mol.geom_prop[cid]['NN_BCN_2'] = angle_between(mol.geom_prop[cid]['NN_v'],
-                                                       mol.geom_prop[cid]['BCN_2'])
+        # negative signs applied based on the direction of vectors defined
+        # above - not dependance on ordering of BB placement in stk
+        mol.geom_prop[cid]['BCBC_BCN_1'] = np.degrees(
+            angle_between(mol.geom_prop[cid]['BCN_1'],
+                          mol.geom_prop[cid]['BCBC_v']))
+        mol.geom_prop[cid]['BCBC_BCN_2'] = np.degrees(
+            angle_between(mol.geom_prop[cid]['BCN_2'],
+                          -mol.geom_prop[cid]['BCBC_v']))
+        mol.geom_prop[cid]['NN_BCN_1'] = np.degrees(
+            angle_between(mol.geom_prop[cid]['BCN_1'],
+                          mol.geom_prop[cid]['NN_v']))
+        mol.geom_prop[cid]['NN_BCN_2'] = np.degrees(
+            angle_between(mol.geom_prop[cid]['BCN_2'],
+                          -mol.geom_prop[cid]['NN_v']))
 
-        print(mol.geom_prop[cid]['BCBC_BCN_1'],
-              mol.geom_prop[cid]['BCBC_BCN_2'],
-              mol.geom_prop[cid]['NN_BCN_1'],
-              mol.geom_prop[cid]['NN_BCN_2'])
+        print('BCB_1', mol.geom_prop[cid]['BCBC_BCN_1'])
+        print('BCB_2', mol.geom_prop[cid]['BCBC_BCN_2'])
+        print('NNB_1', mol.geom_prop[cid]['NN_BCN_1'])
+        print('NNB_2', mol.geom_prop[cid]['NN_BCN_2'])
         sys.exit()
 
     return mol
