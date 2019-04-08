@@ -489,7 +489,7 @@ def screening_process(dataset, des_topo, SA_data):
         # organic cage)
         if row.p_diam_opt < 3.4:
             continue
-        NAME = row.bb1+'_'+row.bb2+'_'+row.topo
+        NAME = row.bb1 + '_' + row.bb2 + '_' + row.topo
         if row.p_diam_opt > 25:
             print('p_diam > 25:', NAME)
         ################################
