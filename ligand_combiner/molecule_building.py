@@ -22,8 +22,32 @@ from stk_functions import build_population, build_ABCBA, build_ABA
 from calculations import get_dihedral, angle_between
 
 
+def visualize_atoms(mol, conf_dict, cid, type):
+    '''Output files with POIs and conformer atom positions for visulization.
 
     '''
+    if type == 'ABCBA':
+        mol.write(path='testing_' + str(cid) + '_mol.pdb', conformer=cid)
+        POIs = Atoms()
+        POIs.append(Atom(symbol='H', position=conf_dict['COM']))
+        POIs.append(Atom(symbol='C', position=conf_dict['liga1']['pos']))
+        # POIs.append(Atom(symbol='C', position=conf_dict['link1']['pos']))
+        POIs.append(Atom(symbol='C', position=conf_dict['core1']['pos']))
+        # POIs.append(Atom(symbol='C', position=conf_dict['link2']['pos']))
+        POIs.append(Atom(symbol='C', position=conf_dict['liga2']['pos']))
+        POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
+        POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
+        POIs.write('testing_' + str(cid) + '_POIs.xyz')
+    elif type == 'ABA':
+        mol.write(path='testing_' + str(cid) + '_mol.pdb', conformer=cid)
+        POIs = Atoms()
+        POIs.append(Atom(symbol='H', position=conf_dict['COM']))
+        POIs.append(Atom(symbol='C', position=conf_dict['liga1']['pos']))
+        POIs.append(Atom(symbol='C', position=conf_dict['core1']['pos']))
+        POIs.append(Atom(symbol='C', position=conf_dict['liga2']['pos']))
+        POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
+        POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
+        POIs.write('testing_' + str(cid) + '_POIs.xyz')
 
 
 def get_binding_N_coord(molecule, conf, frag_id):
@@ -126,28 +150,8 @@ def get_geometrical_properties(mol, cids, type):
                                          bb_idx=1, frag_id=0)}
         mol.geom_prop[cid] = conf_dict
         # output for viz
-        if type == 'ABCBA':
-            mol.write(path='testing_' + str(cid) + '_mol.pdb', conformer=cid)
-            POIs = Atoms()
-            POIs.append(Atom(symbol='H', position=conf_dict['COM']))
-            POIs.append(Atom(symbol='C', position=conf_dict['liga1']['pos']))
-            # POIs.append(Atom(symbol='C', position=conf_dict['link1']['pos']))
-            POIs.append(Atom(symbol='C', position=conf_dict['core1']['pos']))
-            # POIs.append(Atom(symbol='C', position=conf_dict['link2']['pos']))
-            POIs.append(Atom(symbol='C', position=conf_dict['liga2']['pos']))
-            POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
-            POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
-            POIs.write('testing_' + str(cid) + '_POIs.xyz')
-        elif type == 'ABA':
-            mol.write(path='testing_' + str(cid) + '_mol.pdb', conformer=cid)
-            POIs = Atoms()
-            POIs.append(Atom(symbol='H', position=conf_dict['COM']))
-            POIs.append(Atom(symbol='C', position=conf_dict['liga1']['pos']))
-            POIs.append(Atom(symbol='C', position=conf_dict['core1']['pos']))
-            POIs.append(Atom(symbol='C', position=conf_dict['liga2']['pos']))
-            POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
-            POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
-            POIs.write('testing_' + str(cid) + '_POIs.xyz')
+        if False:
+            visualize_atoms(mol, conf_dict, cid, type)
 
         # from the positions collected:
         # determine whether the N's are both pointing in the desired direction
