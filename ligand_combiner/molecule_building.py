@@ -194,11 +194,11 @@ def get_geometrical_properties(mol, cids, type):
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=1, frag_id=0)}
         mol.geom_prop[cid] = conf_dict
-        print(cid, mol.geom_prop[cid])
+        # print(cid, mol.geom_prop[cid])
 
         # output for viz
         if type == 'ABCBA':
-            mol.write(path='testing_'+str(cid)+'_mol.pdb', conformer=cid)
+            mol.write(path='testing_' + str(cid) + '_mol.pdb', conformer=cid)
             POIs = Atoms()
             POIs.append(Atom(symbol='H', position=conf_dict['COM']))
             POIs.append(Atom(symbol='C', position=conf_dict['liga1']['pos']))
@@ -208,9 +208,9 @@ def get_geometrical_properties(mol, cids, type):
             POIs.append(Atom(symbol='C', position=conf_dict['liga2']['pos']))
             POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
             POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
-            POIs.write('testing_'+str(cid)+'_POIs.xyz')
+            POIs.write('testing_' + str(cid) + '_POIs.xyz')
         elif type == 'ABA':
-            mol.write(path='testing_'+str(cid)+'_mol.pdb', conformer=cid)
+            mol.write(path='testing_' + str(cid) + '_mol.pdb', conformer=cid)
             POIs = Atoms()
             POIs.append(Atom(symbol='H', position=conf_dict['COM']))
             POIs.append(Atom(symbol='C', position=conf_dict['liga1']['pos']))
@@ -218,7 +218,62 @@ def get_geometrical_properties(mol, cids, type):
             POIs.append(Atom(symbol='C', position=conf_dict['liga2']['pos']))
             POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
             POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
-            POIs.write('testing_'+str(cid)+'_POIs.xyz')
+            POIs.write('testing_' + str(cid) + '_POIs.xyz')
+
+        # from the positions collected:
+        # determine whether the N's are both pointing in the desired direction
+        # if so,
+        # determine N-N vector -> NN_v
+        # determine binder core - N vectors -> BCN_1, BCN_2
+        # determine binder core - binder core vector -> BCBC_v
+        # calculate the angle between:
+        # -- BCBC_v and BCN_i
+        # -- NN_v and BCN_i (make sure the origin is not important)
+
+        # to determine if the N's are point the right way:
+        # calculate the dihedral between N1 - liga1_com - liga2_com - N2
+        NBBN_dihedral = get_dihedral(pt1=mol.geom_prop[cid]['liga1']['N_pos'],
+                                     pt2=mol.geom_prop[cid]['liga1']['pos'],
+                                     pt3=mol.geom_prop[cid]['liga2']['pos'],
+                                     pt4=mol.geom_prop[cid]['liga2']['N_pos'])
+        # if the absolute value of this dihedral > some tolerance,
+        # skip conformer
+        mol.geom_prop[cid]['skip'] = False
+        if abs(NBBN_dihedral) > 20:
+            mol.geom_prop[cid]['skip'] = True
+            continue
+        print(cid, NBBN_dihedral)
+        mol.geom_prop[cid]['NN_v'] = mol.geom_prop[cid]['liga1']['N_pos'] \
+                                     - mol.geom_prop[cid]['liga2']['N_pos']
+        mol.geom_prop[cid]['BCBC_v'] = mol.geom_prop[cid]['liga1']['pos'] \
+                                       - mol.geom_prop[cid]['liga2']['pos']
+        mol.geom_prop[cid]['BCN_1'] = mol.geom_prop[cid]['liga1']['pos'] \
+                                     - mol.geom_prop[cid]['liga1']['N_pos']
+        mol.geom_prop[cid]['BCN_2'] = mol.geom_prop[cid]['liga2']['pos'] \
+                                     - mol.geom_prop[cid]['liga2']['N_pos']
+        print(mol.geom_prop[cid])
+
+        print(np.linalg.norm(mol.geom_prop[cid]['NN_v']),
+              np.linalg.norm(mol.geom_prop[cid]['BCBC_v']),
+              np.linalg.norm(mol.geom_prop[cid]['BCN_1']),
+              np.linalg.norm(mol.geom_prop[cid]['BCN_2']))
+
+        # get desired angles in radian
+        mol.geom_prop[cid]['BCBC_BCN_1'] = angle_between(mol.geom_prop[cid]['BCBC_v'],
+                                                         mol.geom_prop[cid]['BCN_1'])
+        mol.geom_prop[cid]['BCBC_BCN_2'] = angle_between(mol.geom_prop[cid]['BCBC_v'],
+                                                         mol.geom_prop[cid]['BCN_2'])
+        mol.geom_prop[cid]['NN_BCN_1'] = angle_between(mol.geom_prop[cid]['NN_v'],
+                                                       mol.geom_prop[cid]['BCN_1'])
+        mol.geom_prop[cid]['NN_BCN_2'] = angle_between(mol.geom_prop[cid]['NN_v'],
+                                                       mol.geom_prop[cid]['BCN_2'])
+
+        print(mol.geom_prop[cid]['BCBC_BCN_1'],
+              mol.geom_prop[cid]['BCBC_BCN_2'],
+              mol.geom_prop[cid]['NN_BCN_1'],
+              mol.geom_prop[cid]['NN_BCN_2'])
+        sys.exit()
+
     return mol
 
 
