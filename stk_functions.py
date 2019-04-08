@@ -29,7 +29,7 @@ def build_ABCBA(core, liga, link):
         polymer (stk.Polymer()) - polymer molecule pre optimization
 
     '''
-    polymer = stk.Polymer([liga, link, core, link, liga],
+    polymer = stk.Polymer([liga, link, core],
                           stk.Linear(repeating_unit='ABCBA',
                                      orientation=[0, 0, 0, 1, 1],
                                      n=1, ends='fg'))
@@ -48,7 +48,7 @@ def build_ABA(core, liga):
         polymer (stk.Polymer()) - polymer molecule pre optimization
 
     '''
-    polymer = stk.Polymer([liga, core, liga],
+    polymer = stk.Polymer([liga, core],
                           stk.Linear(repeating_unit='ACA',
                                      orientation=[0, 0, 1],
                                      n=1, ends='fg'))
