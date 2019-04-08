@@ -77,6 +77,13 @@ def build_population(directory, fgs=['bromine'], suffix='.mol'):
 
 
 def expected_window(topo):
+    '''Returns the number of windows expected for the given topology
+
+    Currently defined:
+        TwoPlusThree topologies
+        ThreePlusThree topologies
+
+    '''
     e_wind = {'dodec': 12, '4p6': 4, '4p62': 4,
               '8p12': 6, '6p9': 5, '2p3': 3,
               '4p4': 6, '1p1': 3, '2p2': 4}
