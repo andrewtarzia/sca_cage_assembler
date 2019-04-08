@@ -55,7 +55,7 @@ def build_ABA(core, liga):
     return polymer
 
 
-def build_population(directory, fgs=['bromine'], suffix='.mol'):
+def build_population(directory, fgs=None, suffix='.mol'):
     '''Reads all SUFFIX files in directory into an stk population.
 
     Keyword Arguments:
@@ -67,6 +67,9 @@ def build_population(directory, fgs=['bromine'], suffix='.mol'):
         popn (stk.Population()) - population of molecules
 
     '''
+    if fgs is None:
+        fgs = ['bromine']
+
     mols = []
     for file in glob(directory + '*' + suffix):
         mol = stk.StructUnit(file, fgs,
