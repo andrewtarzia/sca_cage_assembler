@@ -134,63 +134,49 @@ def get_geometrical_properties(mol, cids, type):
         conf_dict = {}
         conf_dict['COM'] = mol.center_of_mass(conformer=cid)
         if type == 'ABCBA':
-            # first binder
+            # first binder -- actual ordering of BB does not matter if linker
+            # information is not used
             conf_dict['liga1'] = {
-                # frag_id is hardcoded under the assumption that
-                # the ordering is maintained from Polymer buidling
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=0, frag_id=0),
                 'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
                                              frag_id=0)}
-            # second binder
+            # second binder -- actual ordering of BB does not matter if linker
+            # information is not used
             conf_dict['liga2'] = {
-                # frag_id is hardcoded under the assumption that
-                # the ordering is maintained from Polymer buidling
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=0, frag_id=1),
                 'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
                                              frag_id=1)}
-            # first linker
+            # first linker -- actual ordering of BB does matter if linker
+            # information is used -- currently is not
             conf_dict['link1'] = {
-                # frag_id is hardcoded under the assumption that
-                # the ordering is maintained from Polymer buidling
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=1, frag_id=0)}
-            # second linker
+            # second linker -- actual ordering of BB does matter if linker
+            # information is used -- currently is not
             conf_dict['link2'] = {
-                # frag_id is hardcoded under the assumption that
-                # the ordering is maintained from Polymer buidling
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=1, frag_id=1)}
             # core
             conf_dict['core1'] = {
-                # frag_id is hardcoded under the assumption that
-                # the ordering is maintained from Polymer buidling
-                # there is only one core, so this is fine.
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=2, frag_id=0)}
         elif type == 'ABA':
-            # first binder
+            # first binder -- actual ordering of BB does not matter
             conf_dict['liga1'] = {
-                # frag_id is hardcoded under the assumption that
-                # the ordering is maintained from Polymer buidling
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=0, frag_id=0),
                 'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
                                              frag_id=0)}
-            # second binder
+            # second binder -- actual ordering of BB does not matter
             conf_dict['liga2'] = {
-                # frag_id is hardcoded under the assumption that
-                # the ordering is maintained from Polymer buidling
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=0, frag_id=1),
                 'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
                                              frag_id=1)}
             # core
             conf_dict['core1'] = {
-                # frag_id is hardcoded under the assumption that
-                # the ordering is maintained from Polymer buidling
-                # there is only one core, so this is fine.
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=1, frag_id=0)}
         mol.geom_prop[cid] = conf_dict
