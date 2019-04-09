@@ -643,7 +643,8 @@ Usage: build_cages.py amine_type output_file wipe run_build
     precursor_struc = [stk.StructUnit3(i) for i in precursor_files]
     precursor_smiles = [Chem.MolToSmiles(i.mol) for i in precursor_struc]
     rdkit_functions.mol_list2grid(mol_dict=dict(zip(precursor_names, precursor_smiles)),
-                                  filename='aldehyde_precusors', mol_per_row=2)
+                                  filename='aldehyde_precusors', mol_per_row=2,
+                                  maxrows=10)
     big_DB = '/data/atarzia/precursor_DBs/reaxys_sorted/'
     if amine_type == '2':
         amines2f = big_DB+'amines2f/'
