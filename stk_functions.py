@@ -79,6 +79,26 @@ def build_population(directory, fgs=None, suffix='.mol'):
     return popn
 
 
+def topo_2_stoich(topology):
+    '''Returns the stoichiometries of both building blocks for a given topology.
+    Assuming that the first building block has the larger number of functional groups.
+
+    Currently defined:
+        TwoPlusThree topologies
+        ThreePlusThree topologies
+
+    '''
+    stoich_dict = {'2p3': (2, 3),
+                   '4p6': (4, 6),
+                   '4p62': (4, 6),
+                   '6p9': (6, 9),
+                   'dodec': (20, 30),
+                   '8p12': (8, 12),
+                   '1p1': (1, 1),
+                   '4p4': (4, 4)}
+    return stoich_dict[topology]
+
+
 def topo_2_noimines(topology):
     '''Returns the number of imines formed to build the given topology
 
