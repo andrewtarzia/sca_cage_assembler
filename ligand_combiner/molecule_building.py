@@ -283,29 +283,42 @@ def main():
     core_pop = build_population(directory=core_dir, fgs=['bromine'])
     liga_pop = build_population(directory=liga_dir, fgs=['bromine'])
     link_pop = build_population(directory=link_dir, fgs=['bromine'])
+    # this is the resultant molecule population
+    molecule_pop = Population()
+    for i, core in enumerate(core_pop):
+        for j, liga in enumerate(liga_pop):
+            for k, link in enumerate(link_pop):
+                # build ABCBA molecule
+                pop_ids = (i, j, k)  # core, ligand, linker
+                print(pop_ids)
+                ABCBA_confs, ABCBA_molecule = get_molecule(
+                    type='ABCBA',
+                    popns=(core_pop, liga_pop, link_pop),
+                    pop_ids=pop_ids, N=5,
+                    mole_dir=mole_dir)
+                # get properties - save to molecule as attribute
+                ABCBA_molecule = get_geometrical_properties(mol=ABCBA_molecule,
+                                                            cids=ABCBA_confs,
+                                                            type='ABCBA')
+                molecule_pop
+                # build ABA molecule
+                ABA_confs, ABA_molecule = get_molecule(
+                    type='ABA',
+                    popns=(core_pop, liga_pop, link_pop),
+                    pop_ids=pop_ids, N=5,
+                    mole_dir=mole_dir)
+                # get properties - save to molecule as attribute
+                ABA_molecule = get_geometrical_properties(mol=ABA_molecule,
+                                                          cids=ABA_confs,
+                                                          type='ABA')
 
-    # build ABCBA molecule
-    pop_ids = (0, 0, 0)  # core, ligand, linker
-    ABCBA_confs, ABCBA_molecule = get_molecule(type='ABCBA',
-                                               popns=(core_pop, liga_pop, link_pop),
-                                               pop_ids=pop_ids, N=5,
-                                               mole_dir=mole_dir)
-    # get properties - save to molecule as attribute
-    ABCBA_molecule = get_geometrical_properties(mol=ABCBA_molecule,
-                                                cids=ABCBA_confs,
-                                                type='ABCBA')
-    # build ABA molecule
-    pop_ids = (0, 0, 0)  # core, ligand, linker
-    ABA_confs, ABA_molecule = get_molecule(type='ABA',
-                                           popns=(core_pop, liga_pop, link_pop),
-                                           pop_ids=pop_ids, N=5,
-                                           mole_dir=mole_dir)
-    # get properties - save to molecule as attribute
-    ABA_molecule = get_geometrical_properties(mol=ABA_molecule,
-                                              cids=ABA_confs,
-                                              type='ABA')
-
-    print(ABA_molecule.geom_prop)
+                print(ABCBA_molecule.geom_prop.keys())
+                print(ABA_molecule.geom_prop.keys())
+                print([i for i in ABCBA_confs])
+                print([i for i in ABA_confs])
+                break
+            break
+        break
 
 
 if __name__ == "__main__":
