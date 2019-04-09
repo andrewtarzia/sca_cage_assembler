@@ -45,19 +45,36 @@ def draw_smiles_to_svg(smiles, filename):
                    options=o)
 
 
-def mol_list2grid(molecules, filename, mol_per_row, subImgSize=(200, 200),
-                  names=None):
+def mol_list2grid(molecules, filename, mol_per_row, maxrows,
+                  subImgSize=(200, 200), names=None):
     '''Produce a grid of molecules in mol_list.
 
     mol_dict (dict) - {name: SMILES}
 
     '''
-    img = Draw.MolsToGridImage(molecules,
-                               molsPerRow=mol_per_row,
-                               subImgSize=subImgSize,
-                               legends=names,
-                               useSVG=False)
-    img.save(filename + '.png')
+    if len(molecules) > mol_per_row * maxrows:
+        # have to make multiple images
+        new_mol_list = []
+        count = 1
+        for mol in molecules:
+            new_mol_list.append(mol)
+            # make image
+            if len(new_mol_list) == mol_per_row * maxrows:
+                img = Draw.MolsToGridImage(new_mol_list,
+                                           molsPerRow=mol_per_row,
+                                           subImgSize=subImgSize,
+                                           legends=names,
+                                           useSVG=False)
+                img.save(filename + '_' + str(count) + '.png')
+                new_mol_list = []
+                count += 1
+    else:
+        img = Draw.MolsToGridImage(molecules,
+                                   molsPerRow=mol_per_row,
+                                   subImgSize=subImgSize,
+                                   legends=names,
+                                   useSVG=False)
+        img.save(filename + '.png')
 
 
 def read_mol_txt_file(filename):
