@@ -16,23 +16,7 @@ import json
 import matplotlib.pyplot as plt
 sys.path.insert(0, '/home/atarzia/thesource/')
 from plotting import parity_plot, flat_line, histogram_plot_1
-
-
-def calculate_formation_energy(prod, react):
-    '''Calculate formation energy of 'A' in a.u..
-
-    Reaction formation energy == sum(product energy) - sum(reactant energy)
-
-    Keyword arguments:
-        prod (list) - list of product energies
-        react (list) - list of reactant energies
-
-    Returns:
-        RFE (float) - Reaction formation energy in a.u.
-
-    '''
-    RFE = sum(prod) - sum(react)
-    return RFE
+from calculations import calc_formation_energy
 
 
 def list_of_reactions():
@@ -353,7 +337,7 @@ Usage: calculate_energies.py JSON energy
             react_energies = [float(data[i][EY]) for i in R['react']]
             # print(prod_energies)
             # print(react_energies)
-            RFE = calculate_formation_energy(prod_energies, react_energies)
+            RFE = calc_formation_energy(prod_energies, react_energies)
             # print(RFE)
             RFEs[R['long-name']] = (RFE, R['no.imine'], R['size'])
             # input('ok?')

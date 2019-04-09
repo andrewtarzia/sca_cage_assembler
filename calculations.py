@@ -36,6 +36,23 @@ def calculate_RMSD(results_part, structure_name, init_structure_dir):
     return results_part
 
 
+def calc_formation_energy(prod, react):
+    '''Calculate formation energy of 'A' in a.u. from 2 lists of energies.
+
+    Reaction formation energy == sum(product energy) - sum(reactant energy)
+
+    Keyword arguments:
+        prod (list) - list of product energies
+        react (list) - list of reactant energies
+
+    Returns:
+        RFE (float) - Reaction formation energy in a.u.
+
+    '''
+    RFE = sum(prod) - sum(react)
+    return RFE
+
+
 def get_formation_energies(data, ff='OPLS'):
     '''Calculate formation energies based on prod - react energies.
 
