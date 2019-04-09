@@ -16,10 +16,11 @@ from ase.atoms import Atoms, Atom
 import numpy as np
 from rdkit.Chem import AllChem as Chem
 from os.path import join
-from stk import rdkit_ETKDG
+from stk import rdkit_ETKDG, Population
 sys.path.insert(0, '/home/atarzia/thesource/')
 from stk_functions import build_population, build_ABCBA, build_ABA
 from calculations import get_dihedral, angle_between
+from rdkit_functions import mol_list2grid
 
 
 def visualize_atoms(mol, conf_dict, cid, type):
@@ -151,6 +152,7 @@ def get_geometrical_properties(mol, cids, type):
         mol.geom_prop[cid] = conf_dict
         # output for viz
         if False:
+            # if True:
             visualize_atoms(mol, conf_dict, cid, type)
 
         # from the positions collected:
@@ -319,6 +321,15 @@ def main():
                 break
             break
         break
+
+    print(molecule_pop)
+    # draw conf==0 for all molecules
+    mol_list = []
+    for poly in molecule_pop:
+        MOL = Chem.MolFromSmiles(Chem.MolToSmiles(poly.mol))
+        mol_list.append(MOL)
+    mol_list2grid(molecules=mol_list, filename='built_molecules',
+                  mol_per_row=4, maxrows=3)
 
 
 if __name__ == "__main__":
