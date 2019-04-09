@@ -38,7 +38,7 @@ Usage: draw_precursors.py suffix output
         molecules.append(mol)
 
     mol_list2grid(molecules=molecules, names=None, filename=output,
-                  mol_per_row=3, subImgSize=(200, 200))
+                  mol_per_row=3, maxrows=10, subImgSize=(200, 200))
 
 
 if __name__ == "__main__":
