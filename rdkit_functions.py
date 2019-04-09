@@ -12,11 +12,10 @@ Date Created: 15 Mar 2019
 
 import numpy as np
 from rdkit.Chem import AllChem as Chem
-from rdkit.Chem import Descriptors, Draw, PyMol
+from rdkit.Chem import Descriptors, Draw
 from rdkit.Chem.Descriptors3D import NPR1, NPR2, PMI1, PMI2, PMI3
 from rdkit.Chem.Draw.MolDrawing import DrawingOptions
 from rdkit.Geometry import rdGeometry
-from rdkit import Geometry
 
 
 def calculate_all_MW(molecules):
@@ -46,22 +45,19 @@ def draw_smiles_to_svg(smiles, filename):
                    options=o)
 
 
-def mol_list2grid(mol_dict, filename, mol_per_row, subImgSize=(200, 200)):
+def mol_list2grid(molecules, filename, mol_per_row, subImgSize=(200, 200),
+                  names=None):
     '''Produce a grid of molecules in mol_list.
 
     mol_dict (dict) - {name: SMILES}
 
     '''
-    mols = []
-    names = []
-    for name in mol_dict:
-        names.append(name)
-        mols.append(Chem.MolFromSmiles(mol_dict[name]))
-    img = Draw.MolsToGridImage(mols, molsPerRow=mol_per_row,
+    img = Draw.MolsToGridImage(molecules,
+                               molsPerRow=mol_per_row,
                                subImgSize=subImgSize,
                                legends=names,
                                useSVG=False)
-    img.save(filename+'.png')
+    img.save(filename + '.png')
 
 
 def read_mol_txt_file(filename):
