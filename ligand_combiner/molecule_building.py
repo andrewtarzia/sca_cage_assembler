@@ -308,6 +308,9 @@ def main():
                                                             cids=ABCBA_confs,
                                                             type='ABCBA')
                 molecule_pop.members.append(ABCBA_molecule)
+                if ABCBA_molecule.geom_prop[0]['skip'] is False:
+                    print(ABCBA_molecule.geom_prop[0]['NN_BCN_1'],
+                          ABCBA_molecule.geom_prop[0]['NN_BCN_2'])
                 # break
             # build ABA molecule
             ABA_confs, ABA_molecule = get_molecule(
@@ -320,21 +323,21 @@ def main():
                                                       cids=ABA_confs,
                                                       type='ABA')
             molecule_pop.members.append(ABA_molecule)
-            print(ABCBA_molecule.geom_prop.keys())
-            print(ABA_molecule.geom_prop.keys())
-            print([i for i in ABCBA_confs])
-            print([i for i in ABA_confs])
+            if ABA_molecule.geom_prop[0]['skip'] is False:
+                print(ABA_molecule.geom_prop[0]['NN_BCN_1'],
+                      ABA_molecule.geom_prop[0]['NN_BCN_2'])
             break
         break
 
-    print(molecule_pop)
-    # draw conf==0 for all molecules
+    # draw 2D representation for all built molecules
     mol_list = []
     for poly in molecule_pop:
         MOL = Chem.MolFromSmiles(Chem.MolToSmiles(poly.mol))
         mol_list.append(MOL)
     mol_list2grid(molecules=mol_list, filename='built_molecules',
-                  mol_per_row=4, maxrows=3)
+                  mol_per_row=3, maxrows=3, subImgSize=(200, 200))
+
+    # find matching pairs in molecule DB
 
 
 if __name__ == "__main__":
