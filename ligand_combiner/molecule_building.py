@@ -285,6 +285,8 @@ def main():
     core_pop = build_population(directory=core_dir, fgs=['bromine'])
     liga_pop = build_population(directory=liga_dir, fgs=['bromine'])
     link_pop = build_population(directory=link_dir, fgs=['bromine'])
+
+    print(core_pop)
     # this is the resultant molecule population
     molecule_pop = Population()
     for i, core in enumerate(core_pop):
@@ -302,7 +304,7 @@ def main():
                 ABCBA_molecule = get_geometrical_properties(mol=ABCBA_molecule,
                                                             cids=ABCBA_confs,
                                                             type='ABCBA')
-                molecule_pop
+                molecule_pop.members.append(ABCBA_molecule)
                 # build ABA molecule
                 ABA_confs, ABA_molecule = get_molecule(
                     type='ABA',
@@ -313,13 +315,13 @@ def main():
                 ABA_molecule = get_geometrical_properties(mol=ABA_molecule,
                                                           cids=ABA_confs,
                                                           type='ABA')
-
+                molecule_pop.members.append(ABA_molecule)
                 print(ABCBA_molecule.geom_prop.keys())
                 print(ABA_molecule.geom_prop.keys())
                 print([i for i in ABCBA_confs])
                 print([i for i in ABA_confs])
-                break
-            break
+        #         break
+        #     break
         break
 
     print(molecule_pop)
