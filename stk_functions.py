@@ -55,11 +55,12 @@ def build_ABA(core, liga):
     return polymer
 
 
-def build_population(directory, fgs=None, suffix='.mol'):
+def build_population(directory, structunit, fgs=None, suffix='.mol'):
     '''Reads all SUFFIX files in directory into an stk population.
 
     Keyword Arguments:
         directory (str) - directory containing molecules
+        structunit (str) - stk.StructUnit/2/3 class to use for molecule
         fgs (list) - list of functional groups on the molecules. Defaults to Br
         suffix (str) - file type (default .mol)
 
@@ -72,8 +73,15 @@ def build_population(directory, fgs=None, suffix='.mol'):
 
     mols = []
     for file in glob(directory + '*' + suffix):
-        mol = stk.StructUnit(file, fgs,
-                             name=file.rstrip(suffix).replace(directory, ''))
+        if structunit == 'StructUnit':
+            mol = stk.StructUnit(file, fgs,
+                                 name=file.rstrip(suffix).replace(directory, ''))
+        elif structunit == 'StructUnit2':
+            mol = stk.StructUnit2(file, fgs,
+                                  name=file.rstrip(suffix).replace(directory, ''))
+        elif structunit == 'StructUnit3':
+            mol = stk.StructUnit3(file, fgs,
+                                  name=file.rstrip(suffix).replace(directory, ''))
         mols.append(mol)
     popn = stk.Population(*mols)
     return popn

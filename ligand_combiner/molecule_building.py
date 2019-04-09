@@ -282,9 +282,12 @@ def main():
     mole_dir = proj_dir + 'molecules/'
 
     # build molecule populations
-    core_pop = build_population(directory=core_dir, fgs=['bromine'])
-    liga_pop = build_population(directory=liga_dir, fgs=['bromine'])
-    link_pop = build_population(directory=link_dir, fgs=['bromine'])
+    core_pop = build_population(directory=core_dir, structunit='StructUnit2',
+                                fgs=['bromine'])
+    liga_pop = build_population(directory=liga_dir, structunit='StructUnit',
+                                fgs=['bromine'])
+    link_pop = build_population(directory=link_dir, structunit='StructUnit2',
+                                fgs=['bromine'])
 
     print(core_pop)
     # this is the resultant molecule population
