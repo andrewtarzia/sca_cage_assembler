@@ -37,7 +37,7 @@ Usage: analyze_cage_list.py output_file suffix
     input('Enter to acknowledge this!')
     # prepare output file
     columns = ['file', 'aldehyde', 'amine', 'topology', 'calc_complete',
-               'FE_au', 'no_imines', 'PW_file', 'shape_persist']
+               'FE_au', 'TE_au', 'no_imines', 'PW_file', 'shape_persist']
     with open(output_file, 'w') as f:
         f.write(','.join(columns) + '\n')
     xyzs = sorted(glob.glob('*' + suffix))
@@ -61,12 +61,15 @@ Usage: analyze_cage_list.py output_file suffix
             energies = get_energies(output_file=join(dir, gfn_out))
             try:
                 cage_prop['FE_au'] = float(energies['FE'])
+                cage_prop['TE_au'] = float(energies['TE'])
                 cage_prop['calc_complete'] = 0
             except KeyError:
                 cage_prop['FE_au'] = 0
+                cage_prop['TE_au'] = 0
                 cage_prop['calc_complete'] = 1
         else:
             cage_prop['FE_au'] = 0
+            cage_prop['TE_au'] = 0
             cage_prop['calc_complete'] = 1
         # get pywindow results
         with open(PW_out, 'r') as f:
