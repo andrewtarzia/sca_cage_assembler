@@ -56,3 +56,11 @@ def read_cif_pmg(file, primitive=False):
     s = CifParser(file, occupancy_tolerance=100)
     struct = s.get_structures(primitive=primitive)[0]
     return struct
+
+
+def write_csv_entry(dict, columns, file):
+    line = []
+    for c in columns:
+        line.append(str(dict[c]))
+    with open(file, 'a') as f:
+        f.write(','.join(line) + '\n')

@@ -19,14 +19,7 @@ import glob
 sys.path.insert(0, '/home/atarzia/thesource/')
 from GFN_functions import get_energies
 from stk_functions import topo_2_noimines, expected_window
-
-
-def write_csv_entry(dict, columns, file):
-    line = []
-    for c in columns:
-        line.append(str(dict[c]))
-    with open(file, 'a') as f:
-        f.write(','.join(line) + '\n')
+from IO_tools import write_csv_entry
 
 
 def main():
