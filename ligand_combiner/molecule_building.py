@@ -305,23 +305,23 @@ def main():
                                                             cids=ABCBA_confs,
                                                             type='ABCBA')
                 molecule_pop.members.append(ABCBA_molecule)
-                # build ABA molecule
-                ABA_confs, ABA_molecule = get_molecule(
-                    type='ABA',
-                    popns=(core_pop, liga_pop, link_pop),
-                    pop_ids=pop_ids, N=N,
-                    mole_dir=mole_dir)
-                # get properties - save to molecule as attribute
-                ABA_molecule = get_geometrical_properties(mol=ABA_molecule,
-                                                          cids=ABA_confs,
-                                                          type='ABA')
-                molecule_pop.members.append(ABA_molecule)
-                print(ABCBA_molecule.geom_prop.keys())
-                print(ABA_molecule.geom_prop.keys())
-                print([i for i in ABCBA_confs])
-                print([i for i in ABA_confs])
-        #         break
-        #     break
+                # break
+            # build ABA molecule
+            ABA_confs, ABA_molecule = get_molecule(
+                type='ABA',
+                popns=(core_pop, liga_pop, link_pop),
+                pop_ids=pop_ids, N=N,
+                mole_dir=mole_dir)
+            # get properties - save to molecule as attribute
+            ABA_molecule = get_geometrical_properties(mol=ABA_molecule,
+                                                      cids=ABA_confs,
+                                                      type='ABA')
+            molecule_pop.members.append(ABA_molecule)
+            print(ABCBA_molecule.geom_prop.keys())
+            print(ABA_molecule.geom_prop.keys())
+            print([i for i in ABCBA_confs])
+            print([i for i in ABA_confs])
+            break
         break
 
     print(molecule_pop)
