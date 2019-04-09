@@ -266,14 +266,14 @@ def get_molecule(type, popns, pop_ids, N=1, mole_dir='./'):
 
 
 def main():
-    if (not len(sys.argv) == 1):
+    if (not len(sys.argv) == 2):
         print("""
-    Usage: molecule_builing.py
+    Usage: molecule_builing.py N
+        N (int) - number of conformers to use
         """)
         sys.exit()
     else:
-        # CIF = sys.argv[1]
-        pass
+        N = int(sys.argv[1])
 
     proj_dir = '/home/atarzia/projects/ligand_combiner/'
     core_dir = proj_dir + 'cores/'
@@ -296,7 +296,7 @@ def main():
                 ABCBA_confs, ABCBA_molecule = get_molecule(
                     type='ABCBA',
                     popns=(core_pop, liga_pop, link_pop),
-                    pop_ids=pop_ids, N=5,
+                    pop_ids=pop_ids, N=N,
                     mole_dir=mole_dir)
                 # get properties - save to molecule as attribute
                 ABCBA_molecule = get_geometrical_properties(mol=ABCBA_molecule,
@@ -307,7 +307,7 @@ def main():
                 ABA_confs, ABA_molecule = get_molecule(
                     type='ABA',
                     popns=(core_pop, liga_pop, link_pop),
-                    pop_ids=pop_ids, N=5,
+                    pop_ids=pop_ids, N=N,
                     mole_dir=mole_dir)
                 # get properties - save to molecule as attribute
                 ABA_molecule = get_geometrical_properties(mol=ABA_molecule,
