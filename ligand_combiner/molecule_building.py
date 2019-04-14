@@ -325,6 +325,21 @@ def main():
                 if ABCBA_molecule.geom_prop[0]['skip'] is False:
                     print(ABCBA_molecule.geom_prop[0]['NN_BCN_1'],
                           ABCBA_molecule.geom_prop[0]['NN_BCN_2'])
+                # also build the inverted molecule if possible.
+                if link_pop[pop_ids[2]].invertable is True:
+                    ABCBA_inv_confs, ABCBA_inv_molecule = get_molecule(
+                        type='ABCBA', inverted=True,
+                        popns=(core_pop, liga_pop, link_pop),
+                        pop_ids=pop_ids, N=N,
+                        mole_dir=mole_dir)
+                    # get properties - save to molecule as attribute
+                    ABCBA_inv_molecule = get_geometrical_properties(mol=ABCBA_inv_molecule,
+                                                                    cids=ABCBA_inv_confs,
+                                                                    type='ABCBA')
+                    molecule_pop.members.append(ABCBA_inv_molecule)
+                    if ABCBA_inv_molecule.geom_prop[0]['skip'] is False:
+                        print(ABCBA_inv_molecule.geom_prop[0]['NN_BCN_1'],
+                              ABCBA_inv_molecule.geom_prop[0]['NN_BCN_2'])
                 # break
             # build ABA molecule
             ABA_confs, ABA_molecule = get_molecule(
