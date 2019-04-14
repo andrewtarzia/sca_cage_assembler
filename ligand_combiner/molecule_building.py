@@ -207,7 +207,7 @@ def get_geometrical_properties(mol, cids, type):
     return mol
 
 
-def get_molecule(type, popns, pop_ids, N=1, mole_dir='./'):
+def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
     '''Get N conformers of a coordination cage ligand molecule using
     stk polymer function. Molecule undergoes RDKIT ETKDG conformer search and
     optimization with UFF.
@@ -233,10 +233,14 @@ def get_molecule(type, popns, pop_ids, N=1, mole_dir='./'):
     if type == 'ABCBA':
         molecule = build_ABCBA(core=core_item,
                                liga=liga_item,
-                               link=link_item)
+                               link=link_item,
+                               flippedlink=inverted)
         prefix = core_item.name + '_'
         prefix += liga_item.name + '_'
-        prefix += link_item.name
+        if inverted:
+            prefix += link_item.name + 'i'
+        else:
+            prefix += link_item.name
     elif type == 'ABA':
         molecule = build_ABA(core=core_item,
                              liga=liga_item)
@@ -309,7 +313,7 @@ def main():
                 pop_ids = (i, j, k)  # core, ligand, linker
                 print(pop_ids)
                 ABCBA_confs, ABCBA_molecule = get_molecule(
-                    type='ABCBA',
+                    type='ABCBA', inverted=False,
                     popns=(core_pop, liga_pop, link_pop),
                     pop_ids=pop_ids, N=N,
                     mole_dir=mole_dir)
@@ -324,7 +328,7 @@ def main():
                 # break
             # build ABA molecule
             ABA_confs, ABA_molecule = get_molecule(
-                type='ABA',
+                type='ABA', inverted=False,
                 popns=(core_pop, liga_pop, link_pop),
                 pop_ids=pop_ids, N=N,
                 mole_dir=mole_dir)
