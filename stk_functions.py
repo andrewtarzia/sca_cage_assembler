@@ -17,21 +17,26 @@ from stk.molecular.molecules import MacroMoleculeBuildError
 import json
 
 
-def build_ABCBA(core, liga, link):
+def build_ABCBA(core, liga, link, flippedlink=False):
     '''Build ABCBA ligand using linear stk polymer.
 
     Keyword Arguments:
         core (stk.StructUnit) - molecule to use as core
         liga (stk.StructUnit) - molecule to use as liga
         link (stk.StructUnit) - molecule to use as link
+        flippedlink (bool) - whether to flip the linker molecule (default False)
 
     Returns:
         polymer (stk.Polymer()) - polymer molecule pre optimization
 
     '''
+    if flippedlink is False:
+        orientation = [0, 0, 0, 1, 1]
+    elif flippedlink is True:
+        orientation = [0, 1, 0, 0, 1]
     polymer = stk.Polymer([liga, link, core],
                           stk.Linear(repeating_unit='ABCBA',
-                                     orientation=[0, 0, 0, 1, 1],
+                                     orientation=orientation,
                                      n=1, ends='fg'))
     return polymer
 
