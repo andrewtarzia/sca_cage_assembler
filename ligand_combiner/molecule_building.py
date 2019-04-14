@@ -14,6 +14,7 @@ Date Created: 04 Apr 2019
 import sys
 from ase.atoms import Atoms, Atom
 import numpy as np
+import pandas as pd
 from rdkit.Chem import AllChem as Chem
 from os.path import join
 from stk import rdkit_ETKDG, Population
@@ -288,6 +289,15 @@ def main():
                                 fgs=['bromine'])
     link_pop = build_population(directory=link_dir, structunit='StructUnit2',
                                 fgs=['bromine'])
+
+    # for the linker molecules, we attach an invertable flag attribute
+    link_mol_prop = pd.read_csv(join(link_dir, 'linkers.csv'))
+    for i in link_pop:
+        inversion_flag = str(link_mol_prop[link_mol_prop.name == i.name]['inversion_flag'].iloc[0])
+        if inversion_flag is 't':
+            i.invertable = True
+        else:
+            i.invertable = False
 
     print(core_pop)
     # this is the resultant molecule population
