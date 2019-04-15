@@ -9,7 +9,7 @@ Author: Andrew Tarzia
 
 Date Created: 15 Mar 2019
 """
-
+from os.path import isfile
 from ase.io import read
 from ase.io.xyz import write_xyz
 from pymatgen.io.cif import CifParser
@@ -21,11 +21,11 @@ def convert_CIF_2_PDB(file):
     '''
     pdb_file = file.replace('.cif', '.pdb')
     print('converting:', file, 'to', pdb_file)
-    structure = read(file)
-    # view(structure)
-    # input()
-    structure.write(pdb_file)
-    print('conversion done.')
+    if isfile(pdb_file) is False:
+        structure = read(file)
+        structure.write(pdb_file)
+        print('conversion done.')
+    structure = read(pdb_file)
     return pdb_file, structure
 
 
@@ -36,16 +36,16 @@ def convert_PDB_2_XYZ(file, comment=None):
     '''
     xyz_file = file.replace('.pdb', '.xyz')
     print('converting:', file, 'to', xyz_file)
-    structure = read(file)
-    # view(structure)
-    # input()
-    if comment is None:
-        cmt = 'This is an XYZ structure.'
-    else:
-        cmt = comment
-    write_xyz(xyz_file, images=structure, comment=cmt,
-              columns=['symbols', 'positions'])
-    print('conversion done.')
+    if isfile(xyz_file) is False:
+        structure = read(file)
+        if comment is None:
+            cmt = 'This is an XYZ structure.'
+        else:
+            cmt = comment
+        write_xyz(xyz_file, images=structure, comment=cmt,
+                  columns=['symbols', 'positions'])
+        print('conversion done.')
+    structure = read(xyz_file)
     return xyz_file, structure
 
 
