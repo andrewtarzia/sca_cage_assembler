@@ -399,6 +399,47 @@ def main():
                   mol_per_row=3, maxrows=3, subImgSize=(200, 200))
 
     # find matching pairs in molecule DB
+    # poly1 should be the 'large' molecule, while poly2 should be the 'small'
+    # molecule of the pair
+    # this is a crude/lazy for loop
+    passed_pairs = []
+    all_pairs = []
+    for i, poly1 in enumerate(molecule_pop):
+        for conf1 in poly1.geom_prop:
+            PROP1 = poly1.geom_prop[conf1]
+            # skip conformer if dihedral meant the N's were not on the right side
+            if PROP1['skip'] is True:
+                continue
+            for j, poly2 in enumerate(molecule_pop):
+                # make sure poly1 != poly2
+                if i != j:
+                    for conf2 in poly2.geom_prop:
+                        PROP2 = poly2.geom_prop[conf2]
+                        # skip conformer if desired
+                        if PROP2['skip'] is True:
+                            continue
+                        # check N-N distance of poly1-conf > poly2-conf
+                        NN_dist1 = np.linalg.norm(PROP1['NN_v'])
+                        NN_dist2 = np.linalg.norm(PROP2['NN_v'])
+                        if NN_dist1 > NN_dist2:
+                            # determine angles made by NN_v and NN-BC_v
+                            # check that the pairs sum to 180
+                            p1_angle1 = PROP1['NN_BCN_1']
+                            p1_angle2 = PROP1['NN_BCN_2']
+                            p2_angle1 = PROP2['NN_BCN_1']
+                            p2_angle2 = PROP2['NN_BCN_2']
+                            print(i, j, p1_angle1, p1_angle2, p2_angle1, p2_angle2)
+                            if np.isclose(p1_angle1 + p2_angle1, 180, rtol=0, atol=5):
+                                if np.isclose(p1_angle2 + p2_angle2, 180, rtol=0, atol=5):
+                                    print('passed')
+                                    passed_pairs.append((i, j, conf1, conf2,
+                                                         p1_angle1, p1_angle2,
+                                                         p2_angle1, p2_angle2,
+                                                         NN_dist1, NN_dist2))
+                            all_pairs.append((i, j, conf1, conf2,
+                                              p1_angle1, p1_angle2,
+                                              p2_angle1, p2_angle2,
+                                              NN_dist1, NN_dist2))
 
 
 if __name__ == "__main__":
