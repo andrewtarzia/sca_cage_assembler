@@ -40,9 +40,28 @@ Usage: remove_solvent.py CIF
     view(struct)
     view(final_struct)
     rebuilt_structure = rebuild_system(file=pdb_file)
+    print('modularising...')
     rebuilt_structure.make_modular()
+    print('done.')
+    # test if one molecule is huge because disorder breaks pywindow code
+    no_atoms_orig = len(struct)
+    n_atoms_list = []
+    for molecule in rebuilt_structure.molecules:
+        n_atoms_list.append(rebuilt_structure.molecules[molecule].no_of_atoms)
+    max_count = max(n_atoms_list)
+    if max_count > no_atoms_orig:
+        print('1 UC:', no_atoms_orig, 'modularized max:', max_count)
+        # implies that this structure is too disordered for pywindow to handle
+        sys.exit('skipping this CIF because modularising failed.')
     final_struct = remove_solvent(pw_struct=rebuilt_structure,
-                                  ASE_struct=final_struct)
+                                  ASE_struct=final_struct,
+                                  mol_list=n_atoms_list)
+    view(final_struct)
+    # output to CIF
+    output = CIF.replace('.cif', '_nosolv.cif')
+    final_struct.write(output, format='cif')
+    output = CIF.replace('.cif', '_nosolv.pdb')
+    final_struct.write(output)
 
 
 if __name__ == "__main__":
