@@ -337,12 +337,11 @@ def main():
     link_mol_prop = pd.read_csv(join(link_dir, 'linkers.csv'))
     for i in link_pop:
         inversion_flag = str(link_mol_prop[link_mol_prop.name == i.name]['inversion_flag'].iloc[0])
-        if inversion_flag is 't':
+        if inversion_flag == 't':
             i.invertable = True
         else:
             i.invertable = False
 
-    print(core_pop)
     # this is the resultant molecule population
     molecule_pop = Population()
     for i, core in enumerate(core_pop):
@@ -356,14 +355,12 @@ def main():
                     popns=(core_pop, liga_pop, link_pop),
                     pop_ids=pop_ids, N=N,
                     mole_dir=mole_dir)
+                ABCBA_molecule.name = 'ABCBA_' + str(i) + str(j) + str(k)
                 # get properties - save to molecule as attribute
                 ABCBA_molecule = get_geometrical_properties(mol=ABCBA_molecule,
                                                             cids=ABCBA_confs,
                                                             type='ABCBA')
                 molecule_pop.members.append(ABCBA_molecule)
-                if ABCBA_molecule.geom_prop[0]['skip'] is False:
-                    print(ABCBA_molecule.geom_prop[0]['NN_BCN_1'],
-                          ABCBA_molecule.geom_prop[0]['NN_BCN_2'])
                 # also build the inverted molecule if possible.
                 if link_pop[pop_ids[2]].invertable is True:
                     ABCBA_inv_confs, ABCBA_inv_molecule = get_molecule(
@@ -371,30 +368,26 @@ def main():
                         popns=(core_pop, liga_pop, link_pop),
                         pop_ids=pop_ids, N=N,
                         mole_dir=mole_dir)
+                    ABCBA_inv_molecule.name = 'ABCBA_' + str(i) + str(j) + str(k) + 'i'
                     # get properties - save to molecule as attribute
                     ABCBA_inv_molecule = get_geometrical_properties(mol=ABCBA_inv_molecule,
                                                                     cids=ABCBA_inv_confs,
                                                                     type='ABCBA')
                     molecule_pop.members.append(ABCBA_inv_molecule)
-                    if ABCBA_inv_molecule.geom_prop[0]['skip'] is False:
-                        print(ABCBA_inv_molecule.geom_prop[0]['NN_BCN_1'],
-                              ABCBA_inv_molecule.geom_prop[0]['NN_BCN_2'])
-                # break
+                break
             # build ABA molecule
             ABA_confs, ABA_molecule = get_molecule(
                 type='ABA', inverted=False,
                 popns=(core_pop, liga_pop, link_pop),
                 pop_ids=pop_ids, N=N,
                 mole_dir=mole_dir)
+            ABA_molecule.name = 'ABA_' + str(i) + str(j)
             # get properties - save to molecule as attribute
             ABA_molecule = get_geometrical_properties(mol=ABA_molecule,
                                                       cids=ABA_confs,
                                                       type='ABA')
             molecule_pop.members.append(ABA_molecule)
-            if ABA_molecule.geom_prop[0]['skip'] is False:
-                print(ABA_molecule.geom_prop[0]['NN_BCN_1'],
-                      ABA_molecule.geom_prop[0]['NN_BCN_2'])
-            break
+            # break
         break
 
     # draw 2D representation for all built molecules
