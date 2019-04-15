@@ -50,6 +50,42 @@ def visualize_atoms(mol, conf_dict, cid, type):
         POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
         POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
         POIs.write('testing_' + str(cid) + '_POIs.xyz')
+def get_binding_N_CC_coord(molecule, conf, frag_id):
+    '''Get the midpoint of the vector connecting the single (assumption)
+    binding N in ligand building block using the building_block_cores of
+    molecule.
+
+    '''
+    # assumes that the ligand block is always building block index '0'
+    # get coord of possible Ns
+    for i, frag in enumerate(molecule.building_block_cores(0)):
+        if i == frag_id:
+            frag_c = frag.GetConformer(conf)
+            for atom in frag.GetAtoms():
+                atom_id = atom.GetIdx()
+                atom_position = frag_c.GetAtomPosition(atom_id)
+                atom_position = np.array([*atom_position])
+                type = frag.GetAtomWithIdx(atom_id).GetSymbol()
+                if type == 'N':
+                    # get neighbours of this N
+                    C_ids = []
+                    for atom2 in atom.GetNeighbors():
+                        atom2_id = atom2.GetIdx()
+                        # if they are carbons
+                        if frag.GetAtomWithIdx(atom2_id).GetSymbol():
+                            C_ids.append(atom2_id)
+                    CC1_id = C_ids[0]
+                    CC2_id = C_ids[1]
+                    # get their atom positions
+                    CC1_pos = frag_c.GetAtomPosition(CC1_id)
+                    CC1 = np.array([*CC1_pos])
+                    CC2_pos = frag_c.GetAtomPosition(CC2_id)
+                    CC2 = np.array([*CC2_pos])
+                    # get the vector between C neighbours
+                    CC_v = CC1 - CC2
+                    # get the midpoint of the vector
+                    CC_midpoint = CC1 - CC_v / 2
+                    return CC_midpoint
 
 
 def get_binding_N_coord(molecule, conf, frag_id):
@@ -111,14 +147,18 @@ def get_geometrical_properties(mol, cids, type):
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=0, frag_id=0),
                 'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
-                                             frag_id=0)}
+                                             frag_id=0),
+                'CC_pos': get_binding_N_CC_coord(molecule=mol, conf=cid,
+                                                 frag_id=0)}
             # second binder -- actual ordering of BB does not matter if linker
             # information is not used
             conf_dict['liga2'] = {
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=0, frag_id=1),
                 'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
-                                             frag_id=1)}
+                                             frag_id=1),
+                'CC_pos': get_binding_N_CC_coord(molecule=mol, conf=cid,
+                                                 frag_id=1)}
             # first linker -- actual ordering of BB does matter if linker
             # information is used -- currently is not
             conf_dict['link1'] = {
@@ -139,13 +179,17 @@ def get_geometrical_properties(mol, cids, type):
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=0, frag_id=0),
                 'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
-                                             frag_id=0)}
+                                             frag_id=0),
+                'CC_pos': get_binding_N_CC_coord(molecule=mol, conf=cid,
+                                                 frag_id=0)}
             # second binder -- actual ordering of BB does not matter
             conf_dict['liga2'] = {
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=0, frag_id=1),
                 'N_pos': get_binding_N_coord(molecule=mol, conf=cid,
-                                             frag_id=1)}
+                                             frag_id=1),
+                'CC_pos': get_binding_N_CC_coord(molecule=mol, conf=cid,
+                                                 frag_id=1)}
             # core
             conf_dict['core1'] = {
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
@@ -181,22 +225,14 @@ def get_geometrical_properties(mol, cids, type):
         # print(cid, NBBN_dihedral)
         mol.geom_prop[cid]['NN_v'] = mol.geom_prop[cid]['liga1']['N_pos'] \
                                      - mol.geom_prop[cid]['liga2']['N_pos']
-        mol.geom_prop[cid]['BCBC_v'] = mol.geom_prop[cid]['liga1']['pos'] \
-                                       - mol.geom_prop[cid]['liga2']['pos']
-        mol.geom_prop[cid]['BCN_1'] = mol.geom_prop[cid]['liga1']['pos'] \
+        mol.geom_prop[cid]['BCN_1'] = mol.geom_prop[cid]['liga1']['CC_pos'] \
                                      - mol.geom_prop[cid]['liga1']['N_pos']
-        mol.geom_prop[cid]['BCN_2'] = mol.geom_prop[cid]['liga2']['pos'] \
+        mol.geom_prop[cid]['BCN_2'] = mol.geom_prop[cid]['liga2']['CC_pos'] \
                                      - mol.geom_prop[cid]['liga2']['N_pos']
 
         # get desired angles in radian
         # negative signs applied based on the direction of vectors defined
         # above - not dependance on ordering of BB placement in stk
-        mol.geom_prop[cid]['BCBC_BCN_1'] = np.degrees(
-            angle_between(mol.geom_prop[cid]['BCN_1'],
-                          mol.geom_prop[cid]['BCBC_v']))
-        mol.geom_prop[cid]['BCBC_BCN_2'] = np.degrees(
-            angle_between(mol.geom_prop[cid]['BCN_2'],
-                          -mol.geom_prop[cid]['BCBC_v']))
         mol.geom_prop[cid]['NN_BCN_1'] = np.degrees(
             angle_between(mol.geom_prop[cid]['BCN_1'],
                           mol.geom_prop[cid]['NN_v']))
