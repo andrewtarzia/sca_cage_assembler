@@ -11,6 +11,7 @@ Date Created: 15 Mar 2019
 """
 
 from rdkit.Chem import AllChem as Chem
+from copy import deepcopy
 from ase.atoms import Atom
 import pywindow as pw
 
@@ -105,6 +106,44 @@ def analyze_rebuilt(rebuilt_structure, file_prefix, atom_limit,
     # print(result_dict)
     print('analysis done.')
     return result_dict
+
+
+def is_solvent(molecule):
+    '''Tests if a pyWindow molecule is a solvent or not.
+
+    Tests:
+        1)
+        2)
+
+    '''
+    result = False
+    # do tests
+    print(mol.no_of_atoms)
+    sys.exit()
+    return result
+
+
+def remove_solvent(pw_struct, ASE_struct):
+    '''Remove solvents based on is_solvent() function and append to ASE_struct
+
+    Keyword Arguments:
+        pw_struct (pyWindow Rebuilt Molecule) - structure to analyze molecules of
+        ASE_struct (ASE.Atoms()) - structure to append non-solvent atoms to
+
+    Returns:
+        ASE_struct_out (ASE.Atoms()) - structure with non-solvent atoms
+
+    '''
+    # make deep copy of ASE_struct
+    ASE_struct_out = deepcopy(ASE_struct)
+    for molecule in pw_struct.molecules:
+        print('Analysing molecule {0} out of {1}'.format(
+            molecule + 1, len(pw_struct.molecules)))
+        mol = pw_struct.molecules[molecule]
+        if is_solvent(molecule=mol) is True:
+            # append atoms to ASE_struct_out
+            pass
+    return ASE_struct_out
 
 
 def append_and_write_COMs(result_dict, structure, file):
