@@ -10,8 +10,10 @@ Author: Andrew Tarzia
 Date Created: 15 Mar 2019
 """
 
+from sys import exit
 from rdkit.Chem import AllChem as Chem
 from copy import deepcopy
+from os.path import isfile
 from ase.atoms import Atom
 import pywindow as pw
 
@@ -128,7 +130,7 @@ def is_solvent(molecule, mol_list):
     return result
 
 
-def remove_solvent(pw_struct, ASE_struct):
+def remove_solvent(pw_struct, ASE_struct, mol_list):
     '''Remove solvents based on is_solvent() function and append to ASE_struct
 
     Keyword Arguments:
@@ -145,9 +147,17 @@ def remove_solvent(pw_struct, ASE_struct):
         print('Analysing molecule {0} out of {1}'.format(
             molecule + 1, len(pw_struct.molecules)))
         mol = pw_struct.molecules[molecule]
-        if is_solvent(molecule=mol) is True:
+        if is_solvent(molecule=mol, mol_list=mol_list) is True:
             # append atoms to ASE_struct_out
-            pass
+            atom_ids = mol.atom_ids
+            coords = mol.coordinates
+            atom_symbs = mol.elements
+            for i, j, k in zip(atom_ids, atom_symbs, coords):
+                print(i, j, k)
+                curr_atm = Atom(symbol=j,
+                                position=k,
+                                index=i)
+                ASE_struct_out.append(curr_atm)
     return ASE_struct_out
 
 
