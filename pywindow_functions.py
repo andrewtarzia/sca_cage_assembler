@@ -16,18 +16,22 @@ from ase.atoms import Atom
 import pywindow as pw
 
 
-def rebuild_system(file):
+def rebuild_system(file, overwrite=False):
     '''As per example 6 in pywindow - rebuild the PDB system, output and reread.
 
     '''
-    print('rebuilding:', file)
-    molsys = pw.MolecularSystem.load_file(file)
-    rebuild_molsys = molsys.rebuild_system()
-    # output
-    rebuild_molsys.dump_system(file.replace('.pdb', '_rebuild.pdb'),
-                               include_coms=True,
-                               override=True)
-    print('rebuild done.')
+    out_file = file.replace('.pdb', '_rebuild.pdb')
+    if isfile(out_file) is False or overwrite is True:
+        print('rebuilding:', file)
+        molsys = pw.MolecularSystem.load_file(file)
+        rebuild_molsys = molsys.rebuild_system()
+        # output
+        rebuild_molsys.dump_system(out_file,
+                                   include_coms=True,
+                                   override=True)
+        print('rebuild done.')
+    else:
+        rebuild_molsys = pw.MolecularSystem.load_file(out_file)
     return rebuild_molsys
 
 
