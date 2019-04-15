@@ -112,7 +112,7 @@ def analyze_rebuilt(rebuilt_structure, file_prefix, atom_limit,
     return result_dict
 
 
-def is_solvent(molecule):
+def is_solvent(molecule, mol_list):
     '''Tests if a pyWindow molecule is a solvent or not.
 
     Tests:
@@ -120,10 +120,11 @@ def is_solvent(molecule):
         2)
 
     '''
-    result = False
+    result = True
     # do tests
-    print(mol.no_of_atoms)
-    sys.exit()
+    if molecule.no_of_atoms < max(mol_list) / 2:
+        print(molecule.no_of_atoms)
+        result = False
     return result
 
 
