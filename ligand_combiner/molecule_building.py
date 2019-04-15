@@ -24,32 +24,34 @@ from calculations import get_dihedral, angle_between
 from rdkit_functions import mol_list2grid
 
 
-def visualize_atoms(mol, conf_dict, cid, type):
+def visualize_atoms(mol, conf_dict, cid, type, filename):
     '''Output files with POIs and conformer atom positions for visulization.
 
     '''
-    if type == 'ABCBA':
-        mol.write(path='testing_' + str(cid) + '_mol.pdb', conformer=cid)
-        POIs = Atoms()
-        POIs.append(Atom(symbol='H', position=conf_dict['COM']))
-        POIs.append(Atom(symbol='C', position=conf_dict['liga1']['pos']))
-        # POIs.append(Atom(symbol='C', position=conf_dict['link1']['pos']))
-        POIs.append(Atom(symbol='C', position=conf_dict['core1']['pos']))
-        # POIs.append(Atom(symbol='C', position=conf_dict['link2']['pos']))
-        POIs.append(Atom(symbol='C', position=conf_dict['liga2']['pos']))
-        POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
-        POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
-        POIs.write('testing_' + str(cid) + '_POIs.xyz')
-    elif type == 'ABA':
-        mol.write(path='testing_' + str(cid) + '_mol.pdb', conformer=cid)
-        POIs = Atoms()
-        POIs.append(Atom(symbol='H', position=conf_dict['COM']))
-        POIs.append(Atom(symbol='C', position=conf_dict['liga1']['pos']))
-        POIs.append(Atom(symbol='C', position=conf_dict['core1']['pos']))
-        POIs.append(Atom(symbol='C', position=conf_dict['liga2']['pos']))
-        POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
-        POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
-        POIs.write('testing_' + str(cid) + '_POIs.xyz')
+
+    mol.write(path=filename + '.pdb', conformer=cid)
+    POIs = Atoms()
+    POIs.append(Atom(symbol='H', position=conf_dict['COM']))
+    POIs.append(Atom(symbol='C', position=conf_dict['liga1']['pos']))
+    POIs.append(Atom(symbol='C', position=conf_dict['core1']['pos']))
+    POIs.append(Atom(symbol='C', position=conf_dict['liga2']['pos']))
+    POIs.append(Atom(symbol='Be', position=conf_dict['liga1']['CC_pos']))
+    POIs.append(Atom(symbol='Be', position=conf_dict['liga2']['CC_pos']))
+    POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
+    POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
+    # plot vectors as P atom
+    v1 = conf_dict['liga1']['CC_pos']
+    v2 = conf_dict['liga1']['N_pos']
+    pts = [np.linspace(v1[i], v2[i]) for i in np.arange(len(v1))]
+    print(pts)
+    for i, j, k in zip(*pts):
+        POIs.append(Atom(symbol='P', position=[i, j, k]))
+    # if type == 'ABCBA':
+    #    POIs.append(Atom(symbol='C', position=conf_dict['link1']['pos']))
+    #    POIs.append(Atom(symbol='C', position=conf_dict['link2']['pos']))
+    POIs.write(filename + '_POIs.xyz')
+
+
 def get_binding_N_CC_coord(molecule, conf, frag_id):
     '''Get the midpoint of the vector connecting the single (assumption)
     binding N in ligand building block using the building_block_cores of
@@ -195,11 +197,6 @@ def get_geometrical_properties(mol, cids, type):
                 'pos': bb_center_of_mass(molecule=mol, conf=cid,
                                          bb_idx=1, frag_id=0)}
         mol.geom_prop[cid] = conf_dict
-        # output for viz
-        if False:
-            # if True:
-            visualize_atoms(mol, conf_dict, cid, type)
-
         # from the positions collected:
         # determine whether the N's are both pointing in the desired direction
         # if so,
@@ -229,6 +226,12 @@ def get_geometrical_properties(mol, cids, type):
                                      - mol.geom_prop[cid]['liga1']['N_pos']
         mol.geom_prop[cid]['BCN_2'] = mol.geom_prop[cid]['liga2']['CC_pos'] \
                                      - mol.geom_prop[cid]['liga2']['N_pos']
+
+        # output for viz
+        # if False:
+        if True:
+            visualize_atoms(mol, conf_dict, cid, type,
+                            filename=mol.name + '_' + str(cid))
 
         # get desired angles in radian
         # negative signs applied based on the direction of vectors defined
