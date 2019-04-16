@@ -24,6 +24,16 @@ from calculations import get_dihedral, angle_between
 from rdkit_functions import mol_list2grid
 
 
+def atoms_2_vect(ASE, p1, p2):
+    '''Append to ASE.Atoms() the interpolation between two points.
+
+    '''
+    pts = [np.linspace(p1[i], p2[i]) for i in np.arange(len(p1))]
+    for i, j, k in zip(*pts):
+        ASE.append(Atom(symbol='P', position=[i, j, k]))
+    return ASE
+
+
 def visualize_atoms(mol, conf_dict, cid, type, filename):
     '''Output files with POIs and conformer atom positions for visulization.
 
@@ -40,12 +50,12 @@ def visualize_atoms(mol, conf_dict, cid, type, filename):
     POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
     POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
     # plot vectors as P atom
-    v1 = conf_dict['liga1']['CC_pos']
-    v2 = conf_dict['liga1']['N_pos']
-    pts = [np.linspace(v1[i], v2[i]) for i in np.arange(len(v1))]
-    print(pts)
-    for i, j, k in zip(*pts):
-        POIs.append(Atom(symbol='P', position=[i, j, k]))
+    POIs = atoms_2_vect(ASE=POIs, p1=conf_dict['liga1']['CC_pos'],
+                        p2=conf_dict['liga1']['N_pos'])
+    POIs = atoms_2_vect(ASE=POIs, p1=conf_dict['liga2']['CC_pos'],
+                        p2=conf_dict['liga2']['N_pos'])
+    POIs = atoms_2_vect(ASE=POIs, p1=conf_dict['liga1']['N_pos'],
+                        p2=conf_dict['liga2']['N_pos'])
     # if type == 'ABCBA':
     #    POIs.append(Atom(symbol='C', position=conf_dict['link1']['pos']))
     #    POIs.append(Atom(symbol='C', position=conf_dict['link2']['pos']))
