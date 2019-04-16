@@ -464,8 +464,6 @@ def main():
         molecule_pop = molecule_pop.load(path=join(mole_dir, 'molecules.pop'),
                                          member_init=stk.Molecule.from_dict)
 
-    print(molecule_pop)
-
     # define bond length vector to use based on N-Pd bond distances extracted
     # from survey
     # N-Pd-N length
@@ -488,7 +486,6 @@ def main():
                 # make sure poly1 != poly2
                 if i != j:
                     for conf2 in poly2.geom_prop:
-                        print(poly1.name, poly2.name)
                         PROP2 = poly2.geom_prop[conf2]
                         # skip conformer if desired
                         if PROP2['skip'] is True:
@@ -496,7 +493,6 @@ def main():
                         # check N-N distance of poly1-conf > poly2-conf
                         NN_dist1 = np.linalg.norm(PROP1['NN_v'])
                         NN_dist2 = np.linalg.norm(PROP2['NN_v'])
-                        print(NN_dist1, NN_dist2)
                         if NN_dist1 > NN_dist2:
                             # determine angles made by NN_v and NN-BC_v
                             # check that the pairs sum to 180
@@ -504,7 +500,6 @@ def main():
                             p1_angle2 = PROP1['NN_BCN_2']
                             p2_angle1 = PROP2['NN_BCN_1']
                             p2_angle2 = PROP2['NN_BCN_2']
-                            print(i, j, p1_angle1, p1_angle2, p2_angle1, p2_angle2)
                             if np.isclose(p1_angle1 + p2_angle1, 180, rtol=0, atol=angle_tol):
                                 if np.isclose(p1_angle2 + p2_angle2, 180, rtol=0, atol=angle_tol):
                                     # now check that the length of the long
@@ -514,15 +509,22 @@ def main():
                                     # difference of the two NN_v (LHS) matches what is
                                     # expected by trig (RHS)
                                     extender_V_LHS = (NN_dist1 - NN_dist2) / 2
-                                    print(extender_V_LHS)
                                     test_angle = np.radians(180 - p2_angle1)
-                                    print(test_angle)
                                     extender_V_RHS = vector_length * np.cos(test_angle)
-                                    print(extender_V_RHS)
-                                    tol = vector_std * np.cos(test_angle)
-                                    print(tol)
+                                    tol = 2 * vector_std * np.cos(test_angle)
                                     if np.isclose(extender_V_LHS, extender_V_RHS,
                                                   rtol=0, atol=tol):
+                                        print(poly1.name, conf1, poly2.name, conf2)
+                                        print('NN_dists:', NN_dist1, NN_dist2)
+                                        print('angles:', p1_angle1,
+                                              p1_angle2, p2_angle1, p2_angle2)
+                                        print('sum angles:',
+                                              p1_angle1 + p2_angle1,
+                                              p1_angle2 + p2_angle2)
+                                        print('LHS:', extender_V_LHS)
+                                        print('cos(pi-d):', test_angle)
+                                        print('RHS:', extender_V_RHS)
+                                        print('bond_tol:', tol)
                                         print('passed')
                                         input()
                                         passed_pairs.append((i, j, conf1, conf2,
