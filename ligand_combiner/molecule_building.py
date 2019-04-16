@@ -150,6 +150,7 @@ def get_geometrical_properties(mol, cids, type):
     # new attribute for mol
     mol.geom_prop = {}
     for cid in cids:
+        print(mol.name, cid)
         # dictinary per conformer
         conf_dict = {}
         conf_dict['COM'] = mol.center_of_mass(conformer=cid)
@@ -390,11 +391,17 @@ def main():
         # this is the resultant molecule population
         molecule_pop = Population()
         for i, core in enumerate(core_pop):
+            if core.name not in ['core_4', 'core_5', 'core_6']:
+                continue
             for j, liga in enumerate(liga_pop):
+                if liga.name not in ['lig_1', 'lig_2', 'lig_3']:
+                    continue
                 for k, link in enumerate(link_pop):
+                    if link.name not in ['link_1']:
+                        continue
                     # build ABCBA molecule
                     pop_ids = (i, j, k)  # core, ligand, linker
-                    print(pop_ids)
+                    print(core.name, liga.name, link.name, pop_ids)
                     ABCBA_confs, ABCBA_molecule = get_molecule(
                         type='ABCBA', inverted=False,
                         popns=(core_pop, liga_pop, link_pop),
