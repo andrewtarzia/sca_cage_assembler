@@ -279,7 +279,7 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
             try:
                 struct = load_StructUnit(file)
             except TypeError:
-                struct = load_StructUnit(file+'_opt.mol')
+                struct = load_StructUnit(file + '_opt.mol')
             struct.energy.macromodel(16, macromod_)
             for i in struct.energy.values:
                 energies[NAME] = struct.energy.values[i]
