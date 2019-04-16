@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 from rdkit.Chem import AllChem as Chem
 from os.path import join
+import stk
 from stk import rdkit_ETKDG, Population
 sys.path.insert(0, '/home/atarzia/thesource/')
 from stk_functions import build_population, build_ABCBA, build_ABA
@@ -324,10 +325,16 @@ def main():
         print("""
     Usage: molecule_builing.py N
         N (int) - number of conformers to use
+        angle_tol (float) - tolerance to use on angle matching
+        bond_mean (float) - mean value of bond distance to use in candidate selection
+        bond_std (float) - std deviation value of bond distance to use in candidate selection
         """)
         sys.exit()
     else:
-        N = int(sys.argv[1])
+        N = int(sys.argv[2])
+        angle_tol = float(sys.argv[3])
+        bond_mean = float(sys.argv[4])
+        bond_std = float(sys.argv[5])
 
     proj_dir = '/home/atarzia/projects/ligand_combiner/'
     core_dir = proj_dir + 'cores/'
@@ -407,6 +414,11 @@ def main():
         mol_list.append(MOL)
     mol_list2grid(molecules=mol_list, filename='built_molecules',
                   mol_per_row=3, maxrows=3, subImgSize=(200, 200))
+    # define bond length vector to use based on N-Pd bond distances extracted
+    # from survey
+    # N-Pd-N length
+    vector_length = 2 * bond_mean
+    vector_std = 2 * bond_std
 
     # find matching pairs in molecule DB
     # poly1 should be the 'large' molecule, while poly2 should be the 'small'
@@ -424,6 +436,7 @@ def main():
                 # make sure poly1 != poly2
                 if i != j:
                     for conf2 in poly2.geom_prop:
+                        print(poly1.name, poly2.name)
                         PROP2 = poly2.geom_prop[conf2]
                         # skip conformer if desired
                         if PROP2['skip'] is True:
@@ -431,6 +444,7 @@ def main():
                         # check N-N distance of poly1-conf > poly2-conf
                         NN_dist1 = np.linalg.norm(PROP1['NN_v'])
                         NN_dist2 = np.linalg.norm(PROP2['NN_v'])
+                        print(NN_dist1, NN_dist2)
                         if NN_dist1 > NN_dist2:
                             # determine angles made by NN_v and NN-BC_v
                             # check that the pairs sum to 180
@@ -439,13 +453,30 @@ def main():
                             p2_angle1 = PROP2['NN_BCN_1']
                             p2_angle2 = PROP2['NN_BCN_2']
                             print(i, j, p1_angle1, p1_angle2, p2_angle1, p2_angle2)
-                            if np.isclose(p1_angle1 + p2_angle1, 180, rtol=0, atol=5):
-                                if np.isclose(p1_angle2 + p2_angle2, 180, rtol=0, atol=5):
-                                    print('passed')
-                                    passed_pairs.append((i, j, conf1, conf2,
-                                                         p1_angle1, p1_angle2,
-                                                         p2_angle1, p2_angle2,
-                                                         NN_dist1, NN_dist2))
+                            if np.isclose(p1_angle1 + p2_angle1, 180, rtol=0, atol=angle_tol):
+                                if np.isclose(p1_angle2 + p2_angle2, 180, rtol=0, atol=angle_tol):
+                                    # now check that the length of the long
+                                    # vector and the short vector are commensurate
+                                    # with an ideal trapezoid with the given angles
+                                    # i.e. the extender vector determined by the
+                                    # difference of the two NN_v (LHS) matches what is
+                                    # expected by trig (RHS)
+                                    extender_V_LHS = (NN_dist1 - NN_dist2) / 2
+                                    print(extender_V_LHS)
+                                    test_angle = np.radians(180 - p2_angle1)
+                                    print(test_angle)
+                                    extender_V_RHS = vector_length * np.cos(test_angle)
+                                    print(extender_V_RHS)
+                                    tol = vector_std * np.cos(test_angle)
+                                    print(tol)
+                                    if np.isclose(extender_V_LHS, extender_V_RHS,
+                                                  rtol=0, atol=tol):
+                                        print('passed')
+                                        input()
+                                        passed_pairs.append((i, j, conf1, conf2,
+                                                             p1_angle1, p1_angle2,
+                                                             p2_angle1, p2_angle2,
+                                                             NN_dist1, NN_dist2))
                             all_pairs.append((i, j, conf1, conf2,
                                               p1_angle1, p1_angle2,
                                               p2_angle1, p2_angle2,
