@@ -77,7 +77,7 @@ def build_population(directory, structunit, fgs=None, suffix='.mol'):
         fgs = ['bromine']
 
     mols = []
-    for file in glob(directory + '*' + suffix):
+    for file in sorted(glob(directory + '*' + suffix)):
         if structunit == 'StructUnit':
             mol = stk.StructUnit(file, fgs,
                                  name=file.rstrip(suffix).replace(directory, ''))
