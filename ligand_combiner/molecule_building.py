@@ -227,10 +227,35 @@ def get_geometrical_properties(mol, cids, type):
         # if the absolute value of this dihedral > some tolerance,
         # skip conformer
         mol.geom_prop[cid]['skip'] = False
-        if abs(NBBN_dihedral) > 20:
+        dihedral_lim = 20
+        if abs(NBBN_dihedral) > dihedral_lim:
             mol.geom_prop[cid]['skip'] = True
+            print('skipping, NBBN dihedral > {}'.format(dihedral_lim))
             continue
-        # print(cid, NBBN_dihedral)
+        # also check that the N atoms are pointing away from the core
+        # by making sure COM_core-N_pos > COM_core-liga_pos
+        core_2_COM = mol.geom_prop[cid]['COM'] \
+                     - mol.geom_prop[cid]['core1']['pos']
+        core_2_N1 = mol.geom_prop[cid]['liga1']['N_pos'] \
+                     - mol.geom_prop[cid]['core1']['pos']
+        core_2_liga1 = mol.geom_prop[cid]['liga1']['pos'] \
+                     - mol.geom_prop[cid]['core1']['pos']
+        core_2_N2 = mol.geom_prop[cid]['liga2']['N_pos'] \
+                     - mol.geom_prop[cid]['core1']['pos']
+        core_2_liga2 = mol.geom_prop[cid]['liga2']['pos'] \
+                     - mol.geom_prop[cid]['core1']['pos']
+
+        N1_core_COM_angle = angle_between(core_2_N1, core_2_COM)
+        L1_core_COM_angle = angle_between(core_2_liga1, core_2_COM)
+        N2_core_COM_angle = angle_between(core_2_N2, core_2_COM)
+        L2_core_COM_angle = angle_between(core_2_liga2, core_2_COM)
+
+        if N1_core_COM_angle > L1_core_COM_angle:
+            if N2_core_COM_angle > L2_core_COM_angle:
+                mol.geom_prop[cid]['skip'] = True
+                print("skipping, both N's point backwards")
+                continue
+
         mol.geom_prop[cid]['NN_v'] = mol.geom_prop[cid]['liga1']['N_pos'] \
                                      - mol.geom_prop[cid]['liga2']['N_pos']
         mol.geom_prop[cid]['BCN_1'] = mol.geom_prop[cid]['liga1']['CC_pos'] \
