@@ -108,10 +108,10 @@ def get_dihedral(pt1, pt2, pt3, pt4):
     From: https://stackoverflow.com/questions/20305272/dihedral-torsion-angle-from-four-points-in-cartesian-coordinates-in-python
     (new_dihedral(p))
     '''
-    p0 = pt1
-    p1 = pt2
-    p2 = pt3
-    p3 = pt4
+    p0 = np.asarray(pt1)
+    p1 = np.asarray(pt2)
+    p2 = np.asarray(pt3)
+    p3 = np.asarray(pt4)
 
     b0 = -1.0 * (p1 - p0)
     b1 = p2 - p1
