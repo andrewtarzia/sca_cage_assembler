@@ -336,8 +336,10 @@ def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
     mol_file = prefix + '_' + type + '_opt.mol'
     molecule.write(join(mole_dir, mol_file))
     # make N conformers of the polymer molecule
+    etkdg = Chem.ETKDG()
+    etkdg.randomSeed = 1000
     cids = Chem.EmbedMultipleConfs(mol=molecule.mol, numConfs=N,
-                                   params=Chem.ETKDG())
+                                   params=etkdg)
     # output each conformer to 3D structure if desired
     # for cid in cids:
     #     print(cid)
