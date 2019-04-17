@@ -151,7 +151,6 @@ def get_geometrical_properties(mol, cids, type):
     # new attribute for mol
     mol.geom_prop = {}
     for cid in cids:
-        print(mol.name, cid)
         # dictinary per conformer
         conf_dict = {}
         conf_dict['COM'] = mol.center_of_mass(conformer=cid)
@@ -232,7 +231,7 @@ def get_geometrical_properties(mol, cids, type):
         dihedral_lim = 20
         if abs(NBBN_dihedral) > dihedral_lim:
             mol.geom_prop[cid]['skip'] = True
-            print('skipping, NBBN dihedral > {}'.format(dihedral_lim))
+            # print('skipping, NBBN dihedral > {}'.format(dihedral_lim))
             continue
         # also check that the N atoms are pointing away from the core
         # by making sure COM_core-N_pos > COM_core-liga_pos
@@ -255,7 +254,7 @@ def get_geometrical_properties(mol, cids, type):
         if N1_core_COM_angle > L1_core_COM_angle:
             if N2_core_COM_angle > L2_core_COM_angle:
                 mol.geom_prop[cid]['skip'] = True
-                print("skipping, both N's point backwards")
+                # print("skipping, both N's point backwards")
                 continue
 
         mol.geom_prop[cid]['NN_v'] = mol.geom_prop[cid]['liga1']['N_pos'] \
@@ -264,7 +263,7 @@ def get_geometrical_properties(mol, cids, type):
                                      - mol.geom_prop[cid]['liga1']['N_pos']
         mol.geom_prop[cid]['BCN_2'] = mol.geom_prop[cid]['liga2']['CC_pos'] \
                                      - mol.geom_prop[cid]['liga2']['N_pos']
-
+        print('{}: confomer {} passed'.format(mol.name, cid))
         # output for viz
         # if False:
         if True:
@@ -394,10 +393,12 @@ def main():
         # this is the resultant molecule population
         molecule_pop = Population()
         for i, core in enumerate(core_pop):
-            if core.name not in ['core_4', 'core_5', 'core_6']:
+            # if core.name not in ['core_4', 'core_5', 'core_6']:
+            if core.name not in ['core_4', 'core_6']:
                 continue
             for j, liga in enumerate(liga_pop):
-                if liga.name not in ['lig_1', 'lig_2', 'lig_3']:
+                # if liga.name not in ['lig_1', 'lig_2', 'lig_3']:
+                if liga.name not in ['lig_1', 'lig_2']:
                     continue
                 for k, link in enumerate(link_pop):
                     if link.name not in ['link_1']:
@@ -488,11 +489,16 @@ def main():
     all_pairs = []
     for i, poly1 in enumerate(molecule_pop):
         for conf1 in poly1.geom_prop:
+            if poly1.name != 'ABCBA_300':
+                continue
             PROP1 = poly1.geom_prop[conf1]
             # skip conformer if dihedral meant the N's were not on the right side
             if PROP1['skip'] is True:
                 continue
+            print('doing conformer {} of ABCBA'.format(conf1))
             for j, poly2 in enumerate(molecule_pop):
+                if poly2.name != 'ABA_51':
+                    continue
                 # make sure poly1 != poly2
                 if i != j:
                     NN_dist2s = []
@@ -505,6 +511,7 @@ def main():
                         # skip conformer if desired
                         if PROP2['skip'] is True:
                             continue
+                        print(poly1.name, conf1, poly2.name, conf2)
                         # obtain all properties
                         # check N-N distance of poly1-conf > poly2-conf
                         NN_dist1 = np.linalg.norm(PROP1['NN_v'])
