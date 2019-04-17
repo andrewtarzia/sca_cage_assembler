@@ -125,10 +125,10 @@ def main():
             # break
 
         # save populations
-        core_pop.dump(join(core_dir, 'core.pop'))
-        liga_pop.dump(join(liga_dir, 'ligands.pop'))
-        link_pop.dump(join(link_dir, 'linkers.pop'))
-        molecule_pop.dump(join(mole_dir, 'molecules.pop'))
+        core_pop.dump(join(core_dir, 'core.pop'), include_attrs=['geom_prop'])
+        liga_pop.dump(join(liga_dir, 'ligands.pop'), include_attrs=['geom_prop'])
+        link_pop.dump(join(link_dir, 'linkers.pop'), include_attrs=['geom_prop'])
+        molecule_pop.dump(join(mole_dir, 'molecules.pop'), include_attrs=['geom_prop'])
 
         # draw 2D representation for all built molecules
         mol_list = []
