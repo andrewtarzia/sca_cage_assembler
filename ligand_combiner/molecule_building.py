@@ -462,18 +462,14 @@ def main():
 
     elif rebuild == 'f':
         # load in populations
-        core_pop = stk.Population()
-        liga_pop = stk.Population()
-        link_pop = stk.Population()
-        molecule_pop = stk.Population()
-        core_pop = core_pop.load(path=join(core_dir, 'core.pop'),
-                                 member_init=stk.Molecule.from_dict)
-        liga_pop = liga_pop.load(path=join(liga_dir, 'ligands.pop'),
-                                 member_init=stk.Molecule.from_dict)
-        link_pop = link_pop.load(path=join(link_dir, 'linkers.pop'),
-                                 member_init=stk.Molecule.from_dict)
-        molecule_pop = molecule_pop.load(path=join(mole_dir, 'molecules.pop'),
-                                         member_init=stk.Molecule.from_dict)
+        core_pop = stk.Population.load(path=join(core_dir, 'core.pop'),
+                                       member_init=stk.Molecule.from_dict)
+        liga_pop = stk.Population.load(path=join(liga_dir, 'ligands.pop'),
+                                       member_init=stk.Molecule.from_dict)
+        link_pop = stk.Population.load(path=join(link_dir, 'linkers.pop'),
+                                       member_init=stk.Molecule.from_dict)
+        molecule_pop = stk.Population.load(path=join(mole_dir, 'molecules.pop'),
+                                           member_init=stk.Molecule.from_dict)
 
     # define bond length vector to use based on N-Pd bond distances extracted
     # from survey
