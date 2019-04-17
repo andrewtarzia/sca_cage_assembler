@@ -1,3 +1,56 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Distributed under the terms of the MIT License.
+
+"""
+Module for containing functions for ligand_combiner
+
+Author: Andrew Tarzia
+
+Date Created: 17 Apr 2019
+
+"""
+
+import sys
+from ase.atoms import Atoms, Atom
+import numpy as np
+from rdkit.Chem import AllChem as Chem
+from os.path import join
+from stk import rdkit_ETKDG
+sys.path.insert(0, '/home/atarzia/thesource/')
+from stk_functions import build_ABCBA, build_ABA
+from calculations import get_dihedral, angle_between
+
+
+class Combination:
+    '''Class defining a pair of linkers and their geometrical properties
+
+    '''
+    def __init__(self, mol1, mol2, conf1, conf2):
+        self.mol1 = mol1
+        self.mol2 = mol2
+        self.conf1 = conf1
+        self.conf2 = conf2
+
+    def test_angles(self):
+        '''
+
+        '''
+
+    def test_N_Pd_lengths(self):
+        '''
+
+        '''
+
+    def test_N_N_lengths(self):
+        '''Test that the larger linker has a longer NN distance than the shorter
+        linker.
+
+        '''
+        if self.NN_dist1 > self.NN_dist2:
+            True
+        else:
+            return False
 
 
 def atoms_2_vect(ASE, p1, p2):
