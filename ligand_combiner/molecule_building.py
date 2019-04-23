@@ -24,18 +24,20 @@ from Combiner import get_molecule, get_geometrical_properties, Combination
 sys.path.insert(0, '/home/atarzia/thesource/')
 from stk_functions import build_population
 from rdkit_functions import mol_list2grid
+from analyze_molecules import plot_all_pair_info
 
 
 def main():
-    if (not len(sys.argv) == 7):
+    if (not len(sys.argv) == 8):
         print("""
-    Usage: molecule_builing.py rebuild N bond_mean bond_std pair_data energy_tol
+    Usage: molecule_builing.py rebuild N bond_mean bond_std pair_data energy_tol angle_tol
         rebuild (str) - 't' if you want to rebuild all molecules, 'f' to load populations
         N (int) - number of conformers to use
         bond_mean (float) - mean value of bond distance to use in candidate selection
         bond_std (float) - std deviation value of bond distance to use in candidate selection
         pair_data (str) - pickle file to output pair data to
         energy_tol (float) - max kJ/mol over min energy conformer to allow
+        angle_tol (float) - tolerance to use on angle matching
         """)
         sys.exit()
     else:
@@ -45,6 +47,7 @@ def main():
         bond_std = float(sys.argv[4])
         pair_data = str(sys.argv[5])
         energy_tol = float(sys.argv[6])
+        angle_tol = float(sys.argv[7])
 
     proj_dir = '/home/atarzia/projects/ligand_combiner/'
     core_dir = proj_dir + 'cores/'
@@ -53,6 +56,7 @@ def main():
     mole_dir = proj_dir + 'molecules/'
 
     if rebuild == 't':
+        print('building molecules')
         # build molecule populations
         core_pop = build_population(directory=core_dir, structunit='StructUnit2',
                                     fgs=['bromine'])
@@ -140,8 +144,10 @@ def main():
             mol_list.append(MOL)
         mol_list2grid(molecules=mol_list, filename='built_molecules',
                       mol_per_row=3, maxrows=3, subImgSize=(200, 200))
-
+        print('done')
+        print('----------------------------------')
     elif rebuild == 'f':
+        print('loading in populations')
         # load in populations
         core_pop = stk.Population.load(path=join(core_dir, 'core.pop'),
                                        member_init=stk.Molecule.from_dict)
@@ -151,7 +157,10 @@ def main():
                                        member_init=stk.Molecule.from_dict)
         molecule_pop = stk.Population.load(path=join(mole_dir, 'molecules.pop'),
                                            member_init=stk.Molecule.from_dict)
+        print('done')
+        print('----------------------------------')
 
+    print('obtaining properties for all pairs')
     # define bond length vector to use based on N-Pd bond distances extracted
     # from survey
     # N-Pd-N length
@@ -216,12 +225,20 @@ def main():
                     comb.test_angle = np.radians(180 - comb.p2_angle1)
                     comb.extender_V_RHS = vector_length * np.cos(comb.test_angle)
                     comb.tol = vector_std * np.cos(comb.test_angle)
+                    # get final geometrical properties
+                    comb.get_angle_deviations()
+                    comb.get_N_Pd_lengths_deviation()
                     all_pairs.append(comb)
-
+    print('done')
     print(len(all_pairs))
-    # save all pair data
-    with open(join(mole_dir, pair_data), 'wb') as f:
-        pickle.dump(all_pairs, f)
+    print('----------------------------------')
+    # do analysis
+    print('doing all analysis')
+    plot_all_pair_info(pair_data=all_pairs,
+                       angle_tol=angle_tol, energy_tol=energy_tol,
+                       outfile=pair_data.replace('.pkl', '.pdf'))
+    print('done')
+    print('----------------------------------')
 
 
 if __name__ == "__main__":

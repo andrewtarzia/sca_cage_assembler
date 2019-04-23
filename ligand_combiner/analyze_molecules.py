@@ -12,8 +12,6 @@ Date Created: 17 Apr 2019
 """
 
 import sys
-import pickle
-from os.path import join
 import matplotlib.pyplot as plt
 
 
@@ -53,37 +51,3 @@ def plot_all_pair_info(pair_data, angle_tol, energy_tol, outfile):
     fig.tight_layout()
     fig.savefig(outfile, dpi=720,
                 bbox_inches='tight')
-
-
-def main():
-    if (not len(sys.argv) == 4):
-        print("""
-    Usage: analyze_molecules.py pair_data angle_tol energy_tol
-        pair_data (str) - pickle file with pair data
-        angle_tol (float) - tolerance to use on angle matching
-        energy_tol (float) - max kJ/mol over min energy conformer to allow
-        """)
-        sys.exit()
-    else:
-        pair_data = sys.argv[1]
-        angle_tol = float(sys.argv[2])
-        energy_tol = float(sys.argv[3])
-
-    proj_dir = '/home/atarzia/projects/ligand_combiner/'
-    core_dir = proj_dir + 'cores/'
-    liga_dir = proj_dir + 'ligands/'
-    link_dir = proj_dir + 'linkers/'
-    mole_dir = proj_dir + 'molecules/'
-
-    # load in pair data
-    with open(join(mole_dir, pair_data), 'rb') as f:
-        all_pairs = pickle.load(f)
-    print(len(all_pairs))
-
-    plot_all_pair_info(pair_data=all_pairs,
-                       angle_tol=angle_tol, energy_tol=energy_tol,
-                       outfile=pair_data.replace('.pkl', '.pdf'))
-
-
-if __name__ == "__main__":
-    main()
