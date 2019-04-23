@@ -32,15 +32,19 @@ class Combination:
         self.conf1 = conf1
         self.conf2 = conf2
 
-    def test_angles(self):
-        '''
+    def get_angle_deviations(self):
+        '''Get the closeness of test angles to 180 degrees
 
         '''
+        self.angle1_deviation = abs(180 - (self.p1_angle1 + self.p2_angle1))
+        self.angle2_deviation = abs(180 - (self.p1_angle2 + self.p2_angle2))
 
-    def test_N_Pd_lengths(self):
-        '''
+    def get_N_Pd_lengths_deviation(self):
+        '''Get the difference of the LHS and RHS that are defined by the
+        N-Pd-N distance
 
         '''
+        self.NPdN_difference = abs(self.extender_V_LHS-self.extender_V_RHS)
 
     def test_N_N_lengths(self):
         '''Test that the larger linker has a longer NN distance than the shorter
