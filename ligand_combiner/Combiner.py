@@ -16,7 +16,7 @@ from ase.atoms import Atoms, Atom
 import numpy as np
 from rdkit.Chem import AllChem as Chem
 from os.path import join
-from stk import rdkit_ETKDG
+from stk import rdkit_ETKDG, rdkit_optimization
 sys.path.insert(0, '/home/atarzia/thesource/')
 from stk_functions import build_ABCBA, build_ABA
 from calculations import get_dihedral, angle_between
@@ -318,10 +318,30 @@ def get_geometrical_properties(mol, cids, type):
     return mol
 
 
+def get_MMFF_energy(stk_mol, conformer):
+    '''Get MMFF energy using rdkit of a conformer of stk_mol.
+
+    '''
+    properties = Chem.MMFFGetMoleculeProperties(stk_mol.mol)
+    ff = Chem.MMFFGetMoleculeForceField(stk_mol.mol,
+                                        properties,
+                                        confId=conformer)
+    return ff.CalcEnergy()
+
+
+def MMFF_minimize_all_conformers(stk_mol, confs):
+    '''Energy minimize all conformers in stk.Molecule() using MMFF in rdkit
+
+    '''
+    for cid in confs:
+        Chem.MMFFSanitizeMolecule(stk_mol.mol)
+        rdkit_optimization(mol=stk_mol, embed=False, conformer=cid)
+
+
 def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
     '''Get N conformers of a coordination cage ligand molecule using
     stk polymer function. Molecule undergoes RDKIT ETKDG conformer search and
-    optimization with UFF.
+    optimization with MMFF.
 
     Keyword Arguments:
         type (str) - type of ligand, ABCBA or ABA
@@ -375,6 +395,8 @@ def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
     etkdg.randomSeed = 1000
     cids = Chem.EmbedMultipleConfs(mol=molecule.mol, numConfs=N,
                                    params=etkdg)
+    # MMFF minimize all conformers
+    MMFF_minimize_all_conformers(stk_mol=molecule, confs=cids)
     # output each conformer to 3D structure if desired
     # for cid in cids:
     #     print(cid)
