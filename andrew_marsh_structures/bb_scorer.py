@@ -18,15 +18,13 @@ from scscore.scscore.standalone_model_numpy import SCScorer
 from scscore.utils.SA_Score.sascorer import calculateScore as SAScore
 from rdkit.Chem import AllChem as Chem
 import joblib
-import os
-import numpy as np
 
 
-def mol2fp(mol,nBits=1024):
+def mol2fp(mol, nBits=1024):
     '''Get Morgan fingerprint of RDKIT Molecule.
 
     '''
-    fp = rdkit.GetMorganFingerprintAsBitVect(mol, 2, nBits=1024)
+    fp = Chem.GetMorganFingerprintAsBitVect(mol, 2, nBits=1024)
     return fp
 
 
@@ -42,7 +40,7 @@ def get_SA(smi):
     '''Get SAscore for a given smiles.
 
     '''
-    SA = (SAScore(rdkit.MolFromSmiles(smi)))
+    SA = (SAScore(Chem.MolFromSmiles(smi)))
     return SA
 
 
@@ -58,7 +56,7 @@ def get_ML(smi, model):
     '''Get SAscore for a given smiles.
 
     '''
-    ML = model.predict([mol2fp(rdkit.MolFromSmiles(smi))])
+    ML = model.predict([mol2fp(Chem.MolFromSmiles(smi))])
     return ML[0]
 
 
