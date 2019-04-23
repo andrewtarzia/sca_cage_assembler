@@ -339,7 +339,7 @@ def get_MMFF_energy(stk_mol, conformer):
     ff = Chem.MMFFGetMoleculeForceField(stk_mol.mol,
                                         properties,
                                         confId=conformer)
-    return ff.CalcEnergy()
+    return ff.CalcEnergy()*4.184  # kcal/mol to kJ/mol
 
 
 def MMFF_minimize_all_conformers(stk_mol, confs):
@@ -413,6 +413,8 @@ def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
     # output each conformer to 3D structure if desired
     # for cid in cids:
     #     print(cid)
+    #     print(Chem.MolToSmiles(molecule.mol))
+    #     sys.exit()
     #     mol_file = prefix + '_' + type + '_' + str(cid) + '_opt.mol'
     #     molecule.write(path=join(mole_dir, mol_file), conformer=cid)
     return cids, molecule
