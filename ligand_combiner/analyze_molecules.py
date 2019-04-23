@@ -13,34 +13,39 @@ Date Created: 17 Apr 2019
 
 import sys
 import matplotlib.pyplot as plt
+from matplotlib.cm import RdBu
+sys.path.insert(0, '/home/atarzia/thesource/')
+from plotting import define_plot_cmap
 
 
 def plot_all_pair_info(pair_data, angle_tol, energy_tol, outfile):
     '''Do multi dimensional plot of all molecule pair information.
 
     '''
-    markers = ['o', 'X', 'P', 'D', '>', '<', ]
+    markers = ['o', 'X', 'P', 'D', '>', '<', 's', '^', 'p', '*', 'h', 'v']
     fig, ax = plt.subplots(figsize=(8, 5))
 
     # define colour map based on energy tol
+    cmap = define_plot_cmap(fig, ax,
+                            mid_point=energy_tol/2/energy_tol, cmap=RdBu,
+                            ticks=[0, energy_tol/2/energy_tol, energy_tol/energy_tol],
+                            labels=['0', str(energy_tol/2), str(energy_tol)],
+                            cmap_label='energy [kJ/mol]')
 
-    X_max = 0
-    Y_max = 0
-    for pair in pair_data:
-        if pair.test_N_N_lengths is False:
-            continue
-        # print(pair.__dict__)
-        pair.get_angle_deviations()
-        pair.get_N_Pd_lengths_deviation()
-        X = max(pair.angle1_deviation, pair.angle2_deviation)
-        Y = pair.NPdN_difference
-        Z = max([pair.energy1, pair.energy2])
-        X_max = max([X_max, X])
-        Y_max = max([Y_max, Y])
-        ax.scatter(X, Y, c='firebrick', edgecolors='k',
-                   marker=markers[pair.popn_ids[0]], alpha=1.0, s=80)
-        # break
-    ax.axhline(pair.tol, c='k', alpha=0.5)
+    X_data = [max([i.angle1_deviation, i.angle2_deviation])
+              for i in pair_data if i.test_N_N_lengths]
+    Y_data = [i.NPdN_difference
+              for i in pair_data if i.test_N_N_lengths]
+    Z_data = [max([i.energy1, i.energy2])/energy_tol
+              for i in pair_data if i.test_N_N_lengths]
+    # M_data = [markers[i.popn_ids[0]]
+    #           for i in pair_data if i.test_N_N_lengths]
+    X_max = max(X_data)
+    Y_max = max(Y_data)
+
+    ax.scatter(X_data, Y_data, c=cmap(Z_data), edgecolors='k',
+               marker='o', alpha=0.5, s=80)
+    ax.axhline(pair_data[0].tol, c='k', alpha=0.5)
     ax.axvline(angle_tol, c='k', alpha=0.5)
     # Set number of ticks for x-axis
     ax.tick_params(axis='both', which='major', labelsize=16)
