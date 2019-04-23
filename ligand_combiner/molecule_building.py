@@ -27,14 +27,15 @@ from rdkit_functions import mol_list2grid
 
 
 def main():
-    if (not len(sys.argv) == 6):
+    if (not len(sys.argv) == 7):
         print("""
-    Usage: molecule_builing.py rebuild N angle_tol bond_mean bond_std pair_data
+    Usage: molecule_builing.py rebuild N bond_mean bond_std pair_data energy_tol
         rebuild (str) - 't' if you want to rebuild all molecules, 'f' to load populations
         N (int) - number of conformers to use
         bond_mean (float) - mean value of bond distance to use in candidate selection
         bond_std (float) - std deviation value of bond distance to use in candidate selection
         pair_data (str) - pickle file to output pair data to
+        energy_tol (float) - max kJ/mol over min energy conformer to allow
         """)
         sys.exit()
     else:
@@ -43,6 +44,7 @@ def main():
         bond_mean = float(sys.argv[3])
         bond_std = float(sys.argv[4])
         pair_data = str(sys.argv[5])
+        energy_tol = float(sys.argv[6])
 
     proj_dir = '/home/atarzia/projects/ligand_combiner/'
     core_dir = proj_dir + 'cores/'
@@ -187,6 +189,10 @@ def main():
                         continue
                     comb = Combination(poly1, poly2, conf1, conf2)
                     comb.popn_ids = (i, j)
+                    # if molecule1 or molecule2 energy > threshold from conf min
+                    # skip pair
+                    if comb.energy1 > energy_tol or comb.energy2 > energy_tol:
+                        continue
                     # obtain all properties
                     # check N-N distance of poly1-conf > poly2-conf
                     comb.NN_dist1 = np.linalg.norm(np.asarray(PROP1['NN_v']))
