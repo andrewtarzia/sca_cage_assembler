@@ -31,6 +31,9 @@ class Combination:
         self.mol2 = mol2
         self.conf1 = conf1
         self.conf2 = conf2
+        # get MMFF energy from two molecule objects
+        self.energy1 = mol1.geom_prop[conf1]['rel_energy']
+        self.energy2 = mol2.geom_prop[conf2]['rel_energy']
 
     def get_angle_deviations(self):
         '''Get the closeness of test angles to 180 degrees
