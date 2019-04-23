@@ -81,11 +81,11 @@ def main():
             i, core = core_item
             j, liga = liga_item
             k, link = link_item
-            # if core.name not in ['core_4', 'core_5', 'core_6']:
-            if core.name not in ['core_4', 'core_6']:
+            if core.name not in ['core_4', 'core_5', 'core_6']:
+                # if core.name not in ['core_4', 'core_6']:
                 continue
-            # if liga.name not in ['lig_1', 'lig_2', 'lig_3']:
-            if liga.name not in ['lig_1', 'lig_2']:
+            if liga.name not in ['lig_1', 'lig_2', 'lig_3']:
+                # if liga.name not in ['lig_1', 'lig_2']:
                 continue
             if link.name not in ['link_1']:
                 continue
@@ -170,20 +170,20 @@ def main():
     # obtain all pair properties in molecule DB
     # poly1 should be the 'large' molecule, while poly2 should be the 'small'
     # molecule of the pair
-    # this is a crude/lazy for loop
     all_pairs = []
     for i, poly1 in enumerate(molecule_pop):
+        print('i', i)
         for j, poly2 in enumerate(molecule_pop):
             #################################
             # for setting specific polymers
-            if poly2.name != 'ABA_51':
-                continue
-            if poly1.name != 'ABCBA_300':
-                continue
+            # if poly2.name != 'ABA_51':
+            #     continue
+            # if poly1.name != 'ABCBA_300':
+            #     continue
+            #################################
             # make sure poly1 != poly2
             if i == j:
                 continue
-            #################################
             for conf1 in poly1.geom_prop:
                 PROP1 = poly1.geom_prop[conf1]
                 # skip conformer if dihedral meant the N's were not on the
@@ -201,6 +201,9 @@ def main():
                     # if molecule1 or molecule2 energy > threshold from conf min
                     # skip pair
                     if comb.energy1 > energy_tol or comb.energy2 > energy_tol:
+                        print('skipping conformer pair due to energy')
+                        print(i, conf1, j, conf2)
+                        print(comb.energy1, comb.energy2)
                         continue
                     # obtain all properties
                     # check N-N distance of poly1-conf > poly2-conf
