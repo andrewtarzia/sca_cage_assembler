@@ -180,11 +180,21 @@ def get_geometrical_properties(mol, cids, type):
     '''Calculate the geometrical properties of all conformers
 
     '''
+    # minimum energy of all conformers
+    energies = []
+    for cid in cids:
+        energies.append(get_MMFF_energy(stk_mol=mol, conformer=cid))
+    min_E = min(energies)
+
     # new attribute for mol
     mol.geom_prop = {}
     for cid in cids:
         # dictinary per conformer
         conf_dict = {}
+        # get energy relative to minimum for all conformers
+        conf_dict['energy'] = get_MMFF_energy(stk_mol=mol, conformer=cid)
+        conf_dict['rel_energy'] = conf_dict['energy'] - min_E
+        # get molecule COM
         conf_dict['COM'] = mol.center_of_mass(conformer=cid).tolist()
         if type == 'ABCBA':
             # first binder -- actual ordering of BB does not matter if linker
