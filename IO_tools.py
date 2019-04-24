@@ -27,6 +27,9 @@ def convert_CIF_2_PDB(file):
         except IndexError:
             print('ASE load failed with IndexError. Skipping...')
             return None, None
+        except ValueError:
+            print('ASE load failed with IndexError. Skipping...')
+            return None, None
         structure.write(pdb_file)
         print('conversion done.')
     structure = read(pdb_file)
