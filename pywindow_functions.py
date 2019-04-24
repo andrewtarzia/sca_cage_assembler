@@ -131,7 +131,11 @@ def is_solvent(molecule, mol_list):
     # run pyWindow
     if molecule.no_of_atoms == 1:
         return result
-    analysis = molecule.full_analysis()
+    try:
+        analysis = molecule.full_analysis()
+    except ValueError:
+        print('ValueError - assuming solvent')
+        return result
     # print(analysis['pore_diameter_opt']['diameter'], analysis['pore_volume_opt'])
     # input()
     if analysis['pore_diameter_opt']['diameter'] > 2.8:
