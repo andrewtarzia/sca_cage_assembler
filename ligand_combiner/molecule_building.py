@@ -25,7 +25,7 @@ from Combiner import get_molecule, get_geometrical_properties, Combination
 sys.path.insert(0, '/home/atarzia/thesource/')
 from stk_functions import build_population
 from rdkit_functions import mol_list2grid
-from analyze_molecules import plot_all_pair_info
+from analyze_molecules import plot_all_pair_info, output_analysis
 
 
 def main():
@@ -91,14 +91,14 @@ def main():
             i, core = core_item
             j, liga = liga_item
             k, link = link_item
-            if core.name not in ['core_4', 'core_5', 'core_6']:
-                # if core.name not in ['core_4', 'core_6']:
-                continue
-            if liga.name not in ['lig_1', 'lig_2', 'lig_3']:
-                # if liga.name not in ['lig_1', 'lig_2']:
-                continue
-            if link.name not in ['link_1']:
-                continue
+            # if core.name not in ['core_4', 'core_5', 'core_6']:
+            #     # if core.name not in ['core_4', 'core_6']:
+            #     continue
+            # if liga.name not in ['lig_1', 'lig_2', 'lig_3']:
+            #     # if liga.name not in ['lig_1', 'lig_2']:
+            #     continue
+            # if link.name not in ['link_1']:
+            #     continue
             # build ABCBA molecule
             pop_ids = (i, j, k)  # core, ligand, linker
             print(core.name, liga.name, link.name, pop_ids)
@@ -182,7 +182,7 @@ def main():
     # molecule of the pair
     all_pairs = []
     for i, poly1 in enumerate(molecule_pop):
-        print('i', i)
+        print('molecule', poly1.name)
         for j, poly2 in enumerate(molecule_pop):
             #################################
             # for setting specific polymers
@@ -211,9 +211,9 @@ def main():
                     # if molecule1 or molecule2 energy > threshold from conf min
                     # skip pair
                     if comb.energy1 > energy_tol or comb.energy2 > energy_tol:
-                        print('skipping conformer pair due to energy')
-                        print(i, conf1, j, conf2)
-                        print(comb.energy1, comb.energy2)
+                        # print('skipping conformer pair due to energy')
+                        # print(poly1.name, conf1, poly2.name, conf2)
+                        # print(comb.energy1, comb.energy2)
                         continue
                     # obtain all properties
                     # check N-N distance of poly1-conf > poly2-conf
@@ -247,9 +247,10 @@ def main():
     print('----------------------------------')
     # do analysis
     print('doing all analysis')
-    plot_all_pair_info(pair_data=all_pairs,
-                       angle_tol=angle_tol, energy_tol=energy_tol,
-                       outfile=pair_data.replace('.pkl', '.pdf'))
+    # plot_all_pair_info(pair_data=all_pairs,
+    #                    angle_tol=angle_tol, energy_tol=energy_tol)
+    output_analysis(molecule_pop=molecule_pop, pair_data=all_pairs,
+                    angle_tol=angle_tol, energy_tol=energy_tol)
     print('done')
     print('----------------------------------')
 
