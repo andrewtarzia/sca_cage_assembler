@@ -137,9 +137,9 @@ def is_solvent(molecule, mol_list):
     except ValueError:
         print('ValueError - assuming solvent')
         return result
-    # print(analysis['pore_diameter_opt']['diameter'], analysis['pore_volume_opt'])
+    print(analysis['pore_diameter_opt']['diameter'], analysis['pore_volume_opt'])
     # input()
-    if analysis['pore_diameter_opt']['diameter'] > 2.8:
+    if analysis['pore_diameter_opt']['diameter'] > 1.0:
         result = False
     return result
 
