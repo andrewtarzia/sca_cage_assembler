@@ -36,6 +36,28 @@ def parity_plot(X, Y, outfile, xtitle, ytitle, lim):
                 bbox_inches='tight')
 
 
+def scatter_plot(X, Y, outfile, xtitle, ytitle, xlim, ylim, title=None,
+                 c='firebrick', edgecolors='k',
+                 marker='o', alpha=1.0, s=80):
+    '''Make scatter plot.
+
+    '''
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.scatter(X, Y, c=c, edgecolors=edgecolors,
+               marker=marker, alpha=alpha, s=s)
+    # Set number of ticks for x-axis
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.set_xlabel(xtitle, fontsize=16)
+    ax.set_ylabel(ytitle, fontsize=16)
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+    if title is not None:
+        ax.set_title(title, fontsize=16)
+    fig.tight_layout()
+    fig.savefig(outfile, dpi=720,
+                bbox_inches='tight')
+
+
 def histogram_plot_1(Y, X_range, width, alpha, color, edgecolor,
                      outfile, xtitle, density=False):
     '''Make histogram plot with 1 distribution.
