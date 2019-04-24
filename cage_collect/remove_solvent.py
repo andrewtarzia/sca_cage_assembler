@@ -21,16 +21,20 @@ from IO_tools import convert_CIF_2_PDB
 
 
 def main():
-    if (not len(sys.argv) == 2):
+    if (not len(sys.argv) == 3):
         print("""
-Usage: remove_solvent.py CIF
+Usage: remove_solvent.py CIF ignore
     CIF (str) - name of CIF to analyze ('*.cif' for all in working dir)
+    ignore (str) - string to use to ignore certain files (set NONE if not used)
     """)
         sys.exit()
     else:
         if '*' in sys.argv[1]:
             from glob import glob
-            CIFs = sorted([i for i in glob(sys.argv[1]) if '_nosolv' not in i])
+            if sys.argv[2] != 'NONE':
+                CIFs = sorted([i for i in glob(sys.argv[1]) if sys.argv[2] not in i])
+            else:
+                CIFs = sorted([i for i in glob(sys.argv[1])])
             print('{} CIFs to analyze'.format(len(CIFs)))
         else:
             CIFs = [sys.argv[1]]
