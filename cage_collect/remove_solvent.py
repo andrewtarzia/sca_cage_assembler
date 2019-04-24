@@ -73,12 +73,14 @@ Usage: remove_solvent.py CIF
         final_struct = remove_solvent(pw_struct=rebuilt_structure,
                                       ASE_struct=final_struct,
                                       mol_list=n_atoms_list)
-        # view(final_struct)
-        # output to CIF
-        output = CIF.replace('.cif', '_nosolv.cif')
-        final_struct.write(output, format='cif')
-        output = CIF.replace('.cif', '_nosolv.pdb')
-        final_struct.write(output)
+        # only output structures with more than 0 atoms
+        if len(final_struct):
+            # view(final_struct)
+            # output to CIF
+            output = CIF.replace('.cif', '_nosolv.cif')
+            final_struct.write(output, format='cif')
+            output = CIF.replace('.cif', '_nosolv.pdb')
+            final_struct.write(output)
         print('done')
         print('----------------------------------------------')
 
