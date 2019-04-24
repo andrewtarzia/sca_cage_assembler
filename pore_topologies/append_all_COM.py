@@ -11,6 +11,7 @@ Date Created: 19 Feb 2019
 """
 
 import sys
+from os.path import isfile
 sys.path.insert(0, '/home/atarzia/thesource/')
 from pywindow_functions import append_and_write_COMs, rebuild_system, analyze_rebuilt
 from IO_tools import convert_CIF_2_PDB
@@ -37,3 +38,6 @@ Usage: append_all_COM.py CIF
                                verbose=False, include_coms=True)
     # append atoms to ASE structure as pseudo atoms and write out new CIF
     append_and_write_COMs(COM_dict, ASE_structure, file)
+        # do not redo
+        if isfile(file.replace('.cif', '_appended.cif')):
+            continue
