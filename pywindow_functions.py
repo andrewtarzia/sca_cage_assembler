@@ -163,7 +163,7 @@ def remove_solvent(pw_struct, ASE_struct, mol_list):
             molecule + 1, len(pw_struct.molecules)))
         mol = pw_struct.molecules[molecule]
         if is_solvent(molecule=mol, mol_list=mol_list) is False:
-            print('is solvent with {} atoms'.format(mol.no_of_atoms))
+            print('is NOT solvent with {} atoms'.format(mol.no_of_atoms))
             # append atoms to ASE_struct_out
             atom_ids = arange(1, mol.no_of_atoms + 1)
             coords = mol.coordinates
