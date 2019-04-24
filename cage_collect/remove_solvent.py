@@ -32,7 +32,8 @@ Usage: remove_solvent.py CIF ignore
         if '*' in sys.argv[1]:
             from glob import glob
             if sys.argv[2] != 'NONE':
-                CIFs = sorted([i for i in glob(sys.argv[1]) if sys.argv[2] not in i])
+                CIFs = sorted([i for i in glob(sys.argv[1])
+                               if sys.argv[2] not in i and 'nosolv' not in i])
             else:
                 CIFs = sorted([i for i in glob(sys.argv[1])])
             print('{} CIFs to analyze'.format(len(CIFs)))
