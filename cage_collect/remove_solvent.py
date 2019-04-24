@@ -13,6 +13,7 @@ Date Created: 15 Apr 2019
 
 import sys
 from ase.atoms import Atoms
+from os.path import isfile
 from ase.visualize import view
 sys.path.insert(0, '/home/atarzia/thesource/')
 from pywindow_functions import rebuild_system, remove_solvent
@@ -31,6 +32,10 @@ Usage: remove_solvent.py CIF
 
     if CIF[-4:] != '.cif':
         raise Exception('input file: {} was not a CIF'.format(CIF))
+        # no need to redo already done structures
+        if isfile(CIF.replace('.cif', '_nosolv.cif')):
+            if isfile(CIF.replace('.cif', '_nosolv.pdb')):
+                continue
 
     pdb_file, struct = convert_CIF_2_PDB(CIF)
     # get final struct equivalent to input struct, but without atoms
