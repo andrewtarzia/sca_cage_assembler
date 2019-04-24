@@ -11,6 +11,7 @@ Date Created: 15 Mar 2019
 """
 
 from rdkit.Chem import AllChem as Chem
+from numpy import arange
 from copy import deepcopy
 from os.path import isfile
 from ase.atoms import Atom
@@ -164,9 +165,9 @@ def remove_solvent(pw_struct, ASE_struct, mol_list):
         if is_solvent(molecule=mol, mol_list=mol_list) is False:
             print('is solvent with {} atoms'.format(mol.no_of_atoms))
             # append atoms to ASE_struct_out
-            atom_ids = mol.atom_ids
+            atom_ids = arange(1, mol.no_of_atoms + 1)
             coords = mol.coordinates
-            atom_symbs = mol.elements
+            atom_symbs = mol.atom_ids
             for i, j, k in zip(atom_ids, atom_symbs, coords):
                 # print(i, j, k)
                 curr_atm = Atom(symbol=j,
