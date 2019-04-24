@@ -10,7 +10,6 @@ Author: Andrew Tarzia
 Date Created: 15 Mar 2019
 """
 
-from sys import exit
 from rdkit.Chem import AllChem as Chem
 from copy import deepcopy
 from os.path import isfile
@@ -118,14 +117,24 @@ def is_solvent(molecule, mol_list):
     '''Tests if a pyWindow molecule is a solvent or not.
 
     Tests:
-        1)
-        2)
+        1) Run pyWindow. If void diameter > 0, keep structure
+            if no_of_atoms == 1, skip molecule
 
+    Returns:
+        result (bool) - True if the molecule is a solvent
     '''
     result = True
     # do tests
-    if molecule.no_of_atoms < max(mol_list) / 2:
-        print(molecule.no_of_atoms)
+    # if molecule.no_of_atoms < max(mol_list) / 2:
+    #     print(molecule.no_of_atoms)
+    #     result = False
+    # run pyWindow
+    if molecule.no_of_atoms == 1:
+        return result
+    analysis = molecule.full_analysis()
+    # print(analysis['pore_diameter_opt']['diameter'], analysis['pore_volume_opt'])
+    # input()
+    if analysis['pore_diameter_opt']['diameter'] > 2.8:
         result = False
     return result
 
@@ -136,6 +145,7 @@ def remove_solvent(pw_struct, ASE_struct, mol_list):
     Keyword Arguments:
         pw_struct (pyWindow Rebuilt Molecule) - structure to analyze molecules of
         ASE_struct (ASE.Atoms()) - structure to append non-solvent atoms to
+        mol_list (list) - list of distinct molecules from pyWindow modularize
 
     Returns:
         ASE_struct_out (ASE.Atoms()) - structure with non-solvent atoms
@@ -147,13 +157,14 @@ def remove_solvent(pw_struct, ASE_struct, mol_list):
         print('Analysing molecule {0} out of {1}'.format(
             molecule + 1, len(pw_struct.molecules)))
         mol = pw_struct.molecules[molecule]
-        if is_solvent(molecule=mol, mol_list=mol_list) is True:
+        if is_solvent(molecule=mol, mol_list=mol_list) is False:
+            print('is solvent with {} atoms'.format(mol.no_of_atoms))
             # append atoms to ASE_struct_out
             atom_ids = mol.atom_ids
             coords = mol.coordinates
             atom_symbs = mol.elements
             for i, j, k in zip(atom_ids, atom_symbs, coords):
-                print(i, j, k)
+                # print(i, j, k)
                 curr_atm = Atom(symbol=j,
                                 position=k,
                                 index=i)
