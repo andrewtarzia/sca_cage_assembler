@@ -25,6 +25,8 @@ Usage: extract_cage.py CIF
         file = sys.argv[1]
     file_prefix = file.replace('.cif', '')
     pdb_file, ASE_structure = IO_tools.convert_CIF_2_PDB(file)
+    if pdb_file is None and ASE_structure is None:
+        sys.exit()
     # rebuild system
     rebuilt_structure = pywindow_functions.rebuild_system(file=pdb_file)
     rebuilt_structure.make_modular()

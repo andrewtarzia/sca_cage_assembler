@@ -22,7 +22,11 @@ def convert_CIF_2_PDB(file):
     pdb_file = file.replace('.cif', '.pdb')
     print('converting:', file, 'to', pdb_file)
     if isfile(pdb_file) is False:
-        structure = read(file)
+        try:
+            structure = read(file)
+        except IndexError:
+            print('ASE load failed with IndexError. Skipping...')
+            return None, None
         structure.write(pdb_file)
         print('conversion done.')
     structure = read(pdb_file)

@@ -52,6 +52,8 @@ Usage: test_shape.py
         print(pdb_file, pre_op)
         if os.path.isfile(pdb_file) is False:
             pdb_file, _ = IO_tools.convert_CIF_2_PDB(calc)
+            if pdb_file is None and _ is None:
+                continue
             del _  # we don't need the ASE structure in this case
         # rebuild system
         rebuilt_structure = pywindow_functions.rebuild_system(file=pdb_file)

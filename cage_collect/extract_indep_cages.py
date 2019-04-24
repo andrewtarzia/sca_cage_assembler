@@ -31,6 +31,8 @@ Usage: extract_indep_cages.py CIF
         raise Exception('input file: {} was not a CIF'.format(CIF))
 
     pdb_file, struct = convert_CIF_2_PDB(CIF)
+    if pdb_file is None and struct is None:
+        sys.exit()
     rebuilt_structure = rebuild_system(file=pdb_file)
     rebuilt_structure.make_modular()
     res = analyze_rebuilt(rebuilt_structure, file_prefix=CIF.rstrip('.cif'),

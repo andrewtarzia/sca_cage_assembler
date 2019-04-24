@@ -26,6 +26,8 @@ Usage: append_all_COM.py CIF
     else:
         file = sys.argv[1]
     pdb_file, ASE_structure = convert_CIF_2_PDB(file)
+    if pdb_file is None and ASE_structure is None:
+        sys.exit()
     # rebuild system
     rebuilt_structure = rebuild_system(file=pdb_file)
     rebuilt_structure.make_modular()
