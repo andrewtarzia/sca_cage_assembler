@@ -17,6 +17,8 @@ from itertools import product
 import pandas as pd
 from rdkit.Chem import AllChem as Chem
 from os.path import join, isfile
+from os import remove
+from glob import glob
 import stk
 from stk import Population
 from Combiner import get_molecule, get_geometrical_properties, Combination
@@ -54,6 +56,17 @@ def main():
 
     if rebuild == 't':
         print('building molecules')
+        # clear already built molecules
+        for file in glob('AB*.pdb'):
+            remove(join(mole_dir, file))
+        for file in glob('AB*_POIs.xyz'):
+            remove(join(mole_dir, file))
+        for file in glob('core*.mol'):
+            remove(join(mole_dir, file))
+        for file in glob('core*.json'):
+            remove(join(mole_dir, file))
+        for file in glob('built_molecules*'):
+            remove(join(mole_dir, file))
         # build molecule populations
         core_pop = build_population(directory=core_dir, structunit='StructUnit2',
                                     fgs=['bromine'])
