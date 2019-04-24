@@ -16,10 +16,40 @@ import sys
 import matplotlib.pyplot as plt
 from matplotlib.cm import RdBu
 sys.path.insert(0, '/home/atarzia/thesource/')
-from plotting import define_plot_cmap
+from plotting import define_plot_cmap, scatter_plot
 
 
-def plot_all_pair_info(pair_data, angle_tol, energy_tol, outfile):
+def output_analysis(molecule_pop, pair_data, angle_tol, energy_tol):
+    '''Output the pair analysis.
+
+    '''
+    for p, poly1 in enumerate(molecule_pop):
+        combinations = [i for i in pair_data
+                        if p == i.popn_ids[0]]
+        print(p, poly1.name)
+        print(len(combinations))
+        if len(combinations) == 0:
+            continue
+        prefix = poly1.name + '_analysis_'
+
+        print(combinations[0].popn_ids)
+        X_data = [max([i.angle1_deviation, i.angle2_deviation])
+                  for i in combinations if i.test_N_N_lengths]
+        Y_data = [i.NPdN_difference
+                  for i in combinations if i.test_N_N_lengths]
+
+        scatter_plot(X=X_data, Y=Y_data,
+                     outfile=prefix+'main.pdf',
+                     xtitle='maximum angle deviation [degrees]',
+                     ytitle='deviation from planarity',
+                     title=poly1.name,
+                     xlim=(0, 180), ylim=(0, round(max(Y_data))+1),
+                     c='firebrick', edgecolors='k',
+                     marker='o', alpha=0.5, s=80)
+        # sys.exit()
+
+
+def plot_all_pair_info(pair_data, angle_tol, energy_tol):
     '''Do multi dimensional plot of all molecule pair information.
 
     '''
