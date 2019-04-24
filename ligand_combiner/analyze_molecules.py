@@ -3,7 +3,8 @@
 # Distributed under the terms of the MIT License.
 
 """
-Script to analyze all built molecules from DB of core, ligands and linkers.
+Module of functions used to analyze all built molecules from DB of core,
+ligands and linkers.
 
 Author: Andrew Tarzia
 
@@ -45,8 +46,8 @@ def plot_all_pair_info(pair_data, angle_tol, energy_tol, outfile):
 
     ax.scatter(X_data, Y_data, c=cmap(Z_data), edgecolors='k',
                marker='o', alpha=0.5, s=80)
-    ax.axhline(pair_data[0].tol, c='k', alpha=0.5)
-    ax.axvline(angle_tol, c='k', alpha=0.5)
+    # ax.axhline(pair_data[0].tol, c='k', alpha=0.5)
+    # ax.axvline(angle_tol, c='k', alpha=0.5)
     # Set number of ticks for x-axis
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_xlabel('maximum angle deviation [degrees]', fontsize=16)
@@ -54,5 +55,5 @@ def plot_all_pair_info(pair_data, angle_tol, energy_tol, outfile):
     ax.set_xlim(0, round(X_max+1))
     ax.set_ylim(0, round(Y_max+1))
     fig.tight_layout()
-    fig.savefig(outfile, dpi=720,
+    fig.savefig('all_pair_info.pdf', dpi=720,
                 bbox_inches='tight')
