@@ -12,7 +12,6 @@ Date Created: 04 Apr 2019
 """
 
 import sys
-import pickle
 import numpy as np
 from itertools import product
 import pandas as pd
@@ -28,14 +27,13 @@ from analyze_molecules import plot_all_pair_info
 
 
 def main():
-    if (not len(sys.argv) == 8):
+    if (not len(sys.argv) == 7):
         print("""
-    Usage: molecule_builing.py rebuild N bond_mean bond_std pair_data energy_tol angle_tol
+    Usage: molecule_builing.py rebuild N bond_mean bond_std energy_tol angle_tol
         rebuild (str) - 't' if you want to rebuild all molecules, 'f' to load populations
         N (int) - number of conformers to use
         bond_mean (float) - mean value of bond distance to use in candidate selection
         bond_std (float) - std deviation value of bond distance to use in candidate selection
-        pair_data (str) - pickle file to output pair data to
         energy_tol (float) - max kJ/mol over min energy conformer to allow
         angle_tol (float) - tolerance to use on angle matching
         """)
@@ -45,9 +43,8 @@ def main():
         N = int(sys.argv[2])
         bond_mean = float(sys.argv[3])
         bond_std = float(sys.argv[4])
-        pair_data = str(sys.argv[5])
-        energy_tol = float(sys.argv[6])
-        angle_tol = float(sys.argv[7])
+        energy_tol = float(sys.argv[5])
+        angle_tol = float(sys.argv[6])
 
     proj_dir = '/home/atarzia/projects/ligand_combiner/'
     core_dir = proj_dir + 'cores/'
