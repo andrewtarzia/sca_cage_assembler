@@ -18,7 +18,7 @@ import json
 import glob
 sys.path.insert(0, '/home/atarzia/thesource/')
 from GFN_functions import get_energies
-from stk_functions import topo_2_noimines, expected_window
+from stk_functions import topo_2_property
 from IO_tools import write_csv_entry
 
 
@@ -54,7 +54,8 @@ Usage: analyze_cage_list.py output_file suffix
         cage_prop['aldehyde'] = i.split('_')[0]
         cage_prop['amine'] = i.split('_')[1]
         cage_prop['topology'] = i.split('_')[2]
-        cage_prop['no_imines'] = topo_2_noimines(cage_prop['topology'])
+        cage_prop['no_imines'] = topo_2_property(cage_prop['topology'],
+                                                 property='noimines')
         # check for GFN output file and collect free energy from GFN output
         # file if available.
         if isfile(join(dir, gfn_out)):
@@ -85,7 +86,7 @@ Usage: analyze_cage_list.py output_file suffix
         if PW_data['pore_diameter_opt']['diameter'] >= 3.4:
             # structures has >= exp no. windows for topology
             w_no = len(PW_data['windows']['diameters'])
-            if w_no >= expected_window(cage_prop['topology']):
+            if w_no >= topo_2_property(cage_prop['topology'], property='expected_wind'):
                 # max window diamter >= 2.8 angstrom
                 w_max = max(PW_data['windows']['diameters'])
                 if w_max >= 2.8:

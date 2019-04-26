@@ -16,7 +16,7 @@ from pandas import read_csv
 import sys
 sys.path.insert(0, '/home/atarzia/thesource/')
 from calculations import calc_formation_energy
-from stk_functions import topo_2_stoich
+from stk_functions import topo_2_property
 
 
 def main():
@@ -78,9 +78,10 @@ Usage: analyze_molecule_list.py cage_csv alde_csv amine_csv other_csv energy
         print(prod_energies)
         react_energies = []
         print(react_energies, row.aldehyde, row.amine, row.topology)
-        # topo_2_stoich outputs the stoich in order of decreasing connectivity
+        # topo_2_property outputs the stoich in order of decreasing connectivity
         print('assuming aldehyde is 2 connected, amine is 3 connected!!')
-        amin_stoich, alde_stoich = topo_2_stoich(row.topology)
+        amin_stoich, alde_stoich = topo_2_property(row.topology,
+                                                   property='stoich')
         print(alde_stoich, amin_stoich)
         alde_ey = [float(alde_db[alde_db.file == str(row.aldehyde) + '.xyz'][used_energy])]
         print(alde_ey)

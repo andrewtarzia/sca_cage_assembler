@@ -92,84 +92,89 @@ def build_population(directory, structunit, fgs=None, suffix='.mol'):
     return popn
 
 
-def topo_2_function(topology):
-    '''Returns the stk function for a given topology name.
+def topo_2_property(topology, property):
+    '''Returns properties of a topology for a given topology name.
 
-    Currently defined:
+    Properties:
+        'stk_func' - gives the stk topology function for building cages
+        'stoich' - gives the stoichiometries of both building blocks assuming
+            that the first building block has the larger number of functional groups.
+        'noimines' - gives the number of imines formed to build that topology
+        'expected_wind' - gives the number of windows expected
+
+    Currently defined topologies:
         TwoPlusThree topologies
         ThreePlusThree topologies
 
     '''
-    stoich_dict = {'2p3': stk.two_plus_three.TwoPlusThree(),
-                   '4p6': stk.two_plus_three.FourPlusSix(),
-                   '4p62': stk.two_plus_three.FourPlusSix2(),
-                   '6p9': stk.two_plus_three.SixPlusNine(),
-                   'dodec': stk.two_plus_three.Dodecahedron(),
-                   '8p12': stk.two_plus_three.EightPlusTwelve(),
-                   '1p1': stk.three_plus_three.OnePlusOne(
-                       # place bb1 on vertex (0), bb2 on vertex (1)
-                       bb_positions={0: [0], 1: [1]}),
-                   '4p4': stk.three_plus_three.FourPlusFour(
-                       # place bb1 on vertex (0, 2), bb2 on vertex (1, 3)
-                       bb_positions={0: [0, 3, 5, 6], 1: [1, 2, 4, 7]})}
-    return stoich_dict[topology]
+    properties = ['stk_func', 'stoich', 'noimines', 'expected_wind']
+    if property not in properties:
+        print('{} not defined'.format(property))
+        print('possible properties:', properties)
+        sys.exit('exitting.')
 
-
-def topo_2_stoich(topology):
-    '''Returns the stoichiometries of both building blocks for a given topology.
-    Assuming that the first building block has the larger number of functional groups.
-
-    Currently defined:
-        TwoPlusThree topologies
-        ThreePlusThree topologies
-
-    '''
-    stoich_dict = {'2p3': (2, 3),
-                   '4p6': (4, 6),
-                   '4p62': (4, 6),
-                   '6p9': (6, 9),
-                   'dodec': (20, 30),
-                   '8p12': (8, 12),
-                   '1p1': (1, 1),
-                   '4p4': (4, 4)}
-    return stoich_dict[topology]
-
-
-def topo_2_noimines(topology):
-    '''Returns the number of imines formed to build the given topology
-
-    Currently defined:
-        TwoPlusThree topologies
-        ThreePlusThree topologies
-
-    '''
-    n_imines_dict = {'2p3': 6,
-                     '4p6': 12,
-                     '4p62': 12,
-                     '6p9': 18,
-                     'dodec': 60,
-                     '8p12': 24,
-                     '1p1': 3,
-                     '4p4': 12}
-    return n_imines_dict[topology]
-
-
-def expected_window(topo):
-    '''Returns the number of windows expected for the given topology
-
-    Currently defined:
-        TwoPlusThree topologies
-        ThreePlusThree topologies
-
-    '''
-    e_wind = {'dodec': 12, '4p6': 4, '4p62': 4,
-              '8p12': 6, '6p9': 5, '2p3': 3,
-              '4p4': 6, '1p1': 3, '2p2': 4}
-    return e_wind[topo]
+    dict = {
+        '2p3':
+        {'stk_func': stk.two_plus_three.TwoPlusThree(),
+         'stoich': (2, 3),
+         'noimines': 6,
+         'expected_wind': 3,
+         },
+        '4p6':
+        {'stk_func': stk.two_plus_three.FourPlusSix(),
+         'stoich': (4, 6),
+         'noimines': 12,
+         'expected_wind': 4,
+         },
+        '4p62':
+        {'stk_func': stk.two_plus_three.FourPlusSix2(),
+         'stoich': (4, 6),
+         'noimines': 12,
+         'expected_wind': 4,
+         },
+        '6p9':
+        {'stk_func': stk.two_plus_three.SixPlusNine(),
+         'stoich': (6, 9),
+         'noimines': 18,
+         'expected_wind': 5,
+         },
+        'dodec':
+        {'stk_func': stk.two_plus_three.Dodecahedron(),
+         'stoich': (20, 30),
+         'noimines': 60,
+         'expected_wind': 12,
+         },
+        '8p12':
+        {'stk_func': stk.two_plus_three.EightPlusTwelve(),
+         'stoich': (8, 12),
+         'noimines': 24,
+         'expected_wind': 6,
+         },
+        '1p1':
+        {'stk_func': stk.three_plus_three.OnePlusOne(
+         # place bb1 on vertex (0), bb2 on vertex (1)
+         bb_positions={0: [0], 1: [1]}),
+         'stoich': (1, 1),
+         'noimines': 3,
+         'expected_wind': 3,
+         },
+        '4p4':
+        {'stk_func': stk.three_plus_three.FourPlusFour(
+         # place bb1 on vertex (0, 2), bb2 on vertex (1, 3)
+         bb_positions={0: [0, 3, 5, 6], 1: [1, 2, 4, 7]}),
+         'stoich': (4, 4),
+         'noimines': 12,
+         'expected_wind': 6,
+         },
+    }
+    if topology not in dict:
+        print('properties not defined for {}'.format(topology))
+        sys.exit('exitting')
+    return dict[topology][property]
 
 
 def is_collapse(topo, avg_diff, max_window_diam, cavity_size, no_window):
-    expected_wind = expected_window(topo)
+    expected_wind = topo_2_property(topo, property='expected_wind')
     if expected_wind == no_window:
         alpha = 4 * avg_diff / (max_window_diam * expected_wind)
         if alpha < 0.035 and cavity_size > 1:

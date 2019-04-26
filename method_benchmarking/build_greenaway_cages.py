@@ -17,7 +17,7 @@ import sys
 import os
 import pandas as pd
 sys.path.insert(0, '/home/atarzia/thesource/')
-from stk_functions import topo_2_function, build_and_opt_cage
+from stk_functions import topo_2_property, build_and_opt_cage
 from pywindow_functions import analyze_cage_from_MOL
 from IO_tools import convert_PDB_2_XYZ
 
@@ -115,7 +115,7 @@ Usage: build_cages.py output_file wipe run_build
             elif lis == 3:
                 bb_alde = stk.StructUnit3(aldehyde, ['aldehyde'])
                 topology_names = ['1p1', '4p4']  # , '2p2']
-            topology_options = [topo_2_function(i)
+            topology_options = [topo_2_property(i, property='stk_func')
                                 for i in topology_names]
             for k, topo in enumerate(topology_options):
                 # naming convention: aldehyde-name_amine-name_topology

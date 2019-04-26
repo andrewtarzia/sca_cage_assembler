@@ -498,7 +498,7 @@ def screening_process(dataset, des_topo, SA_data):
             continue
         ################################
         # remove structures with no. windows < expected for topology
-        if row.w_no < stk_functions.expected_window(row.topo):
+        if row.w_no < stk_functions.topo_2_property(row.topo, property='expected_wind'):
             continue
         ################################
         # remove those with max window diamter < 2.8 angstrom
