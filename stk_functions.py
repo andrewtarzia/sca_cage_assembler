@@ -188,25 +188,6 @@ def is_collapse(topo, avg_diff, max_window_diam, cavity_size, no_window):
         return True
 
 
-def get_asymmetry(data):
-    """Calculate assymetry as defined in GA paper (Berardo)
-
-    The sum of all the windows' pair differences represents the asymmetry
-    of the individual, Asymmetry parameter in eqn (1)
-
-    Deprecated 22/03/19 -- Andrew Tarzia
-    """
-    print('you should not be using this.')
-    window_sizes = data['windows']['diameters']
-    total = 0
-    for i, a in enumerate(window_sizes):
-        for j, b in enumerate(window_sizes[i:]):
-            if i != j + i:
-                diff = abs(a - b)
-                total += diff
-    return total
-
-
 def optimize_structunit(infile, outfile, exec, md=None,
                         settings=None, method='OPLS'):
     '''Read file into StructUnit and run optimization via method.
