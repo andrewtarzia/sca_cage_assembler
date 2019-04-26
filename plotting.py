@@ -39,13 +39,23 @@ def parity_plot(X, Y, outfile, xtitle, ytitle, lim):
 
 def scatter_plot(X, Y, outfile, xtitle, ytitle, xlim, ylim, title=None,
                  c='firebrick', edgecolors='k',
-                 marker='o', alpha=1.0, s=80):
+                 marker='o', alpha=1.0, s=80, Z=None, cmap=None):
     '''Make scatter plot.
 
     '''
     fig, ax = plt.subplots(figsize=(8, 5))
-    ax.scatter(X, Y, c=c, edgecolors=edgecolors,
-               marker=marker, alpha=alpha, s=s)
+    if cmap is None and Z is None:
+        ax.scatter(X, Y, c=c, edgecolors=edgecolors,
+                   marker=marker, alpha=alpha, s=s)
+    else:
+        cmp = define_plot_cmap(fig, ax,
+                               mid_point=cmap['mid_point'],
+                               cmap=cmap['cmap'],
+                               ticks=cmap['ticks'],
+                               labels=cmap['labels'],
+                               cmap_label=cmap['cmap_label'])
+        ax.scatter(X, Y, c=cmp(Z), edgecolors=edgecolors,
+                   marker=marker, alpha=alpha, s=s)
     # Set number of ticks for x-axis
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_xlabel(xtitle, fontsize=16)

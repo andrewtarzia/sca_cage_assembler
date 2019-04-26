@@ -37,6 +37,14 @@ def output_analysis(molecule_pop, pair_data, angle_tol, energy_tol):
                   for i in combinations if i.test_N_N_lengths]
         Y_data = [i.NPdN_difference
                   for i in combinations if i.test_N_N_lengths]
+        Z_data = [max([i.energy1, i.energy2])/energy_tol
+                  for i in combinations if i.test_N_N_lengths]
+        # define colour map based on energy tol
+        cmap = {'mid_point': energy_tol/2/energy_tol,
+                'cmap': RdBu,
+                'ticks': [0, energy_tol/2/energy_tol, energy_tol/energy_tol],
+                'labels': ['0', str(energy_tol/2), str(energy_tol)],
+                'cmap_label': 'energy [kJ/mol]'}
 
         scatter_plot(X=X_data, Y=Y_data,
                      outfile=prefix+'main.pdf',
@@ -45,7 +53,8 @@ def output_analysis(molecule_pop, pair_data, angle_tol, energy_tol):
                      title=poly1.name,
                      xlim=(0, 180), ylim=(0, round(max(Y_data))+1),
                      c='firebrick', edgecolors='k',
-                     marker='o', alpha=0.5, s=80)
+                     marker='o', alpha=0.5, s=80, Z=Z_data,
+                     cmap=cmap)
         # sys.exit()
 
 
