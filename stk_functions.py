@@ -188,6 +188,33 @@ def is_collapse(topo, avg_diff, max_window_diam, cavity_size, no_window):
         return True
 
 
+def load_StructUnitX(file, X=0):
+    '''Load StructUnitX class with the cache turned off to avoid misreading of
+    file.
+
+    Keyword Arguments:
+        file (str) - file to load in
+        X (int) - order of struct unit to load. Defaults to 0
+
+    X = 0 -> stk.StructUnit
+    X = 2 -> stk.StructUnit2
+    X = 3 -> stk.StructUnit3
+
+    '''
+    stk.OPTIONS['cache'] = False  # turn caching off for loading
+    if X == 0:
+        struct = stk.StructUnit(file)
+    elif X == 2:
+        struct = stk.StructUnit2(file)
+    elif X == 3:
+        struct = stk.StructUnit3(file)
+    else:
+        print('X must be 0, 2 or 3')
+        sys.exit('exitting')
+    stk.OPTIONS['cache'] = True  # turn caching back on
+    return struct
+
+
 def optimize_structunit(infile, outfile, exec, md=None,
                         settings=None, method='OPLS'):
     '''Read file into StructUnit and run optimization via method.
@@ -217,7 +244,7 @@ def optimize_structunit(infile, outfile, exec, md=None,
         else:
             Settings = settings
         print(infile)
-        struct = load_StructUnit(infile)
+        struct = load_StructUnitX(infile, X=0)
         print('doing opt')
         stk.macromodel_opt(struct,
                            macromodel_path=exec,
@@ -272,7 +299,7 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
         NAME = file.replace(dir, '').replace('.mol', '')
         # optimize
         if NAME not in calculated and opt is True:
-            struct = load_StructUnit(file)
+            struct = load_StructUnitX(file, X=0)
             print('doing opt')
             stk.macromodel_opt(struct,
                                macromodel_path=macromod_,
@@ -286,9 +313,9 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
         elif NAME not in calculated and opt is False:
             print('extracting energy')
             try:
-                struct = load_StructUnit(file)
+                struct = load_StructUnitX(file, X=0)
             except TypeError:
-                struct = load_StructUnit(file + '_opt.mol')
+                struct = load_StructUnitX(file + '_opt.mol', X=0)
             struct.energy.macromodel(16, macromod_)
             for i in struct.energy.values:
                 energies[NAME] = struct.energy.values[i]
@@ -300,17 +327,6 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
     with open(out_file, 'w') as f:
         json.dump(calculated, f)
     return energies
-
-
-def load_StructUnit(file):
-    '''Load StructUnit class with the cache turned off to avoid misreading of
-    file.
-
-    '''
-    stk.OPTIONS['cache'] = False  # turn caching off for loading
-    struct = stk.StructUnit(file)
-    stk.OPTIONS['cache'] = True  # turn caching back on
-    return struct
 
 
 def build_and_opt_cage(prefix, BB1, BB2, topology, macromod_,
