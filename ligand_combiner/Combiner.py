@@ -16,7 +16,7 @@ from ase.atoms import Atoms, Atom
 import numpy as np
 from rdkit.Chem import AllChem as Chem
 from os.path import join
-from stk import rdkit_ETKDG, rdkit_optimization
+from stk import RDKitEmbedder
 sys.path.insert(0, '/home/atarzia/thesource/')
 from stk_functions import build_ABCBA, build_ABA
 from calculations import get_dihedral, angle_between
@@ -186,7 +186,7 @@ def get_geometrical_properties(mol, cids, type):
     # minimum energy of all conformers
     energies = []
     for cid in cids:
-        energies.append(get_MMFF_energy(stk_mol=mol, conformer=cid))
+        energies.append(get_energy(stk_mol=mol, conformer=cid, FF='UFF'))
     min_E = min(energies)
 
     # new attribute for mol
@@ -195,7 +195,7 @@ def get_geometrical_properties(mol, cids, type):
         # dictinary per conformer
         conf_dict = {}
         # get energy relative to minimum for all conformers
-        conf_dict['energy'] = get_MMFF_energy(stk_mol=mol, conformer=cid)
+        conf_dict['energy'] = get_energy(stk_mol=mol, conformer=cid, FF='UFF')
         conf_dict['rel_energy'] = conf_dict['energy'] - min_E
         # get molecule COM
         conf_dict['COM'] = mol.center_of_mass(conformer=cid).tolist()
@@ -331,24 +331,33 @@ def get_geometrical_properties(mol, cids, type):
     return mol
 
 
-def get_MMFF_energy(stk_mol, conformer):
+def get_energy(stk_mol, conformer, FF):
     '''Get MMFF energy using rdkit of a conformer of stk_mol.
 
     '''
-    properties = Chem.MMFFGetMoleculeProperties(stk_mol.mol)
-    ff = Chem.MMFFGetMoleculeForceField(stk_mol.mol,
-                                        properties,
-                                        confId=conformer)
-    return ff.CalcEnergy()*4.184  # kcal/mol to kJ/mol
+    if FF == 'UFF':
+        from stk import UFFEnergy
+        ff = UFFEnergy()
+    elif FF == 'MMFF':
+        from stk import MMFFEnergy
+        ff = MMFFEnergy()
+    energy = ff.energy(stk_mol, conformer=conformer)
+    return energy*4.184  # kcal/mol to kJ/mol
 
 
-def MMFF_minimize_all_conformers(stk_mol, confs):
+def minimize_all_conformers(stk_mol, confs, FF):
     '''Energy minimize all conformers in stk.Molecule() using MMFF in rdkit
 
     '''
     for cid in confs:
-        Chem.MMFFSanitizeMolecule(stk_mol.mol)
-        rdkit_optimization(mol=stk_mol, embed=False, conformer=cid)
+        if FF == 'UFF':
+            from stk import UFF
+            uff = UFF()
+            uff.optimize(stk_mol, conformer=cid)
+        elif FF == 'MMFF':
+            from stk import MMFF
+            mmff = MMFF()
+            mmff.optimize(stk_mol)
 
 
 def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
@@ -396,8 +405,9 @@ def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
     molecule.dump(join(mole_dir, json_file))
     mol_file = prefix + '_' + type + '.mol'
     molecule.write(join(mole_dir, mol_file))
-    # clean molecule
-    rdkit_ETKDG(molecule)
+    # clean molecule with ETKDG
+    embedder = RDKitEmbedder(Chem.ETKDG())
+    embedder.optimize(molecule)
     # output energy minimized
     json_file = prefix + '_' + type + '_opt.json'
     molecule.dump(join(mole_dir, json_file))
@@ -408,8 +418,8 @@ def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
     etkdg.randomSeed = 1000
     cids = Chem.EmbedMultipleConfs(mol=molecule.mol, numConfs=N,
                                    params=etkdg)
-    # MMFF minimize all conformers
-    MMFF_minimize_all_conformers(stk_mol=molecule, confs=cids)
+    # FF minimize all conformers
+    minimize_all_conformers(stk_mol=molecule, confs=cids, FF='UFF')
     # output each conformer to 3D structure if desired
     # for cid in cids:
     #     print(cid)
