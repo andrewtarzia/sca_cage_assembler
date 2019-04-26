@@ -34,6 +34,7 @@ def parity_plot(X, Y, outfile, xtitle, ytitle, lim):
     fig.tight_layout()
     fig.savefig(outfile, dpi=720,
                 bbox_inches='tight')
+    plt.close()
 
 
 def scatter_plot(X, Y, outfile, xtitle, ytitle, xlim, ylim, title=None,
@@ -56,6 +57,7 @@ def scatter_plot(X, Y, outfile, xtitle, ytitle, xlim, ylim, title=None,
     fig.tight_layout()
     fig.savefig(outfile, dpi=720,
                 bbox_inches='tight')
+    plt.close()
 
 
 def histogram_plot_1(Y, X_range, width, alpha, color, edgecolor,
@@ -83,6 +85,7 @@ def histogram_plot_1(Y, X_range, width, alpha, color, edgecolor,
     fig.tight_layout()
     fig.savefig(outfile, dpi=720,
                 bbox_inches='tight')
+    plt.close()
 
 
 def flat_line(ax, x, y, w=0, C='k', m='x'):
