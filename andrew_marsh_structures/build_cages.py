@@ -388,7 +388,8 @@ def brute_cage_build(precursor_struc, precursor_names, precursor_files,
                                                             BB1=prec,
                                                             BB2=bb_amine,
                                                             topology=topo,
-                                                            macromod_=macromod_)
+                                                            macromod_=macromod_,
+                                                            settings=stk_functions.atarzia_MD_settings())
                 # check if completed and run pywindow if so
                 if os.path.isfile(NAME+'_opt.mol') is True:
                     if os.path.isfile(prop_file) is False:
@@ -559,7 +560,8 @@ def brute_analysis(output_csv, amine_type,
                                                       structures=precursor_files,
                                                       dir=precursor_dir,
                                                       macromod_=macromod_,
-                                                      opt=True)
+                                                      opt=True,
+                                                      settings=stk_functions.atarzia_MD_settings())
     bb1_energies = []
     for i, row in working_dataset.iterrows():
         bb1_energies.append(energies[row.bb1])
@@ -570,7 +572,8 @@ def brute_analysis(output_csv, amine_type,
                                                       structures=amines,
                                                       dir=DB,
                                                       macromod_=macromod_,
-                                                      opt=True)
+                                                      opt=True,
+                                                      settings=stk_functions.atarzia_MD_settings())
     bb2_energies = []
     for i, row in working_dataset.iterrows():
         bb2_energies.append(energies[row.bb2])
@@ -586,7 +589,8 @@ def brute_analysis(output_csv, amine_type,
                                                       structures=cage_files,
                                                       dir='',
                                                       macromod_=macromod_,
-                                                      opt=False)
+                                                      opt=False,
+                                                      settings=stk_functions.atarzia_MD_settings())
     cage_energies = []
     for i, row in working_dataset.iterrows():
         NAME = row.bb1+'_'+row.bb2+'_'+row.topo

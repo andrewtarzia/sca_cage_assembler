@@ -215,41 +215,80 @@ def load_StructUnitX(file, X=0):
     return struct
 
 
-def optimize_structunit(infile, outfile, exec, md=None,
+def default_stk_MD_settings():
+    '''Default settings from stk source code as of 26/04/19.
+
+    '''
+    Settings = {'output_dir': None,
+                'timeout': None,
+                'force_field': 16,
+                'restricted': 'both',
+                'temperature': 300,  # K
+                'conformers': 50,
+                'time_step': 0.1,  # fs
+                'eq_time': 10,  # ps
+                'simulation_time': 200,  # ps
+                'maximum_iterations': 2500,
+                'minimum_gradient': 0.05,
+                'use_cache': False
+                }
+    return Settings
+
+
+def atarzia_MD_settings():
+    '''My default settings I have used for cage optimizations in stk.
+
+
+    Modified on 26/04/19.
+    '''
+    Settings = {'output_dir': None,
+                'timeout': None,
+                'force_field': 16,
+                'restricted': False,
+                'temperature': 700,  # K
+                'conformers': 50,
+                'time_step': 1,  # fs
+                'eq_time': 50,  # ps
+                'simulation_time': 1000,  # ps
+                'maximum_iterations': 2500,
+                'minimum_gradient': 0.05,
+                'use_cache': False}
+    return Settings
+
+
+def optimize_structunit(infile, outfile, exec,
                         settings=None, method='OPLS'):
     '''Read file into StructUnit and run optimization via method.
 
     '''
     # use standard settings applied in andrew_marsh work if md/settings is None
     if method == 'OPLS':
-        if md is None:
-            MD = {'timeout': None,
-                  'force_field': 16,
-                  'temp': 700,
-                  'confs': 50,
-                  'time_step': 1.0,
-                  'eq_time': 10,
-                  'sim_time': 200,
-                  'max_iter': 2500,
-                  'gradient': 0.05}
-        else:
-            MD = md
         if settings is None:
-            Settings = {'restricted': False,
-                        'timeout': None,
-                        'force_field': 16,
-                        'max_iter': 2500,
-                        'gradient': 0.05,
-                        'md': True}
+            Settings = default_stk_MD_settings()
         else:
             Settings = settings
         print(infile)
         struct = load_StructUnitX(infile, X=0)
         print('doing opt')
-        stk.macromodel_opt(struct,
-                           macromodel_path=exec,
-                           settings=Settings,
-                           md=MD)
+        # restricte=both optimization with OPLS forcefield by default
+        ff = stk.MacroModelForceField(macromodel_path=exec)
+        # MD process - run MD, collect N conformers, optimize each,
+        # return lowest energy conformer
+        md = stk.MacroModelMD(macromodel_path=exec,
+                              output_dir=Settings['output_dir'],
+                              timeout=Settings['timeout'],
+                              force_field=Settings['force_field'],
+                              restricted=Settings['restricted'],
+                              temperature=Settings['temperature'],
+                              conformers=Settings['conformers'],
+                              time_step=Settings['time_step'],
+                              eq_time=Settings['eq_time'],
+                              simulation_time=Settings['simulation_time'],
+                              maximum_iterations=Settings['maximum_iterations'],
+                              minimum_gradient=Settings['minimum_gradient'],
+                              use_cache=Settings['use_cache'])
+        macromodel = stk.OptimizerSequence(ff, md)
+        macromodel.optimize(mol=struct)
         struct.write(outfile)
         print(outfile)
     else:
@@ -258,7 +297,7 @@ def optimize_structunit(infile, outfile, exec, md=None,
 
 
 def get_OPLS3_energy_of_list(out_file, structures, macromod_,
-                             dir='', opt=False, md=None, settings=None):
+                             dir='', opt=False, settings=None):
     '''Get OPLS3 single point energy of a list of structures.
 
     Keyword Arguments:
@@ -266,29 +305,11 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
         structures (list) - list of structure files
         dir (str) - directory where structures are if not in working dir
         opt (bool) - True if optimization is required using macromodel
-        md (dict) - settings for MacroModel MD
-        settings (dict) - settings for MacroModel Opt
+        settings (dict) - settings for MacroModel Opt/MD
     '''
     # use standard settings applied in andrew_marsh work if md/settings is None
-    if md is None:
-        MD = {'timeout': None,
-              'force_field': 16,
-              'temp': 700,
-              'confs': 50,
-              'time_step': 1.0,
-              'eq_time': 10,
-              'sim_time': 200,
-              'max_iter': 2500,
-              'gradient': 0.05}
-    else:
-        MD = md
     if settings is None:
-        Settings = {'restricted': False,
-                    'timeout': None,
-                    'force_field': 16,
-                    'max_iter': 2500,
-                    'gradient': 0.05,
-                    'md': True}
+        Settings = default_stk_MD_settings()
     else:
         Settings = settings
     with open(out_file, 'r') as f:
@@ -301,10 +322,25 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
         if NAME not in calculated and opt is True:
             struct = load_StructUnitX(file, X=0)
             print('doing opt')
-            stk.macromodel_opt(struct,
-                               macromodel_path=macromod_,
-                               settings=Settings,
-                               md=MD)
+            # restricted=both optimization with OPLS forcefield by default
+            ff = stk.MacroModelForceField(macromodel_path=exec)
+            # MD process - run MD, collect N conformers, optimize each,
+            # return lowest energy conformer
+            md = stk.MacroModelMD(macromodel_path=exec,
+                                  output_dir=Settings['output_dir'],
+                                  timeout=Settings['timeout'],
+                                  force_field=Settings['force_field'],
+                                  restricted=Settings['restricted'],
+                                  temperature=Settings['temperature'],
+                                  conformers=Settings['conformers'],
+                                  time_step=Settings['time_step'],
+                                  eq_time=Settings['eq_time'],
+                                  simulation_time=Settings['simulation_time'],
+                                  maximum_iterations=Settings['maximum_iterations'],
+                                  minimum_gradient=Settings['minimum_gradient'],
+                                  use_cache=Settings['use_cache'])
+            macromodel = stk.OptimizerSequence(ff, md)
+            macromodel.optimize(mol=struct)
             # get energy
             struct.energy.macromodel(16, macromod_)
             for i in struct.energy.values:
@@ -330,7 +366,7 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
 
 
 def build_and_opt_cage(prefix, BB1, BB2, topology, macromod_,
-                       md=None, settings=None, pdb=None):
+                       settings=None, pdb=None):
     '''
 
     Keyword Arguments:
@@ -339,36 +375,36 @@ def build_and_opt_cage(prefix, BB1, BB2, topology, macromod_,
         BB2 (str) - name of building block 2 file
         topology (stk.topology) = cage toplogy object
         macromod_ (str) - location of macromodel
-        md (dict) - settings for MacroModel MD
         settings (dict) - settings for MacroModel Opt
         xyz (bool) - otuput XYZ file of optimized cage (default is None)
     '''
     # use standard settings applied in andrew_marsh work if md/settings is None
-    if md is None:
-        MD = {'timeout': None,
-              'force_field': 16,
-              'temp': 700,
-              'confs': 50,
-              'time_step': 1.0,
-              'eq_time': 10,
-              'sim_time': 200,
-              'max_iter': 2500,
-              'gradient': 0.05}
-    else:
-        MD = md
     if settings is None:
-        Settings = {'restricted': False,
-                    'timeout': None,
-                    'force_field': 16,
-                    'max_iter': 2500,
-                    'gradient': 0.05,
-                    'md': True}
+        Settings = default_stk_MD_settings()
+    else:
+        Settings = settings
     try:
         cage = stk.Cage([BB1, BB2], topology)
         cage.write(prefix + '.mol')
-        stk.macromodel_opt(cage, macromodel_path=macromod_,
-                           settings=Settings,
-                           md=MD)
+        # restricted=both optimization with OPLS forcefield by default
+        ff = stk.MacroModelForceField(macromodel_path=macromod_)
+        # MD process - run MD, collect N conformers, optimize each,
+        # return lowest energy conformer
+        md = stk.MacroModelMD(macromodel_path=macromod_,
+                              output_dir=Settings['output_dir'],
+                              timeout=Settings['timeout'],
+                              force_field=Settings['force_field'],
+                              restricted=Settings['restricted'],
+                              temperature=Settings['temperature'],
+                              conformers=Settings['conformers'],
+                              time_step=Settings['time_step'],
+                              eq_time=Settings['eq_time'],
+                              simulation_time=Settings['simulation_time'],
+                              maximum_iterations=Settings['maximum_iterations'],
+                              minimum_gradient=Settings['minimum_gradient'],
+                              use_cache=Settings['use_cache'])
+        macromodel = stk.OptimizerSequence(ff, md)
+        macromodel.optimize(mol=cage)
         cage.write(prefix + '_opt.mol')
         if pdb is True:
             cage.write(prefix + '_opt.pdb')
