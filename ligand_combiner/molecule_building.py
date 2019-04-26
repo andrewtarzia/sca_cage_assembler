@@ -19,7 +19,6 @@ from rdkit.Chem import AllChem as Chem
 from os.path import join, isfile
 from os import remove
 from glob import glob
-import stk
 from stk import Population
 from Combiner import get_molecule, get_geometrical_properties, Combination
 sys.path.insert(0, '/home/atarzia/thesource/')
@@ -159,14 +158,14 @@ def main():
     elif rebuild == 'f':
         print('loading in populations')
         # load in populations
-        core_pop = stk.Population.load(path=join(core_dir, 'core.pop'),
+        core_pop = Population.load(path=join(core_dir, 'core.pop'),
+                                   member_init=stk.Molecule.from_dict)
+        liga_pop = Population.load(path=join(liga_dir, 'ligands.pop'),
+                                   member_init=stk.Molecule.from_dict)
+        link_pop = Population.load(path=join(link_dir, 'linkers.pop'),
+                                   member_init=stk.Molecule.from_dict)
+        molecule_pop = Population.load(path=join(mole_dir, 'molecules.pop'),
                                        member_init=stk.Molecule.from_dict)
-        liga_pop = stk.Population.load(path=join(liga_dir, 'ligands.pop'),
-                                       member_init=stk.Molecule.from_dict)
-        link_pop = stk.Population.load(path=join(link_dir, 'linkers.pop'),
-                                       member_init=stk.Molecule.from_dict)
-        molecule_pop = stk.Population.load(path=join(mole_dir, 'molecules.pop'),
-                                           member_init=stk.Molecule.from_dict)
         print('done')
         print('----------------------------------')
 
