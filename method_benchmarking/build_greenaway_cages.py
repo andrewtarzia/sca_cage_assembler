@@ -3,8 +3,8 @@
 # Distributed under the terms of the MIT License.
 
 """
-Script to build cage structures in a brute force way.
-Based off andrew_marsh_structures.
+Script to build cage structures in a brute force from precursors for greenaway paper.
+Based off andrew_marsh_structures/build_cages.py.
 
 Author: Andrew Tarzia
 
@@ -17,8 +17,8 @@ import sys
 import os
 import pandas as pd
 sys.path.insert(0, '/home/atarzia/thesource/')
-import stk_functions
-import pywindow_functions
+from stk_functions import topo_2_function, build_and_opt_cage
+from pywindow_functions import analyze_cage_from_MOL
 from IO_tools import convert_PDB_2_XYZ
 
 
@@ -103,35 +103,20 @@ Usage: build_cages.py output_file wipe run_build
     # iterate over amines
     for i, amine in enumerate(amine_files):
         print(amine)
-        bb_amine = stk.StructUnit3(amine, 'amine')
+        bb_amine = stk.StructUnit3(amine, ['amine'])
         # iterate over aldehydes
         for j, aldehyde in enumerate(aldehyde_files):
             print(aldehyde)
             param = aldehyde_defn(aldehyde_names[j])
             lis = param  # [0]
-            if lis == 1 or list == 2:
-                bb_alde = stk.StructUnit2(aldehyde)
+            if lis == 1 or lis == 2:
+                bb_alde = stk.StructUnit2(aldehyde, ['aldehyde'])
                 topology_names = ['2p3', '4p6', '4p62', '6p9', 'dodec', '8p12']
-                topology_options = [stk.two_plus_three.TwoPlusThree(),
-                                    stk.two_plus_three.FourPlusSix(),
-                                    stk.two_plus_three.FourPlusSix2(),
-                                    stk.two_plus_three.SixPlusNine(),
-                                    stk.two_plus_three.Dodecahedron(),
-                                    stk.two_plus_three.EightPlusTwelve()]
-            elif list == 3:
-                bb_alde = stk.StructUnit3(aldehyde)
+            elif lis == 3:
+                bb_alde = stk.StructUnit3(aldehyde, ['aldehyde'])
                 topology_names = ['1p1', '4p4']  # , '2p2']
-                topology_options = [
-                        stk.three_plus_three.OnePlusOne(
-                            # place bb1 on vertex (0), bb2 on vertex (1)
-                            bb_positions={0: [0], 1: [1]}),
-                        stk.three_plus_three.FourPlusFour(
-                            # place bb1 on vertex (0, 2), bb2 on vertex (1, 3)
-                            bb_positions={0: [0, 3, 5, 6], 1: [1, 2, 4, 7]})
-                        # stk.three_plus_three.TwoPlusTwo(
-                            # place bb1 on vertex (0, 2), bb2 on vertex (1, 3)
-                            # bb_positions={0: [0, 2], 1: [1, 3]})]
-                            ]
+            topology_options = [topo_2_function(i)
+                                for i in topology_names]
             for k, topo in enumerate(topology_options):
                 # naming convention: aldehyde-name_amine-name_topology
                 NAME = aldehyde_names[j]
@@ -142,12 +127,12 @@ Usage: build_cages.py output_file wipe run_build
                 print('doing:', NAME)
                 if os.path.isfile(NAME + '_opt.mol') is False:
                     # build cage and run optimization
-                    cage = stk_functions.build_and_opt_cage(prefix=NAME,
-                                                            BB1=bb_alde,
-                                                            BB2=bb_amine,
-                                                            topology=topo,
-                                                            macromod_=macromod_,
-                                                            pdb=True)
+                    cage = build_and_opt_cage(prefix=NAME,
+                                              BB1=bb_alde,
+                                              BB2=bb_amine,
+                                              topology=topo,
+                                              macromod_=macromod_,
+                                              pdb=True)
                     # convert .pdb to .xyz using ASE
                     pdb = NAME + '_opt.pdb'
                     _, _ = convert_PDB_2_XYZ(pdb)
@@ -155,11 +140,10 @@ Usage: build_cages.py output_file wipe run_build
                 # check if completed and run pywindow if so
                 if os.path.isfile(NAME + '_opt.mol') is True:
                     if os.path.isfile(prop_file) is False:
-                        pywindow_functions.analyze_cage_from_MOL(
-                                            file=NAME + '_opt.mol',
-                                            prop_file=prop_file,
-                                            mole_file=mole_file,
-                                            include_coms=True)
+                        analyze_cage_from_MOL(file=NAME + '_opt.mol',
+                                              prop_file=prop_file,
+                                              mole_file=mole_file,
+                                              include_coms=True)
 
 
 if __name__ == "__main__":
