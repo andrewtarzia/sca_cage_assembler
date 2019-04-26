@@ -92,6 +92,29 @@ def build_population(directory, structunit, fgs=None, suffix='.mol'):
     return popn
 
 
+def topo_2_function(topology):
+    '''Returns the stk function for a given topology name.
+
+    Currently defined:
+        TwoPlusThree topologies
+        ThreePlusThree topologies
+
+    '''
+    stoich_dict = {'2p3': stk.two_plus_three.TwoPlusThree(),
+                   '4p6': stk.two_plus_three.FourPlusSix(),
+                   '4p62': stk.two_plus_three.FourPlusSix2(),
+                   '6p9': stk.two_plus_three.SixPlusNine(),
+                   'dodec': stk.two_plus_three.Dodecahedron(),
+                   '8p12': stk.two_plus_three.EightPlusTwelve(),
+                   '1p1': stk.three_plus_three.OnePlusOne(
+                       # place bb1 on vertex (0), bb2 on vertex (1)
+                       bb_positions={0: [0], 1: [1]}),
+                   '4p4': stk.three_plus_three.FourPlusFour(
+                       # place bb1 on vertex (0, 2), bb2 on vertex (1, 3)
+                       bb_positions={0: [0, 3, 5, 6], 1: [1, 2, 4, 7]})}
+    return stoich_dict[topology]
+
+
 def topo_2_stoich(topology):
     '''Returns the stoichiometries of both building blocks for a given topology.
     Assuming that the first building block has the larger number of functional groups.
