@@ -12,9 +12,10 @@ Date Created: 04 Apr 2019
 """
 
 import sys
-import numpy as np
+from numpy.linalg import norm
+from numpy import asarray, cos, radians
 from itertools import product
-import pandas as pd
+from pandas import read_csv
 from rdkit.Chem import AllChem as Chem
 from os.path import join, isfile
 from os import remove
@@ -183,13 +184,6 @@ def main():
     for i, poly1 in enumerate(molecule_pop):
         print('molecule', poly1.name)
         for j, poly2 in enumerate(molecule_pop):
-            #################################
-            # for setting specific polymers
-            # if poly2.name != 'ABA_51':
-            #     continue
-            # if poly1.name != 'ABCBA_300':
-            #     continue
-            #################################
             # make sure poly1 != poly2
             if i == j:
                 continue
@@ -216,8 +210,8 @@ def main():
                         continue
                     # obtain all properties
                     # check N-N distance of poly1-conf > poly2-conf
-                    comb.NN_dist1 = np.linalg.norm(np.asarray(PROP1['NN_v']))
-                    comb.NN_dist2 = np.linalg.norm(np.asarray(PROP2['NN_v']))
+                    comb.NN_dist1 = norm(asarray(PROP1['NN_v']))
+                    comb.NN_dist2 = norm(asarray(PROP2['NN_v']))
                     # only save combinations with NN_dist1 > NN_dist2
                     if comb.test_N_N_lengths() is False:
                         continue
@@ -234,9 +228,9 @@ def main():
                     # difference of the two NN_v (LHS) matches what is
                     # expected by trig (RHS)
                     comb.extender_V_LHS = (comb.NN_dist1 - comb.NN_dist2) / 2
-                    comb.test_angle = np.radians(180 - comb.p2_angle1)
-                    comb.extender_V_RHS = vector_length * np.cos(comb.test_angle)
-                    comb.tol = vector_std * np.cos(comb.test_angle)
+                    comb.test_angle = radians(180 - comb.p2_angle1)
+                    comb.extender_V_RHS = vector_length * cos(comb.test_angle)
+                    comb.tol = vector_std * cos(comb.test_angle)
                     # get final geometrical properties
                     comb.get_angle_deviations()
                     comb.get_N_Pd_lengths_deviation()
