@@ -55,7 +55,7 @@ class Combination:
 
         '''
         if self.NN_dist1 > self.NN_dist2:
-            True
+            return True
         else:
             return False
 

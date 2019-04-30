@@ -219,7 +219,7 @@ def main():
                     comb.NN_dist1 = np.linalg.norm(np.asarray(PROP1['NN_v']))
                     comb.NN_dist2 = np.linalg.norm(np.asarray(PROP2['NN_v']))
                     # only save combinations with NN_dist1 > NN_dist2
-                    if comb.test_N_N_lengths is False:
+                    if comb.test_N_N_lengths() is False:
                         continue
                     # determine angles made by NN_v and NN-BC_v
                     # check that the pairs sum to 180
