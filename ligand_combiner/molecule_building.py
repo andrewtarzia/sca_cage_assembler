@@ -75,21 +75,20 @@ def main():
     core_dir = proj_dir + 'cores/'
     liga_dir = proj_dir + 'ligands/'
     link_dir = proj_dir + 'linkers/'
-    mole_dir = proj_dir + 'molecules/'
 
     if rebuild == 't':
         print('building molecules')
         # clear already built molecules
         for file in glob('AB*.pdb'):
-            remove(join(mole_dir, file))
+            remove(join('./', file))
         for file in glob('AB*_POIs.xyz'):
-            remove(join(mole_dir, file))
+            remove(join('./', file))
         for file in glob('core*.mol'):
-            remove(join(mole_dir, file))
+            remove(join('./', file))
         for file in glob('core*.json'):
-            remove(join(mole_dir, file))
+            remove(join('./', file))
         for file in glob('built_molecules*'):
-            remove(join(mole_dir, file))
+            remove(join('./', file))
         # build molecule populations
         core_pop = build_population(directory=core_dir, structunit='StructUnit2',
                                     fgs=['bromine'])
@@ -99,7 +98,7 @@ def main():
                                     fgs=['bromine'])
 
         # for the linker molecules, we attach an invertable flag attribute
-        link_mol_prop = pd.read_csv(join(link_dir, 'linkers.csv'))
+        link_mol_prop = read_csv(join(link_dir, 'linkers.csv'))
         for i in link_pop:
             inversion_flag = str(link_mol_prop[link_mol_prop.name == i.name]['inversion_flag'].iloc[0])
             if inversion_flag == 't':
@@ -114,15 +113,6 @@ def main():
             i, core = core_item
             j, liga = liga_item
             k, link = link_item
-            # if core.name not in ['core_4', 'core_5', 'core_6']:
-            #     # if core.name not in ['core_4', 'core_6']:
-            #     continue
-            # if liga.name not in ['lig_1', 'lig_2', 'lig_3']:
-            #     # if liga.name not in ['lig_1', 'lig_2']:
-            #     continue
-            # if link.name not in ['link_1']:
-            #     continue
-            # build ABCBA molecule
             pop_ids = (i, j, k)  # core, ligand, linker
             # build ABCBA molecule
             # if building only a subset, check that this molecule is in the subset
@@ -176,7 +166,7 @@ def main():
         core_pop.dump(join(core_dir, 'core.pop'), include_attrs=['geom_prop'])
         liga_pop.dump(join(liga_dir, 'ligands.pop'), include_attrs=['geom_prop'])
         link_pop.dump(join(link_dir, 'linkers.pop'), include_attrs=['geom_prop'])
-        molecule_pop.dump(join(mole_dir, 'molecules.pop'), include_attrs=['geom_prop'])
+        molecule_pop.dump(join('./', 'molecules.pop'), include_attrs=['geom_prop'])
 
         # draw 2D representation for all built molecules
         mol_list = []
@@ -196,7 +186,7 @@ def main():
                                    member_init=Molecule.from_dict)
         link_pop = Population.load(path=join(link_dir, 'linkers.pop'),
                                    member_init=Molecule.from_dict)
-        molecule_pop = Population.load(path=join(mole_dir, 'molecules.pop'),
+        molecule_pop = Population.load(path=join('./', 'molecules.pop'),
                                        member_init=Molecule.from_dict)
         print('done')
         print('----------------------------------')
