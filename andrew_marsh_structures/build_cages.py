@@ -6,6 +6,9 @@
 Script to build cage structures in a brute force way. Based off notebooks
 build_cages_amines*.ipynb.
 
+This script was used for the initial screening. build_cages_small_subset.py was
+used for the finer screening.
+
 Author: Andrew Tarzia
 
 Date Created: 18 Mar 2019
@@ -360,6 +363,73 @@ def check_done(NAME, output_csv):
     return True
 
 
+def assign_cage_properties(NAME, cage, output_csv):
+    '''Assigns and outputs arbitrary cage properties to output_csv
+
+    '''
+    prop_file = NAME + '_opt_properties.json'
+    mole_file = NAME + '_opt_PWout.xyz'
+    # all analysis done successfully -- output
+    bb1, SA1, bb2, SA2, topo = '-', '-', '-', '-', '-'
+    max_diam, p_diam, p_vol = '-', '-', '-'
+    p_diam_opt, p_vol_opt = '-', '-'
+    w_no, w_max, w_min, w_avg = '-', '-', '-', '-'
+    w_diff, collapsed, asymetry = '-', '-', '-'
+    with open(prop_file, 'r') as f:
+        data = json.load(f)
+    bb1 = NAME.split('_')[0]
+    bb2 = '_'.join(NAME.split('_')[1:3])
+    topo = NAME.split('_')[3]
+    max_diam = str(data['maximum_diameter']['diameter'])
+    p_diam = str(data['pore_diameter']['diameter'])
+    p_diam_opt = str(data['pore_diameter_opt']['diameter'])
+    p_vol = str(data['pore_volume'])
+    p_vol_opt = str(data['pore_volume_opt'])
+    if data['windows']['diameters'] is None:
+        w_no, w_max, w_min, w_avg, w_diff = '0', '0', '0', '0', '0'
+        collapse = '2'  # unsure
+        asymetry = '-2'
+    elif len(data['windows']['diameters']) == 0:
+        w_no, w_max, w_min, w_avg, w_diff = '0', '0', '0', '0', '0'
+        collapse = '1'  # collapsed
+        asymetry = '-2'
+    else:
+        if max(data['windows']['diameters']) < 200:
+            w_no = str(len(data['windows']['diameters']))
+            w_max = str(max(data['windows']['diameters']))
+            w_min = str(min(data['windows']['diameters']))
+            w_avg = str(np.average(data['windows']['diameters']))
+            if topo != '4p62':
+                w_diff = str(cage.window_difference())
+            else:
+                w_diff = None
+            if w_diff is None:
+                w_diff = '-5'
+            # asymetry = str(stk_functions.get_asymmetry(data))
+            asymetry = str(w_diff)
+            coll_flag = stk_functions.is_collapse(
+                topo=topo, avg_diff=w_diff,
+                max_window_diam=w_max,
+                cavity_size=cage.cavity_size(),
+                no_window=w_no)
+            if coll_flag is True:
+                collapse = '0'
+            elif coll_flag is False:
+                collapse = '1'
+            elif coll_flag is None:
+                collapse = '2'
+        else:
+            w_no, w_max, w_min, w_avg, w_diff = '-1', '-1', '-1', '-1', '-1'
+            collapse = '2'  # unsure
+            asymetry = '-1'
+    with open(output_csv, 'a') as f:
+        f.write(NAME+','+bb1+','+SA1+','+bb2+','+SA2+','+topo+',')
+        f.write(max_diam+','+p_diam+','+p_vol+','+p_diam_opt+',')
+        f.write(p_vol_opt+','+w_no+','+w_max+','+w_min+','+w_avg+',')
+        f.write(w_diff+','+collapse+','+asymetry)
+        f.write('\n')
+
+
 def brute_cage_build(precursor_struc, precursor_names, precursor_files,
                      topology_names, topology_options, amines, DB, amine_type,
                      output_csv, macromod_):
@@ -408,64 +478,8 @@ def brute_cage_build(precursor_struc, precursor_names, precursor_files,
                         cage = stk.Cage([prec, bb_amine], topo)
                         cage.update_from_mol(NAME+'_opt.mol')
                     # all analysis done successfully -- output
-                    bb1, SA1, bb2, SA2, topo = '-', '-', '-', '-', '-'
-                    max_diam, p_diam, p_vol = '-', '-', '-'
-                    p_diam_opt, p_vol_opt = '-', '-'
-                    w_no, w_max, w_min, w_avg = '-', '-', '-', '-'
-                    w_diff, collapsed, asymetry = '-', '-', '-'
-                    with open(prop_file, 'r') as f:
-                        data = json.load(f)
-                    bb1 = NAME.split('_')[0]
-                    bb2 = '_'.join(NAME.split('_')[1:3])
-                    topo = NAME.split('_')[3]
-                    max_diam = str(data['maximum_diameter']['diameter'])
-                    p_diam = str(data['pore_diameter']['diameter'])
-                    p_diam_opt = str(data['pore_diameter_opt']['diameter'])
-                    p_vol = str(data['pore_volume'])
-                    p_vol_opt = str(data['pore_volume_opt'])
-                    if data['windows']['diameters'] is None:
-                        w_no, w_max, w_min, w_avg, w_diff = '0', '0', '0', '0', '0'
-                        collapse = '2'  # unsure
-                        asymetry = '-2'
-                    elif len(data['windows']['diameters']) == 0:
-                        w_no, w_max, w_min, w_avg, w_diff = '0', '0', '0', '0', '0'
-                        collapse = '1'  # collapsed
-                        asymetry = '-2'
-                    else:
-                        if max(data['windows']['diameters']) < 200:
-                            w_no = str(len(data['windows']['diameters']))
-                            w_max = str(max(data['windows']['diameters']))
-                            w_min = str(min(data['windows']['diameters']))
-                            w_avg = str(np.average(data['windows']['diameters']))
-                            if topo != '4p62':
-                                w_diff = str(cage.window_difference())
-                            else:
-                                w_diff = None
-                            if w_diff is None:
-                                w_diff = '-5'
-                            # asymetry = str(stk_functions.get_asymmetry(data))
-                            asymetry = str(w_diff)
-                            coll_flag = stk_functions.is_collapse(
-                                topo=topo, avg_diff=w_diff,
-                                max_window_diam=w_max,
-                                cavity_size=cage.cavity_size(),
-                                no_window=w_no)
-                            if coll_flag is True:
-                                collapse = '0'
-                            elif coll_flag is False:
-                                collapse = '1'
-                            elif coll_flag is None:
-                                collapse = '2'
-                        else:
-                            w_no, w_max, w_min, w_avg, w_diff = '-1', '-1', '-1', '-1', '-1'
-                            collapse = '2'  # unsure
-                            asymetry = '-1'
-                    with open(output_csv, 'a') as f:
-                        f.write(NAME+','+bb1+','+SA1+','+bb2+','+SA2+','+topo+',')
-                        f.write(max_diam+','+p_diam+','+p_vol+','+p_diam_opt+',')
-                        f.write(p_vol_opt+','+w_no+','+w_max+','+w_min+','+w_avg+',')
-                        f.write(w_diff+','+collapse+','+asymetry)
-                        f.write('\n')
+                    assign_cage_properties(NAME=NAME, cage=cage,
+                                           output_csv=output_csv)
 
 
 def screening_process(dataset, des_topo, SA_data):

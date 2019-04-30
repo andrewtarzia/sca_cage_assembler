@@ -15,7 +15,7 @@ import os
 import sys
 import glob
 sys.path.insert(0, '/home/atarzia/thesource/')
-import GFN_functions
+from GFN_functions import setup_dirs
 
 
 def main():
@@ -28,7 +28,7 @@ Usage: run_GFN.py suffix
     else:
         suffix = sys.argv[1]
     xyzs = glob.glob('*' + suffix)
-    GFN_functions.setup_dirs(xyzs)
+    setup_dirs(xyzs)
     # select a GFN execution.
     GFN_exec = '/home/atarzia/software/xtb_190318/bin/xtb'
     print('most setup should be in the xctrl file that is in this directory!')
