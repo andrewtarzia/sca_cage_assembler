@@ -91,7 +91,7 @@ Usage: build_cages.py output_file wipe run_build
     for i, alde in enumerate(alde_files):
         # make diamines
         ami2_pairs = precursor_pairings(amine_CN=2)[alde_names[i]]
-        print(ami2_pairs)
+        print('aldehyde {} diamine pairs: {}'.format(alde, ami2_pairs))
         for ami2_name in ami2_pairs:
             ami2_file = join(ami2_dir, ami2_name+'.mol')
             ami2_struc = stk.StructUnit2(ami2_file, ['amine'])
@@ -140,7 +140,7 @@ Usage: build_cages.py output_file wipe run_build
 
         # make triamines
         ami3_pairs = precursor_pairings(amine_CN=3)[alde_names[i]]
-        print(ami3_pairs)
+        print('aldehyde {} triamine pairs: {}'.format(alde, ami3_pairs))
         for ami3_name in ami3_pairs:
             ami3_file = join(ami3_dir, ami3_name+'.mol')
             ami3_struc = stk.StructUnit2(ami3_file, ['amine'])
