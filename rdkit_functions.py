@@ -49,7 +49,7 @@ def mol_list2grid(molecules, filename, mol_per_row, maxrows,
                   subImgSize=(200, 200), names=None):
     '''Produce a grid of molecules in mol_list.
 
-    mol_dict (dict) - {name: SMILES}
+    molecules (list) - list of molecule SMILEs
 
     '''
     if len(molecules) > mol_per_row * maxrows:
