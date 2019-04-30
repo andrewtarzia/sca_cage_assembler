@@ -28,10 +28,32 @@ from rdkit_functions import mol_list2grid
 from analyze_molecules import plot_all_pair_info, output_analysis
 
 
+def cases(subset):
+    '''Define the smallest set of molecules to build to replicate particular subsets
+
+    Implemented:
+        bloch2017:
+            1 (1 in Fig 4) — core = 5, linker = 1, ligand = 3 + core = 6, ligand = 2
+            2 (2 in Fig 4) — core = 4, linker = 1, ligand = 1 + core = 6, ligand = 2
+
+    '''
+    cases = {'clever':
+        ['core_5_lig_3_link_1', 'core_6_lig_2', 'core_4_lig_1_link_1']
+    }
+    try:
+        list_of_mol = cases[subset]
+    except KeyError:
+        print('{} is not a defined subset'.format(subset))
+        sys.exit('exitting')
+    return list_of_mol
+
+
 def main():
-    if (not len(sys.argv) == 7):
+    if (not len(sys.argv) == 8):
         print("""
-    Usage: molecule_builing.py rebuild N bond_mean bond_std energy_tol angle_tol
+    Usage: molecule_builing.py subset rebuild N bond_mean bond_std energy_tol angle_tol
+        subset (str) - 'all' to build all possible molecules,
+            'clever' to build molecules from bloch2017
         rebuild (str) - 't' if you want to rebuild all molecules, 'f' to load populations
         N (int) - number of conformers to use
         bond_mean (float) - mean value of bond distance to use in candidate selection
@@ -41,12 +63,13 @@ def main():
         """)
         sys.exit()
     else:
-        rebuild = sys.argv[1]
-        N = int(sys.argv[2])
-        bond_mean = float(sys.argv[3])
-        bond_std = float(sys.argv[4])
-        energy_tol = float(sys.argv[5])
-        angle_tol = float(sys.argv[6])
+        subset = sys.argv[1]
+        rebuild = sys.argv[2]
+        N = int(sys.argv[3])
+        bond_mean = float(sys.argv[4])
+        bond_std = float(sys.argv[5])
+        energy_tol = float(sys.argv[6])
+        angle_tol = float(sys.argv[7])
 
     proj_dir = '/home/atarzia/projects/ligand_combiner/'
     core_dir = proj_dir + 'cores/'
@@ -101,45 +124,53 @@ def main():
             #     continue
             # build ABCBA molecule
             pop_ids = (i, j, k)  # core, ligand, linker
-            print(core.name, liga.name, link.name, pop_ids)
-            ABCBA_confs, ABCBA_molecule = get_molecule(
-                type='ABCBA', inverted=False,
-                popns=(core_pop, liga_pop, link_pop),
-                pop_ids=pop_ids, N=N,
-                mole_dir=mole_dir)
-            ABCBA_molecule.name = 'ABCBA_' + str(i) + str(j) + str(k)
-            # get properties - save to molecule as attribute
-            ABCBA_molecule = get_geometrical_properties(mol=ABCBA_molecule,
-                                                        cids=ABCBA_confs,
-                                                        type='ABCBA')
-            molecule_pop.members.append(ABCBA_molecule)
+            # build ABCBA molecule
+            # if building only a subset, check that this molecule is in the subset
+            NAME = core.name + '_' + liga.name + '_' + link.name
+            if subset != 'all' and NAME in cases(subset):
+                print(core.name, liga.name, link.name, pop_ids)
+                ABCBA_confs, ABCBA_molecule = get_molecule(
+                    type='ABCBA', inverted=False,
+                    popns=(core_pop, liga_pop, link_pop),
+                    pop_ids=pop_ids, N=N)
+                ABCBA_molecule.name = 'ABCBA_' + str(i) + str(j) + str(k)
+                # get properties - save to molecule as attribute
+                ABCBA_molecule = get_geometrical_properties(mol=ABCBA_molecule,
+                                                            cids=ABCBA_confs,
+                                                            type='ABCBA')
+                molecule_pop.members.append(ABCBA_molecule)
             # also build the inverted molecule if possible.
-            if link_pop[pop_ids[2]].invertable is True:
-                ABCBA_inv_confs, ABCBA_inv_molecule = get_molecule(
-                    type='ABCBA', inverted=True,
-                    popns=(core_pop, liga_pop, link_pop),
-                    pop_ids=pop_ids, N=N,
-                    mole_dir=mole_dir)
-                ABCBA_inv_molecule.name = 'ABCBA_' + str(i) + str(j) + str(k) + 'i'
-                # get properties - save to molecule as attribute
-                ABCBA_inv_molecule = get_geometrical_properties(mol=ABCBA_inv_molecule,
-                                                                cids=ABCBA_inv_confs,
-                                                                type='ABCBA')
-                molecule_pop.members.append(ABCBA_inv_molecule)
+            # if building only a subset, check that this molecule is in the subset
+            NAME = core.name + '_' + liga.name + '_' + link.name + 'i'
+            if subset != 'all' and NAME in cases(subset):
+                if link_pop[pop_ids[2]].invertable is True:
+                    ABCBA_inv_confs, ABCBA_inv_molecule = get_molecule(
+                        type='ABCBA', inverted=True,
+                        popns=(core_pop, liga_pop, link_pop),
+                        pop_ids=pop_ids, N=N)
+                    ABCBA_inv_molecule.name = 'ABCBA_' + str(i) + str(j) + str(k) + 'i'
+                    # get properties - save to molecule as attribute
+                    ABCBA_inv_molecule = get_geometrical_properties(mol=ABCBA_inv_molecule,
+                                                                    cids=ABCBA_inv_confs,
+                                                                    type='ABCBA')
+                    molecule_pop.members.append(ABCBA_inv_molecule)
+            # build ABA molecule
             # avoid doing multple times
-            if isfile(core.name + '_' + liga.name + '_opt.mol') is False:
-                # build ABA molecule
-                ABA_confs, ABA_molecule = get_molecule(
-                    type='ABA', inverted=False,
-                    popns=(core_pop, liga_pop, link_pop),
-                    pop_ids=pop_ids, N=N,
-                    mole_dir=mole_dir)
-                ABA_molecule.name = 'ABA_' + str(i) + str(j)
-                # get properties - save to molecule as attribute
-                ABA_molecule = get_geometrical_properties(mol=ABA_molecule,
-                                                          cids=ABA_confs,
-                                                          type='ABA')
-                molecule_pop.members.append(ABA_molecule)
+            # if building only a subset, check that this molecule is in the subset
+            NAME = core.name + '_' + liga.name
+            if subset != 'all' and NAME in cases(subset):
+                if isfile(core.name+'_'+liga.name+'_ABA_opt.mol') is False:
+                    print(isfile(core.name+'_'+liga.name+'_ABA_opt.mol'), core.name+'_'+liga.name+'_ABA_opt.mol')
+                    ABA_confs, ABA_molecule = get_molecule(
+                        type='ABA', inverted=False,
+                        popns=(core_pop, liga_pop, link_pop),
+                        pop_ids=pop_ids, N=N)
+                    ABA_molecule.name = 'ABA_' + str(i) + str(j)
+                    # get properties - save to molecule as attribute
+                    ABA_molecule = get_geometrical_properties(mol=ABA_molecule,
+                                                              cids=ABA_confs,
+                                                              type='ABA')
+                    molecule_pop.members.append(ABA_molecule)
 
         # save populations
         core_pop.dump(join(core_dir, 'core.pop'), include_attrs=['geom_prop'])
