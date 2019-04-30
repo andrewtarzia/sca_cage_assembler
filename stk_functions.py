@@ -323,7 +323,8 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
             struct = load_StructUnitX(file, X=0)
             print('doing opt')
             # restricted=both optimization with OPLS forcefield by default
-            ff = stk.MacroModelForceField(macromodel_path=exec)
+            ff = stk.MacroModelForceField(macromodel_path=exec,
+                                          restricted=True)
             # MD process - run MD, collect N conformers, optimize each,
             # return lowest energy conformer
             md = stk.MacroModelMD(macromodel_path=exec,
