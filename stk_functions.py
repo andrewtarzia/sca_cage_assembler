@@ -225,7 +225,7 @@ def default_stk_MD_settings():
                 'restricted': 'both',
                 'temperature': 300,  # K
                 'conformers': 50,
-                'time_step': 0.1,  # fs
+                'time_step': 1.0,  # fs
                 'eq_time': 10,  # ps
                 'simulation_time': 200,  # ps
                 'maximum_iterations': 2500,
