@@ -101,29 +101,24 @@ Usage: per_amine_parity_plot.py output_file property
 
     fig, ax = plt.subplots(figsize=(5, 5))
     for ami in list_of_amines:
-        # print(ami)
-        DF = full_dataset[full_dataset.bb2 == ami]
-        # print(DF)
-        # get topo DF
-        for topo in list_of_topos:
-            # print(topo)
-            DFT = DF[DF.topo == topo]
-            # print(DFT)
-            # get X DF based on aldehyde
-            X_DF = DFT[DFT.bb1 == X_alde]
-            # print(X_DF)
-            # get Y DF based on aldehyde
-            Y_DF = DFT[DFT.bb1 == Y_alde]
-            # print(Y_DF)
-            X = float(X_DF[property['column']].iloc[0])
-            Y = float(Y_DF[property['column']].iloc[0])
-            print(X, Y)
-            if bool(np.isclose(X, Y, rtol=0, atol=5)) is False:
-                print(X_DF.bb1.iloc[0]+'_'+X_DF.bb2.iloc[0]+'_'+X_DF.topo.iloc[0])
-                print(Y_DF.bb1.iloc[0]+'_'+Y_DF.bb2.iloc[0]+'_'+Y_DF.topo.iloc[0])
-                input()
-            ax.scatter(X, Y, c='mediumvioletred', alpha=0.8,
-                       edgecolor='k', marker='o', s=80)
+        if property['column'] is not None:
+            DF = full_dataset[full_dataset.bb2 == ami]
+            # get topo DF
+            for topo in list_of_topos:
+                DFT = DF[DF.topo == topo]
+                # get X DF based on aldehyde
+                X_DF = DFT[DFT.bb1 == X_alde]
+                # get Y DF based on aldehyde
+                Y_DF = DFT[DFT.bb1 == Y_alde]
+                X = float(X_DF[property['column']].iloc[0])
+                Y = float(Y_DF[property['column']].iloc[0])
+                print(X, Y)
+                if bool(np.isclose(X, Y, rtol=0, atol=5)) is False:
+                    print(X_DF.bb1.iloc[0]+'_'+X_DF.bb2.iloc[0]+'_'+X_DF.topo.iloc[0])
+                    print(Y_DF.bb1.iloc[0]+'_'+Y_DF.bb2.iloc[0]+'_'+Y_DF.topo.iloc[0])
+                    input()
+                ax.scatter(X, Y, c='mediumvioletred', alpha=0.8,
+                           edgecolor='k', marker='o', s=80)
 
     lims = (0, round(max(full_dataset[property['column']]))+5)
     ax.plot(np.linspace(lims[0], lims[1], 3), np.linspace(lims[0], lims[1], 3),
