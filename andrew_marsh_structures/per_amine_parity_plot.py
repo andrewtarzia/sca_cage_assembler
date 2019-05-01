@@ -41,8 +41,10 @@ Usage: per_amine_parity_plot.py output_file property
     list_of_aldes = sorted(list(set(full_dataset.bb1)))
     list_of_amines = sorted(list(set(full_dataset.bb2)))
     list_of_topos = sorted(list(set(full_dataset.topo)))
-    print(list_of_amines, list_of_aldes, list_of_topos)
-    print(len(list_of_amines))
+    list_of_names = sorted(list(full_dataset.name))
+    # print(list_of_amines, list_of_aldes, list_of_topos)
+    print(len(list_of_amines), 'x', len(list_of_aldes), 'x',
+          len(list_of_topos), '-->', len(list_of_names))
 
     # define properties
     X_alde = 'aldehyde2'
