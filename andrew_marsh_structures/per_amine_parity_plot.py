@@ -14,7 +14,11 @@ Date Created: 01 May 2019
 import sys
 import pandas as pd
 import numpy as np
+from rdkit.Chem import AllChem as Chem
 import matplotlib.pyplot as plt
+from stk import Cage, StructUnit2, StructUnit3
+sys.path.insert(0, '/home/atarzia/thesource/')
+from stk_functions import topo_2_property
 
 
 def main():
@@ -119,6 +123,26 @@ Usage: per_amine_parity_plot.py output_file property
                     input()
                 ax.scatter(X, Y, c='mediumvioletred', alpha=0.8,
                            edgecolor='k', marker='o', s=80)
+        else:
+            # plot from data_Frame
+            print(ami)
+            DF = data_Frame[data_Frame['amine'] == ami]
+            print(DF)
+            for topo in list_of_topos:
+                DFT = DF[DF.topo == topo]
+                print(DFT)
+                # get X DF based on aldehyde
+                X_DF = DFT[DFT.alde == X_alde]
+                print(X_DF)
+                # get Y DF based on aldehyde
+                Y_DF = DFT[DFT.alde == Y_alde]
+                print(Y_DF)
+                X = float(X_DF.value.iloc[0])
+                Y = float(Y_DF.value.iloc[0])
+                print(X, Y)
+                ax.scatter(X, Y, c='mediumvioletred', alpha=0.8,
+                           edgecolor='k', marker='o', s=80)
+                sys.exit()
 
     lims = (0, round(max(full_dataset[property['column']]))+5)
     ax.plot(np.linspace(lims[0], lims[1], 3), np.linspace(lims[0], lims[1], 3),
