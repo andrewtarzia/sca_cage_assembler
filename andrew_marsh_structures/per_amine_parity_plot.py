@@ -55,6 +55,49 @@ Usage: per_amine_parity_plot.py output_file property
                               'column': None}  # needs to be calculated
                   }
     property = properties[property_name]
+    if property_name == 'bb_dist':
+        # need to calculate the bb_distortion of all cages
+        data_Frame = pd.DataFrame(columns=['NAME', 'value', 'topo', 'alde', 'amine'])
+        for name in list_of_names:
+            alde_name = name.split('_')[0]
+            amine_name = '_'.join(name.split('_')[1:3])
+            topo = name.split('_')[3]
+
+            alde_dir = '/home/atarzia/projects/andrew_marsh_structures/precursor_lib/'
+            alde_file = alde_dir+alde_name+'.mol'
+            alde_struc = StructUnit3(alde_file, ['aldehyde'])
+            amine_dir = '/data/atarzia/precursor_DBs/reaxys_sorted/'
+            if '2f' in amine_name:
+                amine_dir += 'amines2f/'
+                amine_file = amine_dir+amine_name+'.mol'
+                amine_struc = StructUnit2(amine_file, ['amine'])
+            elif '3f' in amine_name:
+                amine_dir += 'amines3f/'
+                amine_file = amine_dir+amine_name+'.mol'
+                amine_struc = StructUnit3(amine_file, ['amine'])
+
+            topology = topo_2_property(topo, 'stk_func')
+            cage = Cage([alde_struc, amine_struc], topology)
+            cage.update_from_mol(name+'_opt.mol')
+            # rmsd = 0
+            # n= 0
+            # for i, bb in enumerate(cage.building_blocks):
+            #     print('hey')
+            #     free = bb.core()
+            #     am = [(x, x) for x in range(free.GetNumAtoms())]
+            #     for frag in cage.building_block_cores(i):
+            #         print('hey2')
+            #         rmsd += Chem.AlignMol(free,
+            #                               frag,
+            #                               atomMap=am)
+            #         n += 1
+            # print(rmsd /n)
+            data_Frame = data_Frame.append({'NAME': name,
+                                            'value': cage.bb_distortion(),
+                                            'amine': amine_name,
+                                            'alde': alde_name,
+                                            'topo': topo},
+                                            ignore_index=True)
 
     fig, ax = plt.subplots(figsize=(5, 5))
     for ami in list_of_amines:
