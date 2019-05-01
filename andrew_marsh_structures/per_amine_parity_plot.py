@@ -21,14 +21,19 @@ def main():
     """Run script.
 
     """
-    if (not len(sys.argv) == 2):
+    if (not len(sys.argv) == 3):
         print("""
-Usage: build_cages.py amine_type output_file wipe run_build
+Usage: per_amine_parity_plot.py output_file property
     output_file: file to output results
+    property: which property you want to plot
+        Defined:
+            p_diam_opt - pore diameter in Angstrom
+            bb_dist - distortion of building blocks
 """)
         sys.exit()
     else:
         output_file = sys.argv[1]
+        property_name = sys.argv[2]
 
     full_dataset = pd.read_csv(output_file)
     print(len(full_dataset))
@@ -39,10 +44,15 @@ Usage: build_cages.py amine_type output_file wipe run_build
     print(list_of_amines, list_of_aldes, list_of_topos)
     print(len(list_of_amines))
 
+    # define properties
     X_alde = 'aldehyde2'
     Y_alde = 'aldehyde3'
-    property = {'axis_title': 'pore diameter [$\mathrm{\AA}$]',
-                'column': 'p_diam_opt'}
+    properties = {'p_diam_opt': {'axis_title': 'pore diameter [$\mathrm{\AA}$]',
+                                 'column': 'p_diam_opt'},
+                  'bb_dist': {'axis_title': 'mean RMSD []',
+                              'column': None}  # needs to be calculated
+                  }
+    property = properties[property_name]
 
     fig, ax = plt.subplots(figsize=(5, 5))
     for ami in list_of_amines:
@@ -80,7 +90,7 @@ Usage: build_cages.py amine_type output_file wipe run_build
     ax.set_ylim(lims)
     ax.set_title(property['axis_title'], fontsize=12)
     fig.tight_layout()
-    fig.savefig("amine_parity_"+output_file.rstrip('.csv')+"_"+property['column']+".pdf",
+    fig.savefig("amine_parity_"+output_file.rstrip('.csv')+"_"+property_name+".pdf",
                 dpi=720, bbox_inches='tight')
     plt.close()
     sys.exit()
