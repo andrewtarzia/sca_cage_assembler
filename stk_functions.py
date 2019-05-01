@@ -222,7 +222,6 @@ def default_stk_MD_settings():
     Settings = {'output_dir': None,
                 'timeout': None,
                 'force_field': 16,
-                'restricted': 'both',
                 'temperature': 300,  # K
                 'conformers': 50,
                 'time_step': 1.0,  # fs
@@ -244,7 +243,6 @@ def atarzia_MD_settings():
     Settings = {'output_dir': None,
                 'timeout': None,
                 'force_field': 16,
-                'restricted': False,
                 'temperature': 700,  # K
                 'conformers': 50,
                 'time_step': 1,  # fs
@@ -270,15 +268,14 @@ def optimize_structunit(infile, outfile, exec,
         print(infile)
         struct = load_StructUnitX(infile, X=0)
         print('doing opt')
-        # restricte=both optimization with OPLS forcefield by default
-        ff = stk.MacroModelForceField(macromodel_path=exec)
+        # restricted=False optimization with OPLS forcefield by default
+        ff = stk.MacroModelForceField(macromodel_path=exec, restricted=False)
         # MD process - run MD, collect N conformers, optimize each,
         # return lowest energy conformer
         md = stk.MacroModelMD(macromodel_path=exec,
                               output_dir=Settings['output_dir'],
                               timeout=Settings['timeout'],
                               force_field=Settings['force_field'],
-                              restricted=Settings['restricted'],
                               temperature=Settings['temperature'],
                               conformers=Settings['conformers'],
                               time_step=Settings['time_step'],
@@ -322,7 +319,7 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
         if NAME not in calculated and opt is True:
             struct = load_StructUnitX(file, X=0)
             print('doing opt')
-            # restricted=both optimization with OPLS forcefield by default
+            # restricted=True optimization with OPLS forcefield by default
             ff = stk.MacroModelForceField(macromodel_path=exec,
                                           restricted=True)
             # MD process - run MD, collect N conformers, optimize each,
@@ -331,7 +328,6 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
                                   output_dir=Settings['output_dir'],
                                   timeout=Settings['timeout'],
                                   force_field=Settings['force_field'],
-                                  restricted=Settings['restricted'],
                                   temperature=Settings['temperature'],
                                   conformers=Settings['conformers'],
                                   time_step=Settings['time_step'],
@@ -387,15 +383,16 @@ def build_and_opt_cage(prefix, BB1, BB2, topology, macromod_,
     try:
         cage = stk.Cage([BB1, BB2], topology)
         cage.write(prefix + '.mol')
-        # restricted=both optimization with OPLS forcefield by default
-        ff = stk.MacroModelForceField(macromodel_path=macromod_)
+        # restricted=True optimization with OPLS forcefield by default
+        ff = stk.MacroModelForceField(macromodel_path=macromod_,
+                                      restricted=True)
         # MD process - run MD, collect N conformers, optimize each,
         # return lowest energy conformer
+        # no restricted
         md = stk.MacroModelMD(macromodel_path=macromod_,
                               output_dir=Settings['output_dir'],
                               timeout=Settings['timeout'],
                               force_field=Settings['force_field'],
-                              restricted=Settings['restricted'],
                               temperature=Settings['temperature'],
                               conformers=Settings['conformers'],
                               time_step=Settings['time_step'],
