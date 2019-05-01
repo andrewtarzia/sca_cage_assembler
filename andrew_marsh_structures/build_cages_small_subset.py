@@ -22,7 +22,7 @@ from rdkit.Chem import AllChem as Chem
 sys.path.insert(0, '/home/atarzia/thesource/')
 from andrew_marsh_structures.build_cages import assign_cage_properties, check_done
 from IO_tools import convert_PDB_2_XYZ
-from stk_functions import topo_2_property, build_and_opt_cage, atarzia_MD_settings
+from stk_functions import topo_2_property, build_and_opt_cage, atarzia_long_MD_settings
 from pywindow_functions import analyze_cage_from_MOL
 import rdkit_functions
 
@@ -114,7 +114,7 @@ Usage: build_cages.py output_file wipe run_build
                                               topology=topo,
                                               macromod_=macromod_,
                                               pdb=True,
-                                              settings=atarzia_MD_settings())
+                                              settings=atarzia_long_MD_settings())
                     # convert .pdb to .xyz using ASE
                     pdb = NAME + '_opt.pdb'
                     _, _ = convert_PDB_2_XYZ(pdb)
@@ -163,7 +163,7 @@ Usage: build_cages.py output_file wipe run_build
                                               topology=topo,
                                               macromod_=macromod_,
                                               pdb=True,
-                                              settings=atarzia_MD_settings())
+                                              settings=atarzia_long_MD_settings())
                     # convert .pdb to .xyz using ASE
                     pdb = NAME + '_opt.pdb'
                     _, _ = convert_PDB_2_XYZ(pdb)

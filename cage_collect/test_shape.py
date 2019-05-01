@@ -26,7 +26,7 @@ sys.path.insert(0, '/home/atarzia/thesource/')
 import IO_tools
 import plotting
 import pywindow_functions
-from stk_functions import optimize_structunit, atarzia_MD_settings
+from stk_functions import optimize_structunit, atarzia_long_MD_settings
 
 
 def main():
@@ -87,7 +87,7 @@ Usage: test_shape.py
                     outfile=newID + '.pdb',
                     exec='/home/atarzia/software/schrodinger_install',
                     method='OPLS',
-                    settings=atarzia_MD_settings())
+                    settings=atarzia_long_MD_settings())
                 print('done')
             # analyze optimized cage with pyWindow and output to JSON
             if os.path.isfile(newID + '.json') is False:

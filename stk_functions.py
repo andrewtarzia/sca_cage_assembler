@@ -234,8 +234,8 @@ def default_stk_MD_settings():
     return Settings
 
 
-def atarzia_MD_settings():
-    '''My default settings I have used for cage optimizations in stk.
+def atarzia_short_MD_settings():
+    '''My default settings for short, crude cage optimizations in stk.
 
 
     Modified on 26/04/19.
@@ -247,7 +247,29 @@ def atarzia_MD_settings():
                 'conformers': 50,
                 'time_step': 1,  # fs
                 'eq_time': 50,  # ps
-                'simulation_time': 1000,  # ps
+                'simulation_time': 1000,  # ps -- 1 ns
+                'maximum_iterations': 2500,
+                'minimum_gradient': 0.05,
+                'use_cache': False}
+    return Settings
+
+
+def atarzia_long_MD_settings():
+    '''My default settings for long and rigorous cage optimizations in stk.
+
+    Mimics: Computationally-inspired discovery of an unsymmetrical porous organic cage
+        DOI:10.1039/C8NR06868B
+
+    Modified on 26/04/19.
+    '''
+    Settings = {'output_dir': None,
+                'timeout': None,
+                'force_field': 16,
+                'temperature': 700,  # K
+                'conformers': 10000,
+                'time_step': 0.5,  # fs
+                'eq_time': 500,  # ps
+                'simulation_time': 100000,  # ps -- 100 ns
                 'maximum_iterations': 2500,
                 'minimum_gradient': 0.05,
                 'use_cache': False}
