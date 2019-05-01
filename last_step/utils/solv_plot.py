@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
+from numpy import arange
 
 data = pd.read_csv('solv_data.csv')
 print(data.columns)
 
-X_positions = np.arange(0, len(list(data.structure)))
+X_positions = arange(0, len(list(data.structure)))
 
 fig, ax = plt.subplots()
 # ax.scatter(X_positions, data.gas-data.gas, c='k', marker='o',

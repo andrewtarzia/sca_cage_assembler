@@ -62,7 +62,9 @@ Usage: per_amine_parity_plot.py output_file property
     if property_name == 'bb_dist':
         # need to calculate the bb_distortion of all cages
         data_Frame = pd.DataFrame(columns=['NAME', 'value', 'topo', 'alde', 'amine'])
+        count = 1
         for name in list_of_names:
+            print('{} of {}'.format(count, len(list_of_names)))
             alde_name = name.split('_')[0]
             amine_name = '_'.join(name.split('_')[1:3])
             topo = name.split('_')[3]
@@ -101,7 +103,10 @@ Usage: per_amine_parity_plot.py output_file property
                                             'amine': amine_name,
                                             'alde': alde_name,
                                             'topo': topo},
-                                            ignore_index=True)
+                                           ignore_index=True)
+            count += 1
+            if count == 20:
+                break
 
     fig, ax = plt.subplots(figsize=(5, 5))
     for ami in list_of_amines:
@@ -117,10 +122,10 @@ Usage: per_amine_parity_plot.py output_file property
                 X = float(X_DF[property['column']].iloc[0])
                 Y = float(Y_DF[property['column']].iloc[0])
                 print(X, Y)
-                if bool(np.isclose(X, Y, rtol=0, atol=5)) is False:
-                    print(X_DF.bb1.iloc[0]+'_'+X_DF.bb2.iloc[0]+'_'+X_DF.topo.iloc[0])
-                    print(Y_DF.bb1.iloc[0]+'_'+Y_DF.bb2.iloc[0]+'_'+Y_DF.topo.iloc[0])
-                    input()
+                # if bool(np.isclose(X, Y, rtol=0, atol=5)) is False:
+                #     print(X_DF.bb1.iloc[0]+'_'+X_DF.bb2.iloc[0]+'_'+X_DF.topo.iloc[0])
+                #     print(Y_DF.bb1.iloc[0]+'_'+Y_DF.bb2.iloc[0]+'_'+Y_DF.topo.iloc[0])
+                #     input()
                 ax.scatter(X, Y, c='mediumvioletred', alpha=0.8,
                            edgecolor='k', marker='o', s=80)
         else:
