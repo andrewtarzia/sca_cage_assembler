@@ -33,17 +33,19 @@ def precursor_pairings(amine_CN):
     '''
     if amine_CN == 2:
         # diamines
-        pair_dict = {'aldehyde1': ['5', '6', '7', '8eq', '9eqtrans', '12', '13'],
-                     'aldehyde2': ['10eq', '11'],
-                     'aldehyde3': ['10eq', '11', '7', '14'],
-                     'aldehyde4': ['5', '6', '7', '8eq', '9eqtrans', '12', '13']}
+        pair_dict = {'aldehyde1': ['ami_5', 'ami_6', 'ami_7', 'ami_8eq',
+                                   'ami_9eqtrans', 'ami_12', 'ami_13'],
+                     'aldehyde2': ['ami_10eq', 'ami_11'],
+                     'aldehyde3': ['ami_10eq', 'ami_11', 'ami_7', 'ami_14'],
+                     'aldehyde4': ['ami_5', 'ami_6', 'ami_7', 'ami_8eq',
+                                   'ami_9eqtrans', 'ami_12', 'ami_13']}
 
     elif amine_CN == 3:
         # triamines
-        pair_dict = {'aldehyde1': ['1ax', '3', '4'],
-                     'aldehyde2': ['1ax', '2ax'],
-                     'aldehyde3': ['1ax'],
-                     'aldehyde4': ['1ax', '3', '4']}
+        pair_dict = {'aldehyde1': ['ami_1ax', 'ami_3', 'ami_4'],
+                     'aldehyde2': ['ami_1ax', 'ami_2ax'],
+                     'aldehyde3': ['ami_1ax'],
+                     'aldehyde4': ['ami_1ax', 'ami_3', 'ami_4']}
 
     return pair_dict
 
@@ -106,7 +108,7 @@ Usage: build_cages.py output_file wipe run_build
                 prop_file = NAME + '_opt_properties.json'
                 mole_file = NAME + '_opt_PWout.xyz'
                 print('doing:', NAME)
-                if isfile(join(NAME, '_opt.mol')) is False:
+                if isfile(NAME+'_opt.mol') is False:
                     # build cage and run optimization
                     cage = build_and_opt_cage(prefix=NAME,
                                               BB1=alde_struc[i],
