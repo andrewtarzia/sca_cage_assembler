@@ -368,15 +368,15 @@ def assign_cage_properties(NAME, cage, output_csv):
 
     '''
     prop_file = NAME + '_opt_properties.json'
-    mole_file = NAME + '_opt_PWout.xyz'
     # all analysis done successfully -- output
     bb1, SA1, bb2, SA2, topo = '-', '-', '-', '-', '-'
     max_diam, p_diam, p_vol = '-', '-', '-'
     p_diam_opt, p_vol_opt = '-', '-'
     w_no, w_max, w_min, w_avg = '-', '-', '-', '-'
-    w_diff, collapsed, asymetry = '-', '-', '-'
+    w_diff, collapse, asymetry = '-', '-', '-'
     with open(prop_file, 'r') as f:
         data = json.load(f)
+    print(NAME)
     bb1 = NAME.split('_')[0]
     bb2 = '_'.join(NAME.split('_')[1:3])
     topo = NAME.split('_')[3]
@@ -464,10 +464,10 @@ def brute_cage_build(precursor_struc, precursor_names, precursor_files,
                 if os.path.isfile(NAME+'_opt.mol') is True:
                     if os.path.isfile(prop_file) is False:
                         pywindow_functions.analyze_cage_from_MOL(
-                                            file=NAME+'_opt.mol',
-                                            prop_file=prop_file,
-                                            mole_file=mole_file,
-                                            include_coms=True)
+                            file=NAME+'_opt.mol',
+                            prop_file=prop_file,
+                            mole_file=mole_file,
+                            include_coms=True)
                 # if pywindow is complete then analyse the cage and write out
                 if os.path.isfile(prop_file) is True:
                     if check_done(NAME, output_csv) is True:
