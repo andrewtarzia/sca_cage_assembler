@@ -440,9 +440,9 @@ def brute_cage_build(precursor_struc, precursor_names, precursor_files,
     for i, prec in enumerate(precursor_struc):
         for j, amine in enumerate(amines):
             if amine_type == '2':
-                bb_amine = stk.StructUnit2(amine)
+                bb_amine = stk.StructUnit2(amine, ['amine'])
             elif amine_type == '3':
-                bb_amine = stk.StructUnit3(amine)
+                bb_amine = stk.StructUnit3(amine, ['amine'])
             for k, topo in enumerate(topology_options):
                 # naming convention: aldehyde-name_amine-name_topology
                 # amine-name: amineDB_NO
@@ -658,7 +658,7 @@ Usage: build_cages.py amine_type output_file wipe run_build
     precursor_files = sorted(glob.glob(precursor_dir+'*.mol'))
     precursor_names = [i.replace(precursor_dir, '') for i in precursor_files]
     # read in mol files
-    precursor_struc = [stk.StructUnit3(i) for i in precursor_files]
+    precursor_struc = [stk.StructUnit3(i, ['aldehyde']) for i in precursor_files]
     precursor_smiles = [Chem.MolToSmiles(i.mol) for i in precursor_struc]
     rdkit_functions.mol_list2grid(mol_dict=dict(zip(precursor_names, precursor_smiles)),
                                   filename='aldehyde_precusors', mol_per_row=2,
