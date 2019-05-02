@@ -159,7 +159,7 @@ Usage: per_amine_parity_plot.py output_file property
                 Y_DF = DFT[DFT.bb1 == Y_alde]
                 X = float(X_DF[property['column']].iloc[0])
                 Y = float(Y_DF[property['column']].iloc[0])
-                print(X, Y)
+                # print(X, Y)
                 # if bool(np.isclose(X, Y, rtol=0, atol=5)) is False:
                 #     print(X_DF.bb1.iloc[0]+'_'+X_DF.bb2.iloc[0]+'_'+X_DF.topo.iloc[0])
                 #     print(Y_DF.bb1.iloc[0]+'_'+Y_DF.bb2.iloc[0]+'_'+Y_DF.topo.iloc[0])
@@ -185,10 +185,10 @@ Usage: per_amine_parity_plot.py output_file property
                     continue
                 X = float(X_DF.value.iloc[0])
                 Y = float(Y_DF.value.iloc[0])
-                print(X, Y)
+                # print(X, Y)
                 ax.scatter(X, Y, c='mediumvioletred', alpha=0.8,
                            edgecolor='k', marker='o', s=80)
-                sys.exit()
+                # sys.exit()
 
     P = np.linspace(properties[property_name]['lims'][0],
                     properties[property_name]['lims'][1], 3)
