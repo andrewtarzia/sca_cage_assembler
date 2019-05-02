@@ -54,9 +54,12 @@ Usage: per_amine_parity_plot.py output_file property
     X_alde = 'aldehyde2'
     Y_alde = 'aldehyde3'
     properties = {'p_diam_opt': {'axis_title': 'pore diameter [$\mathrm{\AA}$]',
-                                 'column': 'p_diam_opt'},
+                                 'column': 'p_diam_opt',
+                                 'lims': (0,
+                                          round(max(full_dataset['p_diam_opt']))+5)},
                   'bb_dist': {'axis_title': 'mean RMSD []',
-                              'column': None}  # needs to be calculated
+                              'column': None,  # needs to be calculated
+                              'lims': (0, 10)}
                   }
     property = properties[property_name]
     if property_name == 'bb_dist':
@@ -130,18 +133,21 @@ Usage: per_amine_parity_plot.py output_file property
                            edgecolor='k', marker='o', s=80)
         else:
             # plot from data_Frame
-            print(ami)
             DF = data_Frame[data_Frame['amine'] == ami]
-            print(DF)
+            if DF.empty:
+                continue
             for topo in list_of_topos:
                 DFT = DF[DF.topo == topo]
-                print(DFT)
+                if DFT.empty:
+                    continue
                 # get X DF based on aldehyde
                 X_DF = DFT[DFT.alde == X_alde]
-                print(X_DF)
+                if X_DF.empty:
+                    continue
                 # get Y DF based on aldehyde
                 Y_DF = DFT[DFT.alde == Y_alde]
-                print(Y_DF)
+                if Y_DF.empty:
+                    continue
                 X = float(X_DF.value.iloc[0])
                 Y = float(Y_DF.value.iloc[0])
                 print(X, Y)
@@ -149,14 +155,14 @@ Usage: per_amine_parity_plot.py output_file property
                            edgecolor='k', marker='o', s=80)
                 sys.exit()
 
-    lims = (0, round(max(full_dataset[property['column']]))+5)
-    ax.plot(np.linspace(lims[0], lims[1], 3), np.linspace(lims[0], lims[1], 3),
-            c='k', alpha=0.4)
+    P = np.linspace(properties[property_name]['lims'][0],
+                    properties[property_name]['lims'][1], 3)
+    ax.plot(P, P, c='k', alpha=0.4)
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_xlabel(X_alde, fontsize=16)
     ax.set_ylabel(Y_alde, fontsize=16)
-    ax.set_xlim(lims)
-    ax.set_ylim(lims)
+    ax.set_xlim(properties[property_name]['lims'])
+    ax.set_ylim(properties[property_name]['lims'])
     ax.set_title(property['axis_title'], fontsize=12)
     fig.tight_layout()
     fig.savefig("amine_parity_"+output_file.rstrip('.csv')+"_"+property_name+".pdf",
