@@ -85,58 +85,57 @@ Usage: per_amine_parity_plot.py output_file property
                 amine_file = amine_dir+amine_name+'.mol'
                 amine_struc = StructUnit3(amine_file, ['amine'])
 
-            print(name)
             topology = topo_2_property(topo, 'stk_func')
             cage = Cage([alde_struc, amine_struc], topology)
-            # cage.update_from_mol(name+'_opt.mol')
-            for atom in cage.mol.GetAtoms():
-                print(atom)
-                atom_id = atom.GetIdx()
-                print(atom_id)
-                props = atom.GetPropsAsDict()
-                print(props)
-                valid_props = props.keys() & {'mol_index', 'bb_index'}
-                for prop_name in valid_props:
-                    cage.atom_props[atom_id][prop_name] = props[prop_name]
-                sys.exit()
-            print('--------')
-            print(cage.atom_props)
-            cage.save_rdkit_atom_props({'mol_index', 'bb_index'})
-            print(cage.atom_props)
-            sys.exit()
-            print('--------')
-            from collections import defaultdict
-            for i, bb in enumerate(cage.building_blocks):
-                mols = defaultdict(set)
-                print(mols)
-                print(cage.atom_props)
-                for atom_id, props in cage.atom_props.items():
-                    print(atom_id, props)
-                    correct_bb = props.get('bb_index', float('nan')) == bb
-                    if correct_bb and cage.is_core_atom(atom_id):
-                        mols[props['mol_index']].add(atom_id)
-                print(mols)
-                for mol in mols.values():
-                    core = Chem.EditableMol(cage.mol)
-                    for atom in reversed(range(cage.mol.GetNumAtoms())):
-                        if atom not in mol:
-                            core.RemoveAtom(atom)
+            cage.update_from_mol(name+'_opt.mol')
+            # for atom in cage.mol.GetAtoms():
+            #     print(atom)
+            #     atom_id = atom.GetIdx()
+            #     print(atom_id)
+            #     props = atom.GetPropsAsDict()
+            #     print(props)
+            #     valid_props = props.keys() & {'mol_index', 'bb_index'}
+            #     for prop_name in valid_props:
+            #         cage.atom_props[atom_id][prop_name] = props[prop_name]
+            #     sys.exit()
+            # print('--------')
+            # print(cage.atom_props)
+            # cage.save_rdkit_atom_props({'mol_index', 'bb_index'})
+            # print(cage.atom_props)
+            # sys.exit()
+            # print('--------')
+            # from collections import defaultdict
+            # for i, bb in enumerate(cage.building_blocks):
+            #     mols = defaultdict(set)
+            #     print(mols)
+            #     print(cage.atom_props)
+            #     for atom_id, props in cage.atom_props.items():
+            #         print(atom_id, props)
+            #         correct_bb = props.get('bb_index', float('nan')) == bb
+            #         if correct_bb and cage.is_core_atom(atom_id):
+            #             mols[props['mol_index']].add(atom_id)
+            #     print(mols)
+            #     for mol in mols.values():
+            #         core = Chem.EditableMol(cage.mol)
+            #         for atom in reversed(range(cage.mol.GetNumAtoms())):
+            #             if atom not in mol:
+            #                 core.RemoveAtom(atom)
+            #
+            #         print(core.GetMol())
 
-                    print(core.GetMol())
-
-            rmsd = 0
-            n= 0
-            for i, bb in enumerate(cage.building_blocks):
-                print('hey')
-                free = bb.core()
-                am = [(x, x) for x in range(free.GetNumAtoms())]
-                for frag in cage.building_block_cores(i):
-                    print('hey2')
-                    rmsd += Chem.AlignMol(free,
-                                          frag,
-                                          atomMap=am)
-                    n += 1
-            print(rmsd /n)
+            # rmsd = 0
+            # n= 0
+            # for i, bb in enumerate(cage.building_blocks):
+            #     print('hey')
+            #     free = bb.core()
+            #     am = [(x, x) for x in range(free.GetNumAtoms())]
+            #     for frag in cage.building_block_cores(i):
+            #         print('hey2')
+            #         rmsd += Chem.AlignMol(free,
+            #                               frag,
+            #                               atomMap=am)
+            #         n += 1
+            # print(rmsd /n)
             data_Frame = data_Frame.append({'NAME': name,
                                             'value': cage.bb_distortion(),
                                             'amine': amine_name,
@@ -144,9 +143,8 @@ Usage: per_amine_parity_plot.py output_file property
                                             'topo': topo},
                                            ignore_index=True)
             count += 1
-            sys.exit()
-            if count == 3:
-                break
+            # if count == 3:
+            #     break
 
     fig, ax = plt.subplots(figsize=(5, 5))
     for ami in list_of_amines:
