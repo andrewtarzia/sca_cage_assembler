@@ -16,8 +16,51 @@ import sys
 
 def setup_dirs(xyzs):
     '''Setup directories for a series of XYZ files (in xyzs).
+def run_GFN_base(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb'):
+    '''Run GFN calculation using standard parameters and an xctrl file.
 
     '''
+    setup_dirs(xyzs, xctrl='default')
+    # select a GFN execution.
+    print('most setup should be in the xctrl file that is in this directory!')
+    print('''Option 1: -I xctrl --hess  <<< SPE, no solvent
+    Option 2: -I xctrl --hess --gbsa <<< SPE, w solvent in xctrl
+    Option 3: -I xctrl --ohess   <<< opt, no solvent in xctrl
+    Option 4: -I xctrl --ohess --gbsa  <<< opt, w solvent in xctrl
+    ''')
+    option = input('select an option!')
+    if option == '1':
+        part_2 = '-I xctrl --hess >'
+    if option == '2':
+        part_2 = '-I xctrl --hess --gbsa >'
+    if option == '3':
+        part_2 = '-I xctrl --ohess >'
+    if option == '4':
+        part_2 = '-I xctrl --ohess --gbsa >'
+
+    failed = []
+    total = len(xyzs)
+    count = 0
+    for i in xyzs:
+        file = i.replace('.xyz', '')
+        #############
+        # add a check for already completed job some how?!
+        ############
+        print('doing {}, which is {} out of {}'.format(file, count, total))
+        out = file + '.output'
+        chdir(file + '/')
+        exec = GFN_exec + ' ' + i + ' ' + part_2 + ' ' + out
+        res = system(exec)
+        if res != 0:
+            failed.append(xyzs)
+        chdir('../')
+        print('done')
+        count += 1
+
+    print('--------------------------------------')
+    print('all calculations done. failed XYZs:')
+    print(failed)
+    return failed
 
     for i in xyzs:
         file = i.replace('.xyz', '')
