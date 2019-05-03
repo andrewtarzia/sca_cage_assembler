@@ -15,6 +15,7 @@ import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from os.path import isfile
 from stk import Cage, StructUnit2, StructUnit3
 sys.path.insert(0, '/home/atarzia/thesource/')
 from stk_functions import topo_2_property
@@ -62,10 +63,19 @@ Usage: per_amine_parity_plot.py output_file property
                   }
     property = properties[property_name]
     if property_name == 'bb_dist':
-        # need to calculate the bb_distortion of all cages
-        data_Frame = pd.DataFrame(columns=['NAME', 'value', 'topo', 'alde', 'amine'])
+        NEWCSV = output_file.replace('.csv', '_'+property_name+'.csv')
+        # check if an output file exists.
+        if isfile(NEWCSV):
+            data_Frame = pd.read_csv(NEWCSV)
+        else:
+            # need to calculate the bb_distortion of all cages
+            data_Frame = pd.DataFrame(columns=['NAME', 'value', 'topo', 'alde', 'amine'])
+        done_list = list(set(data_Frame['NAME']))
         count = 1
         for name in list_of_names:
+            if name in done_list:
+                count += 1
+                continue
             print('{} of {}'.format(count, len(list_of_names)))
             alde_name = name.split('_')[0]
             amine_name = '_'.join(name.split('_')[1:3])
@@ -94,6 +104,9 @@ Usage: per_amine_parity_plot.py output_file property
                                             'topo': topo},
                                            ignore_index=True)
             count += 1
+        # write dataFrame
+        data_Frame.to_csv(NEWCSV,
+                          index=False)
 
     fig, ax = plt.subplots(figsize=(5, 5))
     for ami in list_of_amines:
