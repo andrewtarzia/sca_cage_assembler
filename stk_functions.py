@@ -405,6 +405,7 @@ def build_and_opt_cage(prefix, BB1, BB2, topology, macromod_,
     # try:
     cage = stk.Cage([BB1, BB2], topology)
     cage.write(prefix + '.mol')
+    cage.dump(prefix + '.json')
     # restricted=True optimization with OPLS forcefield by default
     ff = stk.MacroModelForceField(macromodel_path=macromod_,
                                   restricted=True)
@@ -426,6 +427,7 @@ def build_and_opt_cage(prefix, BB1, BB2, topology, macromod_,
     macromodel = stk.OptimizerSequence(ff, md)
     macromodel.optimize(mol=cage)
     cage.write(prefix + '_opt.mol')
+    cage.dump(prefix + '_opt.json')
     if pdb is True:
         cage.write(prefix + '_opt.pdb')
     return cage
