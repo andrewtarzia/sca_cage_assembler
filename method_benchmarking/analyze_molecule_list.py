@@ -47,7 +47,8 @@ Usage: analyze_molecule_list.py output_file suffix
         # check for GFN output file and collect free energy from GFN output
         # file if available.
         if isfile(join(dir, gfn_out)):
-            energies = get_energies(output_file=join(dir, gfn_out))
+            # must set GFN exec to get the formatting version right
+            energies = get_energies(output_file=join(dir, gfn_out), GFN_exec)
             try:
                 prop['FE_au'] = float(energies['FE'])
                 prop['TE_au'] = float(energies['TE'])

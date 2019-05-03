@@ -44,7 +44,8 @@ Usage: analyze_GFN.py dir
         out = file + '.output'
         os.chdir(file + '/')
         # determine properties from GFN output file.
-        results[file] = GFN_functions.get_energies(out)
+        # must set GFN exec to get the formatting version right
+        results[file] = GFN_functions.get_energies(out, GFN_exec)
         # calculate RMSD of all structures to input XYZ
         # obviously skip if SPE calculation
         if 'SPE' in targ_dir:
