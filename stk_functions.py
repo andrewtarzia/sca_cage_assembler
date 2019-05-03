@@ -13,7 +13,6 @@ Date Created: 18 Mar 2019
 from glob import glob
 import stk
 import sys
-from stk.molecular.molecules import MacroMoleculeBuildError
 import json
 
 
