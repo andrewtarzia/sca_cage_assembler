@@ -10,12 +10,11 @@ Author: Andrew Tarzia
 Date Created: 15 Mar 2019
 """
 
-import os
+from os import system, chdir, getcwd
+from os.path import isfile, isdir
 import sys
 
 
-def setup_dirs(xyzs):
-    '''Setup directories for a series of XYZ files (in xyzs).
 def run_GFN_base(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb'):
     '''Run GFN calculation using standard parameters and an xctrl file.
 
@@ -62,17 +61,45 @@ def run_GFN_base(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb'):
     print(failed)
     return failed
 
+
+def default_xctrl():
+    '''String to write to xctrl file for default GFN calculations.
+
+    '''
+    string = '''
+$gfn
+method=2
+$opt
+optlevel=2
+$scc
+temp=300
+broydamp=0.4
+$thermo
+temp=298.15
+'''
+    return string
+
+
+def setup_dirs(xyzs, xctrl='default'):
+    '''Setup directories for a series of XYZ files (in xyzs).
+
+    '''
     for i in xyzs:
         file = i.replace('.xyz', '')
         print(file)
-        if os.path.isdir(file) is False:
-            os.system('mkdir ' + file)
-        os.system('cp ' + i + ' ' + file + '/')
-        if os.path.isfile('xctrl') is False:
-            print('copy an xctrl file in this dir!', os.getcwd())
-            sys.exit('exitting.')
+        if isdir(file) is False:
+            system('mkdir ' + file)
+        system('cp ' + i + ' ' + file + '/')
+        if isfile('xctrl') is False:
+            if xctrl == 'default':
+                with open('xctrl', 'w') as f:
+                    f.write(default_xctrl())
+                system('cp xctrl ' + file + '/')
+            else:
+                print('copy your xctrl file in this dir!', getcwd())
+                sys.exit('exitting.')
         else:
-            os.system('cp xctrl ' + file + '/')
+            system('cp xctrl ' + file + '/')
 
 
 def get_energies(output_file):
