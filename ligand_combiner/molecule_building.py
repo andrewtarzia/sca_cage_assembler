@@ -33,13 +33,14 @@ def cases(subset):
 
     Implemented:
         bloch2017:
-            1 (1 in Fig 4) — core = 5, linker = 1, ligand = 3 + core = 6, ligand = 2
-            2 (2 in Fig 4) — core = 4, linker = 1, ligand = 1 + core = 6, ligand = 2
+            1 (1 in Fig 4) — (LA) core = 5, linker = 1, ligand = 3 + (LP) core = 6, ligand = 2
+            2 (2 in Fig 4) — (LC) core = 4, linker = 1, ligand = 1 + (LP) core = 6, ligand = 2
+            3 (3 in Fig 4) — (LA) core = 5, linker = 1, ligand = 3  + (LC) core = 4, linker = 1, ligand = 1 — named interlocked_*
 
     '''
     cases = {'clever':
-        ['core_5_lig_3_link_1', 'core_6_lig_2', 'core_4_lig_1_link_1']
-    }
+             ['core_5_lig_3_link_1', 'core_6_lig_2', 'core_4_lig_1_link_1']
+             }
     try:
         list_of_mol = cases[subset]
     except KeyError:
