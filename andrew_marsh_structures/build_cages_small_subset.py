@@ -35,7 +35,7 @@ def precursor_pairings(amine_CN):
         # diamines
         pair_dict = {'aldehyde1': ['ami_5', 'ami_6', 'ami_7', 'ami_8eq',
                                    'ami_9eqtrans', 'ami_12', 'ami_13'],
-                     'aldehyde2': ['ami_10eq', 'ami_11'],
+                     'aldehyde2': ['ami_10eq', 'ami_11', 'ami_7', 'ami_14'],
                      'aldehyde3': ['ami_10eq', 'ami_11', 'ami_7', 'ami_14'],
                      'aldehyde4': ['ami_5', 'ami_6', 'ami_7', 'ami_8eq',
                                    'ami_9eqtrans', 'ami_12', 'ami_13']}
@@ -44,7 +44,7 @@ def precursor_pairings(amine_CN):
         # triamines
         pair_dict = {'aldehyde1': ['ami_1ax', 'ami_3', 'ami_4'],
                      'aldehyde2': ['ami_1ax', 'ami_2ax'],
-                     'aldehyde3': ['ami_1ax'],
+                     'aldehyde3': ['ami_1ax', 'ami_2ax'],
                      'aldehyde4': ['ami_1ax', 'ami_3', 'ami_4']}
 
     return pair_dict
