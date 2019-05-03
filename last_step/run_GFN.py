@@ -25,7 +25,7 @@ if __name__ == "__main__":
     print('most setup should be in the xctrl file that is in this directory!')
     print('''Option 1: -I xctrl --hess  <<< SPE, no solvent
     Option 2: -I xctrl --hess --gbsa <<< SPE, w solvent in xctrl
-    Option 3: -I xctrl --ohess   <<< opt, w solvent in xctrl
+    Option 3: -I xctrl --ohess   <<< opt, no solvent in xctrl
     Option 4: -I xctrl --ohess --gbsa  <<< opt, w solvent in xctrl
     ''')
     option = input('select an option!')
