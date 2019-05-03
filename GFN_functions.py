@@ -13,6 +13,7 @@ Date Created: 15 Mar 2019
 from os import system, chdir, getcwd
 from os.path import isfile, isdir
 import sys
+from re import compile
 
 
 def run_GFN_base(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb'):
@@ -102,7 +103,7 @@ def setup_dirs(xyzs, xctrl='default'):
             system('cp xctrl ' + file + '/')
 
 
-def get_energies(output_file):
+def get_energies(output_file, GFN_exec):
     """Get the numbers from output file.
 
     Obtained results (in a.u.):
@@ -115,34 +116,61 @@ def get_energies(output_file):
     """
     results_part = {}
     for line in open(output_file, 'r'):
-        # free energy in a.u.
-        if 'TOTAL FREE ENERGY' in line:
-            li = line.rstrip().split('<===')
-            FE_au = li[0].strip()
-            # print(FE_au)
-            results_part['FE'] = FE_au
-        if 'total E       :' in line:
-            li = line.rstrip().split(':')
-            TE_au = li[1].strip()
-            # print(TE_au)
-            results_part['TE'] = TE_au
-        if 'SCC energy    :' in line:
-            li = line.rstrip().split(':')
-            SCE_au = li[1].strip()
-            # print(TE_au)
-            results_part['SCE'] = SCE_au
-        if 'G(T)' in line:
-            li = line.rstrip().split(' ')
-            new_l = [i for i in li if i != '']
-            # print(new_l)
-            GT_au = new_l[1].strip()
-            # print(GT_au)
-            results_part['GT'] = GT_au
-        if 'H(T)' in line and 'H(0)-H(T)+PV' not in line:
-            li = line.rstrip().split(' ')
-            new_l = [i for i in li if i != '']
-            # print(new_l)
-            HT_au = new_l[1].strip()
-            # print(HT_au)
-            results_part['HT'] = HT_au
+        if GFN_exec == '/home/atarzia/software/xtb_190418/bin/xtb':
+            # regex:
+            nums = compile(r"[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?")
+            # free energy in a.u.
+            if '| TOTAL FREE ENERGY' in line:
+                FE_au = nums.search(line.rstrip()).group(0)
+                results_part['FE'] = FE_au
+            if '| TOTAL ENERGY' in line:
+                TE_au = nums.search(line.rstrip()).group(0)
+                results_part['TE'] = TE_au
+            # if 'SCC energy    :' in line:
+            #     li = line.rstrip().split(':')
+            #     SCE_au = li[1].strip()
+            #     # print(TE_au)
+            #     results_part['SCE'] = SCE_au
+            # if 'G(T)' in line:
+            #     li = line.rstrip().split(' ')
+            #     new_l = [i for i in li if i != '']
+            #     # print(new_l)
+            #     GT_au = new_l[1].strip()
+            #     # print(GT_au)
+            #     results_part['GT'] = GT_au
+            if '| TOTAL ENTHALPY' in line:
+                HT_au = nums.search(line.rstrip()).group(0)
+                results_part['HT'] = HT_au
+        else:
+            # old version
+            if 'TOTAL FREE ENERGY' in line:
+                # old GFN formatting
+                li = line.rstrip().split('<===')
+                FE_au = li[0].strip()
+                # print(FE_au)
+                results_part['FE'] = FE_au
+            if 'total E       :' in line:
+                li = line.rstrip().split(':')
+                TE_au = li[1].strip()
+                # print(TE_au)
+                results_part['TE'] = TE_au
+            if 'SCC energy    :' in line:
+                li = line.rstrip().split(':')
+                SCE_au = li[1].strip()
+                # print(TE_au)
+                results_part['SCE'] = SCE_au
+            if 'G(T)' in line:
+                li = line.rstrip().split(' ')
+                new_l = [i for i in li if i != '']
+                # print(new_l)
+                GT_au = new_l[1].strip()
+                # print(GT_au)
+                results_part['GT'] = GT_au
+            if 'H(T)' in line and 'H(0)-H(T)+PV' not in line:
+                li = line.rstrip().split(' ')
+                new_l = [i for i in li if i != '']
+                # print(new_l)
+                HT_au = new_l[1].strip()
+                # print(HT_au)
+                results_part['HT'] = HT_au
     return results_part
