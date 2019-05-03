@@ -12,7 +12,14 @@ Date Created: 01 May 2019
 """
 
 import sys
+from os.path import join, isfile
+from glob import glob
+import pandas as pd
 sys.path.insert(0, '/home/atarzia/thesource/')
+from GFN_functions import run_GFN_base, get_energies
+from stk_functions import optimize_structunit, atarzia_long_MD_settings
+
+
 def main():
     """Run script.
 
@@ -37,6 +44,31 @@ Usage: get_all_struct_energies.py output_file suffix
         DATA = pd.read_csv(output_file)
     else:
         DATA = pd.DataFrame(columns=['files', 'NAMES', 'FE (au)'])
+
+    done_files = list(DATA['files'])
+    # iterate over all files with suffix
+    files = glob('*' + suffix)
+    # ignore done files
+    files = [i for i in files if i not in done_files]
+    if MD.lower() == 't':
+        # do a macromodelMD conformer search with stk first
+        outfiles = []
+        for file in files:
+            OUTFILE = file.replace('.mol', '_opt.mol')
+            optimize_structunit(infile=file,
+                                outfile=OUTFILE,
+                                exec=macromod_,
+                                settings=atarzia_long_MD_settings())
+            outfiles.append(OUTFILE)
+    else:
+        outfiles = files
+
+    # do GFN optimization
+    xyzs = [i.replace('.mol', '.xyz') for i in outfiles]
+    failed = run_GFN_base(xyzs=xyzs)
+    if len(failed) > 0:
+        sys.exit('---> Some GFN calcs failed. Exitting.')
+
     # get Free energies and save to output_file
     for file in xyzs:
         DIR = file.replace('.xyz', '')
