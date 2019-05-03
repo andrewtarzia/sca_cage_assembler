@@ -288,7 +288,7 @@ def optimize_structunit(infile, outfile, exec,
             Settings = settings
         print(infile)
         struct = load_StructUnitX(infile, X=0)
-        print('doing opt')
+        print('doing MD optimization of {}'.format(infile))
         # restricted=False optimization with OPLS forcefield by default
         ff = stk.MacroModelForceField(macromodel_path=exec, restricted=False)
         # MD process - run MD, collect N conformers, optimize each,
@@ -308,7 +308,7 @@ def optimize_structunit(infile, outfile, exec,
         macromodel = stk.OptimizerSequence(ff, md)
         macromodel.optimize(mol=struct)
         struct.write(outfile)
-        print(outfile)
+        print('done')
     else:
         print('no other method is implemented yet.')
         sys.exit('exitting')
