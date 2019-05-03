@@ -32,5 +32,24 @@ Usage: get_all_struct_energies.py output_file suffix
 
     macromod_ = '/home/atarzia/software/schrodinger_install'
 
+    if isfile(output_file):
+        # read in data
+        DATA = pd.read_csv(output_file)
+    else:
+        DATA = pd.DataFrame(columns=['files', 'NAMES', 'FE (au)'])
+    # get Free energies and save to output_file
+    for file in xyzs:
+        DIR = file.replace('.xyz', '')
+        OUT = file.replace('.xyz', '.out')
+        ORIG_FILE = file.replace('.xyz', '.mol')
+        energy_results = get_energies(output_file=join(DIR, OUT))
+        DATA = DATA.append({'NAMES': file.rstrip('.xyz'),
+                            'files': ORIG_FILE,
+                            'FE (au)': energy_results['FE']},
+                           ignore_index=True)
+        # write dataFrame
+        DATA.to_csv(output_file, index=False)
+
+
 if __name__ == "__main__":
     main()
