@@ -20,6 +20,8 @@ def run_GFN_base(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb'):
     '''Run GFN calculation using standard parameters and an xctrl file.
 
     '''
+    if len(xyzs) == 0:
+        return []
     setup_dirs(xyzs, xctrl='default')
     # select a GFN execution.
     print('most setup should be in the xctrl file that is in this directory!')
