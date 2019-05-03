@@ -402,32 +402,33 @@ def build_and_opt_cage(prefix, BB1, BB2, topology, macromod_,
         Settings = default_stk_MD_settings()
     else:
         Settings = settings
-    try:
-        cage = stk.Cage([BB1, BB2], topology)
-        cage.write(prefix + '.mol')
-        # restricted=True optimization with OPLS forcefield by default
-        ff = stk.MacroModelForceField(macromodel_path=macromod_,
-                                      restricted=True)
-        # MD process - run MD, collect N conformers, optimize each,
-        # return lowest energy conformer
-        # no restricted
-        md = stk.MacroModelMD(macromodel_path=macromod_,
-                              output_dir=Settings['output_dir'],
-                              timeout=Settings['timeout'],
-                              force_field=Settings['force_field'],
-                              temperature=Settings['temperature'],
-                              conformers=Settings['conformers'],
-                              time_step=Settings['time_step'],
-                              eq_time=Settings['eq_time'],
-                              simulation_time=Settings['simulation_time'],
-                              maximum_iterations=Settings['maximum_iterations'],
-                              minimum_gradient=Settings['minimum_gradient'],
-                              use_cache=Settings['use_cache'])
-        macromodel = stk.OptimizerSequence(ff, md)
-        macromodel.optimize(mol=cage)
-        cage.write(prefix + '_opt.mol')
-        if pdb is True:
-            cage.write(prefix + '_opt.pdb')
-        return cage
-    except MacroMoleculeBuildError:
-        pass
+    # try:
+    cage = stk.Cage([BB1, BB2], topology)
+    cage.write(prefix + '.mol')
+    # restricted=True optimization with OPLS forcefield by default
+    ff = stk.MacroModelForceField(macromodel_path=macromod_,
+                                  restricted=True)
+    # MD process - run MD, collect N conformers, optimize each,
+    # return lowest energy conformer
+    # no restricted
+    md = stk.MacroModelMD(macromodel_path=macromod_,
+                          output_dir=Settings['output_dir'],
+                          timeout=Settings['timeout'],
+                          force_field=Settings['force_field'],
+                          temperature=Settings['temperature'],
+                          conformers=Settings['conformers'],
+                          time_step=Settings['time_step'],
+                          eq_time=Settings['eq_time'],
+                          simulation_time=Settings['simulation_time'],
+                          maximum_iterations=Settings['maximum_iterations'],
+                          minimum_gradient=Settings['minimum_gradient'],
+                          use_cache=Settings['use_cache'])
+    macromodel = stk.OptimizerSequence(ff, md)
+    macromodel.optimize(mol=cage)
+    cage.write(prefix + '_opt.mol')
+    if pdb is True:
+        cage.write(prefix + '_opt.pdb')
+    return cage
+    # except MacroMoleculeBuildError:
+    #     print('build failed')
+    #     pass

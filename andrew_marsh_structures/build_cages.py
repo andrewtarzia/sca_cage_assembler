@@ -707,9 +707,10 @@ Usage: build_cages.py amine_type output_file wipe run_build
     # prepare output file
     output_csv = output_file
     if wipe.lower() == 't':
-        with open(output_csv, 'w') as f:
-            f.write('name,bb1,SA1,bb2,SA2,topo,max_diam,p_diam,p_vol,p_diam_opt')
-            f.write(',p_vol_opt,w_no,w_max,w_min,w_avg,w_diff,collapse,asym\n')
+        if input('are you sure you wanna wipe? (t)') == 't':
+            with open(output_csv, 'w') as f:
+                f.write('name,bb1,SA1,bb2,SA2,topo,max_diam,p_diam,p_vol,p_diam_opt')
+                f.write(',p_vol_opt,w_no,w_max,w_min,w_avg,w_diff,collapse,asym\n')
     if run_b.lower() == 't':
         brute_cage_build(precursor_struc, precursor_names, precursor_files,
                          topology_names, topology_options, amines, DB,

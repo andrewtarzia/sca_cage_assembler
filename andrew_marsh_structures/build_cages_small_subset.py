@@ -85,9 +85,10 @@ Usage: build_cages.py output_file wipe run_build
     # prepare output file
     output_csv = output_file
     if wipe.lower() == 't':
-        with open(output_csv, 'w') as f:
-            f.write('name,bb1,SA1,bb2,SA2,topo,max_diam,p_diam,p_vol,p_diam_opt')
-            f.write(',p_vol_opt,w_no,w_max,w_min,w_avg,w_diff,collapse,asym\n')
+        if input('are you sure you wanna wipe? (t)') == 't':
+            with open(output_csv, 'w') as f:
+                f.write('name,bb1,SA1,bb2,SA2,topo,max_diam,p_diam,p_vol,p_diam_opt')
+                f.write(',p_vol_opt,w_no,w_max,w_min,w_avg,w_diff,collapse,asym\n')
 
     # iterate over aldehydes
     for i, alde in enumerate(alde_files):
@@ -145,7 +146,7 @@ Usage: build_cages.py output_file wipe run_build
         print('aldehyde {} triamine pairs: {}'.format(alde, ami3_pairs))
         for ami3_name in ami3_pairs:
             ami3_file = join(ami3_dir, ami3_name+'.mol')
-            ami3_struc = stk.StructUnit2(ami3_file, ['amine'])
+            ami3_struc = stk.StructUnit3(ami3_file, ['amine'])
             topology_names = ['1p1', '4p4']
             topology_options = [topo_2_property(i, property='stk_func')
                                 for i in topology_names]
