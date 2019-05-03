@@ -158,7 +158,7 @@ Usage: build_cages.py output_file wipe run_build
                 prop_file = NAME + '_opt_properties.json'
                 mole_file = NAME + '_opt_PWout.xyz'
                 print('doing:', NAME)
-                if isfile(join(NAME, '_opt.mol')) is False:
+                if isfile(NAME+'_opt.mol') is False:
                     # build cage and run optimization
                     cage = build_and_opt_cage(prefix=NAME,
                                               BB1=alde_struc[i],
