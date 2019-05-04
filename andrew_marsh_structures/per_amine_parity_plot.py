@@ -51,8 +51,8 @@ Usage: per_amine_parity_plot.py output_file property
           len(list_of_topos), '-->', len(list_of_names))
 
     # define properties
-    X_alde = 'aldehyde2'
-    Y_alde = 'aldehyde3'
+    alde_pair_1 = ['aldehyde2', 'aldehyde3']
+    alde_pair_2 = ['aldehyde1', 'aldehyde4']
     properties = {'p_diam_opt': {'axis_title': 'pore diameter [$\mathrm{\AA}$]',
                                  'column': 'p_diam_opt',
                                  'lims': (0,
@@ -116,18 +116,21 @@ Usage: per_amine_parity_plot.py output_file property
             for topo in list_of_topos:
                 DFT = DF[DF.topo == topo]
                 # get X DF based on aldehyde
-                X_DF = DFT[DFT.bb1 == X_alde]
+                X_DF = DFT[DFT.bb1 == alde_pair_1[0]]
                 # get Y DF based on aldehyde
-                Y_DF = DFT[DFT.bb1 == Y_alde]
+                Y_DF = DFT[DFT.bb1 == alde_pair_1[1]]
                 X = float(X_DF[property['column']].iloc[0])
                 Y = float(Y_DF[property['column']].iloc[0])
-                # print(X, Y)
-                # if bool(np.isclose(X, Y, rtol=0, atol=5)) is False:
-                #     print(X_DF.bb1.iloc[0]+'_'+X_DF.bb2.iloc[0]+'_'+X_DF.topo.iloc[0])
-                #     print(Y_DF.bb1.iloc[0]+'_'+Y_DF.bb2.iloc[0]+'_'+Y_DF.topo.iloc[0])
-                #     input()
-                ax.scatter(X, Y, c='mediumvioletred', alpha=0.8,
+                ax.scatter(X, Y, c='mediumvioletred', alpha=0.6,
                            edgecolor='k', marker='o', s=80)
+                # get X DF based on aldehyde
+                X_DF = DFT[DFT.bb1 == alde_pair_2[0]]
+                # get Y DF based on aldehyde
+                Y_DF = DFT[DFT.bb1 == alde_pair_2[1]]
+                X = float(X_DF[property['column']].iloc[0])
+                Y = float(Y_DF[property['column']].iloc[0])
+                ax.scatter(X, Y, c='orange', alpha=0.6,
+                           edgecolor='k', marker='X', s=80)
         else:
             # plot from data_Frame
             DF = data_Frame[data_Frame['amine'] == ami]
@@ -138,11 +141,11 @@ Usage: per_amine_parity_plot.py output_file property
                 if DFT.empty:
                     continue
                 # get X DF based on aldehyde
-                X_DF = DFT[DFT.alde == X_alde]
+                X_DF = DFT[DFT.alde == alde_pair_1[0]]
                 if X_DF.empty:
                     continue
                 # get Y DF based on aldehyde
-                Y_DF = DFT[DFT.alde == Y_alde]
+                Y_DF = DFT[DFT.alde == alde_pair_1[1]]
                 if Y_DF.empty:
                     continue
                 X = float(X_DF.value.iloc[0])
@@ -152,19 +155,40 @@ Usage: per_amine_parity_plot.py output_file property
                     print(X_DF)
                     print(Y_DF)
                     input()
-                ax.scatter(X, Y, c='mediumvioletred', alpha=0.8,
+                ax.scatter(X, Y, c='mediumvioletred', alpha=0.6,
                            edgecolor='k', marker='o', s=80)
-                # sys.exit()
+                # get X DF based on aldehyde
+                X_DF = DFT[DFT.alde == alde_pair_2[0]]
+                if X_DF.empty:
+                    continue
+                # get Y DF based on aldehyde
+                Y_DF = DFT[DFT.alde == alde_pair_2[1]]
+                if Y_DF.empty:
+                    continue
+                X = float(X_DF.value.iloc[0])
+                Y = float(Y_DF.value.iloc[0])
+                # print(X, Y)
+                if abs(X-Y) > 1:
+                    print(X_DF)
+                    print(Y_DF)
+                    input()
+                ax.scatter(X, Y, c='orange', alpha=0.6,
+                           edgecolor='k', marker='X', s=80)
 
     P = np.linspace(properties[property_name]['lims'][0],
                     properties[property_name]['lims'][1], 3)
     ax.plot(P, P, c='k', alpha=0.4)
     ax.tick_params(axis='both', which='major', labelsize=16)
-    ax.set_xlabel(X_alde, fontsize=16)
-    ax.set_ylabel(Y_alde, fontsize=16)
+    ax.set_xlabel('aldehyde 1/2', fontsize=16)
+    ax.set_ylabel('aldehyde 3/4', fontsize=16)
     ax.set_xlim(properties[property_name]['lims'])
     ax.set_ylim(properties[property_name]['lims'])
     ax.set_title(property['axis_title'], fontsize=12)
+    ax.scatter(X, Y, c='mediumvioletred', alpha=0.6,
+               edgecolor='k', marker='o', s=80, label='aldehydes 2/3')
+    ax.scatter(X, Y, c='orange', alpha=0.6,
+               edgecolor='k', marker='X', s=80, label='aldehydes 1/4')
+    ax.legend(fontsize=16)
     fig.tight_layout()
     fig.savefig("amine_parity_"+output_file.rstrip('.csv')+"_"+property_name+".pdf",
                 dpi=720, bbox_inches='tight')
