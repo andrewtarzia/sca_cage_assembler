@@ -96,7 +96,7 @@ Usage: per_amine_parity_plot.py output_file property
 
             topology = topo_2_property(topo, 'stk_func')
             cage = Cage([alde_struc, amine_struc], topology)
-            cage.update_from_mol(name+'_opt.mol')
+            # cage.update_from_mol(name+'_opt.mol')
             data_Frame = data_Frame.append({'NAME': name,
                                             'value': cage.bb_distortion(),
                                             'amine': amine_name,
