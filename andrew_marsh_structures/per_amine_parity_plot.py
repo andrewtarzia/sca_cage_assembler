@@ -295,7 +295,7 @@ Usage: per_amine_parity_plot.py output_file property
     ax.plot(P, P, c='k', alpha=0.4)
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_xlabel('aldehyde 1/2', fontsize=16)
-    ax.set_ylabel('aldehyde 3/4', fontsize=16)
+    ax.set_ylabel('aldehyde 4/3', fontsize=16)
     ax.set_xlim(properties[property_name]['lims'])
     ax.set_ylim(properties[property_name]['lims'])
     ax.set_title(property['axis_title'], fontsize=12)
