@@ -22,6 +22,22 @@ from plotting import define_plot_cmap
 from Combiner import Combination
 
 
+def add_clever_lines(ax):
+    '''Add horiz and vertical lines to axes at hardcoded places based on analysis of
+    bloch2017 cages.
+
+    '''
+    # cage 1
+    # max deviation from planarity for all four N-Pd-N vectors
+    ax.axhline(y=1.232, c='b', label='cage 1 (GFN)', alpha=0.4, linestyle='-')
+    # max angle difference from 180 for all four N-Pd-N vectors
+    ax.axvline(x=6.3, c='b', alpha=0.4, linestyle='-')
+    # cage 2
+    # max deviation from planarity for all four N-Pd-N vectors
+    ax.axhline(y=0.701, c='r', label='cage 2 (XRD)', alpha=0.4, linestyle='--')
+    # max angle difference from 180 for all four N-Pd-N vectors
+    ax.axvline(x=7.1, c='r', alpha=0.4, linestyle='--')
+
 
 def get_all_pairs(molecule_pop, settings, mol_pair=None):
     '''Get all molecule pairs as ::class::Combination from molecule population.
