@@ -126,6 +126,57 @@ def get_all_formEY(property_name, output_file, list_of_names):
     return data_Frame
 
 
+def get_all_bbdist(property_name, output_file, list_of_names):
+    '''Return Dataframe containing all bb_distortion values for all cages.
+
+    '''
+    NEWCSV = output_file.replace('.csv', '_'+property_name+'.csv')
+    # check if an output file exists.
+    if isfile(NEWCSV):
+        data_Frame = pd.read_csv(NEWCSV)
+    else:
+        # need to calculate the bb_distortion of all cages
+        data_Frame = pd.DataFrame(columns=['NAME', 'value', 'topo', 'alde', 'amine'])
+    done_list = list(set(data_Frame['NAME']))
+    count = 1
+    for name in list_of_names:
+        if name in done_list:
+            count += 1
+            continue
+        print('{} of {}'.format(count, len(list_of_names)))
+        alde_name = name.split('_')[0]
+        amine_name = '_'.join(name.split('_')[1:3])
+        topo = name.split('_')[3]
+
+        alde_dir = '/home/atarzia/projects/andrew_marsh_structures/precursor_lib/'
+        alde_file = alde_dir+alde_name+'.mol'
+        alde_struc = StructUnit3(alde_file, ['aldehyde'])
+        amine_dir = '/data/atarzia/precursor_DBs/reaxys_sorted/'
+        if '2f' in amine_name:
+            amine_dir += 'amines2f/'
+            amine_file = amine_dir+amine_name+'.mol'
+            amine_struc = StructUnit2(amine_file, ['amine'])
+        elif '3f' in amine_name:
+            amine_dir += 'amines3f/'
+            amine_file = amine_dir+amine_name+'.mol'
+            amine_struc = StructUnit3(amine_file, ['amine'])
+
+        topology = topo_2_property(topo, 'stk_func')
+        cage = Cage([alde_struc, amine_struc], topology)
+        cage.update_from_mol(name+'_opt.mol')
+        data_Frame = data_Frame.append({'NAME': name,
+                                        'value': cage.bb_distortion(),
+                                        'amine': amine_name,
+                                        'alde': alde_name,
+                                        'topo': topo},
+                                       ignore_index=True)
+        count += 1
+    # write dataFrame
+    data_Frame.to_csv(NEWCSV,
+                      index=False)
+    return data_Frame
+
+
 def main():
     """Run script.
 
@@ -146,7 +197,6 @@ Usage: per_amine_parity_plot.py output_file property
         property_name = sys.argv[2]
 
     full_dataset = pd.read_csv(output_file)
-    print(len(full_dataset))
     print(full_dataset.columns)
     list_of_aldes = sorted(list(set(full_dataset.bb1)))
     list_of_amines = sorted(list(set(full_dataset.bb2)))
@@ -172,50 +222,14 @@ Usage: per_amine_parity_plot.py output_file property
                   }
     property = properties[property_name]
     if property_name == 'bb_dist':
-        NEWCSV = output_file.replace('.csv', '_'+property_name+'.csv')
-        # check if an output file exists.
-        if isfile(NEWCSV):
-            data_Frame = pd.read_csv(NEWCSV)
-        else:
-            # need to calculate the bb_distortion of all cages
-            data_Frame = pd.DataFrame(columns=['NAME', 'value', 'topo', 'alde', 'amine'])
-        done_list = list(set(data_Frame['NAME']))
-        count = 1
-        for name in list_of_names:
-            if name in done_list:
-                count += 1
-                continue
-            print('{} of {}'.format(count, len(list_of_names)))
-            alde_name = name.split('_')[0]
-            amine_name = '_'.join(name.split('_')[1:3])
-            topo = name.split('_')[3]
+        data_Frame = get_all_bbdist(property_name=property_name,
+                                    output_file=output_file,
+                                    list_of_names=list_of_names)
 
-            alde_dir = '/home/atarzia/projects/andrew_marsh_structures/precursor_lib/'
-            alde_file = alde_dir+alde_name+'.mol'
-            alde_struc = StructUnit3(alde_file, ['aldehyde'])
-            amine_dir = '/data/atarzia/precursor_DBs/reaxys_sorted/'
-            if '2f' in amine_name:
-                amine_dir += 'amines2f/'
-                amine_file = amine_dir+amine_name+'.mol'
-                amine_struc = StructUnit2(amine_file, ['amine'])
-            elif '3f' in amine_name:
-                amine_dir += 'amines3f/'
-                amine_file = amine_dir+amine_name+'.mol'
-                amine_struc = StructUnit3(amine_file, ['amine'])
-
-            topology = topo_2_property(topo, 'stk_func')
-            cage = Cage([alde_struc, amine_struc], topology)
-            # cage.update_from_mol(name+'_opt.mol')
-            data_Frame = data_Frame.append({'NAME': name,
-                                            'value': cage.bb_distortion(),
-                                            'amine': amine_name,
-                                            'alde': alde_name,
-                                            'topo': topo},
-                                           ignore_index=True)
-            count += 1
-        # write dataFrame
-        data_Frame.to_csv(NEWCSV,
-                          index=False)
+    if property_name == 'oplsFE':
+        data_Frame = get_all_formEY(property_name=property_name,
+                                    output_file=output_file,
+                                    list_of_names=list_of_names)
 
     fig, ax = plt.subplots(figsize=(5, 5))
     for ami in list_of_amines:
