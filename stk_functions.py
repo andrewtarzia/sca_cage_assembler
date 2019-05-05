@@ -334,7 +334,7 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
         calculated = json.load(f)
     energies = {}
     for file in structures:
-        print(file)
+        print('file:', file)
         NAME = file.replace(dir, '').replace('.mol', '')
         # optimize
         if NAME not in calculated and opt is True:
