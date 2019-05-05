@@ -50,12 +50,15 @@ Usage: get_all_struct_energies.py output_file suffix
     if suffix != '_opt.mol':
         # not on cages
         files = [i for i in glob('*' + suffix) if '_opt.mol' not in i]
+        # ignore done files
+        files = [i for i in files
+                 if i.replace('.mol', '_opt.mol') not in done_files]
     else:
         # being run on cages
         files = [i for i in glob('*' + suffix)]
-    # ignore done files
-    files = [i for i in files
-             if i.replace('.mol', '_opt.mol') not in done_files]
+        # ignore done files
+        files = [i for i in files
+                 if i not in done_files]
     print('files to do GFN:', files)
     print('files done:', done_files)
     if MD.lower() == 't':
@@ -70,8 +73,12 @@ Usage: get_all_struct_energies.py output_file suffix
                                     settings=atarzia_long_MD_settings())
             outfiles.append(OUTFILE)
     else:
-        outfiles = [i.replace('.mol', '_opt.mol') for i in files
-                    if i.replace('.mol', '_opt.mol') not in done_files]
+        if suffix != '_opt.mol':
+            outfiles = [i.replace('.mol', '_opt.mol') for i in files
+                        if i.replace('.mol', '_opt.mol') not in done_files]
+        else:
+            outfiles = [i for i in files
+                        if i not in done_files]
 
     print('output files to analyze:', outfiles)
     # do GFN optimization
