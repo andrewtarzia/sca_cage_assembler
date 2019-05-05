@@ -112,7 +112,7 @@ def get_all_formEY(property_name, output_file, list_of_names):
         print('Re', reactants)
         formation_energy = calc_formation_energy(products, reactants)
         print('FE', formation_energy)
-        input()
+        # input()
         data_Frame = data_Frame.append({'NAME': name,
                                         'value': formation_energy,
                                         'amine': amine_name,
