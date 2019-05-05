@@ -26,7 +26,7 @@ from Combiner import get_molecule, get_geometrical_properties, Combination
 sys.path.insert(0, '/home/atarzia/thesource/')
 from stk_functions import build_population
 from rdkit_functions import mol_list2grid
-from analyze_molecules import plot_all_pair_info, output_analysis
+from analysis import plot_all_pair_info, output_analysis
 
 
 def main():
