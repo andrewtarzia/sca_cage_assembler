@@ -3,8 +3,7 @@
 # Distributed under the terms of the MIT License.
 
 """
-Script to compare the properties of cages from the same amine but two different
-aldehydes.
+Script to run MD and GFN optimizations of cages or precursors to get energies.
 
 Author: Andrew Tarzia
 
