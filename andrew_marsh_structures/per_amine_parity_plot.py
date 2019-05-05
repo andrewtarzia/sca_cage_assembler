@@ -274,10 +274,6 @@ Usage: per_amine_parity_plot.py output_file property
                 X = float(X_DF.value.iloc[0])
                 Y = float(Y_DF.value.iloc[0])
                 # print(X, Y)
-                if abs(X-Y) > 1:
-                    print(X_DF)
-                    print(Y_DF)
-                    input()
                 ax.scatter(X, Y, c='mediumvioletred', alpha=0.6,
                            edgecolor='k', marker='o', s=80)
                 # get X DF based on aldehyde
@@ -291,10 +287,6 @@ Usage: per_amine_parity_plot.py output_file property
                 X = float(X_DF.value.iloc[0])
                 Y = float(Y_DF.value.iloc[0])
                 # print(X, Y)
-                if abs(X-Y) > 1:
-                    print(X_DF)
-                    print(Y_DF)
-                    input()
                 ax.scatter(X, Y, c='orange', alpha=0.6,
                            edgecolor='k', marker='X', s=80)
 
