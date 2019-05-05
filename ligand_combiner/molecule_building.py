@@ -12,20 +12,17 @@ Date Created: 04 Apr 2019
 """
 
 import sys
-from numpy.linalg import norm
-from numpy import asarray, cos, radians
 from itertools import product
 from pandas import read_csv
 from rdkit.Chem import AllChem as Chem
 from os.path import join, isfile
 from os import remove
 from glob import glob
-from stk import Population, Molecule
-from Combiner import get_molecule, get_geometrical_properties, Combination
+from stk import Population
+from Combiner import get_molecule, get_geometrical_properties
 sys.path.insert(0, '/home/atarzia/thesource/')
 from stk_functions import build_population
 from rdkit_functions import mol_list2grid
-from analyze_molecules import plot_all_pair_info, output_analysis
 
 
 def cases(subset):
@@ -50,27 +47,19 @@ def cases(subset):
 
 
 def main():
-    if (not len(sys.argv) == 8):
+    if (not len(sys.argv) == 4):
         print("""
     Usage: molecule_builing.py subset rebuild N bond_mean bond_std energy_tol angle_tol
         subset (str) - 'all' to build all possible molecules,
             'clever' to build molecules from bloch2017
         rebuild (str) - 't' if you want to rebuild all molecules, 'f' to load populations
         N (int) - number of conformers to use
-        bond_mean (float) - mean value of bond distance to use in candidate selection
-        bond_std (float) - std deviation value of bond distance to use in candidate selection
-        energy_tol (float) - max kJ/mol over min energy conformer to allow
-        angle_tol (float) - tolerance to use on angle matching
         """)
         sys.exit()
     else:
         subset = sys.argv[1]
         rebuild = sys.argv[2]
         N = int(sys.argv[3])
-        bond_mean = float(sys.argv[4])
-        bond_std = float(sys.argv[5])
-        energy_tol = float(sys.argv[6])
-        angle_tol = float(sys.argv[7])
 
     proj_dir = '/home/atarzia/projects/ligand_combiner/'
     core_dir = proj_dir + 'cores/'
@@ -178,96 +167,6 @@ def main():
                       mol_per_row=3, maxrows=3, subImgSize=(200, 200))
         print('done')
         print('----------------------------------')
-    elif rebuild == 'f':
-        print('loading in populations')
-        # load in populations
-        core_pop = Population.load(path=join(core_dir, 'core.pop'),
-                                   member_init=Molecule.from_dict)
-        liga_pop = Population.load(path=join(liga_dir, 'ligands.pop'),
-                                   member_init=Molecule.from_dict)
-        link_pop = Population.load(path=join(link_dir, 'linkers.pop'),
-                                   member_init=Molecule.from_dict)
-        molecule_pop = Population.load(path=join('./', 'molecules.pop'),
-                                       member_init=Molecule.from_dict)
-        print('done')
-        print('----------------------------------')
-
-    print('obtaining properties for all pairs')
-    # define bond length vector to use based on N-Pd bond distances extracted
-    # from survey
-    # N-Pd-N length
-    vector_length = 2 * bond_mean
-    vector_std = 2 * bond_std
-
-    # obtain all pair properties in molecule DB
-    # poly1 should be the 'large' molecule, while poly2 should be the 'small'
-    # molecule of the pair
-    all_pairs = []
-    for i, poly1 in enumerate(molecule_pop):
-        print('molecule', poly1.name)
-        for j, poly2 in enumerate(molecule_pop):
-            # make sure poly1 != poly2
-            if i == j:
-                continue
-            for conf1 in poly1.geom_prop:
-                PROP1 = poly1.geom_prop[conf1]
-                # skip conformer if dihedral meant the N's were not on the
-                # right side or Ns are pointing the wrong way
-                if PROP1['skip'] is True:
-                    continue
-                for conf2 in poly2.geom_prop:
-                    PROP2 = poly2.geom_prop[conf2]
-                    # skip conformer if dihedral meant the N's were not on the
-                    # right side or Ns are pointing the wrong way
-                    if PROP2['skip'] is True:
-                        continue
-                    comb = Combination(poly1, poly2, conf1, conf2)
-                    comb.popn_ids = (i, j)
-                    # if molecule1 or molecule2 energy > threshold from conf min
-                    # skip pair
-                    if comb.energy1 > energy_tol or comb.energy2 > energy_tol:
-                        # print('skipping conformer pair due to energy')
-                        # print(poly1.name, conf1, poly2.name, conf2)
-                        # print(comb.energy1, comb.energy2)
-                        continue
-                    # obtain all properties
-                    # check N-N distance of poly1-conf > poly2-conf
-                    comb.NN_dist1 = norm(asarray(PROP1['NN_v']))
-                    comb.NN_dist2 = norm(asarray(PROP2['NN_v']))
-                    # only save combinations with NN_dist1 > NN_dist2
-                    if comb.test_N_N_lengths() is False:
-                        continue
-                    # determine angles made by NN_v and NN-BC_v
-                    # check that the pairs sum to 180
-                    comb.p1_angle1 = PROP1['NN_BCN_1']
-                    comb.p1_angle2 = PROP1['NN_BCN_2']
-                    comb.p2_angle1 = PROP2['NN_BCN_1']
-                    comb.p2_angle2 = PROP2['NN_BCN_2']
-                    # now check that the length of the long
-                    # vector and the short vector are commensurate
-                    # with an ideal trapezoid with the given angles
-                    # i.e. the extender vector determined by the
-                    # difference of the two NN_v (LHS) matches what is
-                    # expected by trig (RHS)
-                    comb.extender_V_LHS = (comb.NN_dist1 - comb.NN_dist2) / 2
-                    comb.test_angle = radians(180 - comb.p2_angle1)
-                    comb.extender_V_RHS = vector_length * cos(comb.test_angle)
-                    comb.tol = vector_std * cos(comb.test_angle)
-                    # get final geometrical properties
-                    comb.get_angle_deviations()
-                    comb.get_N_Pd_lengths_deviation()
-                    all_pairs.append(comb)
-    print('done')
-    print(len(all_pairs))
-    print('----------------------------------')
-    # do analysis
-    print('doing all analysis')
-    # plot_all_pair_info(pair_data=all_pairs,
-    #                    angle_tol=angle_tol, energy_tol=energy_tol)
-    output_analysis(molecule_pop=molecule_pop, pair_data=all_pairs,
-                    angle_tol=angle_tol, energy_tol=energy_tol)
-    print('done')
-    print('----------------------------------')
 
 
 if __name__ == "__main__":
