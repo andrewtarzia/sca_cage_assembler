@@ -54,7 +54,7 @@ def run_GFN_base(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb'):
         exec = GFN_exec + ' ' + i + ' ' + part_2 + ' ' + out
         res = system(exec)
         if res != 0:
-            failed.append(xyzs)
+            failed.append(i)
         chdir('../')
         print('done')
         count += 1
