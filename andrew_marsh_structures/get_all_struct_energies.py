@@ -93,7 +93,9 @@ Usage: get_all_struct_energies.py output_file suffix
 
     failed = run_GFN_base(xyzs=xyzs)
     if len(failed) > 0:
-        sys.exit('---> Some GFN calcs failed. Exitting.')
+        print('--------------------------------------------------------')
+        print('---> Some GFN calcs failed.')
+        print('--------------------------------------------------------')
 
     # get Free energies and save to output_file
     for file in outfiles:
