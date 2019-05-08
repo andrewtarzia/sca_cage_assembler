@@ -53,7 +53,7 @@ def get_all_pairs(molecule_pop, settings, mol_pair=None):
     # molecule of the pair
     all_pairs = []
     for i, poly1 in enumerate(molecule_pop):
-        print('molecule', poly1.name)
+        print(f'molecule: {poly1.name}')
         # turn on pair specific checks
         if mol_pair is not None:
             if poly1.name != mol_pair[0]:
@@ -66,7 +66,7 @@ def get_all_pairs(molecule_pop, settings, mol_pair=None):
             if mol_pair is not None:
                 if poly2.name != mol_pair[1]:
                     continue
-            print(poly1.name, poly2.name)
+            print(f'pair: {poly1.name}, {poly2.name}')
             for conf1 in poly1.geom_prop:
                 PROP1 = poly1.geom_prop[conf1]
                 # skip conformer if dihedral meant the N's were not on the
@@ -131,22 +131,20 @@ def output_analysis(molecule_pop, pair_data, angle_tol, energy_tol,
     for p, poly1 in enumerate(molecule_pop):
         combinations = [i for i in pair_data
                         if p == i.popn_ids[0]]
-        print(p, poly1.name)
-        print(len(combinations))
         if len(combinations) == 0:
             continue
         if mol_pair is None:
             prefix = poly1.name + '_analysis_'
         else:
             prefix = mol_pair[0]+'-'+mol_pair[1]+'_'
-
-        print(combinations[0].popn_ids)
+        print(f'molecule: {poly1.name}')
+        print(f'no. pairs: {len(combinations)}')
         X_data = [max([i.angle1_deviation, i.angle2_deviation])
-                  for i in combinations if i.test_N_N_lengths]
-        Y_data = [i.NPdN_difference
-                  for i in combinations if i.test_N_N_lengths]
-        Z_data = [max([i.energy1, i.energy2])/energy_tol
-                  for i in combinations if i.test_N_N_lengths]
+                  for i in combinations]
+        Y_data = [i.planar_diff
+                  for i in combinations]
+        Z_data = [max([i.lenergy, i.senergy])/energy_tol
+                  for i in combinations]
         # define colour map based on energy tol
         cmap = {'mid_point': energy_tol/2/energy_tol,
                 'cmap': RdBu,
