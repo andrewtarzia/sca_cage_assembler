@@ -51,8 +51,9 @@ def main():
                                         'energy_tol': energy_tol},
                               mol_pair=(mol1, mol2))
 
+    print('----------------------------------')
     print('done')
-    print(len(all_pairs))
+    print(f'number of pairs: {len(all_pairs)}')
     print('----------------------------------')
     # do analysis
     print('doing all analysis')
