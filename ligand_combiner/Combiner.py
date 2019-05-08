@@ -26,35 +26,65 @@ class Combination:
     '''Class defining a pair of linkers and their geometrical properties
 
     '''
-    def __init__(self, mol1, mol2, conf1, conf2):
-        self.mol1 = mol1
-        self.mol2 = mol2
-        self.conf1 = conf1
-        self.conf2 = conf2
+    def __init__(self, lmol, smol, lconf, sconf):
+        '''Obtains all properties provided as attributes of lmol/smol.
+
+        '''
+        self.lmol = lmol
+        self.smol = smol
+        self.lconf = lconf
+        self.sconf = sconf
         # get MMFF energy from two molecule objects
-        self.energy1 = mol1.geom_prop[conf1]['rel_energy']
-        self.energy2 = mol2.geom_prop[conf2]['rel_energy']
+        self.lenergy = lmol.geom_prop[lconf]['rel_energy']
+        self.senergy = smol.geom_prop[sconf]['rel_energy']
+        # get NN distances
+        self.lNN_dist = lmol.geom_prop[lconf]['NN_v']
+        self.sNN_dist = smol.geom_prop[sconf]['NN_v']
+        # get all trapezoid angles
+        self.l_angle1 = lmol.geom_prop[lconf]['NN_BCN_1']
+        self.l_angle2 = lmol.geom_prop[lconf]['NN_BCN_2']
+        self.s_angle1 = smol.geom_prop[sconf]['NN_BCN_1']
+        self.s_angle2 = smol.geom_prop[sconf]['NN_BCN_2']
+
+    def calculate_planarity(self, vector_length, vector_std):
+        '''Calculate the planarity between binding atoms of the pair of molecules.
+
+        Definition:
+
+        # now check that the length of the long
+        # vector and the short vector are commensurate
+        # with an ideal trapezoid with the given angles
+        # i.e. the extender vector determined by the
+        # difference of the two NN_v (LHS) matches what is
+        # expected by trig (RHS)
+
+        '''
+        print('You need to write the definition into the DOCS')
+        self.extender_V_LHS = (self.NN_dist1 - self.NN_dist2) / 2
+        self.test_angle = np.radians(180 - self.p2_angle1)
+        self.extender_V_RHS = vector_length * np.cos(self.test_angle)
+        self.tol = vector_std * np.cos(self.test_angle)
 
     def get_angle_deviations(self):
         '''Get the closeness of test angles to 180 degrees
 
         '''
-        self.angle1_deviation = abs(180 - (self.p1_angle1 + self.p2_angle1))
-        self.angle2_deviation = abs(180 - (self.p1_angle2 + self.p2_angle2))
+        self.angle1_deviation = abs(180 - (self.l_angle1 + self.l_angle1))
+        self.angle2_deviation = abs(180 - (self.s_angle2 + self.s_angle2))
 
-    def get_N_Pd_lengths_deviation(self):
+    def get_planarity_deviation(self):
         '''Get the difference of the LHS and RHS that are defined by the
         N-Pd-N distance
 
         '''
-        self.NPdN_difference = abs(self.extender_V_LHS-self.extender_V_RHS)
+        self.planar_diff = abs(self.extender_V_LHS-self.extender_V_RHS)
 
     def test_N_N_lengths(self):
         '''Test that the larger linker has a longer NN distance than the shorter
         linker.
 
         '''
-        if self.NN_dist1 > self.NN_dist2:
+        if self.lNN_dist > self.sNN_dist:
             return True
         else:
             return False
