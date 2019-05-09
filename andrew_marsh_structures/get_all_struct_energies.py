@@ -11,13 +11,13 @@ Date Created: 03 May 2019
 """
 
 import sys
-from os.path import join, isfile
-from glob import glob
+import os
+import glob
 import pandas as pd
 sys.path.insert(0, '/home/atarzia/thesource/')
-from GFN_functions import run_GFN_base, get_energies
-from stk_functions import optimize_structunit, atarzia_long_MD_settings
-from IO_tools import convert_MOL3000_2_PDB_XYZ
+import GFN_functions
+import stk_functions
+import IO_tools
 
 
 def main():
@@ -39,7 +39,7 @@ Usage: get_all_struct_energies.py output_file suffix
 
     macromod_ = '/home/atarzia/software/schrodinger_install'
 
-    if isfile(output_file):
+    if os.path.isfile(output_file):
         # read in data
         DATA = pd.read_csv(output_file)
     else:
@@ -49,13 +49,13 @@ Usage: get_all_struct_energies.py output_file suffix
     # iterate over all files with suffix
     if suffix != '_opt.mol':
         # not on cages
-        files = [i for i in glob('*' + suffix) if '_opt.mol' not in i]
+        files = [i for i in glob.glob('*' + suffix) if '_opt.mol' not in i]
         # ignore done files
         files = [i for i in files
                  if i.replace('.mol', '_opt.mol') not in done_files]
     else:
         # being run on cages
-        files = [i for i in glob('*' + suffix)]
+        files = [i for i in glob.glob('*' + suffix)]
         # ignore done files
         files = [i for i in files
                  if i not in done_files]
@@ -66,11 +66,11 @@ Usage: get_all_struct_energies.py output_file suffix
         outfiles = []
         for file in files:
             OUTFILE = file.replace('.mol', '_opt.mol')
-            if isfile(OUTFILE) is False:
-                optimize_structunit(infile=file,
-                                    outfile=OUTFILE,
-                                    exec=macromod_,
-                                    settings=atarzia_long_MD_settings())
+            if os.path.isfile(OUTFILE) is False:
+                stk_functions.optimize_structunit(infile=file,
+                                                  outfile=OUTFILE,
+                                                  exec=macromod_,
+                                                  settings=stk_functions.atarzia_long_MD_settings())
             outfiles.append(OUTFILE)
     else:
         if suffix != '_opt.mol':
@@ -89,9 +89,9 @@ Usage: get_all_struct_energies.py output_file suffix
     # convert outfiles (.mol) to XYZ files (.xyz)
     for file in outfiles:
         if file.rstrip('.xyz') not in list(DATA['NAMES']):
-            convert_MOL3000_2_PDB_XYZ(file=file)
+            IO_tools.convert_MOL3000_2_PDB_XYZ(file=file)
 
-    failed = run_GFN_base(xyzs=xyzs)
+    failed = GFN_functions.run_GFN_base(xyzs=xyzs)
     if len(failed) > 0:
         print('--------------------------------------------------------')
         print('---> Some GFN calcs failed.')
@@ -103,8 +103,8 @@ Usage: get_all_struct_energies.py output_file suffix
             continue
         DIR = file.replace('.xyz', '')
         OUT = file.replace('.xyz', '.output')
-        energy_results = get_energies(output_file=join(DIR, OUT),
-                                      GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb')
+        energy_results = GFN_functions.get_energies(output_file=os.path.join(DIR, OUT),
+                                                    GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb')
         if 'FE' in energy_results:
             DATA = DATA.append({'NAMES': file.rstrip('.xyz'),
                                 'files': file,

@@ -11,12 +11,12 @@ Date Created: 03 May 2019
 """
 
 import sys
-from os.path import isfile
-from glob import glob
+import os
+import glob
 import pandas as pd
 sys.path.insert(0, '/home/atarzia/thesource/')
-from stk_functions import topo_2_property
-from plotting import histogram_plot_1
+import stk_functions
+import plotting
 
 
 def get_energy_from_DF(DF, name):
@@ -45,7 +45,7 @@ Usage: get_all_struct_energies.py output_file suffix
         cage_file = sys.argv[2]
         prec_file = sys.argv[3]
 
-    if isfile(output_file):
+    if os.path.isfile(output_file):
         # read in data
         DATA = pd.read_csv(output_file)
     else:
@@ -59,7 +59,7 @@ Usage: get_all_struct_energies.py output_file suffix
     print(prec_energies)
 
     done_files = list(DATA['file'])
-    cage_opt_files = glob('*_opt.mol')
+    cage_opt_files = glob.glob('*_opt.mol')
 
     # remove the cages for which the formation energies have been output
     cage_opt_files = [i for i in cage_opt_files if i not in done_files]
@@ -75,11 +75,13 @@ Usage: get_all_struct_energies.py output_file suffix
         cage_energy = get_energy_from_DF(DF=prec_energies, name=name)
         print('c', cage_energy)
         # get water energy * noimines formed
-        noimines = topo_2_property(topology=topo, property='noimines')
+        noimines = stk_functions.topo_2_property(topology=topo,
+                                                 property='noimines')
         water_energy = get_energy_from_DF(DF=prec_energies, name='water') * noimines
         print('w', water_energy, water_energy / noimines)
         # get bb1 energy * stoich
-        bb1_stoich, bb2_stoich = topo_2_property(topology=topo, property='stoich')
+        bb1_stoich, bb2_stoich = stk_functions.topo_2_property(topology=topo,
+                                                               property='stoich')
         bb1_energy = get_energy_from_DF(DF=prec_energies, name=bb1) * bb1_stoich
         print('bb1', bb1_energy, bb1_energy / bb1_stoich, bb1_stoich)
         # get bb2 energy * stoich
@@ -101,14 +103,14 @@ Usage: get_all_struct_energies.py output_file suffix
         DATA.to_csv(output_file, index=False)
 
     # plot histogram of formation energies
-    histogram_plot_1(Y=DATA['FE (au)'],
-                     X_range=(-1000, 1000),
-                     width=10,
-                     alpha=1,
-                     color='mediumvioletred',
-                     edgecolor='k',
-                     outfile='cage_formEY_GFN.pdf',
-                     xtitle='formation energy [a.u.]')
+    plotting.histogram_plot_1(Y=DATA['FE (au)'],
+                              X_range=(-1000, 1000),
+                              width=10,
+                              alpha=1,
+                              color='mediumvioletred',
+                              edgecolor='k',
+                              outfile='cage_formEY_GFN.pdf',
+                              xtitle='formation energy [a.u.]')
 
 
 if __name__ == "__main__":

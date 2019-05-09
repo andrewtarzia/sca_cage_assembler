@@ -17,13 +17,13 @@ Date Created: 30 Apr 2019
 import glob
 import stk
 import sys
-from os.path import join, isfile
+import os
 from rdkit.Chem import AllChem as Chem
 sys.path.insert(0, '/home/atarzia/thesource/')
-from andrew_marsh_structures.build_cages import assign_cage_properties, check_done
-from IO_tools import convert_PDB_2_XYZ
-from stk_functions import topo_2_property, build_and_opt_cage, atarzia_long_MD_settings
-from pywindow_functions import analyze_cage_from_MOL
+import andrew_marsh_structures.build_cages as BC
+import IO_tools
+import stk_functions
+import pywindow_functions
 import rdkit_functions
 
 
@@ -66,11 +66,11 @@ Usage: build_cages.py output_file wipe run_build
 
     macromod_ = '/home/atarzia/software/schrodinger_install'
     base_dir = '/home/atarzia/projects/andrew_marsh_structures/smaller_subset'
-    alde_dir = join(base_dir, 'aldehydes/')
-    ami2_dir = join(base_dir, 'diamines/')
-    ami3_dir = join(base_dir, 'triamines/')
+    alde_dir = os.path.join(base_dir, 'aldehydes/')
+    ami2_dir = os.path.join(base_dir, 'diamines/')
+    ami3_dir = os.path.join(base_dir, 'triamines/')
     # get precursor files
-    alde_files = sorted(glob.glob(join(alde_dir, '*.mol')))
+    alde_files = sorted(glob.glob(os.path.join(alde_dir, '*.mol')))
     print(alde_files)
     alde_names = [i.replace(alde_dir, '').rstrip('.mol') for i in alde_files]
     # read in mol files
@@ -96,10 +96,10 @@ Usage: build_cages.py output_file wipe run_build
         ami2_pairs = precursor_pairings(amine_CN=2)[alde_names[i]]
         print('aldehyde {} diamine pairs: {}'.format(alde, ami2_pairs))
         for ami2_name in ami2_pairs:
-            ami2_file = join(ami2_dir, ami2_name+'.mol')
+            ami2_file = os.path.join(ami2_dir, ami2_name+'.mol')
             ami2_struc = stk.StructUnit2(ami2_file, ['amine'])
             topology_names = ['2p3', '4p6', '4p62', '6p9']
-            topology_options = [topo_2_property(i, property='stk_func')
+            topology_options = [stk_functions.topo_2_property(i, property='stk_func')
                                 for i in topology_names]
             for k, topo in enumerate(topology_options):
                 # naming convention: aldehyde-name_amine-name_topology
@@ -109,46 +109,46 @@ Usage: build_cages.py output_file wipe run_build
                 prop_file = NAME + '_opt_properties.json'
                 mole_file = NAME + '_opt_PWout.xyz'
                 print('doing:', NAME)
-                if isfile(NAME+'_opt.mol') is False:
+                if os.path.isfile(NAME+'_opt.mol') is False:
                     # build cage and run optimization
-                    cage = build_and_opt_cage(prefix=NAME,
-                                              BB1=alde_struc[i],
-                                              BB2=ami2_struc,
-                                              topology=topo,
-                                              macromod_=macromod_,
-                                              pdb=True,
-                                              settings=atarzia_long_MD_settings())
+                    cage = stk_functions.build_and_opt_cage(prefix=NAME,
+                                                            BB1=alde_struc[i],
+                                                            BB2=ami2_struc,
+                                                            topology=topo,
+                                                            macromod_=macromod_,
+                                                            pdb=True,
+                                                            settings=stk_functions.atarzia_long_MD_settings())
                     # convert .pdb to .xyz using ASE
                     pdb = NAME + '_opt.pdb'
-                    _, _ = convert_PDB_2_XYZ(pdb)
+                    _, _ = IO_tools.convert_PDB_2_XYZ(pdb)
                     del _
                 # check if completed and run pywindow if so
-                if isfile(NAME + '_opt.mol') is True:
-                    if isfile(prop_file) is False:
-                        analyze_cage_from_MOL(file=NAME+'_opt.mol',
-                                              prop_file=prop_file,
-                                              mole_file=mole_file,
-                                              include_coms=True)
+                if os.path.isfile(NAME + '_opt.mol') is True:
+                    if os.path.isfile(prop_file) is False:
+                        pywindow_functions.analyze_cage_from_MOL(file=NAME+'_opt.mol',
+                                                                 prop_file=prop_file,
+                                                                 mole_file=mole_file,
+                                                                 include_coms=True)
                 # if pywindow is complete then analyse the cage and write out
-                if isfile(prop_file) is True:
-                    if check_done(NAME, output_csv) is True:
+                if os.path.isfile(prop_file) is True:
+                    if BC.check_done(NAME, output_csv) is True:
                         continue
                     # reload cage if optimization is skipped
                     if 'cage' not in locals():
                         # cage does not exist
                         cage = stk.Cage([alde_struc[i], ami2_struc], topo)
                         cage.update_from_mol(NAME+'_opt.mol')
-                    assign_cage_properties(NAME=NAME, cage=cage,
-                                           output_csv=output_csv)
+                    BC.assign_cage_properties(NAME=NAME, cage=cage,
+                                              output_csv=output_csv)
 
         # make triamines
         ami3_pairs = precursor_pairings(amine_CN=3)[alde_names[i]]
         print('aldehyde {} triamine pairs: {}'.format(alde, ami3_pairs))
         for ami3_name in ami3_pairs:
-            ami3_file = join(ami3_dir, ami3_name+'.mol')
+            ami3_file = os.path.join(ami3_dir, ami3_name+'.mol')
             ami3_struc = stk.StructUnit3(ami3_file, ['amine'])
             topology_names = ['1p1', '4p4']
-            topology_options = [topo_2_property(i, property='stk_func')
+            topology_options = [stk_functions.topo_2_property(i, property='stk_func')
                                 for i in topology_names]
             for k, topo in enumerate(topology_options):
                 # naming convention: aldehyde-name_amine-name_topology
@@ -158,37 +158,37 @@ Usage: build_cages.py output_file wipe run_build
                 prop_file = NAME + '_opt_properties.json'
                 mole_file = NAME + '_opt_PWout.xyz'
                 print('doing:', NAME)
-                if isfile(NAME+'_opt.mol') is False:
+                if os.path.isfile(NAME+'_opt.mol') is False:
                     # build cage and run optimization
-                    cage = build_and_opt_cage(prefix=NAME,
-                                              BB1=alde_struc[i],
-                                              BB2=ami3_struc,
-                                              topology=topo,
-                                              macromod_=macromod_,
-                                              pdb=True,
-                                              settings=atarzia_long_MD_settings())
+                    cage = stk_functions.build_and_opt_cage(prefix=NAME,
+                                                            BB1=alde_struc[i],
+                                                            BB2=ami3_struc,
+                                                            topology=topo,
+                                                            macromod_=macromod_,
+                                                            pdb=True,
+                                                            settings=stk_functions.atarzia_long_MD_settings())
                     # convert .pdb to .xyz using ASE
                     pdb = NAME + '_opt.pdb'
-                    _, _ = convert_PDB_2_XYZ(pdb)
+                    _, _ = IO_tools.convert_PDB_2_XYZ(pdb)
                     del _
                 # check if completed and run pywindow if so
-                if isfile(NAME + '_opt.mol') is True:
-                    if isfile(prop_file) is False:
-                        analyze_cage_from_MOL(file=NAME+'_opt.mol',
-                                              prop_file=prop_file,
-                                              mole_file=mole_file,
-                                              include_coms=True)
+                if os.path.isfile(NAME + '_opt.mol') is True:
+                    if os.path.isfile(prop_file) is False:
+                        BC.analyze_cage_from_MOL(file=NAME+'_opt.mol',
+                                                 prop_file=prop_file,
+                                                 mole_file=mole_file,
+                                                 include_coms=True)
                 # if pywindow is complete then analyse the cage and write out
-                if isfile(prop_file) is True:
-                    if check_done(NAME, output_csv) is True:
+                if os.path.isfile(prop_file) is True:
+                    if BC.check_done(NAME, output_csv) is True:
                         continue
                     # reload cage if optimization is skipped
                     if 'cage' not in locals():
                         # cage does not exist
                         cage = stk.Cage([alde_struc[i], ami3_struc], topo)
                         cage.update_from_mol(NAME+'_opt.mol')
-                    assign_cage_properties(NAME=NAME, cage=cage,
-                                           output_csv=output_csv)
+                    BC.assign_cage_properties(NAME=NAME, cage=cage,
+                                              output_csv=output_csv)
     # brute_analysis(output_csv, amine_type,
     #                precursor_dir, precursor_files, DB, amines,
     #                macromod_, des_topo, amine_SA)
