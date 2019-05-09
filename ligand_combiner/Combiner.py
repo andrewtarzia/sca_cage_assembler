@@ -12,14 +12,14 @@ Date Created: 17 Apr 2019
 """
 
 import sys
-from ase.atoms import Atoms, Atom
+import ase
 import numpy as np
 from rdkit.Chem import AllChem as Chem
-from os.path import join
-from stk import RDKitEmbedder
+import os
+import stk
 sys.path.insert(0, '/home/atarzia/thesource/')
-from stk_functions import build_ABCBA, build_ABA
-from calculations import get_dihedral, angle_between
+import stk_functions
+import calculations
 
 
 class Combination:
@@ -96,7 +96,7 @@ def atoms_2_vect(ASE, p1, p2):
     '''
     pts = [np.linspace(p1[i], p2[i]) for i in np.arange(len(p1))]
     for i, j, k in zip(*pts):
-        ASE.append(Atom(symbol='P', position=[i, j, k]))
+        ASE.append(ase.Atom(symbol='P', position=[i, j, k]))
     return ASE
 
 
@@ -106,15 +106,15 @@ def visualize_atoms(mol, conf_dict, cid, type, filename):
     '''
 
     mol.write(path=filename + '.pdb', conformer=cid)
-    POIs = Atoms()
-    POIs.append(Atom(symbol='H', position=conf_dict['COM']))
-    POIs.append(Atom(symbol='C', position=conf_dict['liga1']['pos']))
-    POIs.append(Atom(symbol='C', position=conf_dict['core1']['pos']))
-    POIs.append(Atom(symbol='C', position=conf_dict['liga2']['pos']))
-    POIs.append(Atom(symbol='Be', position=conf_dict['liga1']['CC_pos']))
-    POIs.append(Atom(symbol='Be', position=conf_dict['liga2']['CC_pos']))
-    POIs.append(Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
-    POIs.append(Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
+    POIs = ase.Atoms()
+    POIs.append(ase.Atom(symbol='H', position=conf_dict['COM']))
+    POIs.append(ase.Atom(symbol='C', position=conf_dict['liga1']['pos']))
+    POIs.append(ase.Atom(symbol='C', position=conf_dict['core1']['pos']))
+    POIs.append(ase.Atom(symbol='C', position=conf_dict['liga2']['pos']))
+    POIs.append(ase.Atom(symbol='Be', position=conf_dict['liga1']['CC_pos']))
+    POIs.append(ase.Atom(symbol='Be', position=conf_dict['liga2']['CC_pos']))
+    POIs.append(ase.Atom(symbol='O', position=conf_dict['liga1']['N_pos']))
+    POIs.append(ase.Atom(symbol='O', position=conf_dict['liga2']['N_pos']))
     # plot vectors as P atom
     POIs = atoms_2_vect(ASE=POIs, p1=conf_dict['liga1']['CC_pos'],
                         p2=conf_dict['liga1']['N_pos'])
@@ -296,10 +296,10 @@ def get_geometrical_properties(mol, cids, type):
 
         # to determine if the N's are point the right way:
         # calculate the dihedral between N1 - liga1_com - liga2_com - N2
-        NBBN_dihedral = get_dihedral(pt1=mol.geom_prop[cid]['liga1']['N_pos'],
-                                     pt2=mol.geom_prop[cid]['liga1']['pos'],
-                                     pt3=mol.geom_prop[cid]['liga2']['pos'],
-                                     pt4=mol.geom_prop[cid]['liga2']['N_pos'])
+        NBBN_dihedral = calculations.get_dihedral(pt1=mol.geom_prop[cid]['liga1']['N_pos'],
+                                                  pt2=mol.geom_prop[cid]['liga1']['pos'],
+                                                  pt3=mol.geom_prop[cid]['liga2']['pos'],
+                                                  pt4=mol.geom_prop[cid]['liga2']['N_pos'])
         # if the absolute value of this dihedral > some tolerance,
         # skip conformer
         mol.geom_prop[cid]['skip'] = False
@@ -321,10 +321,10 @@ def get_geometrical_properties(mol, cids, type):
         core_2_liga2 = np.asarray(mol.geom_prop[cid]['liga2']['pos']) \
                      - np.asarray(mol.geom_prop[cid]['core1']['pos'])
 
-        N1_core_COM_angle = angle_between(core_2_N1, core_2_COM)
-        L1_core_COM_angle = angle_between(core_2_liga1, core_2_COM)
-        N2_core_COM_angle = angle_between(core_2_N2, core_2_COM)
-        L2_core_COM_angle = angle_between(core_2_liga2, core_2_COM)
+        N1_core_COM_angle = calculations.angle_between(core_2_N1, core_2_COM)
+        L1_core_COM_angle = calculations.angle_between(core_2_liga1, core_2_COM)
+        N2_core_COM_angle = calculations.angle_between(core_2_N2, core_2_COM)
+        L2_core_COM_angle = calculations.angle_between(core_2_liga2, core_2_COM)
 
         if N1_core_COM_angle > L1_core_COM_angle:
             if N2_core_COM_angle > L2_core_COM_angle:
@@ -352,11 +352,11 @@ def get_geometrical_properties(mol, cids, type):
         # negative signs applied based on the direction of vectors defined
         # above - not dependance on ordering of BB placement in stk
         mol.geom_prop[cid]['NN_BCN_1'] = float(np.degrees(
-            angle_between(np.asarray(mol.geom_prop[cid]['BCN_1']),
-                          np.asarray(mol.geom_prop[cid]['NN_v']))))
+            calculations.angle_between(np.asarray(mol.geom_prop[cid]['BCN_1']),
+                                        np.asarray(mol.geom_prop[cid]['NN_v']))))
         mol.geom_prop[cid]['NN_BCN_2'] = float(np.degrees(
-            angle_between(np.asarray(mol.geom_prop[cid]['BCN_2']),
-                          -np.asarray(mol.geom_prop[cid]['NN_v']))))
+            calculations.angle_between(np.asarray(mol.geom_prop[cid]['BCN_2']),
+                                        -np.asarray(mol.geom_prop[cid]['NN_v']))))
 
     return mol
 
@@ -414,10 +414,10 @@ def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
     liga_item = popns[1][pop_ids[1]]
     link_item = popns[2][pop_ids[2]]
     if type == 'ABCBA':
-        molecule = build_ABCBA(core=core_item,
-                               liga=liga_item,
-                               link=link_item,
-                               flippedlink=inverted)
+        molecule = stk_functions.build_ABCBA(core=core_item,
+                                             liga=liga_item,
+                                             link=link_item,
+                                             flippedlink=inverted)
         prefix = core_item.name + '_'
         prefix += liga_item.name + '_'
         if inverted:
@@ -425,24 +425,24 @@ def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
         else:
             prefix += link_item.name
     elif type == 'ABA':
-        molecule = build_ABA(core=core_item,
-                             liga=liga_item)
+        molecule = stk_functions.build_ABA(core=core_item,
+                                           liga=liga_item)
         prefix = core_item.name + '_'
         prefix += liga_item.name
 
     # output as built
     json_file = prefix + '_' + type + '.json'
-    molecule.dump(join(mole_dir, json_file))
+    molecule.dump(os.path.join(mole_dir, json_file))
     mol_file = prefix + '_' + type + '.mol'
-    molecule.write(join(mole_dir, mol_file))
+    molecule.write(os.path.join(mole_dir, mol_file))
     # clean molecule with ETKDG
-    embedder = RDKitEmbedder(Chem.ETKDG())
+    embedder = stk.RDKitEmbedder(Chem.ETKDG())
     embedder.optimize(molecule)
     # output energy minimized
     json_file = prefix + '_' + type + '_opt.json'
-    molecule.dump(join(mole_dir, json_file))
+    molecule.dump(os.path.join(mole_dir, json_file))
     mol_file = prefix + '_' + type + '_opt.mol'
-    molecule.write(join(mole_dir, mol_file))
+    molecule.write(os.path.join(mole_dir, mol_file))
     # make N conformers of the polymer molecule
     etkdg = Chem.ETKDG()
     etkdg.randomSeed = 1000

@@ -12,17 +12,16 @@ Date Created: 04 Apr 2019
 """
 
 import sys
-from itertools import product
-from pandas import read_csv
+import itertools
+import pandas as pd
 from rdkit.Chem import AllChem as Chem
-from os.path import join, isfile
-from os import remove
-from glob import glob
-from stk import Population
-from Combiner import get_molecule, get_geometrical_properties
+import os
+import glob
+import stk
 sys.path.insert(0, '/home/atarzia/thesource/')
-from stk_functions import build_population
-from rdkit_functions import mol_list2grid
+import Combiner
+import stk_functions
+import rdkit_functions
 
 
 def cases(subset):
@@ -69,26 +68,29 @@ def main():
     if rebuild == 't':
         print('building molecules')
         # clear already built molecules
-        for file in glob('AB*.pdb'):
-            remove(join('./', file))
-        for file in glob('AB*_POIs.xyz'):
-            remove(join('./', file))
-        for file in glob('core*.mol'):
-            remove(join('./', file))
-        for file in glob('core*.json'):
-            remove(join('./', file))
-        for file in glob('built_molecules*'):
-            remove(join('./', file))
+        for file in glob.glob('AB*.pdb'):
+            os.remove(os.path.join('./', file))
+        for file in glob.glob('AB*_POIs.xyz'):
+            os.remove(os.path.join('./', file))
+        for file in glob.glob('core*.mol'):
+            os.remove(os.path.join('./', file))
+        for file in glob.glob('core*.json'):
+            os.remove(os.path.join('./', file))
+        for file in glob.glob('built_molecules*'):
+            os.remove(os.path.join('./', file))
         # build molecule populations
-        core_pop = build_population(directory=core_dir, structunit='StructUnit2',
-                                    fgs=['bromine'])
-        liga_pop = build_population(directory=liga_dir, structunit='StructUnit',
-                                    fgs=['bromine'])
-        link_pop = build_population(directory=link_dir, structunit='StructUnit2',
-                                    fgs=['bromine'])
+        core_pop = stk_functions.build_population(directory=core_dir,
+                                                  structunit='StructUnit2',
+                                                  fgs=['bromine'])
+        liga_pop = stk_functions.build_population(directory=liga_dir,
+                                                  structunit='StructUnit',
+                                                  fgs=['bromine'])
+        link_pop = stk_functions.build_population(directory=link_dir,
+                                                  structunit='StructUnit2',
+                                                  fgs=['bromine'])
 
         # for the linker molecules, we attach an invertable flag attribute
-        link_mol_prop = read_csv(join(link_dir, 'linkers.csv'))
+        link_mol_prop = pd.read_csv(os.path.join(link_dir, 'linkers.csv'))
         for i in link_pop:
             inversion_flag = str(link_mol_prop[link_mol_prop.name == i.name]['inversion_flag'].iloc[0])
             if inversion_flag == 't':
@@ -97,8 +99,11 @@ def main():
                 i.invertable = False
 
         # this is the resultant molecule population
-        molecule_pop = Population()
-        for item in product(enumerate(core_pop), enumerate(liga_pop), enumerate(link_pop)):
+        molecule_pop = stk.Population()
+        iterator = itertools.product(enumerate(core_pop),
+                                     enumerate(liga_pop),
+                                     enumerate(link_pop))
+        for item in iterator:
             core_item, liga_item, link_item = item
             i, core = core_item
             j, liga = liga_item
@@ -109,62 +114,62 @@ def main():
             NAME = core.name + '_' + liga.name + '_' + link.name
             if subset != 'all' and NAME in cases(subset):
                 print(core.name, liga.name, link.name, pop_ids)
-                ABCBA_confs, ABCBA_molecule = get_molecule(
+                ABCBA_confs, ABCBA_molecule = Combiner.get_molecule(
                     type='ABCBA', inverted=False,
                     popns=(core_pop, liga_pop, link_pop),
                     pop_ids=pop_ids, N=N)
                 ABCBA_molecule.name = 'ABCBA_' + str(i) + str(j) + str(k)
                 # get properties - save to molecule as attribute
-                ABCBA_molecule = get_geometrical_properties(mol=ABCBA_molecule,
-                                                            cids=ABCBA_confs,
-                                                            type='ABCBA')
+                ABCBA_molecule = Combiner.get_geometrical_properties(mol=ABCBA_molecule,
+                                                                     cids=ABCBA_confs,
+                                                                     type='ABCBA')
                 molecule_pop.members.append(ABCBA_molecule)
             # also build the inverted molecule if possible.
             # if building only a subset, check that this molecule is in the subset
             NAME = core.name + '_' + liga.name + '_' + link.name + 'i'
             if subset != 'all' and NAME in cases(subset):
                 if link_pop[pop_ids[2]].invertable is True:
-                    ABCBA_inv_confs, ABCBA_inv_molecule = get_molecule(
+                    ABCBA_inv_confs, ABCBA_inv_molecule = Combiner.get_molecule(
                         type='ABCBA', inverted=True,
                         popns=(core_pop, liga_pop, link_pop),
                         pop_ids=pop_ids, N=N)
                     ABCBA_inv_molecule.name = 'ABCBA_' + str(i) + str(j) + str(k) + 'i'
                     # get properties - save to molecule as attribute
-                    ABCBA_inv_molecule = get_geometrical_properties(mol=ABCBA_inv_molecule,
-                                                                    cids=ABCBA_inv_confs,
-                                                                    type='ABCBA')
+                    ABCBA_inv_molecule = Combiner.get_geometrical_properties(mol=ABCBA_inv_molecule,
+                                                                             cids=ABCBA_inv_confs,
+                                                                             type='ABCBA')
                     molecule_pop.members.append(ABCBA_inv_molecule)
             # build ABA molecule
             # avoid doing multple times
             # if building only a subset, check that this molecule is in the subset
             NAME = core.name + '_' + liga.name
             if subset != 'all' and NAME in cases(subset):
-                if isfile(core.name+'_'+liga.name+'_ABA_opt.mol') is False:
-                    print(isfile(core.name+'_'+liga.name+'_ABA_opt.mol'), core.name+'_'+liga.name+'_ABA_opt.mol')
-                    ABA_confs, ABA_molecule = get_molecule(
+                if os.path.isfile(core.name+'_'+liga.name+'_ABA_opt.mol') is False:
+                    print(os.path.isfile(core.name+'_'+liga.name+'_ABA_opt.mol'), core.name+'_'+liga.name+'_ABA_opt.mol')
+                    ABA_confs, ABA_molecule = Combiner.get_molecule(
                         type='ABA', inverted=False,
                         popns=(core_pop, liga_pop, link_pop),
                         pop_ids=pop_ids, N=N)
                     ABA_molecule.name = 'ABA_' + str(i) + str(j)
                     # get properties - save to molecule as attribute
-                    ABA_molecule = get_geometrical_properties(mol=ABA_molecule,
-                                                              cids=ABA_confs,
-                                                              type='ABA')
+                    ABA_molecule = Combiner.get_geometrical_properties(mol=ABA_molecule,
+                                                                       cids=ABA_confs,
+                                                                       type='ABA')
                     molecule_pop.members.append(ABA_molecule)
 
         # save populations
-        core_pop.dump(join(core_dir, 'core.pop'), include_attrs=['geom_prop'])
-        liga_pop.dump(join(liga_dir, 'ligands.pop'), include_attrs=['geom_prop'])
-        link_pop.dump(join(link_dir, 'linkers.pop'), include_attrs=['geom_prop'])
-        molecule_pop.dump(join('./', 'molecules.pop'), include_attrs=['geom_prop'])
+        core_pop.dump(os.path.join(core_dir, 'core.pop'), include_attrs=['geom_prop'])
+        liga_pop.dump(os.path.join(liga_dir, 'ligands.pop'), include_attrs=['geom_prop'])
+        link_pop.dump(os.path.join(link_dir, 'linkers.pop'), include_attrs=['geom_prop'])
+        molecule_pop.dump(os.path.join('./', 'molecules.pop'), include_attrs=['geom_prop'])
 
         # draw 2D representation for all built molecules
         mol_list = []
         for poly in molecule_pop:
             MOL = Chem.MolFromSmiles(Chem.MolToSmiles(poly.mol))
             mol_list.append(MOL)
-        mol_list2grid(molecules=mol_list, filename='built_molecules',
-                      mol_per_row=3, maxrows=3, subImgSize=(200, 200))
+        rdkit_functions.mol_list2grid(molecules=mol_list, filename='built_molecules',
+                                      mol_per_row=3, maxrows=3, subImgSize=(200, 200))
         print('done')
         print('----------------------------------')
 

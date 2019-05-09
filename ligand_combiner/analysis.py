@@ -13,13 +13,12 @@ Date Created: 17 Apr 2019
 """
 
 import sys
-from numpy.linalg import norm
-from numpy import asarray
+import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.cm import RdBu
+import matplotlib.cm as cm
 sys.path.insert(0, '/home/atarzia/thesource/')
-from plotting import define_plot_cmap
-from Combiner import Combination
+import Combiner
+import plotting
 
 
 def add_clever_lines(ax):
@@ -81,13 +80,13 @@ def get_all_pairs(molecule_pop, settings, mol_pair=None):
                         continue
                     # define pair ordering by the NN vector length
                     # mol == larger molecule, smol == smaller molecule.
-                    if norm(asarray(PROP1['NN_v'])) >= norm(asarray(PROP2['NN_v'])):
-                        comb = Combination(lmol=poly1, smol=poly2,
-                                           lconf=conf1, sconf=conf2)
+                    if np.linalg.norm(np.asarray(PROP1['NN_v'])) >= np.linalg.norm(np.asarray(PROP2['NN_v'])):
+                        comb = Combiner.Combination(lmol=poly1, smol=poly2,
+                                                    lconf=conf1, sconf=conf2)
                         comb.popn_ids = (i, j)
                     else:
-                        comb = Combination(lmol=poly2, smol=poly1,
-                                           lconf=conf2, sconf=conf1)
+                        comb = Combiner.Combination(lmol=poly2, smol=poly1,
+                                                    lconf=conf2, sconf=conf1)
                         comb.popn_ids = (j, i)
                     # if molecule1 or molecule2 energy > threshold from conf min
                     # skip pair
@@ -139,18 +138,18 @@ def output_analysis(molecule_pop, pair_data, angle_tol, energy_tol,
                   for i in combinations]
         # define colour map based on energy tol
         cmap = {'mid_point': energy_tol/2/energy_tol,
-                'cmap': RdBu,
+                'cmap': cm.RdBu,
                 'ticks': [0, energy_tol/2/energy_tol, energy_tol/energy_tol],
                 'labels': ['0', str(energy_tol/2), str(energy_tol)],
                 'cmap_label': 'energy [kJ/mol]'}
 
         fig, ax = plt.subplots(figsize=(8, 5))
-        cmp = define_plot_cmap(fig, ax,
-                               mid_point=cmap['mid_point'],
-                               cmap=cmap['cmap'],
-                               ticks=cmap['ticks'],
-                               labels=cmap['labels'],
-                               cmap_label=cmap['cmap_label'])
+        cmp = plotting.define_plot_cmap(fig, ax,
+                                        mid_point=cmap['mid_point'],
+                                        cmap=cmap['cmap'],
+                                        ticks=cmap['ticks'],
+                                        labels=cmap['labels'],
+                                        cmap_label=cmap['cmap_label'])
         ax.scatter(X_data, Y_data, c=cmp(Z_data),
                    edgecolors='k',
                    marker='o', alpha=0.4, s=80)
@@ -181,11 +180,12 @@ def plot_all_pair_info(pair_data, angle_tol, energy_tol):
     fig, ax = plt.subplots(figsize=(8, 5))
 
     # define colour map based on energy tol
-    cmap = define_plot_cmap(fig, ax,
-                            mid_point=energy_tol/2/energy_tol, cmap=RdBu,
-                            ticks=[0, energy_tol/2/energy_tol, energy_tol/energy_tol],
-                            labels=['0', str(energy_tol/2), str(energy_tol)],
-                            cmap_label='energy [kJ/mol]')
+    cmap = plotting.define_plot_cmap(fig, ax,
+                                     mid_point=energy_tol/2/energy_tol,
+                                     cmap=cm.RdBu,
+                                     ticks=[0, energy_tol/2/energy_tol, energy_tol/energy_tol],
+                                     labels=['0', str(energy_tol/2), str(energy_tol)],
+                                     cmap_label='energy [kJ/mol]')
 
     X_data = [max([i.angle1_deviation, i.angle2_deviation])
               for i in pair_data if i.test_N_N_lengths]
