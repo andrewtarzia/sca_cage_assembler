@@ -98,15 +98,18 @@ Usage: get_all_struct_energies.py output_file suffix
         print('--------------------------------------------------------')
 
     # get Free energies and save to output_file
-    for file in outfiles:
-        DIR = file.replace('.mol', '')
-        OUT = file.replace('.mol', '.output')
+    for file in xyzs:
+        if file in failed:
+            continue
+        DIR = file.replace('.xyz', '')
+        OUT = file.replace('.xyz', '.output')
         energy_results = get_energies(output_file=join(DIR, OUT),
                                       GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb')
-        DATA = DATA.append({'NAMES': file.rstrip('.mol'),
-                            'files': file,
-                            'FE (au)': energy_results['FE']},
-                           ignore_index=True)
+        if 'FE' in energy_results:
+            DATA = DATA.append({'NAMES': file.rstrip('.xyz'),
+                                'files': file,
+                                'FE (au)': float(energy_results['FE'])},
+                                ignore_index=True)
         # write dataFrame
         DATA.to_csv(output_file, index=False)
 
