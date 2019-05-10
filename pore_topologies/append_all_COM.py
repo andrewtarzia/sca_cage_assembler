@@ -13,7 +13,7 @@ Date Created: 19 Feb 2019
 import sys
 from os.path import isfile
 sys.path.insert(0, '/home/atarzia/thesource/')
-from pywindow_functions import append_and_write_COMs, rebuild_system, analyze_rebuilt
+from pywindow_f import append_and_write_COMs, rebuild_system, analyze_rebuilt
 from IO_tools import convert_CIF_2_PDB
 
 

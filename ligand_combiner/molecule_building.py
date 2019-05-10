@@ -20,8 +20,8 @@ import glob
 import stk
 sys.path.insert(0, '/home/atarzia/thesource/')
 import Combiner
-import stk_functions
-import rdkit_functions
+import stk_f
+import rdkit_f
 
 
 def cases(subset):
@@ -79,13 +79,13 @@ def main():
         for file in glob.glob('built_molecules*'):
             os.remove(os.path.join('./', file))
         # build molecule populations
-        core_pop = stk_functions.build_population(directory=core_dir,
+        core_pop = stk_f.build_population(directory=core_dir,
                                                   structunit='StructUnit2',
                                                   fgs=['bromine'])
-        liga_pop = stk_functions.build_population(directory=liga_dir,
+        liga_pop = stk_f.build_population(directory=liga_dir,
                                                   structunit='StructUnit',
                                                   fgs=['bromine'])
-        link_pop = stk_functions.build_population(directory=link_dir,
+        link_pop = stk_f.build_population(directory=link_dir,
                                                   structunit='StructUnit2',
                                                   fgs=['bromine'])
 
@@ -168,7 +168,7 @@ def main():
         for poly in molecule_pop:
             MOL = Chem.MolFromSmiles(Chem.MolToSmiles(poly.mol))
             mol_list.append(MOL)
-        rdkit_functions.mol_list2grid(molecules=mol_list, filename='built_molecules',
+        rdkit_f.mol_list2grid(molecules=mol_list, filename='built_molecules',
                                       mol_per_row=3, maxrows=3, subImgSize=(200, 200))
         print('done')
         print('----------------------------------')

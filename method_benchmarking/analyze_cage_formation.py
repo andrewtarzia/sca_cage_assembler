@@ -16,7 +16,7 @@ from pandas import read_csv
 import sys
 sys.path.insert(0, '/home/atarzia/thesource/')
 from calculations import calc_formation_energy
-from stk_functions import topo_2_property
+from stk_f import topo_2_property
 
 
 def main():

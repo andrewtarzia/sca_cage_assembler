@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import os
 import stk
 sys.path.insert(0, '/home/atarzia/thesource/')
-import stk_functions
+import stk_f
 import calculations
 
 
@@ -65,46 +65,46 @@ def get_all_formEY(property_name, output_file, list_of_names):
             amine_file = amine_dir+amine_name+'.mol'
             amine_struc = stk.StructUnit3(amine_file, ['amine'])
 
-        topology = stk_functions.topo_2_property(topo, 'stk_func')
+        topology = stk_f.topo_2_property(topo, 'stk_func')
         cage = stk.Cage([alde_struc, amine_struc], topology)
         cage.update_from_mol(name+'_opt.mol')
         # calculate precusor energy
         # aldehyde
         print(name)
         print('-----')
-        alde_energy = stk_functions.get_OPLS3_energy_of_list(out_file=prec_ey_file,
+        alde_energy = stk_f.get_OPLS3_energy_of_list(out_file=prec_ey_file,
                                                              structures=[alde_file],
                                                              dir=alde_dir,
                                                              macromod_=macromod_,
                                                              opt=True,
-                                                             settings=stk_functions.atarzia_short_MD_settings())
+                                                             settings=stk_f.atarzia_short_MD_settings())
         alde_energy = alde_energy[alde_name]
         print('alde_ E', alde_energy)
         # amine
-        amine_energy = stk_functions.get_OPLS3_energy_of_list(out_file=prec_ey_file,
+        amine_energy = stk_f.get_OPLS3_energy_of_list(out_file=prec_ey_file,
                                                               structures=[amine_file],
                                                               dir=amine_dir,
                                                               macromod_=macromod_,
                                                               opt=True,
-                                                              settings=stk_functions.atarzia_short_MD_settings())
+                                                              settings=stk_f.atarzia_short_MD_settings())
         amine_energy = amine_energy[amine_name]
         print('amine E', amine_energy)
         # cage
         cage_file = name
         cage_dir = ''
-        cage_energy = stk_functions.get_OPLS3_energy_of_list(out_file=cage_ey_file,
+        cage_energy = stk_f.get_OPLS3_energy_of_list(out_file=cage_ey_file,
                                                              structures=[cage_file],
                                                              dir=cage_dir,
                                                              macromod_=macromod_,
                                                              opt=True,
-                                                             settings=stk_functions.atarzia_short_MD_settings())
+                                                             settings=stk_f.atarzia_short_MD_settings())
         cage_energy = cage_energy[name]
         print('CE', cage_energy)
         # calculate formation energy from list of product and reactant energies
         # OPLS energy of water = 0 UNITS
         products = [0, cage_energy]
         print('PR', products)
-        stoich = stk_functions.topo_2_property(topology=topo, property='stoich')
+        stoich = stk_f.topo_2_property(topology=topo, property='stoich')
         print('stoich', stoich)
         # in this case, we can hard code the stoichiometries
         alde_stoich, amine_stoich = stoich
@@ -161,7 +161,7 @@ def get_all_bbdist(property_name, output_file, list_of_names):
             amine_file = amine_dir+amine_name+'.mol'
             amine_struc = stk.StructUnit3(amine_file, ['amine'])
 
-        topology = stk_functions.topo_2_property(topo, 'stk_func')
+        topology = stk_f.topo_2_property(topo, 'stk_func')
         cage = stk.Cage([alde_struc, amine_struc], topology)
         cage.update_from_mol(name+'_opt.mol')
         data_Frame = data_Frame.append({'NAME': name,

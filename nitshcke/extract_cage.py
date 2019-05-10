@@ -11,7 +11,7 @@ Date Created: 15 Mar 2019
 """
 import sys
 sys.path.insert(0, '/home/atarzia/thesource/')
-import pywindow_functions
+import pywindow_f
 import IO_tools
 
 if __name__ == "__main__":
@@ -28,7 +28,7 @@ Usage: extract_cage.py CIF
     if pdb_file is None and ASE_structure is None:
         sys.exit()
     # rebuild system
-    rebuilt_structure = pywindow_functions.rebuild_system(file=pdb_file)
+    rebuilt_structure = pywindow_f.rebuild_system(file=pdb_file)
     rebuilt_structure.make_modular()
     for molecule in rebuilt_structure.molecules:
         print('Analysing molecule {0} out of {1}'.format(

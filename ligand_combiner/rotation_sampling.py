@@ -24,8 +24,8 @@ from glob import glob
 from stk import Population, Molecule
 from Combiner import get_molecule, get_geometrical_properties, Combination
 sys.path.insert(0, '/home/atarzia/thesource/')
-from stk_functions import build_population
-from rdkit_functions import mol_list2grid
+from stk_f import build_population
+from rdkit_f import mol_list2grid
 from analysis import plot_all_pair_info, output_analysis
 
 

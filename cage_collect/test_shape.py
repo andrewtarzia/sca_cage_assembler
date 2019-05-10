@@ -25,8 +25,8 @@ import pywindow as pw
 sys.path.insert(0, '/home/atarzia/thesource/')
 import IO_tools
 import plotting
-import pywindow_functions
-from stk_functions import optimize_structunit, atarzia_long_MD_settings
+import pywindow_f
+import stk_f
 
 
 def main():
@@ -56,10 +56,10 @@ Usage: test_shape.py
                 continue
             del _  # we don't need the ASE structure in this case
         # rebuild system
-        rebuilt_structure = pywindow_functions.rebuild_system(file=pdb_file)
+        rebuilt_structure = pywindow_f.rebuild_system(file=pdb_file)
         rebuilt_structure.make_modular()
         # run analysis on rebuilt system (extracts all cages)
-        _ = pywindow_functions.analyze_rebuilt(rebuilt_structure,
+        _ = pywindow_f.analyze_rebuilt(rebuilt_structure,
                                                file_prefix=pre_op,
                                                atom_limit=20,
                                                include_coms=False,
@@ -82,18 +82,18 @@ Usage: test_shape.py
             # run MD with OPLS if output file does not exist
             if os.path.isfile(newID + '.pdb') is False:
                 print('doing optimization of cage:', ID)
-                optimize_structunit(
+                stk_f.optimize_structunit(
                     infile=ID + '.pdb',
                     outfile=newID + '.pdb',
                     exec='/home/atarzia/software/schrodinger_install',
                     method='OPLS',
-                    settings=atarzia_long_MD_settings())
+                    settings=stk_f.atarzia_long_MD_settings())
                 print('done')
             # analyze optimized cage with pyWindow and output to JSON
             if os.path.isfile(newID + '.json') is False:
                 cagesys = pw.MolecularSystem.load_file(newID + '.pdb')
                 cage = cagesys.system_to_molecule()
-                pywindow_functions.analyze_cage(cage=cage,
+                pywindow_f.analyze_cage(cage=cage,
                                                 propfile=newID + '.json',
                                                 structfile=None)
             with open(newID + '.json', 'r') as f:

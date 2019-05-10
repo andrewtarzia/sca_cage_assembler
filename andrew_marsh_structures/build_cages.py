@@ -26,10 +26,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 sys.path.insert(0, '/home/atarzia/thesource/')
-import stk_functions
+import stk_f
 import calculations
-import pywindow_functions
-import rdkit_functions
+import pywindow_f
+import rdkit_f
 
 
 def output_precursor_struct(data, filename, DB, prop1, prop2, sorter,
@@ -405,9 +405,9 @@ def assign_cage_properties(NAME, cage, output_csv):
                 w_diff = None
             if w_diff is None:
                 w_diff = '-5'
-            # asymetry = str(stk_functions.get_asymmetry(data))
+            # asymetry = str(stk_f.get_asymmetry(data))
             asymetry = str(w_diff)
-            coll_flag = stk_functions.is_collapse(
+            coll_flag = stk_f.is_collapse(
                 topo=topo, avg_diff=w_diff,
                 max_window_diam=w_max,
                 cavity_size=cage.cavity_size(),
@@ -454,16 +454,16 @@ def brute_cage_build(precursor_struc, precursor_names, precursor_files,
                 print('doing:', NAME, ' -- amine:', j, 'of', no_amines)
                 if os.path.isfile(NAME+'_opt.mol') is False:
                     # build cage and run optimization
-                    cage = stk_functions.build_and_opt_cage(prefix=NAME,
+                    cage = stk_f.build_and_opt_cage(prefix=NAME,
                                                             BB1=prec,
                                                             BB2=bb_amine,
                                                             topology=topo,
                                                             macromod_=macromod_,
-                                                            settings=stk_functions.atarzia_short_MD_settings())
+                                                            settings=stk_f.atarzia_short_MD_settings())
                 # check if completed and run pywindow if so
                 if os.path.isfile(NAME+'_opt.mol') is True:
                     if os.path.isfile(prop_file) is False:
-                        pywindow_functions.analyze_cage_from_MOL(
+                        pywindow_f.analyze_cage_from_MOL(
                             file=NAME+'_opt.mol',
                             prop_file=prop_file,
                             mole_file=mole_file,
@@ -513,7 +513,7 @@ def screening_process(dataset, des_topo, SA_data):
             continue
         ################################
         # remove structures with no. windows < expected for topology
-        if row.w_no < stk_functions.topo_2_property(row.topo, property='expected_wind'):
+        if row.w_no < stk_f.topo_2_property(row.topo, property='expected_wind'):
             continue
         ################################
         # remove those with max window diamter < 2.8 angstrom
@@ -523,13 +523,13 @@ def screening_process(dataset, des_topo, SA_data):
             continue
         ################################
         # recalculate asymetry - remove cases with asymetry > XX
-        # do not use the asymetry defined ni stk_functions (deprecated)
+        # do not use the asymetry defined ni stk_f (deprecated)
         # It does not handle different window types. Use stk window_difference
         # function
         # prop_file = NAME+'_opt_properties.json'
         # with open(prop_file, 'r') as f:
         #     data = json.load(f)
-        # asymmetry = stk_functions.get_asymmetry(data)
+        # asymmetry = stk_f.get_asymmetry(data)
         # print(asymmetry)
         # asymmetry =
         # print(asymmetry)
@@ -570,24 +570,24 @@ def brute_analysis(output_csv, amine_type,
     cage_ey_file = 'all_cage_ey.json'
     # get energies of bb1
     print('getting bb1 energies')
-    energies = stk_functions.get_OPLS3_energy_of_list(out_file=prec_ey_file,
+    energies = stk_f.get_OPLS3_energy_of_list(out_file=prec_ey_file,
                                                       structures=precursor_files,
                                                       dir=precursor_dir,
                                                       macromod_=macromod_,
                                                       opt=True,
-                                                      settings=stk_functions.atarzia_short_MD_settings())
+                                                      settings=stk_f.atarzia_short_MD_settings())
     bb1_energies = []
     for i, row in working_dataset.iterrows():
         bb1_energies.append(energies[row.bb1])
     working_dataset['bb1_ey'] = bb1_energies
     # get energies of bb2
     print('getting bb2 energies')
-    energies = stk_functions.get_OPLS3_energy_of_list(out_file=prec_ey_file,
+    energies = stk_f.get_OPLS3_energy_of_list(out_file=prec_ey_file,
                                                       structures=amines,
                                                       dir=DB,
                                                       macromod_=macromod_,
                                                       opt=True,
-                                                      settings=stk_functions.atarzia_short_MD_settings())
+                                                      settings=stk_f.atarzia_short_MD_settings())
     bb2_energies = []
     for i, row in working_dataset.iterrows():
         bb2_energies.append(energies[row.bb2])
@@ -599,12 +599,12 @@ def brute_analysis(output_csv, amine_type,
         NAME = row.bb1+'_'+row.bb2+'_'+row.topo
         cage_file = NAME
         cage_files.append(cage_file)
-    energies = stk_functions.get_OPLS3_energy_of_list(out_file=cage_ey_file,
+    energies = stk_f.get_OPLS3_energy_of_list(out_file=cage_ey_file,
                                                       structures=cage_files,
                                                       dir='',
                                                       macromod_=macromod_,
                                                       opt=False,
-                                                      settings=stk_functions.atarzia_short_MD_settings())
+                                                      settings=stk_f.atarzia_short_MD_settings())
     cage_energies = []
     for i, row in working_dataset.iterrows():
         NAME = row.bb1+'_'+row.bb2+'_'+row.topo
@@ -660,7 +660,7 @@ Usage: build_cages.py amine_type output_file wipe run_build
     # read in mol files
     precursor_struc = [stk.StructUnit3(i, ['aldehyde']) for i in precursor_files]
     precursor_smiles = [Chem.MolToSmiles(i.mol) for i in precursor_struc]
-    rdkit_functions.mol_list2grid(mol_dict=dict(zip(precursor_names, precursor_smiles)),
+    rdkit_f.mol_list2grid(mol_dict=dict(zip(precursor_names, precursor_smiles)),
                                   filename='aldehyde_precusors', mol_per_row=2,
                                   maxrows=10)
     big_DB = '/data/atarzia/precursor_DBs/reaxys_sorted/'

@@ -15,7 +15,7 @@ import os
 import glob
 import pandas as pd
 sys.path.insert(0, '/home/atarzia/thesource/')
-import stk_functions
+import stk_f
 import plotting
 
 
@@ -75,12 +75,12 @@ Usage: get_all_struct_energies.py output_file suffix
         cage_energy = get_energy_from_DF(DF=prec_energies, name=name)
         print('c', cage_energy)
         # get water energy * noimines formed
-        noimines = stk_functions.topo_2_property(topology=topo,
+        noimines = stk_f.topo_2_property(topology=topo,
                                                  property='noimines')
         water_energy = get_energy_from_DF(DF=prec_energies, name='water') * noimines
         print('w', water_energy, water_energy / noimines)
         # get bb1 energy * stoich
-        bb1_stoich, bb2_stoich = stk_functions.topo_2_property(topology=topo,
+        bb1_stoich, bb2_stoich = stk_f.topo_2_property(topology=topo,
                                                                property='stoich')
         bb1_energy = get_energy_from_DF(DF=prec_energies, name=bb1) * bb1_stoich
         print('bb1', bb1_energy, bb1_energy / bb1_stoich, bb1_stoich)

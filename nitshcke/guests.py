@@ -12,7 +12,7 @@ Date Created: 15 Mar 2019
 import sys
 from rdkit.Chem import AllChem as Chem
 sys.path.insert(0, '/home/atarzia/thesource/')
-import rdkit_functions
+import rdkit_f
 import IO_tools
 
 
@@ -112,7 +112,7 @@ Usage: guests.py paper
             continue
         # get RDKIT mol -- get a 3D conformer using ETKDG --
         # energy minimize with UFF
-        mol = rdkit_functions.smiles2conformers(smiles=guests[guest],
+        mol = rdkit_f.smiles2conformers(smiles=guests[guest],
                                                 N=1, optimize=True)
         # save to mol file
         Chem.MolToMolFile(mol, filename=guest + '.mol')

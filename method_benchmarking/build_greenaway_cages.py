@@ -17,8 +17,8 @@ import sys
 import os
 import pandas as pd
 sys.path.insert(0, '/home/atarzia/thesource/')
-from stk_functions import topo_2_property, build_and_opt_cage, atarzia_long_MD_settings
-from pywindow_functions import analyze_cage_from_MOL
+from stk_f import topo_2_property, build_and_opt_cage, atarzia_long_MD_settings
+from pywindow_f import analyze_cage_from_MOL
 from IO_tools import convert_PDB_2_XYZ
 
 

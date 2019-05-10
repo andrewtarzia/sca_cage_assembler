@@ -14,7 +14,7 @@ from glob import glob
 import sys
 from rdkit.Chem import AllChem as Chem
 sys.path.insert(0, '/home/atarzia/thesource/')
-from rdkit_functions import mol_list2grid
+from rdkit_f import mol_list2grid
 
 
 def main():

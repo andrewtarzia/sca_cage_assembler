@@ -18,7 +18,7 @@ from rdkit.Chem import AllChem as Chem
 import os
 import stk
 sys.path.insert(0, '/home/atarzia/thesource/')
-import stk_functions
+import stk_f
 import calculations
 
 
@@ -414,7 +414,7 @@ def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
     liga_item = popns[1][pop_ids[1]]
     link_item = popns[2][pop_ids[2]]
     if type == 'ABCBA':
-        molecule = stk_functions.build_ABCBA(core=core_item,
+        molecule = stk_f.build_ABCBA(core=core_item,
                                              liga=liga_item,
                                              link=link_item,
                                              flippedlink=inverted)
@@ -425,7 +425,7 @@ def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
         else:
             prefix += link_item.name
     elif type == 'ABA':
-        molecule = stk_functions.build_ABA(core=core_item,
+        molecule = stk_f.build_ABA(core=core_item,
                                            liga=liga_item)
         prefix = core_item.name + '_'
         prefix += liga_item.name

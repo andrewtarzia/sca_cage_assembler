@@ -13,8 +13,8 @@ Date Created: 04 Apr 2019
 
 import sys
 sys.path.insert(0, '/home/atarzia/thesource/')
-from pywindow_functions import (analyze_rebuilt, rebuild_system)
-from IO_tools import convert_CIF_2_PDB
+import pywindow_f
+import IO_tools
 
 
 def main():
@@ -30,13 +30,13 @@ Usage: extract_indep_cages.py CIF
     if CIF[-4:] != '.cif':
         raise Exception('input file: {} was not a CIF'.format(CIF))
 
-    pdb_file, struct = convert_CIF_2_PDB(CIF)
+    pdb_file, struct = IO_tools.convert_CIF_2_PDB(CIF)
     if pdb_file is None and struct is None:
         sys.exit()
-    rebuilt_structure = rebuild_system(file=pdb_file)
+    rebuilt_structure = pywindow_f.rebuild_system(file=pdb_file)
     rebuilt_structure.make_modular()
-    res = analyze_rebuilt(rebuilt_structure, file_prefix=CIF.rstrip('.cif'),
-                          atom_limit=20, include_coms=False, verbose=False)
+    res = pywindow_f.analyze_rebuilt(rebuilt_structure, file_prefix=CIF.rstrip('.cif'),
+                                     atom_limit=20, include_coms=False, verbose=False)
     print('===================================================')
     print('Results of pyWindow analysis on all indep cages:')
     print('===================================================')

@@ -268,7 +268,7 @@ def atarzia_long_MD_settings():
                 'conformers': 10000,
                 'time_step': 0.5,  # fs
                 'eq_time': 500,  # ps
-                'simulation_time': 100000,  # ps -- 100 ns
+                'simulation_time': -1000,  # ps -- 100 ns
                 'maximum_iterations': 2500,
                 'minimum_gradient': 0.05,
                 'use_cache': False}

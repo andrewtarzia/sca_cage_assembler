@@ -16,7 +16,7 @@ import glob
 import pandas as pd
 sys.path.insert(0, '/home/atarzia/thesource/')
 import GFN_functions
-import stk_functions
+import stk_f
 import IO_tools
 
 
@@ -67,10 +67,10 @@ Usage: get_all_struct_energies.py output_file suffix
         for file in files:
             OUTFILE = file.replace('.mol', '_opt.mol')
             if os.path.isfile(OUTFILE) is False:
-                stk_functions.optimize_structunit(infile=file,
+                stk_f.optimize_structunit(infile=file,
                                                   outfile=OUTFILE,
                                                   exec=macromod_,
-                                                  settings=stk_functions.atarzia_long_MD_settings())
+                                                  settings=stk_f.atarzia_long_MD_settings())
             outfiles.append(OUTFILE)
     else:
         if suffix != '_opt.mol':

@@ -13,11 +13,11 @@ Date Created: 15 Apr 2019
 
 import sys
 from ase.atoms import Atoms
-from os.path import isfile
 from ase.visualize import view
+import os
 sys.path.insert(0, '/home/atarzia/thesource/')
-from pywindow_functions import rebuild_system, remove_solvent
-from IO_tools import convert_CIF_2_PDB
+import pywindow_f
+import IO_tools
 
 
 def main():
@@ -42,14 +42,14 @@ Usage: remove_solvent.py CIF ignore
 
     for CIF in CIFs:
         # no need to redo already done structures
-        if isfile(CIF.replace('.cif', '_nosolv.cif')):
-            if isfile(CIF.replace('.cif', '_nosolv.pdb')):
+        if os.path.isfile(CIF.replace('.cif', '_nosolv.cif')):
+            if os.path.isfile(CIF.replace('.cif', '_nosolv.pdb')):
                 continue
         print('doing', CIF)
         if CIF[-4:] != '.cif':
             raise Exception('input file: {} was not a CIF'.format(CIF))
 
-        pdb_file, struct = convert_CIF_2_PDB(CIF)
+        pdb_file, struct = IO_tools.convert_CIF_2_PDB(CIF)
         if pdb_file is None and struct is None:
             continue
         # get final struct equivalent to input struct, but without atoms
@@ -58,7 +58,7 @@ Usage: remove_solvent.py CIF ignore
         final_struct.set_pbc([True, True, True])
         # view(struct)
         # view(final_struct)
-        rebuilt_structure = rebuild_system(file=pdb_file)
+        rebuilt_structure = pywindow_f.rebuild_system(file=pdb_file)
         print('modularising...')
         rebuilt_structure.make_modular()
         print('done.')
@@ -75,9 +75,9 @@ Usage: remove_solvent.py CIF ignore
             print('skipping this CIF because modularising failed.')
             print('----------------------------------------------')
             continue
-        final_struct = remove_solvent(pw_struct=rebuilt_structure,
-                                      ASE_struct=final_struct,
-                                      mol_list=n_atoms_list)
+        final_struct = pywindow_f.remove_solvent(pw_struct=rebuilt_structure,
+                                                 ASE_struct=final_struct,
+                                                 mol_list=n_atoms_list)
         # only output structures with more than 0 atoms
         if len(final_struct):
             # view(final_struct)
