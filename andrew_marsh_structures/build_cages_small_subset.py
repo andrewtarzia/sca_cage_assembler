@@ -191,7 +191,7 @@ def plots_amines3(final_db, ald_colo, DB):
     #########################################################################
 
 
-def precursor_pairings(amine_CN):
+def precursor_pairings(amine_CN, aldehyde):
     '''Defined dictionary of precursor pairings
 
     '''
@@ -210,8 +210,10 @@ def precursor_pairings(amine_CN):
                      'aldehyde2': ['ami_1ax', 'ami_2ax'],
                      'aldehyde3': ['ami_1ax', 'ami_2ax'],
                      'aldehyde4': ['ami_1ax', 'ami_3', 'ami_4']}
-
-    return pair_dict
+    if aldehyde in pair_dict:
+        return pair_dict[aldehyde]
+    else:
+        return []
 
 
 def screening_process(dataset):
@@ -342,7 +344,7 @@ Usage: build_cages.py output_file wipe run_build
     # iterate over aldehydes
     for i, alde in enumerate(alde_files):
         # make diamines
-        ami2_pairs = precursor_pairings(amine_CN=2)[alde_names[i]]
+        ami2_pairs = precursor_pairings(amine_CN=2, aldehyde=alde_names[i])
         logging.info(f'aldehyde {alde} diamine pairs: {ami2_pairs}')
         for ami2_name in ami2_pairs:
             ami2_file = os.path.join(ami2_dir, ami2_name+'.mol')
@@ -391,7 +393,7 @@ Usage: build_cages.py output_file wipe run_build
                                               output_csv=output_csv)
 
         # make triamines
-        ami3_pairs = precursor_pairings(amine_CN=3)[alde_names[i]]
+        ami3_pairs = precursor_pairings(amine_CN=3, aldehyde=alde_names[i])
         logging.info(f'aldehyde {alde} triamine pairs: {ami3_pairs}')
         for ami3_name in ami3_pairs:
             ami3_file = os.path.join(ami3_dir, ami3_name+'.mol')

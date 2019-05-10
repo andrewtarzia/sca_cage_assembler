@@ -15,7 +15,7 @@ import os
 import glob
 import pandas as pd
 sys.path.insert(0, '/home/atarzia/thesource/')
-import GFN_functions
+import GFN_f
 import stk_f
 import IO_tools
 
@@ -91,7 +91,7 @@ Usage: get_all_struct_energies.py output_file suffix
         if file.rstrip('.xyz') not in list(DATA['NAMES']):
             IO_tools.convert_MOL3000_2_PDB_XYZ(file=file)
 
-    failed = GFN_functions.run_GFN_base(xyzs=xyzs)
+    failed = GFN_f.run_GFN_base(xyzs=xyzs)
     if len(failed) > 0:
         print('--------------------------------------------------------')
         print('---> Some GFN calcs failed.')
@@ -103,8 +103,8 @@ Usage: get_all_struct_energies.py output_file suffix
             continue
         DIR = file.replace('.xyz', '')
         OUT = file.replace('.xyz', '.output')
-        energy_results = GFN_functions.get_energies(output_file=os.path.join(DIR, OUT),
-                                                    GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb')
+        energy_results = GFN_f.get_energies(output_file=os.path.join(DIR, OUT),
+                                            GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb')
         if 'FE' in energy_results:
             DATA = DATA.append({'NAMES': file.rstrip('.xyz'),
                                 'files': file,
