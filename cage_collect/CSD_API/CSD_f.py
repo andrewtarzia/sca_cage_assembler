@@ -20,9 +20,10 @@ def get_entryreader():
 
     Example from
     https://downloads.ccdc.cam.ac.uk/documentation/API/modules/io_api.html#module-ccdc.io
+    - .sqlite is known file format, .inf is not.
 
     '''
     directory = ccdc.io.csd_directory()
-    csd_and_updates = glob.glob(os.path.join(directory, '*.inf'))
+    csd_and_updates = glob.glob(os.path.join(directory, '*.sqlite'))
     csd_and_updates_reader = ccdc.io.EntryReader(csd_and_updates)
     return csd_and_updates_reader
