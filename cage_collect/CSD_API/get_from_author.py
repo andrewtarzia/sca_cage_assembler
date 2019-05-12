@@ -35,7 +35,7 @@ def write_REFCODES(CSD):
 def main():
     if (not len(sys.argv) == 3):
         print """
-    Usage: get_from_author.py bond_mean bond_std energy_tol angle_tol mol1 mol2
+    Usage: get_from_author.py author_file cage_type
         author_file (str) - file with list of authors
         cage_type (str) - organic if organic cages, metal if is_organometallic
             organic: sets is_organometallic is False
