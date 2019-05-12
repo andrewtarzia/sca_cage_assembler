@@ -19,6 +19,39 @@ import pywindow as pw
 
 
 def rebuild_system(file, overwrite=False):
+def check_PDB_for_pore(file, diam=0.25):
+    '''Check PDB for at least one molecule with a pore with a pore_diameter_opt
+    > diam using pyWindow.
+
+    Parameters
+    ----------
+    file : :class:`str`
+        PDB to read structure from.
+
+    diam : :class:`float`
+        Minimum pore_diameter_opt to use to define pore. Defaults to 0.25 Angstrom.
+
+    Returns
+    -------
+    :class:`bool`
+        True if at least one molecule in PDB has pore_diameter_opt > diam
+
+    '''
+    rebuilt_structure = modularize(file=file)
+    if rebuilt_structure is None:
+        # handle pyWindow failure
+        return False
+    for molecule in rebuilt_structure.molecules:
+        mol = rebuilt_structure.molecules[molecule]
+        try:
+            analysis = mol.full_analysis()
+        except ValueError:
+            logging.warning(f'{file}_{molecule} failed pywindow full_analysis.')
+        if analysis['pore_diameter_opt']['diameter'] >= diam:
+            # found at least one - returning
+            return True
+    # if none found, return False
+    return False
     '''As per example 6 in pywindow - rebuild the PDB system, output and reread.
 
     '''
