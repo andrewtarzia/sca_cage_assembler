@@ -58,10 +58,10 @@ Usage: remove_solvent.py CIF ignore
         final_struct.set_pbc([True, True, True])
         # view(struct)
         # view(final_struct)
-        rebuilt_structure = pywindow_f.rebuild_system(file=pdb_file)
-        print('modularising...')
-        rebuilt_structure.make_modular()
-        print('done.')
+        rebuilt_structure = pywindow_f.modularize(file=pdb_file)
+        if rebuilt_structure is None:
+            # handle pyWindow failure
+            sys.exit(f'pyWindow failure on {pdb_file}')
         # test if one molecule is huge because disorder breaks pywindow code
         no_atoms_orig = len(struct)
         n_atoms_list = []

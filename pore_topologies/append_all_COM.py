@@ -13,7 +13,7 @@ Date Created: 19 Feb 2019
 import sys
 from os.path import isfile
 sys.path.insert(0, '/home/atarzia/thesource/')
-from pywindow_f import append_and_write_COMs, rebuild_system, analyze_rebuilt
+import pywindow_f
 from IO_tools import convert_CIF_2_PDB
 
 
@@ -43,11 +43,13 @@ Usage: append_all_COM.py CIF ignore
         if pdb_file is None and ASE_structure is None:
             continue
         # rebuild system
-        rebuilt_structure = rebuild_system(file=pdb_file)
-        rebuilt_structure.make_modular()
+        rebuilt_structure = pywindow_f.modularize(file=pdb_file)
+        if rebuilt_structure is None:
+            # handle pyWindow failure
+            sys.exit(f'pyWindow failure on {pdb_file}')
         # run analysis
-        COM_dict = analyze_rebuilt(rebuilt_structure, atom_limit=20,
-                                   file_prefix=file.replace('.cif', ''),
-                                   verbose=False, include_coms=True)
+        COM_dict = pywindow_f.analyze_rebuilt(rebuilt_structure, atom_limit=20,
+                                              file_prefix=file.replace('.cif', ''),
+                                              verbose=False, include_coms=True)
         # append atoms to ASE structure as pseudo atoms and write out new CIF
-        append_and_write_COMs(COM_dict, ASE_structure, file)
+        pywindow_f.append_and_write_COMs(COM_dict, ASE_structure, file)

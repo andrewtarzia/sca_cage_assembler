@@ -28,8 +28,10 @@ Usage: extract_cage.py CIF
     if pdb_file is None and ASE_structure is None:
         sys.exit()
     # rebuild system
-    rebuilt_structure = pywindow_f.rebuild_system(file=pdb_file)
-    rebuilt_structure.make_modular()
+    rebuilt_structure = pywindow_f.modularize(file=pdb_file)
+    if rebuilt_structure is None:
+        # handle pyWindow failure
+        sys.exit(f'pyWindow failure on {pdb_file}')
     for molecule in rebuilt_structure.molecules:
         print('Analysing molecule {0} out of {1}'.format(
             molecule + 1, len(rebuilt_structure.molecules)))

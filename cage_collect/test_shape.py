@@ -56,14 +56,16 @@ Usage: test_shape.py
                 continue
             del _  # we don't need the ASE structure in this case
         # rebuild system
-        rebuilt_structure = pywindow_f.rebuild_system(file=pdb_file)
-        rebuilt_structure.make_modular()
+        rebuilt_structure = pywindow_f.modularize(file=pdb_file)
+        if rebuilt_structure is None:
+            # handle pyWindow failure
+            sys.exit(f'pyWindow failure on {pdb_file}')
         # run analysis on rebuilt system (extracts all cages)
         _ = pywindow_f.analyze_rebuilt(rebuilt_structure,
-                                               file_prefix=pre_op,
-                                               atom_limit=20,
-                                               include_coms=False,
-                                               verbose=False)
+                                       file_prefix=pre_op,
+                                       atom_limit=20,
+                                       include_coms=False,
+                                       verbose=False)
         del _  # not needed
         # determine independant cages based on pore diameters
         # actually, at this stage we just optimize all of them

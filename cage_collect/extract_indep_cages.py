@@ -33,8 +33,10 @@ Usage: extract_indep_cages.py CIF
     pdb_file, struct = IO_tools.convert_CIF_2_PDB(CIF)
     if pdb_file is None and struct is None:
         sys.exit()
-    rebuilt_structure = pywindow_f.rebuild_system(file=pdb_file)
-    rebuilt_structure.make_modular()
+    rebuilt_structure = pywindow_f.modularize(file=pdb_file)
+    if rebuilt_structure is None:
+        # handle pyWindow failure
+        sys.exit(f'pyWindow failure on {pdb_file}')
     res = pywindow_f.analyze_rebuilt(rebuilt_structure, file_prefix=CIF.rstrip('.cif'),
                                      atom_limit=20, include_coms=False, verbose=False)
     print('===================================================')

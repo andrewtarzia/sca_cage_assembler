@@ -18,7 +18,6 @@ from ase.atoms import Atom
 import pywindow as pw
 
 
-def rebuild_system(file, overwrite=False):
 def check_PDB_for_pore(file, diam=0.25):
     '''Check PDB for at least one molecule with a pore with a pore_diameter_opt
     > diam using pyWindow.
@@ -52,11 +51,14 @@ def check_PDB_for_pore(file, diam=0.25):
             return True
     # if none found, return False
     return False
+
+
+def rebuild(file, overwrite=False):
     '''As per example 6 in pywindow - rebuild the PDB system, output and reread.
 
     '''
     out_file = file.replace('.pdb', '_rebuild.pdb')
-    if isfile(out_file) is False or overwrite is True:
+    if os.path.isfile(out_file) is False or overwrite is True:
         print('rebuilding:', file)
         molsys = pw.MolecularSystem.load_file(file)
         rebuild_molsys = molsys.rebuild_system()
@@ -68,6 +70,18 @@ def check_PDB_for_pore(file, diam=0.25):
     else:
         rebuild_molsys = pw.MolecularSystem.load_file(out_file)
     return rebuild_molsys
+
+
+def modularize(file):
+    '''Rebuild pyWindow MolecularSystem from file and modularize into discrete molecules.
+
+    '''
+    rebuilt_structure = rebuild(file=file)
+    if len(rebuilt_structure.system['coordinates']) == 0:
+        logging.warning(f'{file} failed rebuild using pyWindow, return False')
+        return None
+    rebuilt_structure.make_modular()
+    return rebuilt_structure
 
 
 def analyze_cage(cage, propfile=None, structfile=None, include_coms=True):
