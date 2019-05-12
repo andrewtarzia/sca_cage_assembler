@@ -10,11 +10,12 @@ Author: Andrew Tarzia
 Date Created: 15 Mar 2019
 """
 
+import logging
 from rdkit.Chem import AllChem as Chem
-from numpy import arange
-from copy import deepcopy
-from os.path import isfile
-from ase.atoms import Atom
+import ase
+import os
+import copy
+import numpy as np
 import pywindow as pw
 
 
@@ -138,9 +139,8 @@ def analyze_rebuilt(rebuilt_structure, file_prefix, atom_limit,
             continue
         try:
             analysis = mol.full_analysis()
-        except ValueError as e:
-            print(e)
-            print('------------ passed --------------')
+        except ValueError:
+            logging.warning(f'{file_prefix}_{molecule} failed pywindow full_analysis.')
             continue
         if verbose:
             print(analysis, '\n')
@@ -182,7 +182,8 @@ def is_solvent(molecule, mol_list):
     try:
         analysis = molecule.full_analysis()
     except ValueError:
-        print('ValueError - assuming solvent')
+        logging.warning(f'{molecule} failed pywindow full_analysis.')
+        logging.info(f'assuming solvent in this case.')
         return result
     print(analysis['pore_diameter_opt']['diameter'], analysis['pore_volume_opt'])
     # input()
@@ -204,7 +205,7 @@ def remove_solvent(pw_struct, ASE_struct, mol_list):
 
     '''
     # make deep copy of ASE_struct
-    ASE_struct_out = deepcopy(ASE_struct)
+    ASE_struct_out = copy.deepcopy(ASE_struct)
     for molecule in pw_struct.molecules:
         print('Analysing molecule {0} out of {1}'.format(
             molecule + 1, len(pw_struct.molecules)))
@@ -212,14 +213,14 @@ def remove_solvent(pw_struct, ASE_struct, mol_list):
         if is_solvent(molecule=mol, mol_list=mol_list) is False:
             print('is NOT solvent with {} atoms'.format(mol.no_of_atoms))
             # append atoms to ASE_struct_out
-            atom_ids = arange(1, mol.no_of_atoms + 1)
+            atom_ids = np.arange(1, mol.no_of_atoms + 1)
             coords = mol.coordinates
             atom_symbs = mol.atom_ids
             for i, j, k in zip(atom_ids, atom_symbs, coords):
                 # print(i, j, k)
-                curr_atm = Atom(symbol=j,
-                                position=k,
-                                index=i)
+                curr_atm = ase.Atom(symbol=j,
+                                    position=k,
+                                    index=i)
                 ASE_struct_out.append(curr_atm)
     return ASE_struct_out
 
@@ -238,20 +239,20 @@ def append_and_write_COMs(result_dict, structure, file):
         if result_dict[molecule][1]['diameters'] is None:
             continue
         # add cage COM
-        cage_com = Atom(symbol='Ne',
-                        position=result_dict[molecule][0])
+        cage_com = ase.Atom(symbol='Ne',
+                            position=result_dict[molecule][0])
         structure.append(cage_com)
         # add window COMs:
         for wCOM in result_dict[molecule][1]['centre_of_mass']:
             print('----------')
             print(wCOM)
-            window_com = Atom(symbol='He',
-                              position=wCOM)
+            window_com = ase.Atom(symbol='He',
+                                  position=wCOM)
             structure.append(window_com)
             print('----------')
         # add optimized cage pore COM
-        pore_com = Atom(symbol='Ar',
-                        position=result_dict[molecule][2])
+        pore_com = ase.Atom(symbol='Ar',
+                            position=result_dict[molecule][2])
         structure.append(pore_com)
     # output to CIF
     output = file.replace('.cif', '_appended.cif')
