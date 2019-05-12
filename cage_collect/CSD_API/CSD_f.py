@@ -24,5 +24,5 @@ def get_entryreader():
     '''
     directory = ccdc.io.csd_directory()
     csd_and_updates = glob.glob(os.path.join(directory, '*.inf'))
-    csd_and_updates_reader = EntryReader(csd_and_updates)
+    csd_and_updates_reader = ccdc.io.EntryReader(csd_and_updates)
     return csd_and_updates_reader
