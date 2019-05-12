@@ -10,9 +10,10 @@ Author: Andrew Tarzia
 Date Created: 1 Mar 2019
 
 """
-from ccdc.io import EntryReader, CrystalWriter
-from ccdc.search import TextNumericSearch
+import ccdc
 import sys
+sys.path.insert(0, '/home/atarzia/thesource/')
+import CSD_f
 
 
 def write_entry(author, number, DOI, CSD, solvent, disorder):
@@ -68,16 +69,13 @@ def main():
         if '-----' in author:
             break
         count_no += 1
-        query = TextNumericSearch()
+        query = ccdc.search.TextNumericSearch()
         query.add_author(author)
         hits = query.search(database='CSD')
         print author+': '+str(len(hits))
         if len(hits) == 0:
             print(author)
         for hit in hits:
-            # print('%s %s' % (hit.identifier, hit.entry.ccdc_number))
-            # print(hit.entry.chemical_name)
-            # print(hit.entry.is_polymeric)
             author_list = [i.strip() for i in hit.entry.publication.authors.split(',')]
             # skip polymeric structures
             if hit.entry.chemical_name is not None:
@@ -112,7 +110,6 @@ def main():
             # write REFCODE to file
             if hit.identifier not in idents:
                 idents.append(hit.identifier)
-                # CrystalWriter(hit.identifier+'.cif').write(crystal)
                 write_entry(author, str(hit.entry.ccdc_number),
                             hit.entry.doi, hit.identifier, solvent,
                             disorder)

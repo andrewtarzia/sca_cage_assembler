@@ -10,8 +10,10 @@ Author: Andrew Tarzia
 Date Created: 12 May 2019
 
 """
-from ccdc.io import EntryReader, CrystalWriter
+import ccdc
 import sys
+sys.path.insert(0, '/home/atarzia/thesource/')
+import CSD_f
 
 
 def main():
@@ -26,8 +28,8 @@ def main():
         RCODE_file = sys.argv[1]
         missing_struct = sys.argv[2]
 
-    # read in CSD
-    entry_reader = EntryReader('CSD')
+    # read in CSD and updates
+    entry_reader = CSD_f.get_entryreader()
 
     REFCODEs = []
     for line in open(RCODE_file, 'r'):
@@ -45,7 +47,7 @@ def main():
             RC_nostruct.append(RC)
         else:
             # write to CIF
-            CrystalWriter(RC+'_extracted.cif').write(crystal)
+            ccdc.io.CrystalWriter(RC+'_extracted.cif').write(crystal)
             count += 1
     print '-------------------------------------------------'
     print 'structures missing: '+str(len(RC_nostruct))+' of: '+str(len(REFCODEs))

@@ -10,10 +10,12 @@ Author: Andrew Tarzia
 Date Created: 4 Mar 2019
 
 """
-from ccdc.io import EntryReader, CrystalWriter
+import ccdc
+sys.path.insert(0, '/home/atarzia/thesource/')
+import CSD_f
 
 # read in CSD
-entry_reader = EntryReader('CSD')
+entry_reader = CSD_f.get_entryreader()
 
 RCODE_file = 'DB_final_040319.gcd'
 print('reading', RCODE_file, 'is that correct??')
@@ -62,7 +64,7 @@ for i, RC in enumerate(sorted(REFCODEs)):
         RC_list.append(RC)
     else:
         # write to CIF
-        CrystalWriter(RC+'_extracted.cif').write(crystal)
+        ccdc.io.CrystalWriter(RC+'_extracted.cif').write(crystal)
         count += 1
 
 print(count, 'cifs found from', count_no, 'RCs')

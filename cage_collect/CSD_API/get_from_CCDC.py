@@ -11,8 +11,7 @@ Author: Andrew Tarzia
 Date Created: 14 Feb 2019 (Happy Valentine's Day)
 
 """
-from ccdc.io import EntryReader, CrystalWriter
-from ccdc.search import TextNumericSearch
+import ccdc
 
 
 def write_entry(number, DOI, CSD, solvent, disorder):
@@ -47,7 +46,7 @@ idents = []
 for i, number in enumerate(numbers):
     count_no += 1
     # print(number)
-    query = TextNumericSearch()
+    query = ccdc.search.TextNumericSearch()
     query.add_ccdc_number(int(number))
     hits = query.search(database='CSD')
     if len(hits) == 0:
@@ -70,7 +69,7 @@ for i, number in enumerate(numbers):
         # write to CIF
         if hit.identifier not in idents:
             idents.append(hit.identifier)
-            CrystalWriter(hit.identifier+'.cif').write(crystal.disordered_molecule)
+            ccdc.io.CrystalWriter(hit.identifier+'.cif').write(crystal.disordered_molecule)
             write_entry(number, hit.entry.doi, hit.identifier, solvent,
                         disorder)
             count += 1
