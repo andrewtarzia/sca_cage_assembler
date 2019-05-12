@@ -29,7 +29,7 @@ def convert_MOL3000_2_PDB_XYZ(file):
     convert_PDB_2_XYZ(file=pdbfile)
 
 
-def convert_CIF_2_PDB(file):
+def convert_CIF_2_PDB(file, wstruct=True):
     '''Convert CIF to PDB file, save and return structure.
 
     '''
@@ -47,7 +47,10 @@ def convert_CIF_2_PDB(file):
         structure.write(pdb_file)
         print('conversion done.')
     structure = read(pdb_file)
-    return pdb_file, structure
+    if wstruct:
+        return pdb_file, structure
+    else:
+        return pdb_file
 
 
 def convert_PDB_2_XYZ(file, comment=None):
