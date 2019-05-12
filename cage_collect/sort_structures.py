@@ -33,6 +33,11 @@ def main():
         DB_file = sys.argv[1]
         output_file = sys.argv[2]
 
+    # temporary check for non-implemented issue with extractedm.cif cases
+    # these cases were manually collected
+    for i in glob.glob('*.cif'):
+        if 'extractedm' in i:
+            logging.error('This code cannot handled extractedm cases! Please implement them.')
 
     refcodes = sorted([i.rstrip() for i in open(DB_file, 'r').readlines()])
     cifs = [i+'_extracted.cif' for i in refcodes]
