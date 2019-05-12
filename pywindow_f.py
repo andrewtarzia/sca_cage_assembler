@@ -62,7 +62,7 @@ def check_PDB_for_pore(file, diam=0.25):
         rebuild_molsys = molsys.rebuild_system()
         # output
         rebuild_molsys.dump_system(out_file,
-                                   include_coms=True,
+                                   include_coms=False,
                                    override=True)
         print('rebuild done.')
     else:
