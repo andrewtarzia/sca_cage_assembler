@@ -62,18 +62,24 @@ def main():
             continue
         if os.path.isfile(cif):
             pdb = IO_tools.convert_CIF_2_PDB(cif, wstruct=False)
-            logging.info(f'> doing {count} of {len(cifs)}')
-            # check if at least one molecule has a pore_diameter_opt > 0.25 angstrom
-            if pywindow_f.check_PDB_for_pore(file=pdb, diam=0.25):
-                OUTDATA = OUTDATA.append({'cif': cif, 'deleted': 'N'},
+            if pdb is None:
+                logging.warning(f'> ASE failed to load {cif}')
+                # CIF missing.
+                OUTDATA = OUTDATA.append({'cif': cif, 'deleted': 'M'},
                                          ignore_index=True)
             else:
-                # delete molecule if not
-                OUTDATA = OUTDATA.append({'cif': cif, 'deleted': 'Y'},
-                                         ignore_index=True)
-                os.remove(cif)
-                os.remove(pdb)
-                os.remove(pdb.replace('.pdb', '_rebuild.pdb'))
+                logging.info(f'> doing {count} of {len(cifs)}')
+                # check if at least one molecule has a pore_diameter_opt > 0.25 angstrom
+                if pywindow_f.check_PDB_for_pore(file=pdb, diam=0.25):
+                    OUTDATA = OUTDATA.append({'cif': cif, 'deleted': 'N'},
+                                             ignore_index=True)
+                else:
+                    # delete molecule if not
+                    OUTDATA = OUTDATA.append({'cif': cif, 'deleted': 'Y'},
+                                             ignore_index=True)
+                    os.remove(cif)
+                    os.remove(pdb)
+                    os.remove(pdb.replace('.pdb', '_rebuild.pdb'))
         else:
             # CIF missing.
             OUTDATA = OUTDATA.append({'cif': cif, 'deleted': 'M'},
