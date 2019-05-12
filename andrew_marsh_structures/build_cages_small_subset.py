@@ -335,6 +335,10 @@ Usage: build_cages.py output_file wipe run_build
 
     # prepare output file
     output_csv = output_file
+    if os.path.isfile(output_csv) is False:
+        with open(output_csv, 'w') as f:
+            f.write('name,bb1,SA1,bb2,SA2,topo,max_diam,p_diam,p_vol,p_diam_opt')
+            f.write(',p_vol_opt,w_no,w_max,w_min,w_avg,w_diff,collapse,asym\n')
     if wipe.lower() == 't':
         if input('are you sure you wanna wipe? (t)') == 't':
             with open(output_csv, 'w') as f:
