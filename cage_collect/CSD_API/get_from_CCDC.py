@@ -11,7 +11,8 @@ Author: Andrew Tarzia
 Date Created: 14 Feb 2019 (Happy Valentine's Day)
 
 """
-import ccdc
+import ccdc.io
+import ccdc.search
 
 
 def write_entry(number, DOI, CSD, solvent, disorder):
