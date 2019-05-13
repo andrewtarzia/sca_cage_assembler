@@ -17,7 +17,7 @@ import glob
 import json
 sys.path.insert(0, '/home/atarzia/thesource/')
 import calculations
-import GFN_functions
+import GFN_f
 
 
 if __name__ == "__main__":
@@ -45,7 +45,7 @@ Usage: analyze_GFN.py dir
         os.chdir(file + '/')
         # determine properties from GFN output file.
         # must set GFN exec to get the formatting version right
-        results[file] = GFN_functions.get_energies(out, GFN_exec)
+        results[file] = GFN_f.get_energies(out, GFN_exec)
         # calculate RMSD of all structures to input XYZ
         # obviously skip if SPE calculation
         if 'SPE' in targ_dir:

@@ -14,7 +14,7 @@ Date Created: 08 Mar 2019
 import sys
 from glob import glob
 sys.path.insert(0, '/home/atarzia/thesource/')
-from GFN_functions import run_GFN_base
+import GFN_f
 
 
 def main():
@@ -27,7 +27,7 @@ Usage: run_GFN.py suffix
     else:
         suffix = sys.argv[1]
     xyzs = glob('*' + suffix)
-    run_GFN_base(xyzs=xyzs)
+    GFN_f.GFN_from_xyzs(xyzs=xyzs)
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ import sys
 import json
 import glob
 sys.path.insert(0, '/home/atarzia/thesource/')
-from GFN_functions import get_energies
+from GFN_f import get_energies
 from stk_f import topo_2_property
 from IO_tools import write_csv_entry
 

@@ -91,7 +91,7 @@ Usage: get_all_struct_energies.py output_file suffix
         if file.rstrip('.xyz') not in list(DATA['NAMES']):
             IO_tools.convert_MOL3000_2_PDB_XYZ(file=file)
 
-    failed = GFN_f.run_GFN_base(xyzs=xyzs)
+    failed = GFN_f.GFN_from_xyzs(xyzs=xyzs, P=1)
     if len(failed) > 0:
         print('--------------------------------------------------------')
         print('---> Some GFN calcs failed.')

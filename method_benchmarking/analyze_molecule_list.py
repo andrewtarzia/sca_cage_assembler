@@ -16,7 +16,7 @@ from os.path import isfile, join
 import sys
 import glob
 sys.path.insert(0, '/home/atarzia/thesource/')
-from GFN_functions import get_energies
+from GFN_f import get_energies
 from IO_tools import write_csv_entry
 
 
