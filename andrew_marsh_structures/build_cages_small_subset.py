@@ -304,15 +304,17 @@ def main():
     """Run script.
 
     """
-    if (not len(sys.argv) == 3):
+    if (not len(sys.argv) == 4):
         logging.info(f"""
 Usage: build_cages.py output_file wipe run_build
-    output_file: file to output results
-    wipe: t/T if wipe output file""")
+    output_file (str): file to output results
+    wipe (str): t/T if wipe output file
+    targ_aldehyde (str): name of aldehyde to build/run analysis on""")
         sys.exit()
     else:
         output_file = sys.argv[1]
         wipe = sys.argv[2]
+        targ_aldehyde = sys.argv[3]
 
     macromod_ = '/home/atarzia/software/schrodinger_install'
     base_dir = '/home/atarzia/projects/andrew_marsh_structures/smaller_subset'
@@ -347,9 +349,11 @@ Usage: build_cages.py output_file wipe run_build
 
     # iterate over aldehydes
     for i, alde in enumerate(alde_files):
+        if alde_names[i] != targ_aldehyde:
+            continue
         # make diamines
         ami2_pairs = precursor_pairings(amine_CN=2, aldehyde=alde_names[i])
-        logging.info(f'aldehyde {alde} diamine pairs: {ami2_pairs}')
+        logging.info(f'aldehyde {alde_names[i]} diamine pairs: {ami2_pairs}')
         for ami2_name in ami2_pairs:
             ami2_file = os.path.join(ami2_dir, ami2_name+'.mol')
             ami2_struc = stk.StructUnit2(ami2_file, ['amine'])
