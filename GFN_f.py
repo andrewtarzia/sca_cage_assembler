@@ -16,6 +16,11 @@ import sys
 
 
 def run_GFN_base(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb'):
+def run_GFN():
+    '''
+
+    '''
+
 
 def check_GFN_complete(out_file):
     '''Checks if GFN job is completing by searching out_file for '* finished run on'.
