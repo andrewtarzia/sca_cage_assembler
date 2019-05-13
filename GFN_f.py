@@ -13,9 +13,9 @@ import logging
 import os
 import re
 import sys
+import subprocess
 
 
-def run_GFN_base(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb'):
 def run_GFN():
     '''
 
@@ -32,9 +32,29 @@ def check_GFN_complete(out_file):
             return True
     return False
 
+
+def GFN_from_xyzs(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb',
+                  P=1):
     '''Run GFN calculation using standard parameters and an xctrl file.
 
+    Parameters
+    ----------
+    xyzs : :class:`list` of :class:`str`
+        List of XYZ files to optimize
+
+    GFN_exec : :class:`str`
+        Full path to GFN executable. Defaults to using alias XTB
+
+    P : :class:`int`
+        Number of processors to use for calculation. Defaults to 1.
+
+    Returns
+    -------
+    failed : :class:`list` of :class:`str`
+        List of XYZ files whose GFN jobs failed
+
     '''
+    logging.info(f'running GFN using {GFN_exec}')
     if len(xyzs) == 0:
         return []
     setup_dirs(xyzs, xctrl='default')
@@ -47,13 +67,16 @@ def check_GFN_complete(out_file):
     ''')
     option = input('select an option!')
     if option == '1':
-        part_2 = '-I xctrl --hess >'
+        part_2 = '-I xctrl --hess '
     if option == '2':
-        part_2 = '-I xctrl --hess --gbsa >'
+        part_2 = '-I xctrl --hess --gbsa '
     if option == '3':
-        part_2 = '-I xctrl --ohess >'
+        part_2 = '-I xctrl --ohess '
     if option == '4':
-        part_2 = '-I xctrl --ohess --gbsa >'
+        part_2 = '-I xctrl --ohess --gbsa '
+
+    # implement number of processors
+    part_2 += '-P '+str(P)+' >'
 
     failed = []
     total = len(xyzs)
@@ -70,6 +93,8 @@ def check_GFN_complete(out_file):
             continue
         exec = GFN_exec + ' ' + i + ' ' + part_2 + ' ' + out
         res = system(exec)
+        # run GFN using unlimited stack resources
+        returncode = subprocess.call(f'ulimit -s unlimited ; {exec}', shell=True)
         if res != 0:
             failed.append(i)
         chdir('../')
