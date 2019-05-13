@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 sys.path.insert(0, '/home/atarzia/thesource/')
-from calculations import angle_between
+import calculations
 
 
 def plot_trapezoid(patches, pts, c):
@@ -36,8 +36,25 @@ def main():
     fig, ax = plt.subplots(figsize=(5, 5))
     # create patches and add LHS, RHS on figure
     patches = []
-    PTS = np.array([[5, 4], [5, 16],
-                    [15, 15], [15, 5]])
+    a_line_pt = [5, 5]
+    b_line_pt = [15, 5]
+    # set vectors and angles
+    A = 10
+    B = 9
+    C = 2.06
+    ABon2 = A-B / 2
+    cospimind = 2*(C)/ABon2
+    cospiminc = 2*(C)/ABon2
+    d = np.degrees(np.arccos(cospimind) + np.pi)
+    c = np.degrees(np.arccos(cospiminc) + np.pi)
+    a = 180 - d
+    b = 180 - c
+    # define trapezoid points based on variables
+    pt1 = [a_line_pt[0], a_line_pt[1]+A/2]
+    pt2 = [b_line_pt[0], b_line_pt[1]+B/2]
+    pt3 = [b_line_pt[0], b_line_pt[1]-B/2]
+    pt4 = [a_line_pt[0], a_line_pt[1]-A/2]
+    PTS = np.array([pt1, pt2, pt3, pt4])
     NN1 = PTS[1][1] - PTS[0][1]
     NN2 = PTS[2][1] - PTS[3][1]
     print(NN1, NN2)
@@ -45,22 +62,23 @@ def main():
     v1 = PTS[2] - PTS[1]
     v2 = PTS[2] - PTS[3]
     print(v1, v2)
-    angle = np.degrees(angle_between(v1, v2))
+    angle = np.degrees(calculations.angle_between(v1, v2))
     print(angle)
     L = np.linalg.norm(v1)
     print(L)
     RHS = round(L * np.cos(np.radians(180 - angle)), 2)
     print(RHS)
-    ax.text(1, 18, str(LHS)+' = '+str(RHS))
     v1 = PTS[3] - PTS[2]
     v2 = PTS[3] - PTS[0]
     print(v1, v2)
-    angle = np.degrees(angle_between(v1, v2))
+    angle = np.degrees(calculations.angle_between(v1, v2))
     print(angle)
     L = np.linalg.norm(v2)
     print(L/2)
     RHS = round(L * np.cos(np.radians(180 - angle)), 2)
     print(RHS)
+    ax.text(1, 1, 'A ='+str(A)+' B ='+str(B))
+    ax.text(1, 1, 'a ='+str(a)+' b ='+str(b)+' c ='+str(c)+' d ='+str(d))
     ax.text(1, 1, str(LHS)+' = '+str(RHS))
     patches = plot_trapezoid(patches=patches, pts=PTS, c='k')
 
