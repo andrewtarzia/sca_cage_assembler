@@ -45,11 +45,11 @@ def check_PDB_for_pore(file, diam=0.25):
         mol = rebuilt_structure.molecules[molecule]
         try:
             analysis = mol.full_analysis()
+            if analysis['pore_diameter_opt']['diameter'] >= diam:
+                # found at least one - returning
+                return True
         except ValueError:
             logging.warning(f'{file}_{molecule} failed pywindow full_analysis.')
-        if analysis['pore_diameter_opt']['diameter'] >= diam:
-            # found at least one - returning
-            return True
     # if none found, return False
     return False
 
