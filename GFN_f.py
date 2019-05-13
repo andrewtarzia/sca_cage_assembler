@@ -16,6 +16,17 @@ import sys
 
 
 def run_GFN_base(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb'):
+
+def check_GFN_complete(out_file):
+    '''Checks if GFN job is completing by searching out_file for '* finished run on'.
+
+    '''
+    lines = open(out_file, 'r').readlines()
+    for line in reversed(lines):
+        if '* finished run on' in line:
+            return True
+    return False
+
     '''Run GFN calculation using standard parameters and an xctrl file.
 
     '''
@@ -44,14 +55,14 @@ def run_GFN_base(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb'):
     count = 0
     for i in xyzs:
         file = i.replace('.xyz', '')
-        #############
-        # add a check for already completed job some how?!
-        ############
         logging.info(f'doing {file}, which is {count} out of {total}')
         # move dirs
         os.chdir(file + '/')
         out = file + '.output'
         chdir(file + '/')
+        # check if xtb normal termination has occured
+        if check_GFN_complete(out_file=out):
+            continue
         exec = GFN_exec + ' ' + i + ' ' + part_2 + ' ' + out
         res = system(exec)
         if res != 0:
