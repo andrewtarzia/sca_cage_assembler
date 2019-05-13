@@ -59,7 +59,7 @@ def main():
     """
     if (not len(sys.argv) == 4):
         logging.info(f"""
-Usage: build_cages.py output_file wipe run_build
+Usage: build_cages_small_subset.py output_file wipe targ_aldehyde
     output_file (str): file to output results
     wipe (str): t/T if wipe output file
     targ_aldehyde (str): name of aldehyde to build/run analysis on""")
