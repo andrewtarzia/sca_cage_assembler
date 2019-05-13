@@ -9,11 +9,10 @@ Author: Andrew Tarzia
 
 Date Created: 15 Mar 2019
 """
-
-from os import system, chdir, getcwd
-from os.path import isfile, isdir
+import logging
+import os
+import re
 import sys
-from re import compile
 
 
 def run_GFN_base(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb'):
@@ -48,7 +47,9 @@ def run_GFN_base(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb'):
         #############
         # add a check for already completed job some how?!
         ############
-        print('doing {}, which is {} out of {}'.format(file, count, total))
+        logging.info(f'doing {file}, which is {count} out of {total}')
+        # move dirs
+        os.chdir(file + '/')
         out = file + '.output'
         chdir(file + '/')
         exec = GFN_exec + ' ' + i + ' ' + part_2 + ' ' + out
@@ -57,6 +58,9 @@ def run_GFN_base(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb'):
             failed.append(i)
         chdir('../')
         print('done')
+        # return to dir
+        os.chdir('../')
+        logging.info(f'done')
         count += 1
 
     print('--------------------------------------')
@@ -90,19 +94,19 @@ def setup_dirs(xyzs, xctrl='default'):
     for i in xyzs:
         file = i.replace('.xyz', '')
         print(file)
-        if isdir(file) is False:
-            system('mkdir ' + file)
-        system('cp ' + i + ' ' + file + '/')
-        if isfile('xctrl') is False:
+        if os.path.isdir(file) is False:
+            os.system('mkdir ' + file)
+        os.system('cp ' + i + ' ' + file + '/')
+        if os.path.isfile('xctrl') is False:
             if xctrl == 'default':
                 with open('xctrl', 'w') as f:
                     f.write(default_xctrl())
-                system('cp xctrl ' + file + '/')
+                os.system('cp xctrl ' + file + '/')
             else:
-                print('copy your xctrl file in this dir!', getcwd())
+                logging.error(f'copy your xctrl file in this dir!: {os.getcwd()}')
                 sys.exit('exitting.')
         else:
-            system('cp xctrl ' + file + '/')
+            os.system('cp xctrl ' + file + '/')
 
 
 def get_energies(output_file, GFN_exec):
@@ -120,7 +124,7 @@ def get_energies(output_file, GFN_exec):
     for line in open(output_file, 'r'):
         if GFN_exec == '/home/atarzia/software/xtb_190418/bin/xtb':
             # regex:
-            nums = compile(r"[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?")
+            nums = re.compile(r"[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?")
             # free energy in a.u.
             if '| TOTAL FREE ENERGY' in line:
                 FE_au = nums.search(line.rstrip()).group(0)
