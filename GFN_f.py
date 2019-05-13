@@ -83,29 +83,18 @@ def GFN_from_xyzs(xyzs, GFN_exec='/home/atarzia/software/xtb_190418/bin/xtb',
     count = 0
     for i in xyzs:
         file = i.replace('.xyz', '')
-        print(file)
-        if file != 'aldehyde3_ami_1ax_4p4_opt':
-            continue
         logging.info(f'doing {file}, which is {count} out of {total}')
         # move dirs
         os.chdir(file + '/')
-        print(os.getcwd())
         out = file + '.output'
-        print(out)
         # check if xtb normal termination has occured
         if check_GFN_complete(out_file=out):
             continue
-        print('done not')
         exec = GFN_exec + ' ' + i + ' ' + part_2 + ' ' + out
-        print(exec)
         # run GFN using unlimited stack resources
         returncode = subprocess.call(f'ulimit -s unlimited ; {exec}', shell=True)
-        print(returncode, '     1')
-        sys.exit()
-        # res = os.system(exec)
-        if res != 0:
+        if returncode != 0:
             failed.append(i)
-        print(res)
         # return to dir
         os.chdir('../')
         logging.info(f'done')
