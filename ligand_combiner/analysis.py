@@ -104,8 +104,7 @@ def get_all_pairs(molecule_pop, settings, mol_pair=None):
                         if comb.test_N_N_lengths() is False:
                             continue
                     # get final geometrical properties
-                    comb.calculate_planarity(vector_length=vector_length,
-                                             vector_std=vector_std)
+                    comb.calculate_planarity(vector_length=vector_length)
                     # check that the pairs sum to 180
                     comb.get_angle_deviations()
                     comb.get_planarity_deviation()
@@ -130,11 +129,11 @@ def output_analysis(molecule_pop, pair_data, angle_tol, energy_tol,
             prefix = mol_pair[0]+'-'+mol_pair[1]+'_'
         print(f'molecule: {poly1.name}')
         print(f'no. pairs: {len(combinations)}')
-        X_data = [max([i.angle1_deviation, i.angle2_deviation])
+        X_data = [i.max_angle_dev
                   for i in combinations]
-        Y_data = [i.planar_diff
+        Y_data = [i.max_planar_dev
                   for i in combinations]
-        Z_data = [max([i.lenergy, i.senergy])/energy_tol
+        Z_data = [i.max_pair_energy/energy_tol
                   for i in combinations]
         # define colour map based on energy tol
         cmap = {'mid_point': energy_tol/2/energy_tol,
