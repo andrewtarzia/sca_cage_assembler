@@ -36,50 +36,49 @@ def main():
     fig, ax = plt.subplots(figsize=(5, 5))
     # create patches and add LHS, RHS on figure
     patches = []
-    a_line_pt = [5, 5]
-    b_line_pt = [15, 5]
+    a_line_pt = [6, 10]
+    b_line_pt = [10, 10]
     # set vectors and angles
     A = 10
-    B = 9
-    C = 2.06
-    ABon2 = A-B / 2
-    cospimind = 2*(C)/ABon2
-    cospiminc = 2*(C)/ABon2
-    d = np.degrees(np.arccos(cospimind) + np.pi)
-    c = np.degrees(np.arccos(cospiminc) + np.pi)
+    B = 7
+    # define trapezoid points based on variables
+    pt1 = np.asarray([a_line_pt[0], a_line_pt[1]+A/2])
+    pt2 = np.asarray([b_line_pt[0], b_line_pt[1]+B/2])
+    pt3 = np.asarray([b_line_pt[0], b_line_pt[1]-B/2])
+    pt4 = np.asarray([a_line_pt[0], a_line_pt[1]-A/2])
+    C = np.linalg.norm(pt1-pt2) / 2
+    print('C', C)
+    ABon2 = (A-B) / 2
+    print('ABon2', ABon2)
+    cospimind = ABon2/(2*(C))
+    cospiminc = ABon2/(2*(C))
+    print('cos', cospiminc, cospimind)
+    print('acos', np.arccos(cospiminc), np.arccos(cospimind))
+    d = np.degrees(np.pi - np.arccos(cospimind))
+    c = np.degrees(np.pi - np.arccos(cospiminc))
     a = 180 - d
     b = 180 - c
-    # define trapezoid points based on variables
-    pt1 = [a_line_pt[0], a_line_pt[1]+A/2]
-    pt2 = [b_line_pt[0], b_line_pt[1]+B/2]
-    pt3 = [b_line_pt[0], b_line_pt[1]-B/2]
-    pt4 = [a_line_pt[0], a_line_pt[1]-A/2]
+    print('angles:', a, b, c, d)
     PTS = np.array([pt1, pt2, pt3, pt4])
-    NN1 = PTS[1][1] - PTS[0][1]
-    NN2 = PTS[2][1] - PTS[3][1]
-    print(NN1, NN2)
+    NN1 = A
+    NN2 = B
     LHS = round((NN1 - NN2) / 2, 2)
-    v1 = PTS[2] - PTS[1]
-    v2 = PTS[2] - PTS[3]
-    print(v1, v2)
+    v1 = PTS[1] - PTS[0]
+    v2 = PTS[1] - PTS[2]
     angle = np.degrees(calculations.angle_between(v1, v2))
-    print(angle)
+    print('d:', angle)
     L = np.linalg.norm(v1)
-    print(L)
+    print('2C:', L)
     RHS = round(L * np.cos(np.radians(180 - angle)), 2)
-    print(RHS)
-    v1 = PTS[3] - PTS[2]
-    v2 = PTS[3] - PTS[0]
-    print(v1, v2)
-    angle = np.degrees(calculations.angle_between(v1, v2))
-    print(angle)
-    L = np.linalg.norm(v2)
-    print(L/2)
-    RHS = round(L * np.cos(np.radians(180 - angle)), 2)
-    print(RHS)
-    ax.text(1, 1, 'A ='+str(A)+' B ='+str(B))
-    ax.text(1, 1, 'a ='+str(a)+' b ='+str(b)+' c ='+str(c)+' d ='+str(d))
-    ax.text(1, 1, str(LHS)+' = '+str(RHS))
+    print('RHS', RHS)
+    ax.text(1, 15, 'A = '+str(round(A, 2)))
+    ax.text(1, 13, 'B = '+str(round(B, 2)))
+    ax.text(1, 11, 'C = '+str(round(C, 2)))
+    ax.text(1, 9, 'a = '+str(round(a, 2)))
+    ax.text(1, 7, 'b = '+str(round(b, 2)))
+    ax.text(1, 5, 'c = '+str(round(c, 2)))
+    ax.text(1, 3, 'd = '+str(round(d, 2)))
+    ax.text(1, 1, str(round(LHS, 2))+' = '+str(round(RHS, 2)))
     patches = plot_trapezoid(patches=patches, pts=PTS, c='k')
 
     # set up frame
@@ -88,7 +87,7 @@ def main():
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_xlabel('X', fontsize=16)
     ax.set_ylabel('Y', fontsize=16)
-    ax.set_xlim(0, 20)
+    ax.set_xlim(0, 15)
     ax.set_ylim(0, 20)
     fig.tight_layout()
     fig.savefig('viz_trapezoid.pdf', dpi=720,
