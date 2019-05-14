@@ -34,9 +34,10 @@ class Combination:
         self.smol = smol
         self.lconf = lconf
         self.sconf = sconf
-        # get MMFF energy from two molecule objects
+        # get relative UFF energy from two molecule objects
         self.lenergy = lmol.geom_prop[lconf]['rel_energy']
         self.senergy = smol.geom_prop[sconf]['rel_energy']
+        self.max_pair_energy = max([self.lenergy, self.senergy])
         # get NN distances
         self.lNN_dist = lmol.geom_prop[lconf]['NN_v']
         self.sNN_dist = smol.geom_prop[sconf]['NN_v']
@@ -308,18 +309,19 @@ def get_geometrical_properties(mol, cids, type):
             mol.geom_prop[cid]['skip'] = True
             # print('skipping, NBBN dihedral > {}'.format(dihedral_lim))
             continue
+
         # also check that the N atoms are pointing away from the core
         # by making sure COM_core-N_pos > COM_core-liga_pos
         core_2_COM = np.asarray(mol.geom_prop[cid]['COM']) \
-                     - np.asarray(mol.geom_prop[cid]['core1']['pos'])
+            - np.asarray(mol.geom_prop[cid]['core1']['pos'])
         core_2_N1 = np.asarray(mol.geom_prop[cid]['liga1']['N_pos']) \
-                     - np.asarray(mol.geom_prop[cid]['core1']['pos'])
+            - np.asarray(mol.geom_prop[cid]['core1']['pos'])
         core_2_liga1 = np.asarray(mol.geom_prop[cid]['liga1']['pos']) \
-                     - np.asarray(mol.geom_prop[cid]['core1']['pos'])
+            - np.asarray(mol.geom_prop[cid]['core1']['pos'])
         core_2_N2 = np.asarray(mol.geom_prop[cid]['liga2']['N_pos']) \
-                     - np.asarray(mol.geom_prop[cid]['core1']['pos'])
+            - np.asarray(mol.geom_prop[cid]['core1']['pos'])
         core_2_liga2 = np.asarray(mol.geom_prop[cid]['liga2']['pos']) \
-                     - np.asarray(mol.geom_prop[cid]['core1']['pos'])
+            - np.asarray(mol.geom_prop[cid]['core1']['pos'])
 
         N1_core_COM_angle = calculations.angle_between(core_2_N1, core_2_COM)
         L1_core_COM_angle = calculations.angle_between(core_2_liga1, core_2_COM)
@@ -333,11 +335,11 @@ def get_geometrical_properties(mol, cids, type):
                 continue
 
         NN_v = np.asarray(mol.geom_prop[cid]['liga1']['N_pos']) \
-                          - np.asarray(mol.geom_prop[cid]['liga2']['N_pos'])
+            - np.asarray(mol.geom_prop[cid]['liga2']['N_pos'])
         BCN_1 = np.asarray(mol.geom_prop[cid]['liga1']['CC_pos']) \
-                           - np.asarray(mol.geom_prop[cid]['liga1']['N_pos']).tolist()
+            - np.asarray(mol.geom_prop[cid]['liga1']['N_pos']).tolist()
         BCN_2 = np.asarray(mol.geom_prop[cid]['liga2']['CC_pos']) \
-                           - np.asarray(mol.geom_prop[cid]['liga2']['N_pos']).tolist()
+            - np.asarray(mol.geom_prop[cid]['liga2']['N_pos']).tolist()
         mol.geom_prop[cid]['NN_v'] = NN_v.tolist()
         mol.geom_prop[cid]['BCN_1'] = BCN_1.tolist()
         mol.geom_prop[cid]['BCN_2'] = BCN_2.tolist()
@@ -351,12 +353,16 @@ def get_geometrical_properties(mol, cids, type):
         # get desired angles in radian
         # negative signs applied based on the direction of vectors defined
         # above - not dependance on ordering of BB placement in stk
-        mol.geom_prop[cid]['NN_BCN_1'] = float(np.degrees(
-            calculations.angle_between(np.asarray(mol.geom_prop[cid]['BCN_1']),
-                                        np.asarray(mol.geom_prop[cid]['NN_v']))))
-        mol.geom_prop[cid]['NN_BCN_2'] = float(np.degrees(
-            calculations.angle_between(np.asarray(mol.geom_prop[cid]['BCN_2']),
-                                        -np.asarray(mol.geom_prop[cid]['NN_v']))))
+        mol.geom_prop[cid]['NN_BCN_1'] = float(
+            np.degrees(
+                calculations.angle_between(
+                    np.asarray(mol.geom_prop[cid]['BCN_1']),
+                    np.asarray(mol.geom_prop[cid]['NN_v']))))
+        mol.geom_prop[cid]['NN_BCN_2'] = float(
+            np.degrees(
+                calculations.angle_between(
+                    np.asarray(mol.geom_prop[cid]['BCN_2']),
+                    -np.asarray(mol.geom_prop[cid]['NN_v']))))
 
     return mol
 
