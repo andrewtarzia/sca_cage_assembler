@@ -97,6 +97,22 @@ class Combination:
         else:
             return False
 
+    def print_all_properties(self):
+        '''Print all properties of a Combination.
+
+        '''
+        print('mol names:', self.lmol.name, self.smol.name)
+        print('conformers:', self.lconf, self.sconf)
+        print('energies:', self.lenergy, self.senergy)
+        print('NN distances:', self.lNN_dist, self.sNN_dist)
+        print('LHSs:', self.LHS1, self.LHS2)
+        print('l angles:', self.l_angle1, self.l_angle2)
+        print('s angles:', self.s_angle1, self.s_angle2)
+        print('s outer angles:', self.souter_angle1, self.souter_angle2)
+        print('RHSs:', self.RHS1, self.RHS2)
+        print('angle devs:', self.angle1_deviation, self.angle2_deviation)
+        print('planarity devs:', self.planar_dev1, self.planar_dev2)
+
 
 def atoms_2_vect(ASE, p1, p2):
     '''Append to ASE.Atoms() the interpolation between two points.

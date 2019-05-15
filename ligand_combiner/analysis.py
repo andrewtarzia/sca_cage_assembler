@@ -129,6 +129,10 @@ def output_analysis(molecule_pop, pair_data, angle_tol, energy_tol,
             prefix = mol_pair[0]+'-'+mol_pair[1]+'_'
         print(f'molecule: {poly1.name}')
         print(f'no. pairs: {len(combinations)}')
+        # debug print statements
+        for i in combinations:
+            i.print_all_properties()
+            input()
         X_data = [i.max_angle_dev
                   for i in combinations]
         Y_data = [i.max_planar_dev
