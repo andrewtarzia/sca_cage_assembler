@@ -67,6 +67,12 @@ class Combination:
         self.souter_angle1 = np.radians(180 - self.s_angle1)
         self.souter_angle2 = np.radians(180 - self.s_angle2)
         # RHS = 2|C| * cos(pi - angle)
+        print(self.s_angle1)
+        print((180 - self.s_angle1))
+        print(np.radians(180 - self.s_angle1))
+        print(self.souter_angle1)
+        print(np.cos(self.souter_angle1))
+        sys.exit()
         self.RHS1 = (2 * vector_length) * np.cos(self.souter_angle1)
         self.RHS2 = (2 * vector_length) * np.cos(self.souter_angle2)
 
