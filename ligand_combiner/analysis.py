@@ -45,8 +45,8 @@ def get_all_pairs(molecule_pop, settings, mol_pair=None):
     # define bond length vector to use based on N-Pd bond distances extracted
     # from survey
     # N-Pd-N length
-    vector_length = 2 * settings['bond_mean']
-    vector_std = 2 * settings['bond_std']
+    vector_length = settings['bond_mean']
+    vector_std = settings['bond_std']
     # obtain all pair properties in molecule DB
     # poly1 should be the 'large' molecule, while poly2 should be the 'small'
     # molecule of the pair
@@ -136,28 +136,31 @@ def output_analysis(molecule_pop, pair_data, angle_tol, energy_tol,
         Z_data = [i.max_pair_energy/energy_tol
                   for i in combinations]
         # define colour map based on energy tol
-        cmap = {'mid_point': energy_tol/2/energy_tol,
-                'cmap': cm.RdBu,
-                'ticks': [0, energy_tol/2/energy_tol, energy_tol/energy_tol],
-                'labels': ['0', str(energy_tol/2), str(energy_tol)],
-                'cmap_label': 'energy [kJ/mol]'}
+        # cmap = {'mid_point': energy_tol/2/energy_tol,
+        #         'cmap': cm.RdBu,
+        #         'ticks': [0, energy_tol/2/energy_tol, energy_tol/energy_tol],
+        #         'labels': ['0', str(energy_tol/2), str(energy_tol)],
+        #         'cmap_label': 'energy [kJ/mol]'}
 
         fig, ax = plt.subplots(figsize=(8, 5))
-        cmp = plotting.define_plot_cmap(fig, ax,
-                                        mid_point=cmap['mid_point'],
-                                        cmap=cmap['cmap'],
-                                        ticks=cmap['ticks'],
-                                        labels=cmap['labels'],
-                                        cmap_label=cmap['cmap_label'])
-        ax.scatter(X_data, Y_data, c=cmp(Z_data),
-                   edgecolors='k',
-                   marker='o', alpha=0.4, s=80)
+        # cmp = plotting.define_plot_cmap(fig, ax,
+        #                                 mid_point=cmap['mid_point'],
+        #                                 cmap=cmap['cmap'],
+        #                                 ticks=cmap['ticks'],
+        #                                 labels=cmap['labels'],
+        #                                 cmap_label=cmap['cmap_label'])
+        # ax.scatter(X_data, Y_data, c=cmp(Z_data),
+        #            edgecolors='k',
+        #            marker='o', alpha=0.4, s=80)
+        ax.scatter(X_data, Y_data, c='#C70039',
+                   edgecolors='none',
+                   marker='o', alpha=0.4, s=40)
         # Set number of ticks for x-axis
         ax.tick_params(axis='both', which='major', labelsize=16)
         ax.set_xlabel('maximum angle deviation [degrees]', fontsize=16)
         ax.set_ylabel('deviation from planarity', fontsize=16)
         ax.set_xlim(0, 180)
-        ax.set_ylim(0, round(max(Y_data))+1)
+        ax.set_ylim(0, 5)  # round(max(Y_data))+1)
         # add constraint lines
         add_clever_lines(ax)
         if mol_pair is None:
@@ -166,7 +169,7 @@ def output_analysis(molecule_pop, pair_data, angle_tol, energy_tol,
             ax.set_title(prefix.replace('_', ' '), fontsize=16)
             ax.legend(fontsize=12)
         fig.tight_layout()
-        fig.savefig(prefix+'main.pdf', dpi=720,
+        fig.savefig(prefix+'main.pdf', dpi=360,
                     bbox_inches='tight')
         plt.close()
 
