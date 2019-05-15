@@ -12,6 +12,7 @@ Date Created: 05 May 2019
 """
 
 import sys
+import logging
 import stk
 sys.path.insert(0, '/home/atarzia/thesource/')
 import analysis
@@ -37,32 +38,35 @@ def main():
         mol1 = sys.argv[5]
         mol2 = sys.argv[6]
 
-    print('loading in populations')
+    logging.info('loading in populations')
     # load in population
     molecule_pop = stk.Population.load('molecules.pop',
                                        member_init=stk.Molecule.from_dict)
-    print('done')
-    print('----------------------------------')
+    logging.info('done')
+    logging.info('----------------------------------')
 
-    print('obtaining properties for all pairs')
+    logging.info('obtaining properties for all pairs')
     all_pairs = analysis.get_all_pairs(molecule_pop=molecule_pop,
                                        settings={'bond_mean': bond_mean,
                                                  'bond_std': bond_std,
                                                  'energy_tol': energy_tol},
                                        mol_pair=(mol1, mol2))
 
-    print('----------------------------------')
-    print('done')
-    print(f'number of pairs: {len(all_pairs)}')
-    print('----------------------------------')
+    logging.info('----------------------------------')
+    logging.info('done')
+    logging.info(f'number of pairs: {len(all_pairs)}')
+    logging.info('----------------------------------')
     # do analysis
-    print('doing all analysis')
+    logging.info('doing all analysis')
     analysis.output_analysis(molecule_pop=molecule_pop, pair_data=all_pairs,
                              angle_tol=angle_tol, energy_tol=energy_tol,
                              mol_pair=(mol1, mol2))
-    print('done')
-    print('----------------------------------')
+    logging.info('done')
+    logging.info('----------------------------------')
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG, format='%(levelname)s-%(message)s')
+    logging.debug(f'Debug mode!')
+    # logging.basicConfig(level=logging.INFO, format='')
     main()

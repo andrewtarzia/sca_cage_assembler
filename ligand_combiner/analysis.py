@@ -14,6 +14,7 @@ Date Created: 17 Apr 2019
 
 import sys
 import numpy as np
+import logging
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 sys.path.insert(0, '/home/atarzia/thesource/')
@@ -52,7 +53,7 @@ def get_all_pairs(molecule_pop, settings, mol_pair=None):
     # molecule of the pair
     all_pairs = []
     for i, poly1 in enumerate(molecule_pop):
-        print(f'molecule: {poly1.name}')
+        logging.info(f'molecule: {poly1.name}')
         # turn on pair specific checks
         if mol_pair is not None:
             if poly1.name != mol_pair[0]:
@@ -65,7 +66,7 @@ def get_all_pairs(molecule_pop, settings, mol_pair=None):
             if mol_pair is not None:
                 if poly2.name != mol_pair[1]:
                     continue
-            print(f'pair: {poly1.name}, {poly2.name}')
+            logging.info(f'pair: {poly1.name}, {poly2.name}')
             for conf1 in poly1.geom_prop:
                 PROP1 = poly1.geom_prop[conf1]
                 # skip conformer if dihedral meant the N's were not on the
@@ -127,8 +128,8 @@ def output_analysis(molecule_pop, pair_data, angle_tol, energy_tol,
             prefix = poly1.name + '_analysis_'
         else:
             prefix = mol_pair[0]+'-'+mol_pair[1]+'_'
-        print(f'molecule: {poly1.name}')
-        print(f'no. pairs: {len(combinations)}')
+        logging.info(f'molecule: {poly1.name}')
+        logging.info(f'no. pairs: {len(combinations)}')
         # debug print statements
         for i in combinations:
             i.print_all_properties()

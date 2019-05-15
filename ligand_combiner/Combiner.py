@@ -12,6 +12,7 @@ Date Created: 17 Apr 2019
 """
 
 import sys
+import logging
 import ase
 import numpy as np
 from rdkit.Chem import AllChem as Chem
@@ -372,7 +373,7 @@ def get_geometrical_properties(mol, cids, type):
         mol.geom_prop[cid]['NN_v'] = NN_v.tolist()
         mol.geom_prop[cid]['BCN_1'] = BCN_1.tolist()
         mol.geom_prop[cid]['BCN_2'] = BCN_2.tolist()
-        print('{}: confomer {} passed'.format(mol.name, cid))
+        logging.info('{}: confomer {} passed'.format(mol.name, cid))
         # output for viz
         # if False:
         if True:
@@ -450,9 +451,9 @@ def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
     link_item = popns[2][pop_ids[2]]
     if type == 'ABCBA':
         molecule = stk_f.build_ABCBA(core=core_item,
-                                             liga=liga_item,
-                                             link=link_item,
-                                             flippedlink=inverted)
+                                     liga=liga_item,
+                                     link=link_item,
+                                     flippedlink=inverted)
         prefix = core_item.name + '_'
         prefix += liga_item.name + '_'
         if inverted:
@@ -461,7 +462,7 @@ def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
             prefix += link_item.name
     elif type == 'ABA':
         molecule = stk_f.build_ABA(core=core_item,
-                                           liga=liga_item)
+                                   liga=liga_item)
         prefix = core_item.name + '_'
         prefix += liga_item.name
 

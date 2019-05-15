@@ -13,6 +13,7 @@ Date Created: 04 Apr 2019
 
 import sys
 import itertools
+import logging
 import pandas as pd
 from rdkit.Chem import AllChem as Chem
 import os
@@ -66,7 +67,7 @@ def main():
     link_dir = proj_dir + 'linkers/'
 
     if rebuild == 't':
-        print('building molecules')
+        logging.info('building molecules')
         # clear already built molecules
         for file in glob.glob('AB*.pdb'):
             os.remove(os.path.join('./', file))
@@ -80,14 +81,14 @@ def main():
             os.remove(os.path.join('./', file))
         # build molecule populations
         core_pop = stk_f.build_population(directory=core_dir,
-                                                  structunit='StructUnit2',
-                                                  fgs=['bromine'])
+                                          structunit='StructUnit2',
+                                          fgs=['bromine'])
         liga_pop = stk_f.build_population(directory=liga_dir,
-                                                  structunit='StructUnit',
-                                                  fgs=['bromine'])
+                                          structunit='StructUnit',
+                                          fgs=['bromine'])
         link_pop = stk_f.build_population(directory=link_dir,
-                                                  structunit='StructUnit2',
-                                                  fgs=['bromine'])
+                                          structunit='StructUnit2',
+                                          fgs=['bromine'])
 
         # for the linker molecules, we attach an invertable flag attribute
         link_mol_prop = pd.read_csv(os.path.join(link_dir, 'linkers.csv'))
@@ -169,10 +170,13 @@ def main():
             MOL = Chem.MolFromSmiles(Chem.MolToSmiles(poly.mol))
             mol_list.append(MOL)
         rdkit_f.mol_list2grid(molecules=mol_list, filename='built_molecules',
-                                      mol_per_row=3, maxrows=3, subImgSize=(200, 200))
-        print('done')
-        print('----------------------------------')
+                              mol_per_row=3, maxrows=3, subImgSize=(200, 200))
+        logging.info('done')
+        logging.info('----------------------------------')
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG, format='%(levelname)s-%(message)s')
+    logging.debug(f'Debug mode!')
+    # logging.basicConfig(level=logging.INFO, format='')
     main()
