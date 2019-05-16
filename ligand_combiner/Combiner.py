@@ -463,7 +463,7 @@ def minimize_all_conformers(stk_mol, confs, FF):
         elif FF == 'MMFF':
             from stk import MMFF
             mmff = MMFF()
-            mmff.optimize(stk_mol)
+            mmff.optimize(stk_mol, conformer=cid)
 
 
 def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
