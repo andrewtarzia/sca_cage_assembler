@@ -31,13 +31,15 @@ def analyze_conformer_energies(stk_mol, name):
     UFF_energies = []
     dihedrals = []
     GFN_energies = []
-    conformers = 0
+    marks = []
+    conformers = range(stk_mol.mol.GetNumConformers())
     for cid in conformers:
         UFF_energy = Combiner.get_energy(stk_mol=stk_mol,
                                          conformer=cid, FF='UFF')
         UFF_energies.append(UFF_energy)
-        GFN_energy = GETGFNENERGY(stk_mol=stk_mol,
-                                  conformer=cid, FF='GFN')
+        # GFN_energy = GETGFNENERGY(stk_mol=stk_mol,
+        #                           conformer=cid, FF='GFN')
+        GFN_energy = 0
         GFN_energies.append(GFN_energy)
         # calculate the dihedral between N1 - liga1_com - liga2_com - N2
         NBBN_dihed = calculations.get_dihedral(
@@ -45,12 +47,21 @@ def analyze_conformer_energies(stk_mol, name):
             pt2=stk_mol.geom_prop[cid]['liga1']['pos'],
             pt3=stk_mol.geom_prop[cid]['liga2']['pos'],
             pt4=stk_mol.geom_prop[cid]['liga2']['N_pos'])
-        dihedrals.append(NBBN_dihed)
+        dihedrals.append(abs(NBBN_dihed))
+        if Combiner.check_binder_directions(mol=stk_mol, cid=cid):
+            marks.append('x')
+        else:
+            marks.append('o')
 
-    UFF_range = (round(min(UFF_energies))-0.1*round(min(UFF_energies)),
-                 round(max(UFF_energies))+0.1*round(max(UFF_energies)))
-    GFN_range = (round(min(GFN_energies))-0.1*round(min(GFN_energies)),
-                 round(max(GFN_energies))+0.1*round(max(GFN_energies)))
+    rel_UFF = [i-min(UFF_energies) for i in UFF_energies]
+    rel_GFN = [i-min(GFN_energies) for i in GFN_energies]
+
+    # UFF_range = (round(min(UFF_energies)-0.1*min(UFF_energies)),
+    #              round(max(UFF_energies)+0.1*max(UFF_energies)))
+    # GFN_range = (round(min(GFN_energies)-0.1*min(GFN_energies)),
+    #              round(max(GFN_energies)+0.1*max(GFN_energies)))
+    UFF_range = (0, max(rel_UFF)+0.2*max(rel_UFF))
+    GFN_range = (0, max(rel_GFN)+0.2*max(rel_GFN))
     # plot scatter plots of energies on y axis, dihedrals on x axis
     # include XRD energy as horiz line
     fig, ax = plotting.scatter_plot(X=dihedrals, Y=rel_UFF,
