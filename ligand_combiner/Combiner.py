@@ -286,7 +286,10 @@ def get_geometrical_properties(mol, cids, type):
 
     # new attribute for mol
     mol.geom_prop = {}
+    passed = 0
+    total = 0
     for cid in cids:
+        total += 1
         # dictinary per conformer
         conf_dict = {}
         # get energy relative to minimum for all conformers
@@ -371,7 +374,7 @@ def get_geometrical_properties(mol, cids, type):
         dihedral_lim = 20
         if abs(NBBN_dihedral) > dihedral_lim:
             mol.geom_prop[cid]['skip'] = True
-            # print('skipping, NBBN dihedral > {}'.format(dihedral_lim))
+            # logging.info(f'{mol.name}: confomer {cid} SKIPPPED - NBBN dihed = {NBBN_dihedral}')
             continue
 
         # also check that the N atoms are pointing away from the core
@@ -395,7 +398,7 @@ def get_geometrical_properties(mol, cids, type):
         if N1_core_COM_angle > L1_core_COM_angle:
             if N2_core_COM_angle > L2_core_COM_angle:
                 mol.geom_prop[cid]['skip'] = True
-                # print("skipping, both N's point backwards")
+                # logging.info(f'{mol.name}: confomer {cid} SKIPPPED - N backwards')
                 continue
 
         NN_v = np.asarray(mol.geom_prop[cid]['liga1']['N_pos']) \
@@ -407,7 +410,7 @@ def get_geometrical_properties(mol, cids, type):
         mol.geom_prop[cid]['NN_v'] = NN_v.tolist()
         mol.geom_prop[cid]['BCN_1'] = BCN_1.tolist()
         mol.geom_prop[cid]['BCN_2'] = BCN_2.tolist()
-        logging.info('{}: confomer {} passed'.format(mol.name, cid))
+        passed += 1
         # output for viz
         # if False:
         if True:
@@ -427,6 +430,9 @@ def get_geometrical_properties(mol, cids, type):
                 calculations.angle_between(
                     np.asarray(mol.geom_prop[cid]['BCN_2']),
                     -np.asarray(mol.geom_prop[cid]['NN_v']))))
+        # logging.info(f'{mol.name}: confomer {cid} passed')
+
+    logging.info(f'{passed} of {total} passed, {round(passed/total, 2)*100} %')
 
     return mol
 
