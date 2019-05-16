@@ -96,14 +96,15 @@ def get_all_pairs(molecule_pop, settings, mol_pair=None):
                     if comb.senergy > settings['energy_tol']:
                         continue
                     # obtain all properties
+                    # 16/05/19 -- not checking N-N distances
                     # check N-N distance of poly1-conf > poly2-conf
                     # only save combinations with lNN_dist > sNN_dist
                     # if mol_pair is not None, turn on pair specific checks
                     # we dont check for NN distances in this case, i.e.
                     # we DO check if mol_pair is None
-                    if mol_pair is None:
-                        if comb.test_N_N_lengths() is False:
-                            continue
+                    # if mol_pair is None:
+                    #     if comb.test_N_N_lengths() is False:
+                    #         continue
                     # get final geometrical properties
                     comb.calculate_planarity(vector_length=vector_length)
                     # check that the pairs sum to 180
