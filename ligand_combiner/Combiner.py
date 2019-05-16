@@ -536,7 +536,7 @@ def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
     cids = Chem.EmbedMultipleConfs(mol=molecule.mol, numConfs=N,
                                    params=etkdg)
     # FF minimize all conformers
-    minimize_all_conformers(stk_mol=molecule, confs=cids, FF='UFF')
+    # minimize_all_conformers(stk_mol=molecule, confs=cids, FF='UFF')
     # output each conformer to 3D structure if desired
     # for cid in cids:
     #     print(cid)
