@@ -458,6 +458,8 @@ def get_energy(stk_mol, conformer, FF):
     elif FF == 'MMFF':
         from stk import MMFFEnergy
         ff = MMFFEnergy()
+    # Needs to be sanitized to get force field params.
+    Chem.SanitizeMol(stk_mol.mol)
     energy = ff.energy(stk_mol, conformer=conformer)
     return energy*4.184  # kcal/mol to kJ/mol
 
