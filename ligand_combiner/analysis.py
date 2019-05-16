@@ -20,6 +20,67 @@ import matplotlib.cm as cm
 sys.path.insert(0, '/home/atarzia/thesource/')
 import Combiner
 import plotting
+import calculations
+
+
+def analyze_conformer_energies(stk_mol, name):
+    '''Calculate the energy of all conformers in stk_molecule using UFF and
+    GFN2-xTB.
+
+    '''
+    UFF_energies = []
+    dihedrals = []
+    GFN_energies = []
+    conformers = 0
+    for cid in conformers:
+        UFF_energy = Combiner.get_energy(stk_mol=stk_mol,
+                                         conformer=cid, FF='UFF')
+        UFF_energies.append(UFF_energy)
+        GFN_energy = GETGFNENERGY(stk_mol=stk_mol,
+                                  conformer=cid, FF='GFN')
+        GFN_energies.append(GFN_energy)
+        # calculate the dihedral between N1 - liga1_com - liga2_com - N2
+        NBBN_dihed = calculations.get_dihedral(
+            pt1=stk_mol.geom_prop[cid]['liga1']['N_pos'],
+            pt2=stk_mol.geom_prop[cid]['liga1']['pos'],
+            pt3=stk_mol.geom_prop[cid]['liga2']['pos'],
+            pt4=stk_mol.geom_prop[cid]['liga2']['N_pos'])
+        dihedrals.append(NBBN_dihed)
+
+    UFF_range = (round(min(UFF_energies))-0.1*round(min(UFF_energies)),
+                 round(max(UFF_energies))+0.1*round(max(UFF_energies)))
+    GFN_range = (round(min(GFN_energies))-0.1*round(min(GFN_energies)),
+                 round(max(GFN_energies))+0.1*round(max(GFN_energies)))
+    # plot scatter plots of energies on y axis, dihedrals on x axis
+    # include XRD energy as horiz line
+    fig, ax = plotting.scatter_plot(X=dihedrals, Y=UFF_energies,
+                                    xtitle='UFF energy [kJ/mol]',
+                                    ytitle='NLLN dihedral [degrees]',
+                                    xlim=UFF_range,
+                                    ylim=(-360, 360),
+                                    c='#64B5F6', alpha=0.6)
+    UFF_XRD_energy1 = 0
+    UFF_XRD_energy2 = 0
+    ax.axhline(y=UFF_XRD_energy1, c='k', linestyle='--')
+    ax.axhline(y=UFF_XRD_energy2, c='k', linestyle='--')
+    fig.tight_layout()
+    fig.savefig(name+'_UFF.pdf', dpi=720,
+                bbox_inches='tight')
+    plt.close()
+    fig, ax = plotting.scatter_plot(X=dihedrals, Y=GFN_energies,
+                                    xtitle='GFN2-xTB energy [kJ/mol]',
+                                    ytitle='NLLN dihedral [degrees]',
+                                    xlim=GFN_range,
+                                    ylim=(-360, 360),
+                                    c='#64B5F6', alpha=0.6)
+    GFN_XRD_energy1 = 0
+    GFN_XRD_energy2 = 0
+    ax.axhline(y=GFN_XRD_energy1, c='k', linestyle='--')
+    ax.axhline(y=GFN_XRD_energy2, c='k', linestyle='--')
+    fig.tight_layout()
+    fig.savefig(name+'_GFN.pdf', dpi=720,
+                bbox_inches='tight')
+    plt.close()
 
 
 def add_clever_lines(ax, sum=False):
