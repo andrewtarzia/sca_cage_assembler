@@ -27,8 +27,8 @@ def add_clever_lines(ax, sum=False):
     bloch2017 cages.
 
     '''
-    # cage 1
     if sum is False:
+        # cage 1
         # # max deviation from planarity for all four N-Pd-N vectors
         # ax.axhline(y=1.232, c='b', label='cage 1 (GFN)', alpha=0.4, linestyle='-')
         # max deviation of NN vector differences of small molecule
@@ -41,17 +41,20 @@ def add_clever_lines(ax, sum=False):
         # max angle difference from 180 for all four N-Pd-N vectors
         ax.axvline(x=7.1, c='r', alpha=0.4, linestyle='--')
     else:
+        # cage 1
         # # max deviation from planarity for all four N-Pd-N vectors
         # ax.axhline(y=1.232, c='b', label='cage 1 (GFN)', alpha=0.4, linestyle='-')
-        # max deviation of NN vector differences of small molecule
-        ax.axhline(y=1.232, c='b', label='cage 1 (GFN)', alpha=0.4, linestyle='-')
-        # max angle difference from 180 for all four N-Pd-N vectors
-        ax.axvline(x=6.3, c='b', alpha=0.4, linestyle='-')
+        # max of sum deviations of NN vector differences of small molecule
+        ax.axhline(y=max([0.766+0.066, 0.810+0.240]), c='b',
+                   label='cage 1 (GFN)', alpha=0.4, linestyle='-')
+        # max of sum of angle differences from 180 of pairs of NN-NPd vectors
+        ax.axvline(x=max([6.3+4.8, 4.3+4.9]), c='b', alpha=0.4, linestyle='-')
         # cage 2
-        # max deviation from planarity for all four N-Pd-N vectors
-        ax.axhline(y=0.701, c='r', label='cage 2 (XRD)', alpha=0.4, linestyle='--')
-        # max angle difference from 180 for all four N-Pd-N vectors
-        ax.axvline(x=7.1, c='r', alpha=0.4, linestyle='--')
+        # max of sum deviations of NN vector differences of small molecule
+        ax.axhline(y=max([0.2414+0.2280, 0.310+0.8500]), c='r',
+                   label='cage 2 (XRD)', alpha=0.4, linestyle='--')
+        # max of sum of angle differences from 180 of pairs of NN-NPd vectors
+        ax.axvline(x=max([7.1+3, 4.7+4.5]), c='r', alpha=0.4, linestyle='--')
 
 
 def get_all_pairs(molecule_pop, settings, mol_pair=None):
