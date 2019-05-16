@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 
 
-def parity_plot(X, Y, outfile, xtitle, ytitle, lim):
+def parity_plot(X, Y, xtitle, ytitle, lim):
     '''Make parity plot.
 
     '''
@@ -31,14 +31,10 @@ def parity_plot(X, Y, outfile, xtitle, ytitle, lim):
     ax.set_ylabel(ytitle, fontsize=16)
     ax.set_xlim(lim)
     ax.set_ylim(lim)
-    fig.tight_layout()
-    fig.savefig(outfile, dpi=720,
-                bbox_inches='tight')
-    plt.close()
     return fig, ax
 
 
-def scatter_plot(X, Y, outfile, xtitle, ytitle, xlim, ylim, title=None,
+def scatter_plot(X, Y, xtitle, ytitle, xlim, ylim, title=None,
                  c='firebrick', edgecolors='k',
                  marker='o', alpha=1.0, s=80, Z=None, cmap=None):
     '''Make scatter plot.
@@ -69,7 +65,7 @@ def scatter_plot(X, Y, outfile, xtitle, ytitle, xlim, ylim, title=None,
 
 
 def histogram_plot_1(Y, X_range, width, alpha, color, edgecolor,
-                     outfile, xtitle, density=False):
+                     xtitle, density=False):
     '''Make histogram plot with 1 distribution.
 
     '''
@@ -90,10 +86,6 @@ def histogram_plot_1(Y, X_range, width, alpha, color, edgecolor,
     elif density is True:
         ax.set_ylabel('frequency', fontsize=16)
     ax.set_xlim(X_range)
-    fig.tight_layout()
-    fig.savefig(outfile, dpi=720,
-                bbox_inches='tight')
-    plt.close()
     return fig, ax
 
 

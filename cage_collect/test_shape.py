@@ -20,6 +20,7 @@ Date Created: 22 Mar 2019
 import sys
 import os
 import glob
+import matplotlib.pyplot as plt
 import json
 import pywindow as pw
 sys.path.insert(0, '/home/atarzia/thesource/')
@@ -110,12 +111,16 @@ Usage: test_shape.py
         # output plot for each CIF
         plotx = [cage_output[i][0] for i in cage_output]
         ploty = [cage_output[i][1] for i in cage_output]
-        plotting.parity_plot(X=plotx, Y=ploty,
-                             outfile=calc.replace('.cif', '.pdf'),
-                             xtitle='XRD pore diameter [$\mathrm{\AA}$]',
-                             ytitle='opt. pore diameter [$\mathrm{\AA}$]',
-                             lim=(0, round(max([max(ploty), max(plotx)])) + 1),
-                             )
+        fig, ax = plotting.parity_plot(
+            X=plotx, Y=ploty,
+            xtitle='XRD pore diameter [$\mathrm{\AA}$]',
+            ytitle='opt. pore diameter [$\mathrm{\AA}$]',
+            lim=(0, round(max([max(ploty), max(plotx)])) + 1),
+        )
+        fig.tight_layout()
+        fig.savefig(calc.replace('.cif', '.pdf'), dpi=720,
+                    bbox_inches='tight')
+        plt.close()
 
 
 if __name__ == "__main__":

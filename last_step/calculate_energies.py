@@ -199,10 +199,14 @@ def figure_5_parity(filename, RFEs):
     for i in des_species:
         MP2_values.append(des_species[i][0] / des_species[i][1])
         GFN_values.append(RFEs[i][0] * 2625.50 / des_species[i][1])
-    parity_plot(X=MP2_values, Y=GFN_values, outfile=filename,
-                xtitle='MP2 free energy per imine bond [kJ/mol]',
-                ytitle='GFN free energy per imine bond [kJ/mol]',
-                lim=(-50, -15))
+    fig, ax = parity_plot(X=MP2_values, Y=GFN_values,
+                          xtitle='MP2 free energy per imine bond [kJ/mol]',
+                          ytitle='GFN free energy per imine bond [kJ/mol]',
+                          lim=(-50, -15))
+    fig.tight_layout()
+    fig.savefig(filename, dpi=720,
+                bbox_inches='tight')
+    plt.close()
 
 
 def figure_6(filename, RFEs, perimine=False):
@@ -262,10 +266,14 @@ def figure_6_parity(filename, RFEs):
     for i in des_species:
         MP2_values.append(des_species[i][0] / des_species[i][1])
         GFN_values.append(RFEs[i][0] * 2625.50 / des_species[i][1])
-    parity_plot(X=MP2_values, Y=GFN_values, outfile=filename,
-                xtitle='MP2 free energy per imine bond [kJ/mol]',
-                ytitle='GFN free energy per imine bond [kJ/mol]',
-                lim=(-70, -20))
+    fig, ax = parity_plot(X=MP2_values, Y=GFN_values,
+                          xtitle='MP2 free energy per imine bond [kJ/mol]',
+                          ytitle='GFN free energy per imine bond [kJ/mol]',
+                          lim=(-70, -20))
+    fig.tight_layout()
+    fig.savefig(filename, dpi=720,
+                bbox_inches='tight')
+    plt.close()
 
 
 def table_3(filename, RFEs):
@@ -373,10 +381,13 @@ Usage: calculate_energies.py JSON energy
         for i in species:
             print(i + ' & ' + str(round(data[i][EY], 4)) + " \\\ ")
             to_plot.append(data[i][EY])
-        histogram_plot_1(Y=to_plot, X_range=(-0.1, 1), width=0.05,
+        fig, ax = histogram_plot_1(Y=to_plot, X_range=(-0.1, 1), width=0.05,
                          alpha=0.6, color='#FF7900', edgecolor='k',
-                         outfile=RMSD_hist, xtitle='RMSD [$\mathrm{\AA}$]',
+                         xtitle='RMSD [$\mathrm{\AA}$]',
                          density=False)
+        fig.tight_layout()
+        fig.savefig(RMSD_hist, dpi=720,
+                    bbox_inches='tight')
 
 
 if __name__ == "__main__":

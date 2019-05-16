@@ -103,14 +103,16 @@ Usage: get_all_struct_energies.py output_file suffix
         DATA.to_csv(output_file, index=False)
 
     # plot histogram of formation energies
-    plotting.histogram_plot_1(Y=DATA['FE (au)'],
-                              X_range=(-1000, 1000),
-                              width=10,
-                              alpha=1,
-                              color='mediumvioletred',
-                              edgecolor='k',
-                              outfile='cage_formEY_GFN.pdf',
-                              xtitle='formation energy [a.u.]')
+    fig, ax = plotting.histogram_plot_1(Y=DATA['FE (au)'],
+                                        X_range=(-1000, 1000),
+                                        width=10,
+                                        alpha=1,
+                                        color='mediumvioletred',
+                                        edgecolor='k',
+                                        xtitle='formation energy [a.u.]')
+    fig.tight_layout()
+    fig.savefig('cage_formEY_GFN.pdf', dpi=720,
+                bbox_inches='tight')
 
 
 if __name__ == "__main__":

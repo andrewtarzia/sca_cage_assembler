@@ -53,30 +53,37 @@ def analyze_conformer_energies(stk_mol, name):
                  round(max(GFN_energies))+0.1*round(max(GFN_energies)))
     # plot scatter plots of energies on y axis, dihedrals on x axis
     # include XRD energy as horiz line
-    fig, ax = plotting.scatter_plot(X=dihedrals, Y=UFF_energies,
-                                    xtitle='UFF energy [kJ/mol]',
-                                    ytitle='NLLN dihedral [degrees]',
-                                    xlim=UFF_range,
-                                    ylim=(-360, 360),
-                                    c='#64B5F6', alpha=0.6)
+    fig, ax = plotting.scatter_plot(X=dihedrals, Y=rel_UFF,
+                                    ytitle='relative UFF energy [kJ/mol]',
+                                    xtitle='NLLN dihedral [degrees]',
+                                    ylim=UFF_range,
+                                    xlim=(-10, 200),
+                                    c='#64B5F6', alpha=0.8,
+                                    edgecolors='none',
+                                    marker='o')
     UFF_XRD_energy1 = 0
     UFF_XRD_energy2 = 0
     ax.axhline(y=UFF_XRD_energy1, c='k', linestyle='--')
     ax.axhline(y=UFF_XRD_energy2, c='k', linestyle='--')
+    # do dihedral limits
+    ax.axvline(x=20, c='k', linestyle='--')
     fig.tight_layout()
     fig.savefig(name+'_UFF.pdf', dpi=720,
                 bbox_inches='tight')
     plt.close()
-    fig, ax = plotting.scatter_plot(X=dihedrals, Y=GFN_energies,
-                                    xtitle='GFN2-xTB energy [kJ/mol]',
-                                    ytitle='NLLN dihedral [degrees]',
-                                    xlim=GFN_range,
-                                    ylim=(-360, 360),
-                                    c='#64B5F6', alpha=0.6)
+    fig, ax = plotting.scatter_plot(X=dihedrals, Y=rel_GFN,
+                                    ytitle='relative GFN2-xTB energy [kJ/mol]',
+                                    xtitle='NLLN dihedral [degrees]',
+                                    ylim=GFN_range,
+                                    xlim=(-10, 200),
+                                    c='#64B5F6', alpha=0.8,
+                                    edgecolors='none')
     GFN_XRD_energy1 = 0
     GFN_XRD_energy2 = 0
     ax.axhline(y=GFN_XRD_energy1, c='k', linestyle='--')
     ax.axhline(y=GFN_XRD_energy2, c='k', linestyle='--')
+    # do dihedral limits
+    ax.axvline(x=20, c='k', linestyle='--')
     fig.tight_layout()
     fig.savefig(name+'_GFN.pdf', dpi=720,
                 bbox_inches='tight')
