@@ -37,10 +37,10 @@ def main():
     # create patches and add LHS, RHS on figure
     patches = []
     a_line_pt = [6, 10]
-    b_line_pt = [10, 10]
+    b_line_pt = [10.12, 10]
     # set vectors and angles
-    A = 10
-    B = 7
+    A = 12.678
+    B = 10.353
     # define trapezoid points based on variables
     pt1 = np.asarray([a_line_pt[0], a_line_pt[1]+A/2])
     pt2 = np.asarray([b_line_pt[0], b_line_pt[1]+B/2])
