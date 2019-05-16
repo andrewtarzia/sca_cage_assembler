@@ -114,7 +114,7 @@ def main():
             # if building only a subset, check that this molecule is in the subset
             NAME = core.name + '_' + liga.name + '_' + link.name
             if subset != 'all' and NAME in cases(subset):
-                print(core.name, liga.name, link.name, pop_ids)
+                logging.info(f'molecule: {core.name} + {liga.name} + {link.name} - {pop_ids}')
                 ABCBA_confs, ABCBA_molecule = Combiner.get_molecule(
                     type='ABCBA', inverted=False,
                     popns=(core_pop, liga_pop, link_pop),
@@ -130,6 +130,7 @@ def main():
             NAME = core.name + '_' + liga.name + '_' + link.name + 'i'
             if subset != 'all' and NAME in cases(subset):
                 if link_pop[pop_ids[2]].invertable is True:
+                    logging.info(f'molecule: {core.name} + {liga.name}i + {link.name} - {pop_ids}')
                     ABCBA_inv_confs, ABCBA_inv_molecule = Combiner.get_molecule(
                         type='ABCBA', inverted=True,
                         popns=(core_pop, liga_pop, link_pop),
@@ -146,7 +147,7 @@ def main():
             NAME = core.name + '_' + liga.name
             if subset != 'all' and NAME in cases(subset):
                 if os.path.isfile(core.name+'_'+liga.name+'_ABA_opt.mol') is False:
-                    print(os.path.isfile(core.name+'_'+liga.name+'_ABA_opt.mol'), core.name+'_'+liga.name+'_ABA_opt.mol')
+                    logging.info(f'molecule: {core.name} + {link.name} - {pop_ids}')
                     ABA_confs, ABA_molecule = Combiner.get_molecule(
                         type='ABA', inverted=False,
                         popns=(core_pop, liga_pop, link_pop),
