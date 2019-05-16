@@ -77,13 +77,33 @@ class Combination:
         self.RHS1 = (2 * vector_length) * np.cos(self.souter_angle1)
         self.RHS2 = (2 * vector_length) * np.cos(self.souter_angle2)
 
+    def calculate_ideal_small_NN(self, vector_length):
+        '''Calculate the ideal NN distance of the small molecule based on large
+        molecule and ideal trapezoid
+
+        '''
+        # because the binding vector angles are not actually the same we define
+        # the ideal small NN based on both possible binding vector angles
+        # i.e. two different ideal trapezoids
+        bonding_vector_length = 2 * vector_length
+        # print('vector lengths:', vector_length, bonding_vector_length)
+        extension_1 = bonding_vector_length * np.cos(np.radians(self.l_angle1))
+        extension_2 = bonding_vector_length * np.cos(np.radians(self.l_angle2))
+        # print('extensions:', extension_1, extension_2)
+        ideal_NN1 = self.lNN_dist - 2 * extension_1
+        ideal_NN2 = self.lNN_dist - 2 * extension_2
+        # print('ideal NNs:', ideal_NN1, ideal_NN2)
+        return [ideal_NN1, ideal_NN2]
+
     def get_angle_deviations(self):
-        '''Get the closeness of test angles to 180 degrees
+        '''Get the closeness of test angles to 180 degrees. As a sum and max of
+        the two ends of the molecules.
 
         '''
         self.angle1_deviation = abs(180 - (self.l_angle1 + self.s_angle1))
         self.angle2_deviation = abs(180 - (self.l_angle2 + self.s_angle2))
         self.max_angle_dev = max([self.angle1_deviation, self.angle2_deviation])
+        self.sum_angle_dev = sum([self.angle1_deviation, self.angle2_deviation])
 
     def get_planarity_deviation(self):
         '''Get the difference of the LHS and RHS that are defined by the
@@ -93,6 +113,15 @@ class Combination:
         self.planar_dev1 = abs(self.LHS1-self.RHS1)
         self.planar_dev2 = abs(self.LHS2-self.RHS2)
         self.max_planar_dev = max([self.planar_dev1, self.planar_dev2])
+
+    def get_ideal_length_deviation(self, vector_length):
+        '''Get the max and sum of the differences between the actual N-N distance
+        of the small molecule and the idealized distances from trapezoid.
+
+        '''
+        ideal_NNs = self.calculate_ideal_small_NN(vector_length=vector_length)
+        self.sum_length_dev = sum([abs(self.sNN_dist - i) for i in ideal_NNs])
+        self.max_length_dev = max([abs(self.sNN_dist - i) for i in ideal_NNs])
 
     def test_N_N_lengths(self):
         '''Test that the larger linker has a longer NN distance than the shorter
@@ -112,13 +141,18 @@ class Combination:
         print('conformers:', self.lconf, self.sconf)
         print('energies:', self.lenergy, self.senergy)
         print('NN distances:', self.lNN_dist, self.sNN_dist)
-        print('LHSs:', self.LHS1, self.LHS2)
+        # print('LHSs:', self.LHS1, self.LHS2)
         print('l angles:', self.l_angle1, self.l_angle2)
         print('s angles:', self.s_angle1, self.s_angle2)
-        print('s outer angles:', self.souter_angle1, self.souter_angle2)
-        print('RHSs:', self.RHS1, self.RHS2)
+        # print('s outer angles:', self.souter_angle1, self.souter_angle2)
+        # print('RHSs:', self.RHS1, self.RHS2)
         print('angle devs:', self.angle1_deviation, self.angle2_deviation)
-        print('planarity devs:', self.planar_dev1, self.planar_dev2)
+        # print('planarity devs:', self.planar_dev1, self.planar_dev2)
+        print('------------------------------------------------')
+        print('max angle dev', self.max_angle_dev)
+        print('sum angle dev', self.sum_angle_dev)
+        print('max length dev', self.max_length_dev)
+        print('sum length dev', self.sum_length_dev)
 
 
 def atoms_2_vect(ASE, p1, p2):
