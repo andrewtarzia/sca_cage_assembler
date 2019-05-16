@@ -274,6 +274,34 @@ def bb_center_of_mass(molecule, conf, bb_idx, frag_id):
     return np.array([0., 0., 0.])
 
 
+def check_binder_directions(mol, cid):
+    '''Check that binding vectors facing away from core molecule.
+
+    # also check that the N atoms are pointing away from the core
+    # by making sure COM_core-N_pos > COM_core-liga_pos
+    '''
+    core_2_COM = np.asarray(mol.geom_prop[cid]['COM']) \
+        - np.asarray(mol.geom_prop[cid]['core1']['pos'])
+    core_2_N1 = np.asarray(mol.geom_prop[cid]['liga1']['N_pos']) \
+        - np.asarray(mol.geom_prop[cid]['core1']['pos'])
+    core_2_liga1 = np.asarray(mol.geom_prop[cid]['liga1']['pos']) \
+        - np.asarray(mol.geom_prop[cid]['core1']['pos'])
+    core_2_N2 = np.asarray(mol.geom_prop[cid]['liga2']['N_pos']) \
+        - np.asarray(mol.geom_prop[cid]['core1']['pos'])
+    core_2_liga2 = np.asarray(mol.geom_prop[cid]['liga2']['pos']) \
+        - np.asarray(mol.geom_prop[cid]['core1']['pos'])
+
+    N1_core_COM_angle = calculations.angle_between(core_2_N1, core_2_COM)
+    L1_core_COM_angle = calculations.angle_between(core_2_liga1, core_2_COM)
+    N2_core_COM_angle = calculations.angle_between(core_2_N2, core_2_COM)
+    L2_core_COM_angle = calculations.angle_between(core_2_liga2, core_2_COM)
+
+    if N1_core_COM_angle > L1_core_COM_angle:
+        if N2_core_COM_angle > L2_core_COM_angle:
+            return True
+    return False
+
+
 def get_geometrical_properties(mol, cids, type):
     '''Calculate the geometrical properties of all conformers
 
@@ -379,27 +407,10 @@ def get_geometrical_properties(mol, cids, type):
 
         # also check that the N atoms are pointing away from the core
         # by making sure COM_core-N_pos > COM_core-liga_pos
-        core_2_COM = np.asarray(mol.geom_prop[cid]['COM']) \
-            - np.asarray(mol.geom_prop[cid]['core1']['pos'])
-        core_2_N1 = np.asarray(mol.geom_prop[cid]['liga1']['N_pos']) \
-            - np.asarray(mol.geom_prop[cid]['core1']['pos'])
-        core_2_liga1 = np.asarray(mol.geom_prop[cid]['liga1']['pos']) \
-            - np.asarray(mol.geom_prop[cid]['core1']['pos'])
-        core_2_N2 = np.asarray(mol.geom_prop[cid]['liga2']['N_pos']) \
-            - np.asarray(mol.geom_prop[cid]['core1']['pos'])
-        core_2_liga2 = np.asarray(mol.geom_prop[cid]['liga2']['pos']) \
-            - np.asarray(mol.geom_prop[cid]['core1']['pos'])
-
-        N1_core_COM_angle = calculations.angle_between(core_2_N1, core_2_COM)
-        L1_core_COM_angle = calculations.angle_between(core_2_liga1, core_2_COM)
-        N2_core_COM_angle = calculations.angle_between(core_2_N2, core_2_COM)
-        L2_core_COM_angle = calculations.angle_between(core_2_liga2, core_2_COM)
-
-        if N1_core_COM_angle > L1_core_COM_angle:
-            if N2_core_COM_angle > L2_core_COM_angle:
-                mol.geom_prop[cid]['skip'] = True
-                # logging.info(f'{mol.name}: confomer {cid} SKIPPPED - N backwards')
-                continue
+        if check_binder_directions(mol=mol, cid=cid):
+            mol.geom_prop[cid]['skip'] = True
+            # logging.info(f'{mol.name}: confomer {cid} SKIPPPED - N backwards')
+            continue
 
         NN_v = np.asarray(mol.geom_prop[cid]['liga1']['N_pos']) \
             - np.asarray(mol.geom_prop[cid]['liga2']['N_pos'])
