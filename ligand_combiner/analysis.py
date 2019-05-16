@@ -22,21 +22,36 @@ import Combiner
 import plotting
 
 
-def add_clever_lines(ax):
+def add_clever_lines(ax, sum=False):
     '''Add horiz and vertical lines to axes at hardcoded places based on analysis of
     bloch2017 cages.
 
     '''
     # cage 1
-    # max deviation from planarity for all four N-Pd-N vectors
-    ax.axhline(y=1.232, c='b', label='cage 1 (GFN)', alpha=0.4, linestyle='-')
-    # max angle difference from 180 for all four N-Pd-N vectors
-    ax.axvline(x=6.3, c='b', alpha=0.4, linestyle='-')
-    # cage 2
-    # max deviation from planarity for all four N-Pd-N vectors
-    ax.axhline(y=0.701, c='r', label='cage 2 (XRD)', alpha=0.4, linestyle='--')
-    # max angle difference from 180 for all four N-Pd-N vectors
-    ax.axvline(x=7.1, c='r', alpha=0.4, linestyle='--')
+    if sum is False:
+        # # max deviation from planarity for all four N-Pd-N vectors
+        # ax.axhline(y=1.232, c='b', label='cage 1 (GFN)', alpha=0.4, linestyle='-')
+        # max deviation of NN vector differences of small molecule
+        ax.axhline(y=1.232, c='b', label='cage 1 (GFN)', alpha=0.4, linestyle='-')
+        # max angle difference from 180 for all four N-Pd-N vectors
+        ax.axvline(x=6.3, c='b', alpha=0.4, linestyle='-')
+        # cage 2
+        # max deviation from planarity for all four N-Pd-N vectors
+        ax.axhline(y=0.701, c='r', label='cage 2 (XRD)', alpha=0.4, linestyle='--')
+        # max angle difference from 180 for all four N-Pd-N vectors
+        ax.axvline(x=7.1, c='r', alpha=0.4, linestyle='--')
+    else:
+        # # max deviation from planarity for all four N-Pd-N vectors
+        # ax.axhline(y=1.232, c='b', label='cage 1 (GFN)', alpha=0.4, linestyle='-')
+        # max deviation of NN vector differences of small molecule
+        ax.axhline(y=1.232, c='b', label='cage 1 (GFN)', alpha=0.4, linestyle='-')
+        # max angle difference from 180 for all four N-Pd-N vectors
+        ax.axvline(x=6.3, c='b', alpha=0.4, linestyle='-')
+        # cage 2
+        # max deviation from planarity for all four N-Pd-N vectors
+        ax.axhline(y=0.701, c='r', label='cage 2 (XRD)', alpha=0.4, linestyle='--')
+        # max angle difference from 180 for all four N-Pd-N vectors
+        ax.axvline(x=7.1, c='r', alpha=0.4, linestyle='--')
 
 
 def get_all_pairs(molecule_pop, settings, mol_pair=None):
@@ -106,10 +121,11 @@ def get_all_pairs(molecule_pop, settings, mol_pair=None):
                     #     if comb.test_N_N_lengths() is False:
                     #         continue
                     # get final geometrical properties
-                    comb.calculate_planarity(vector_length=vector_length)
+                    # comb.calculate_planarity(vector_length=vector_length)
+                    comb.get_ideal_length_deviation(vector_length=vector_length)
                     # check that the pairs sum to 180
                     comb.get_angle_deviations()
-                    comb.get_planarity_deviation()
+                    # comb.get_planarity_deviation()
                     all_pairs.append(comb)
     return all_pairs
 
@@ -132,12 +148,12 @@ def output_analysis(molecule_pop, pair_data, angle_tol, energy_tol,
         logging.info(f'molecule: {poly1.name}')
         logging.info(f'no. pairs: {len(combinations)}')
         # debug print statements
-        for i in combinations:
-            i.print_all_properties()
-            input()
-        X_data = [i.max_angle_dev
+        # for i in combinations:
+        #     i.print_all_properties()
+        #     input()
+        X_data = [i.sum_angle_dev
                   for i in combinations]
-        Y_data = [i.max_planar_dev
+        Y_data = [i.sum_length_dev
                   for i in combinations]
         Z_data = [i.max_pair_energy/energy_tol
                   for i in combinations]
@@ -163,12 +179,14 @@ def output_analysis(molecule_pop, pair_data, angle_tol, energy_tol,
                    marker='o', alpha=0.4, s=40)
         # Set number of ticks for x-axis
         ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.set_xlabel('maximum angle deviation [degrees]', fontsize=16)
-        ax.set_ylabel('deviation from planarity', fontsize=16)
+        # ax.set_xlabel('maximum angle deviation [degrees]', fontsize=16)
+        ax.set_xlabel('sum |angle deviation| [degrees]', fontsize=16)
+        ax.set_ylabel('sum |N-N distance deviation| [$\mathrm{\AA}$]',
+                      fontsize=16)
         ax.set_xlim(0, 180)
         ax.set_ylim(0, 5)  # round(max(Y_data))+1)
         # add constraint lines
-        add_clever_lines(ax)
+        add_clever_lines(ax, sum=True)
         if mol_pair is None:
             ax.set_title(poly1.name, fontsize=16)
         else:
