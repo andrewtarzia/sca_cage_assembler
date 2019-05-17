@@ -381,14 +381,38 @@ def get_geometrical_properties(mol, cids, type):
                                          bb_idx=1, frag_id=0).tolist()}
         mol.geom_prop[cid] = conf_dict
         # from the positions collected:
-        # determine whether the N's are both pointing in the desired direction
-        # if so,
         # determine N-N vector -> NN_v
         # determine binder core - N vectors -> BCN_1, BCN_2
         # determine binder core - binder core vector -> BCBC_v
         # calculate the angle between:
         # -- BCBC_v and BCN_i
         # -- NN_v and BCN_i (make sure the origin is not important)
+        # determine whether the N's are both pointing in the desired direction
+        # if so, output the structure and do not set skip = True
+
+        NN_v = np.asarray(mol.geom_prop[cid]['liga1']['N_pos']) \
+            - np.asarray(mol.geom_prop[cid]['liga2']['N_pos'])
+        BCN_1 = np.asarray(mol.geom_prop[cid]['liga1']['CC_pos']) \
+            - np.asarray(mol.geom_prop[cid]['liga1']['N_pos']).tolist()
+        BCN_2 = np.asarray(mol.geom_prop[cid]['liga2']['CC_pos']) \
+            - np.asarray(mol.geom_prop[cid]['liga2']['N_pos']).tolist()
+        mol.geom_prop[cid]['NN_v'] = NN_v.tolist()
+        mol.geom_prop[cid]['BCN_1'] = BCN_1.tolist()
+        mol.geom_prop[cid]['BCN_2'] = BCN_2.tolist()
+
+        # get desired angles in radian
+        # negative signs applied based on the direction of vectors defined
+        # above - not dependance on ordering of BB placement in stk
+        mol.geom_prop[cid]['NN_BCN_1'] = float(
+            np.degrees(
+                calculations.angle_between(
+                    np.asarray(mol.geom_prop[cid]['BCN_1']),
+                    np.asarray(mol.geom_prop[cid]['NN_v']))))
+        mol.geom_prop[cid]['NN_BCN_2'] = float(
+            np.degrees(
+                calculations.angle_between(
+                    np.asarray(mol.geom_prop[cid]['BCN_2']),
+                    -np.asarray(mol.geom_prop[cid]['NN_v']))))
 
         # to determine if the N's are point the right way:
         # calculate the dihedral between N1 - liga1_com - liga2_com - N2
@@ -412,35 +436,12 @@ def get_geometrical_properties(mol, cids, type):
             # logging.info(f'{mol.name}: confomer {cid} SKIPPPED - N backwards')
             continue
 
-        NN_v = np.asarray(mol.geom_prop[cid]['liga1']['N_pos']) \
-            - np.asarray(mol.geom_prop[cid]['liga2']['N_pos'])
-        BCN_1 = np.asarray(mol.geom_prop[cid]['liga1']['CC_pos']) \
-            - np.asarray(mol.geom_prop[cid]['liga1']['N_pos']).tolist()
-        BCN_2 = np.asarray(mol.geom_prop[cid]['liga2']['CC_pos']) \
-            - np.asarray(mol.geom_prop[cid]['liga2']['N_pos']).tolist()
-        mol.geom_prop[cid]['NN_v'] = NN_v.tolist()
-        mol.geom_prop[cid]['BCN_1'] = BCN_1.tolist()
-        mol.geom_prop[cid]['BCN_2'] = BCN_2.tolist()
         passed += 1
         # output for viz
         # if False:
         if True:
             visualize_atoms(mol, conf_dict, cid, type,
                             filename=mol.name + '_' + str(cid))
-
-        # get desired angles in radian
-        # negative signs applied based on the direction of vectors defined
-        # above - not dependance on ordering of BB placement in stk
-        mol.geom_prop[cid]['NN_BCN_1'] = float(
-            np.degrees(
-                calculations.angle_between(
-                    np.asarray(mol.geom_prop[cid]['BCN_1']),
-                    np.asarray(mol.geom_prop[cid]['NN_v']))))
-        mol.geom_prop[cid]['NN_BCN_2'] = float(
-            np.degrees(
-                calculations.angle_between(
-                    np.asarray(mol.geom_prop[cid]['BCN_2']),
-                    -np.asarray(mol.geom_prop[cid]['NN_v']))))
         # logging.info(f'{mol.name}: confomer {cid} passed')
 
     logging.info(f'{passed} of {total} passed, {round(passed/total, 2)*100} %')
