@@ -40,6 +40,10 @@ def main():
     for molecule in molecule_pop:
         N_conf = molecule.mol.GetNumConformers()
         logging.info(f'doing {molecule.name} with {N_conf} conformers')
+        analysis.analyze_conformer_NNdist(stk_mol=molecule,
+                                          name=molecule.name)
+        analysis.analyze_conformer_angles(stk_mol=molecule,
+                                          name=molecule.name)
         analysis.analyze_conformer_energies(stk_mol=molecule,
                                             name=molecule.name)
 

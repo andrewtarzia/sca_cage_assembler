@@ -23,6 +23,47 @@ import plotting
 import calculations
 
 
+def analyze_conformer_NNdist(stk_mol, name):
+    '''Plot a distribution of the NN distance for a given molecule and all of its
+    conformers.
+
+    '''
+    NN_dists = []
+    conformers = range(stk_mol.mol.GetNumConformers())
+    for cid in conformers:
+        NN_dists.append(np.linalg.norm(stk_mol.geom_prop[cid]['NN_v']))
+    fig, ax = plotting.histogram_plot_1(Y=NN_dists, X_range=(4, 20), width=0.2,
+                                        alpha=1.0, color='#64B5F6',
+                                        edgecolor='k',
+                                        xtitle='NN distance [$\mathrm{\AA}$]')
+
+    fig.tight_layout()
+    fig.savefig(name+'_NN_dists.pdf', dpi=720,
+                bbox_inches='tight')
+    plt.close()
+
+
+def analyze_conformer_angles(stk_mol, name):
+    '''Plot a distribution of the interior angles for a given molecule and all of its
+    conformers.
+
+    '''
+    angles = []
+    conformers = range(stk_mol.mol.GetNumConformers())
+    for cid in conformers:
+        angles.append(stk_mol.geom_prop[cid]['NN_BCN_1'])
+        angles.append(stk_mol.geom_prop[cid]['NN_BCN_2'])
+    fig, ax = plotting.histogram_plot_1(Y=angles, X_range=(0, 180), width=2,
+                                        alpha=1.0, color='#64B5F6',
+                                        edgecolor='k',
+                                        xtitle='angles [degrees]')
+
+    fig.tight_layout()
+    fig.savefig(name+'_angle_dists.pdf', dpi=720,
+                bbox_inches='tight')
+    plt.close()
+
+
 def analyze_conformer_energies(stk_mol, name):
     '''Calculate the energy of all conformers in stk_molecule using UFF and
     GFN2-xTB.
