@@ -248,10 +248,10 @@ def get_all_pairs(molecule_pop, settings, mol_pair=None):
                         comb.popn_ids = (j, i)
                     # if molecule1 or molecule2 energy > threshold from conf min
                     # skip pair
-                    if comb.lenergy > settings['energy_tol']:
-                        continue
-                    if comb.senergy > settings['energy_tol']:
-                        continue
+                    # if comb.lenergy > settings['energy_tol']:
+                    #     continue
+                    # if comb.senergy > settings['energy_tol']:
+                    #     continue
                     # obtain all properties
                     # 16/05/19 -- not checking N-N distances
                     # check N-N distance of poly1-conf > poly2-conf
