@@ -326,9 +326,9 @@ def output_analysis(molecule_pop, pair_data, angle_tol, energy_tol,
         ax.set_ylabel('sum |N-N distance deviation| [$\mathrm{\AA}$]',
                       fontsize=16)
         ax.set_xlim(0, 180)
-        ax.set_ylim(0, 5)  # round(max(Y_data))+1)
+        ax.set_ylim(0, 20)  # round(max(Y_data))+1)
         # add constraint lines
-        add_clever_lines(ax, sum=True)
+        add_clever_geom_lines(ax, sum=True)
         if mol_pair is None:
             ax.set_title(poly1.name, fontsize=16)
         else:
