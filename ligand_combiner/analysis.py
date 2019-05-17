@@ -52,7 +52,6 @@ def analyze_conformer_energies(stk_mol, name):
             marks.append('x')
         else:
             marks.append('o')
-
     rel_UFF = [i-min(UFF_energies) for i in UFF_energies]
     rel_GFN = [i-min(GFN_energies) for i in GFN_energies]
 
@@ -72,10 +71,12 @@ def analyze_conformer_energies(stk_mol, name):
                                     c='#64B5F6', alpha=0.8,
                                     edgecolors='none',
                                     marker='o')
-    UFF_XRD_energy1 = 0
-    UFF_XRD_energy2 = 0
-    ax.axhline(y=UFF_XRD_energy1, c='k', linestyle='--')
-    ax.axhline(y=UFF_XRD_energy2, c='k', linestyle='--')
+
+    # add lines for UFF energy of XRD ligands
+    UFF_XRD_energies = get_clever_XRD_energies(FF='UFF')[name]
+    UFF_XRD_energies = [i-min(UFF_energies) for i in UFF_XRD_energies]
+    ax.axhline(y=min(UFF_XRD_energies), c='k', linestyle='--')
+    ax.axhline(y=max(UFF_XRD_energies), c='k', linestyle='--')
     # do dihedral limits
     ax.axvline(x=20, c='k', linestyle='--')
     fig.tight_layout()
@@ -101,7 +102,25 @@ def analyze_conformer_energies(stk_mol, name):
     plt.close()
 
 
-def add_clever_lines(ax, sum=False):
+def get_clever_XRD_energies(FF):
+    '''Return the energies (kJ/mol) of all ligands in the 3 clever cages.
+
+    l == large ligand, s == small ligand
+
+    '''
+    energies = {}
+    if FF == 'UFF':
+        # all energies of ligands in each cage
+        energies['ABCBA_300'] = [661.7335562384677, 629.6775797057525,
+                                 1330.784565287804, 1325.1063252078732]
+        energies['ABCBA_420'] = [1409.3375061168201, 1040.3635361898941,
+                                 1169.4324281595798, 1130.3264249226545]
+        energies['ABA_51'] = [487.49187504169936, 492.0550063290009,
+                              1002.6791172969815, 995.3649163368942]
+    return energies
+
+
+def add_clever_geom_lines(ax, sum=False):
     '''Add horiz and vertical lines to axes at hardcoded places based on analysis of
     bloch2017 cages.
 
