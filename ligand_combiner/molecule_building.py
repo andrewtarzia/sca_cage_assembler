@@ -29,13 +29,15 @@ def cases(subset):
     '''Define the smallest set of molecules to build to replicate particular subsets
 
     Implemented:
-        bloch2017:
+        clever: cages from paper: bloch2017
             1 (1 in Fig 4) — (LA) core = 5, linker = 1, ligand = 3 + (LP) core = 6, ligand = 2
             2 (2 in Fig 4) — (LC) core = 4, linker = 1, ligand = 1 + (LP) core = 6, ligand = 2
             3 (3 in Fig 4) — (LA) core = 5, linker = 1, ligand = 3  + (LC) core = 4, linker = 1, ligand = 1 — named interlocked_*
 
     '''
     cases = {'clever':
+             ['core_5_lig_3_link_1', 'core_6_lig_2', 'core_4_lig_1_link_1'],
+             'clever_extended':
              ['core_5_lig_3_link_1', 'core_6_lig_2', 'core_4_lig_1_link_1']
              }
     try:
