@@ -15,7 +15,6 @@ Date Created: 03 May 2019
 import sys
 import logging
 import stk
-from rdkit.Chem import AllChem as Chem
 sys.path.insert(0, '/home/atarzia/thesource/')
 import analysis
 
