@@ -539,11 +539,4 @@ def get_molecule(type, popns, pop_ids, inverted, N=1, mole_dir='./'):
                                    params=etkdg)
     # FF minimize all conformers
     # minimize_all_conformers(stk_mol=molecule, confs=cids, FF='UFF')
-    # output each conformer to 3D structure if desired
-    # for cid in cids:
-    #     print(cid)
-    #     print(Chem.MolToSmiles(molecule.mol))
-    #     sys.exit()
-    #     mol_file = prefix + '_' + type + '_' + str(cid) + '_opt.mol'
-    #     molecule.write(path=join(mole_dir, mol_file), conformer=cid)
     return cids, molecule
