@@ -14,9 +14,57 @@ import logging
 from rdkit.Chem import AllChem as Chem
 import ase
 import os
+import scipy.spatial.distance as scpy_dist
 import copy
 import numpy as np
 import pywindow as pw
+
+
+def imply_nonporous(Mol):
+    '''Test that imply a structure is nonporous.
+
+    This is a place holder function that is not implemented or used.
+
+    1 - pore_diameter_opt < 0
+    2 - pore_volume_opt < 0
+    3 - cage COM and pore COM within 2 angstrom of an atom
+    4 - number of windows < 0
+
+    '''
+    analysis = Mol.full_analysis()
+    print(analysis)
+    # compare pore_diameter and pore_diameter_opt
+    PD = analysis['pore_diameter']['diameter']
+    PD_opt = analysis['pore_diameter_opt']['diameter']
+    if PD_opt < 0:
+        logging.info(f'> PD {PD}, PD_opt {PD_opt}')
+        logging.info(f'> nonporous')
+    # compare pore_volume and pore_volume_opt
+    PV = analysis['pore_volume']
+    PV_opt = analysis['pore_volume_opt']
+    if PV_opt < 0:
+        logging.info(f'> PV {PV}, PV_opt {PV_opt}')
+        logging.info(f'> nonporous')
+    # check min distance from cage COM to a cage atom
+    COM = np.array([analysis['centre_of_mass']])
+    coords = Mol.coordinates
+    distances = scpy_dist.cdist(XA=COM, XB=coords, metric='euclidean')
+    minD_C = min(distances[0])
+    # check min distance from pore OPT COM to a cage atom
+    PCOM = np.array([analysis['pore_diameter_opt']['centre_of_mass']])
+    Pdistances = scpy_dist.cdist(XA=PCOM, XB=coords, metric='euclidean')
+    minD_P = min(Pdistances[0])
+    if minD_C < 2 and minD_P < 2:
+        logging.info(f'> minD_C {minD_C}, minD_P {minD_P}')
+        logging.info(f'> nonporous')
+    # output window number
+    if analysis['windows']['diameters'] is not None:
+        WN = len(analysis['windows']['diameters'])
+    else:
+        WN = 0
+    if WN == 0:
+        logging.info(f'> WN {WN}')
+        logging.info(f'> nonporous')
 
 
 def check_PDB_for_pore(file, diam=0.25):
