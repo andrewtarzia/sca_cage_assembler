@@ -59,7 +59,7 @@ def main():
             PV_opt = analysis['pore_volume_opt']
             output_str += str(PV) + ','
             output_str += str(PV_opt) + ','
-            logging.info(f'> PD {PV}, PD_opt {PV_opt}')
+            logging.info(f'> PV {PV}, PV_opt {PV_opt}')
             # check min distance from cage COM to a cage atom
             COM = np.array([analysis['centre_of_mass']])
             coords = Mol.coordinates
