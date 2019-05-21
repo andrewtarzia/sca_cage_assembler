@@ -13,6 +13,7 @@ Date Created: 20 May 2019
 
 import logging
 import sys
+import os
 import numpy as np
 import glob
 import scipy.spatial.distance as scpy_dist
@@ -45,6 +46,9 @@ def main():
         # run pywindow on each molecule
         for mol in RB_s.molecules:
             logging.info(f'> doing {mol}')
+            if os.path.isfile(file_prefix + "_{0}.pdb".format(mol)):
+                logging.info(f'> already done {mol}')
+                continue
             Mol = RB_s.molecules[mol]
             analysis = Mol.full_analysis()
             print(analysis)
@@ -84,7 +88,16 @@ def main():
                 file_prefix + "_{0}.pdb".format(mol),
                 include_coms=True,
                 override=True)
-            INP = input('do these results make sense')
+            if PD_opt > 0:
+                logging.info(f'> doing {pdb}')
+                logging.info(f'> doing {mol}')
+                logging.info(f'> PD {PD}, PD_opt {PD_opt}')
+                logging.info(f'> PV {PV}, PV_opt {PV_opt}')
+                logging.info(f'> minD_C {minD_C}, minD_P {minD_P}')
+                logging.info(f'> WN {WN}')
+                input()
+            # INP = input('do these results make sense')
+            INP = 'y'
             output_str += str(INP) + '\n'
 
     # output to file
