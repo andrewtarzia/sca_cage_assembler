@@ -36,6 +36,41 @@ def main():
         OUTDATA = pd.read_csv(output_file)
         done_cifs = []
 
+    # iterate over CIFs
+    count = len(done_cifs)
+    for cif in cifs:
+        # skip done cifs
+        if cif in done_cifs:
+            continue
+        if os.path.isfile(cif):
+            pdb = IO_tools.convert_CIF_2_PDB(cif, wstruct=False)
+            if pdb is None:
+                logging.warning(f'> ASE failed to load {cif}')
+                OUTDATA = OUTDATA.append({'cif': cif, 'BUG?': 'M'},
+                                         ignore_index=True)
+            else:
+                logging.info(f'> doing {count} of {len(cifs)}')
+                # check if at least one molecule has a pore_diameter_opt > 0.25 angstrom
+                if has_bug(pdb):
+                    OUTDATA = OUTDATA.append({'cif': cif, 'BUG?': 'Y'},
+                                             ignore_index=True)
+                else:
+                    # delete molecule if not
+                    OUTDATA = OUTDATA.append({'cif': cif, 'BUG?': 'N'},
+                                             ignore_index=True)
+
+        # add to done cifs
+        done_cifs.append(cif)
+        # update output file
+        OUTDATA.to_csv(output_file, index=False)
+        count += 1
+
+    wbug = list(OUTDATA[OUTDATA['BUG?'] == 'Y']['cif'])
+    wASEbug = list(OUTDATA[OUTDATA['BUG?'] == 'M']['cif'])
+    logging.info(f'> ended with: {len(wbug)} buggy CIFs.')
+    logging.info(f'> ended with: {len(wASEbug)} buggy CIFs with ASE.')
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='')
     main()
