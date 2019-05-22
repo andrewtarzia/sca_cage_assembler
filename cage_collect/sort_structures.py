@@ -67,6 +67,7 @@ def main():
                 # CIF missing.
                 OUTDATA = OUTDATA.append({'cif': cif, 'deleted': 'M'},
                                          ignore_index=True)
+                os.remove(cif)
             else:
                 logging.info(f'> doing {count} of {len(cifs)}')
                 # check if at least one molecule has a pore_diameter_opt > 0.25 angstrom
