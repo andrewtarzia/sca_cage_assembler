@@ -127,7 +127,7 @@ def modularize(file):
     '''
     rebuilt_structure = rebuild(file=file)
     if len(rebuilt_structure.system['coordinates']) == 0:
-        logging.warning(f'{file} failed rebuild using pyWindow, return False')
+        logging.warning(f'{file} failed rebuild using pyWindow, return None')
         return None
     rebuilt_structure.make_modular()
     return rebuilt_structure
