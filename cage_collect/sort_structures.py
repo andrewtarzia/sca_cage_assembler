@@ -91,7 +91,7 @@ def main():
         OUTDATA.to_csv(output_file, index=False)
         count += 1
 
-    remaining = list(OUTDATA[OUTDATA['deleted'] == 'N'])
+    remaining = list(OUTDATA[OUTDATA['deleted'] == 'N']['cif'])
     logging.info(f'> ended with: {len(remaining)} CIFs.')
 
 
