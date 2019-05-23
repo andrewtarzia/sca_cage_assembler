@@ -56,7 +56,7 @@ def main():
         if RC in done_RCs:
             continue
         if os.path.isfile(pdb):
-            logging.info(f'> doing {count} of {len(RC)}: {RC}')
+            logging.info(f'> doing {count} of {len(pdbs)}: {RC}')
             # load and modularize pdb
             rbs = pywindow_f.modularize(file=pdb)
             if rbs is None:
@@ -87,7 +87,7 @@ def main():
             # get molecule with largest pore diameter
             pdos = [mol_dict[i][0] for i in mol_dict]
             max_pdo = max(pdos)
-            max_molec = pdos.index(max_pdo)
+            max_molec = list(mol_dict.keys())[pdos.index(max_pdo)]
             max_nwind = mol_dict[max_molec][1]
             # output structure
             mol.dump_molecule(
