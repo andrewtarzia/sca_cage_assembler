@@ -66,7 +66,7 @@ def main():
             mol_dict = {}
             Mol = rbs.molecules
             for molec in Mol:
-                mol = rbs.molecules[molec]
+                mol = Mol[molec]
                 if mol.no_of_atoms < 5:
                     continue
                 # run analysis
@@ -90,7 +90,7 @@ def main():
             max_molec = list(mol_dict.keys())[pdos.index(max_pdo)]
             max_nwind = mol_dict[max_molec][1]
             # output structure
-            mol.dump_molecule(
+            Mol[max_molec].dump_molecule(
                 RC + "_MP_{0}.pdb".format(max_molec),
                 include_coms=True,
                 override=True)
