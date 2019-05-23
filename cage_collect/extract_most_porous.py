@@ -90,7 +90,11 @@ def main():
             max_molec = list(mol_dict.keys())[pdos.index(max_pdo)]
             max_nwind = mol_dict[max_molec][1]
             # output structure
+<<<<<<< HEAD
             Mol[max_molec].dump_molecule(
+=======
+            Mol[molec].dump_molecule(
+>>>>>>> f5e15c32bd1cbfef55304ac861910554b6a568a5
                 RC + "_MP_{0}.pdb".format(max_molec),
                 include_coms=True,
                 override=True)
