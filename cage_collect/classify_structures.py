@@ -38,7 +38,7 @@ def main():
     if os.path.isfile(output_file):
         # read CIFs already checked to avoid double calculations
         OUTDATA = pd.read_csv(output_file)
-        done_RCs = list(OUTDATA['REFCODE'])
+        done_RCs = list(set(list(OUTDATA['REFCODE'])))
         logging.info(f'> {len(done_RCs)} structures already done.')
     else:
         # write output file
@@ -98,6 +98,12 @@ def main():
                     RC + "_MP_{0}.pdb".format(molec),
                     include_coms=False,
                     override=True)
+        if RC not in list(set(list(OUTDATA['REFCODE']))):
+            # add to output empty line.
+            OUTDATA = OUTDATA.append({'REFCODE': RC, 'molecule': 0,
+                                      'pore_diam_opt': 0,
+                                      'no_windows': 0},
+                                     ignore_index=True)
         # add to done cifs
         done_RCs.append(RC)
         # update output file
