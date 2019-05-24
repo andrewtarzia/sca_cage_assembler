@@ -14,11 +14,9 @@ Date Created: 23 May 2019
 import logging
 import sys
 import pandas as pd
-import glob
 import os
 sys.path.insert(0, '/home/atarzia/thesource/')
 import pywindow_f
-import IO_tools
 
 
 def main():
@@ -34,8 +32,9 @@ def main():
         output_file = sys.argv[2]
 
     refcodes = sorted([i.rstrip() for i in open(DB_file, 'r').readlines()])
-    rebuilt_pdbs = [i+'_extracted_rebuild.pdb' for i in refcodes]
+    pdbs = [i+'_extracted.pdb' for i in refcodes]
     logging.info(f'> started with: {len(refcodes)} structures to classify.')
+
     if os.path.isfile(output_file):
         # read CIFs already checked to avoid double calculations
         OUTDATA = pd.read_csv(output_file)
@@ -44,58 +43,61 @@ def main():
     else:
         # write output file
         with open(output_file, 'w') as f:
-            f.write('REFCODE,molecule,pore_diam_opt,no_windows,classification\n')
+            f.write('REFCODE,molecule,pore_diam_opt,no_windows\n')
         OUTDATA = pd.read_csv(output_file)
         done_RCs = []
 
     # iterate over CIFs
     count = len(done_RCs)
-    for rbpdb in rebuilt_pdbs:
-        RC = rbpdb.replace('_extracted_rebuild.pdb', '')
+    for pdb in pdbs:
+        RC = pdb.replace('_extracted.pdb', '')
         # skip done cifs
         if RC in done_RCs:
             continue
-        if os.path.isfile(rbpdb):
-            logging.info(f'> doing {count} of {len(RC)}: {RC}')
-            # load in rebuilt structure
-
-            # modularize
-
-            # iterate over all molecules, skipping those with n_atoms < 5
-            for molec in MOLECULES:
-                # run analysis
-
-                # define output
-                pdo = 0
+        if os.path.isfile(pdb) is False:
+            raise(f'{pdb} not present!')
+        logging.info(f'> doing {count} of {len(pdbs)}: {RC}')
+        # load and modularize pdb
+        rbs = pywindow_f.modularize(file=pdb)
+        if rbs is None:
+            # handle pyWindow failure
+            raise(f'{pdb} failed modularize!')
+        # iterate over all molecules, skipping those with n_atoms < 5
+        Mol = rbs.molecules
+        for molec in Mol:
+            mol = Mol[molec]
+            if mol.no_of_atoms < 5:
+                continue
+            # run analysis
+            try:
+                analysis = mol.full_analysis()
+            except ValueError:
+                logging.warning(f'{pdb}_{molec} failed pywindow full_analysis.')
+                analysis = None
+            # define output
+            if analysis is None:
+                continue
+            pdo = analysis['pore_diameter_opt']['diameter']
+            if analysis['windows']['diameters'] is not None:
+                nwind = len(analysis['windows']['diameters'])
+            else:
                 nwind = 0
-
-                # output structure
-
-                # visualize in PROGRAM to get class
-
-                CL = 'M'
-
-                # close program
-
-
+            # if it is a cage:
+            if pdo > 0.0 and nwind >= 2:
+                # add to output
                 OUTDATA = OUTDATA.append({'REFCODE': RC, 'molecule': molec,
                                           'pore_diam_opt': pdo,
-                                          'no_windows': nwind,
-                                          'classification': CL},
+                                          'no_windows': nwind},
                                          ignore_index=True)
-
-        else:
-            # pdb missing.
-            molec = 0
-            pdo = 0
-            nwind = 0
-            CL = 'M'  # mistake
-            OUTDATA = OUTDATA.append({'REFCODE': RC, 'molecule': molec,
-                                      'pore_diam_opt': pdo,
-                                      'no_windows': nwind,
-                                      'classification': CL},
-                                     ignore_index=True)
-
+                # output structure
+                Mol[molec].dump_molecule(
+                    RC + "_MP_{0}_coms.pdb".format(molec),
+                    include_coms=True,
+                    override=True)
+                Mol[molec].dump_molecule(
+                    RC + "_MP_{0}.pdb".format(molec),
+                    include_coms=False,
+                    override=True)
         # add to done cifs
         done_RCs.append(RC)
         # update output file
