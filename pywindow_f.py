@@ -233,9 +233,9 @@ def is_solvent(molecule, mol_list):
         logging.warning(f'{molecule} failed pywindow full_analysis.')
         logging.info(f'assuming solvent in this case.')
         return result
-    print(analysis['pore_diameter_opt']['diameter'], analysis['pore_volume_opt'])
-    # input()
-    if analysis['pore_diameter_opt']['diameter'] > 1.0:
+    pd_opt = analysis['pore_diameter_opt']['diameter']
+    if pd_opt > XX:
+        logging.info(f'not solvent with pore diam: {pd_opt}')
         result = False
     return result
 
@@ -255,17 +255,15 @@ def remove_solvent(pw_struct, ASE_struct, mol_list):
     # make deep copy of ASE_struct
     ASE_struct_out = copy.deepcopy(ASE_struct)
     for molecule in pw_struct.molecules:
-        print('Analysing molecule {0} out of {1}'.format(
-            molecule + 1, len(pw_struct.molecules)))
+        logging.info(f'Analysing molecule {molecule + 1} out of {len(pw_struct.molecules)}')
         mol = pw_struct.molecules[molecule]
         if is_solvent(molecule=mol, mol_list=mol_list) is False:
-            print('is NOT solvent with {} atoms'.format(mol.no_of_atoms))
+            logging.info(f'is NOT solvent with {mol.no_of_atoms} atoms')
             # append atoms to ASE_struct_out
             atom_ids = np.arange(1, mol.no_of_atoms + 1)
             coords = mol.coordinates
             atom_symbs = mol.atom_ids
             for i, j, k in zip(atom_ids, atom_symbs, coords):
-                # print(i, j, k)
                 curr_atm = ase.Atom(symbol=j,
                                     position=k,
                                     index=i)
