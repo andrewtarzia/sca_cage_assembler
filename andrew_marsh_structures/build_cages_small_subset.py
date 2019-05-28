@@ -186,10 +186,10 @@ Usage: build_cages_small_subset.py output_file wipe targ_aldehyde
                 # check if completed and run pywindow if so
                 if os.path.isfile(NAME + '_opt.mol') is True:
                     if os.path.isfile(prop_file) is False:
-                        BC.analyze_cage_from_MOL(file=NAME+'_opt.mol',
-                                                 prop_file=prop_file,
-                                                 mole_file=mole_file,
-                                                 include_coms=True)
+                        pywindow_f.analyze_cage_from_MOL(file=NAME+'_opt.mol',
+                                                         prop_file=prop_file,
+                                                         mole_file=mole_file,
+                                                         include_coms=True)
                 # if pywindow is complete then analyse the cage and write out
                 if os.path.isfile(prop_file) is True:
                     if BC.check_done(NAME, output_csv) is True:
