@@ -12,19 +12,20 @@ Date Created: 15 Apr 2019
 """
 
 import sys
+import logging
+from ase.io import read
 from ase.atoms import Atoms
 from ase.visualize import view
 import os
 sys.path.insert(0, '/home/atarzia/thesource/')
 import pywindow_f
-import IO_tools
 
 
 def main():
     if (not len(sys.argv) == 3):
         print("""
-Usage: remove_solvent.py CIF ignore
-    CIF (str) - name of CIF to analyze ('*.cif' for all in working dir)
+Usage: remove_solvent.py pdb ignore
+    pdb (str) - name of pdb to analyze ('*.pdb' for all in working dir)
     ignore (str) - string to use to ignore certain files (set NONE if not used)
     """)
         sys.exit()
@@ -32,36 +33,38 @@ Usage: remove_solvent.py CIF ignore
         if '*' in sys.argv[1]:
             from glob import glob
             if sys.argv[2] != 'NONE':
-                CIFs = sorted([i for i in glob(sys.argv[1])
+                pdbs = sorted([i for i in glob(sys.argv[1])
                                if sys.argv[2] not in i and 'nosolv' not in i])
             else:
-                CIFs = sorted([i for i in glob(sys.argv[1])])
-            print('{} CIFs to analyze'.format(len(CIFs)))
+                pdbs = sorted([i for i in glob(sys.argv[1])])
+            print('{} pdbs to analyze'.format(len(pdbs)))
         else:
-            CIFs = [sys.argv[1]]
+            pdbs = [sys.argv[1]]
 
-    for CIF in CIFs:
+    count = 0
+    for pdb in pdbs:
         # no need to redo already done structures
-        if os.path.isfile(CIF.replace('.cif', '_nosolv.cif')):
-            if os.path.isfile(CIF.replace('.cif', '_nosolv.pdb')):
+        if os.path.isfile(pdb.replace('.pdb', '_nosolv.cif')):
+            if os.path.isfile(pdb.replace('.pdb', '_nosolv.pdb')):
                 continue
-        print('doing', CIF)
-        if CIF[-4:] != '.cif':
-            raise Exception('input file: {} was not a CIF'.format(CIF))
+        logging.info(f'doing {pdb}: {count} of {len(pdbs)}')
+        if pdb[-4:] != '.pdb':
+            raise Exception(f'input file: {pdb} was not a pdb')
 
-        pdb_file, struct = IO_tools.convert_CIF_2_PDB(CIF)
-        if pdb_file is None and struct is None:
-            continue
+        # pdb_file, struct = IO_tools.convert_CIF_2_PDB(pdb)
+        # if pdb_file is None and struct is None:
+        #     continue
+        struct = read(pdb)
         # get final struct equivalent to input struct, but without atoms
         final_struct = Atoms()
         final_struct.set_cell(struct.cell)
         final_struct.set_pbc([True, True, True])
         # view(struct)
         # view(final_struct)
-        rebuilt_structure = pywindow_f.modularize(file=pdb_file)
+        rebuilt_structure = pywindow_f.modularize(file=pdb)
         if rebuilt_structure is None:
             # handle pyWindow failure
-            sys.exit(f'pyWindow failure on {pdb_file}')
+            sys.exit(f'pyWindow failure on {pdb}')
         # test if one molecule is huge because disorder breaks pywindow code
         no_atoms_orig = len(struct)
         n_atoms_list = []
@@ -69,11 +72,11 @@ Usage: remove_solvent.py CIF ignore
             n_atoms_list.append(rebuilt_structure.molecules[molecule].no_of_atoms)
         max_count = max(n_atoms_list)
         if max_count > no_atoms_orig:
-            print('1 UC:', no_atoms_orig, 'modularized max:', max_count)
+            logging.info(f'1 UC: {no_atoms_orig} modularized max: {max_count}')
             # implies that this structure is too disordered for pywindow to handle
             # sys.exit('skipping this CIF because modularising failed.')
-            print('skipping this CIF because modularising failed.')
-            print('----------------------------------------------')
+            logging.info(f'skipping this CIF because modularising failed.')
+            logging.info(f'----------------------------------------------')
             continue
         final_struct = pywindow_f.remove_solvent(pw_struct=rebuilt_structure,
                                                  ASE_struct=final_struct,
@@ -82,13 +85,17 @@ Usage: remove_solvent.py CIF ignore
         if len(final_struct):
             # view(final_struct)
             # output to CIF
-            output = CIF.replace('.cif', '_nosolv.cif')
+            output = pdb.replace('.pdb', '_nosolv.cif')
             final_struct.write(output, format='cif')
-            output = CIF.replace('.cif', '_nosolv.pdb')
+            output = pdb.replace('.pdb', '_nosolv.pdb')
             final_struct.write(output)
-        print('done')
-        print('----------------------------------------------')
+        logging.info(f'done')
+        logging.info(f'----------------------------------------------')
+        count += 1
 
 
 if __name__ == "__main__":
+    # logging.basicConfig(level=logging.DEBUG, format='%(levelname)s-%(message)s')
+    # logging.debug(f'Debug mode!')
+    logging.basicConfig(level=logging.INFO, format='')
     main()

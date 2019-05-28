@@ -273,7 +273,7 @@ def remove_solvent(pw_struct, ASE_struct, mol_list):
     return ASE_struct_out
 
 
-def append_and_write_COMs(result_dict, structure, file):
+def append_and_write_COMs(result_dict, structure, file, suffix='.cif'):
     '''Append all COMs in result dict as the atoms below to the ASE structure
     and output to file.
 
@@ -303,7 +303,7 @@ def append_and_write_COMs(result_dict, structure, file):
                             position=result_dict[molecule][2])
         structure.append(pore_com)
     # output to CIF
-    output = file.replace('.cif', '_appended.cif')
+    output = file.replace(suffix, '_appended.cif')
     structure.write(output, format='cif')
-    output = file.replace('.cif', '_appended.pdb')
+    output = file.replace(suffix, '_appended.pdb')
     structure.write(output)

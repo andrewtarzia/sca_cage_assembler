@@ -11,45 +11,55 @@ Date Created: 19 Feb 2019
 """
 
 import sys
-from os.path import isfile
+import ase
+import logging
+import os
 sys.path.insert(0, '/home/atarzia/thesource/')
 import pywindow_f
-from IO_tools import convert_CIF_2_PDB
 
 
-if __name__ == "__main__":
+def main():
     if (not len(sys.argv) == 3):
         print("""
-Usage: append_all_COM.py CIF ignore
-    CIF: file (.cif) to analyze and add pseudo atoms to ('*.cif' for all in working dir)
-    ignore (str) - string to use to ignore certain files (set NONE if not used)
-    """)
+        Usage: append_all_COM.py pdb ignore
+        pdb: file (.pdb) to analyze and add pseudo atoms to ('*.pdb' for all in working dir)
+        ignore (str) - string to use to ignore certain files (set NONE if not used)
+        """)
         sys.exit()
     if '*' in sys.argv[1]:
         from glob import glob
         if sys.argv[2] != 'NONE':
-            CIFs = sorted([i for i in glob(sys.argv[1]) if sys.argv[2] not in i])
+            pdbs = sorted([i for i in glob(sys.argv[1]) if sys.argv[2] not in i])
         else:
-            CIFs = sorted([i for i in glob(sys.argv[1])])
-        print('{} CIFs to analyze'.format(len(CIFs)))
+            pdbs = sorted([i for i in glob(sys.argv[1])])
+            logging.info(f'{len(pdbs)} pdbs to analyze')
     else:
-        CIFs = [sys.argv[1]]
+        pdbs = [sys.argv[1]]
 
-    for file in CIFs:
+    for file in pdbs:
         # do not redo
-        if isfile(file.replace('.cif', '_appended.cif')):
+        if os.path.isfile(file.replace('.pdb', '_appended.cif')):
             continue
-        pdb_file, ASE_structure = convert_CIF_2_PDB(file)
-        if pdb_file is None and ASE_structure is None:
+        ASE_structure = ase.io.read(file)
+        if ASE_structure is None:
             continue
         # rebuild system
-        rebuilt_structure = pywindow_f.modularize(file=pdb_file)
+        pdb = file
+        rebuilt_structure = pywindow_f.modularize(file=pdb)
         if rebuilt_structure is None:
             # handle pyWindow failure
-            sys.exit(f'pyWindow failure on {pdb_file}')
+            sys.exit(f'pyWindow failure on {pdb}')
         # run analysis
-        COM_dict = pywindow_f.analyze_rebuilt(rebuilt_structure, atom_limit=20,
-                                              file_prefix=file.replace('.cif', ''),
+        COM_dict = pywindow_f.analyze_rebuilt(rebuilt_structure,
+                                              atom_limit=20,
+                                              file_prefix=file.replace('.pdb', ''),
                                               verbose=False, include_coms=True)
         # append atoms to ASE structure as pseudo atoms and write out new CIF
-        pywindow_f.append_and_write_COMs(COM_dict, ASE_structure, file)
+        pywindow_f.append_and_write_COMs(COM_dict, ASE_structure, file, suffix='.pdb')
+
+
+if __name__ == "__main__":
+    # logging.basicConfig(level=logging.DEBUG, format='%(levelname)s-%(message)s')
+    # logging.debug(f'Debug mode!')
+    logging.basicConfig(level=logging.INFO, format='')
+    main()
