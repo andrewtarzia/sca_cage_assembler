@@ -227,8 +227,8 @@ def is_solvent(molecule):
     try:
         analysis = molecule.full_analysis()
     except ValueError:
-        logging.warning(f'{molecule} failed pywindow full_analysis.')
-        logging.info(f'assuming solvent in this case.')
+        logging.warning(f'>>> failed pywindow full_analysis.')
+        logging.info(f'>>> assuming solvent in this case.')
         return result
     pd_opt = analysis['pore_diameter_opt']['diameter']
     if analysis['windows']['diameters'] is not None:
