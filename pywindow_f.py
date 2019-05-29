@@ -209,7 +209,7 @@ def analyze_rebuilt(rebuilt_structure, file_prefix, atom_limit,
     return result_dict
 
 
-def is_solvent(molecule, mol_list):
+def is_solvent(molecule):
     '''Tests if a pyWindow molecule is a solvent or not.
 
     Tests:
@@ -221,10 +221,6 @@ def is_solvent(molecule, mol_list):
         result (bool) - True if the molecule is a solvent
     '''
     result = True
-    # do tests
-    # if molecule.no_of_atoms < max(mol_list) / 2:
-    #     print(molecule.no_of_atoms)
-    #     result = False
     # run pyWindow
     if molecule.no_of_atoms == 1:
         return result
@@ -262,7 +258,7 @@ def remove_solvent(pw_struct, ASE_struct, mol_list):
     for molecule in pw_struct.molecules:
         logging.info(f'Analysing molecule {molecule + 1} out of {len(pw_struct.molecules)}')
         mol = pw_struct.molecules[molecule]
-        if is_solvent(molecule=mol, mol_list=mol_list) is False:
+        if is_solvent(molecule=mol) is False:
             logging.info(f'is NOT solvent with {mol.no_of_atoms} atoms')
             # append atoms to ASE_struct_out
             atom_ids = np.arange(1, mol.no_of_atoms + 1)
