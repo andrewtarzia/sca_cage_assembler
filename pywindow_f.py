@@ -213,8 +213,9 @@ def is_solvent(molecule, mol_list):
     '''Tests if a pyWindow molecule is a solvent or not.
 
     Tests:
-        1) Run pyWindow. If void diameter > 0, keep structure
-            if no_of_atoms == 1, skip molecule
+        1) if no_of_atoms == 1, skip molecule
+        2) Run pyWindow.
+            If void diameter > 0 and no_windows > 2: keep structure
 
     Returns:
         result (bool) - True if the molecule is a solvent
@@ -234,8 +235,12 @@ def is_solvent(molecule, mol_list):
         logging.info(f'assuming solvent in this case.')
         return result
     pd_opt = analysis['pore_diameter_opt']['diameter']
-    if pd_opt > XX:
-        logging.info(f'not solvent with pore diam: {pd_opt}')
+    if analysis['windows']['diameters'] is not None:
+        no_windows = len(analysis['windows']['diameters'])
+    else:
+        no_windows = 0
+    if pd_opt > 0.0 and no_windows >= 2:
+        logging.info(f'not solvent with pore diam: {pd_opt} and {no_windows} windows')
         result = False
     return result
 
