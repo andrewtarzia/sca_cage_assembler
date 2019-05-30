@@ -12,6 +12,7 @@ Date Created: 19 Feb 2019
 
 import sys
 from ase.io import read
+import pywindow as pw
 import logging
 import os
 sys.path.insert(0, '/home/atarzia/thesource/')
@@ -38,23 +39,30 @@ def main():
 
     count = 1
     for file in pdbs:
-        logging.info(f'doing {file}: {count} of {len(pdbs)}')
         # do not redo
         if os.path.isfile(file.replace('.pdb', '_appended.cif')):
             count += 1
             continue
+        logging.info(f'doing {file}: {count} of {len(pdbs)}')
         ASE_structure = read(file)
         if ASE_structure is None:
             count += 1
             continue
-        # rebuild system
         pdb = file
-        rebuilt_structure = pywindow_f.modularize(file=pdb)
-        if rebuilt_structure is None:
+        if '_nosolv' in pdb:
+            # if solvent is removed and pdb is used, then this is already the
+            # rebuilt structure
+            struct = pw.MolecularSystem.load_file(pdb)
+            struct.make_modular()
+        else:
+            # rebuild system
+            struct = pywindow_f.modularize(file=pdb)
+        # print(struct)
+        if struct is None:
             # handle pyWindow failure
             sys.exit(f'pyWindow failure on {pdb}')
         # run analysis
-        COM_dict = pywindow_f.analyze_rebuilt(rebuilt_structure,
+        COM_dict = pywindow_f.analyze_rebuilt(struct,
                                               atom_limit=20,
                                               file_prefix=file.replace('.pdb', ''),
                                               verbose=False, include_coms=True)
