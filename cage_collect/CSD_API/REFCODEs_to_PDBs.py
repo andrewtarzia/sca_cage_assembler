@@ -20,7 +20,7 @@ import CSD_f
 def main():
     if (not len(sys.argv) == 4):
         print """
-    Usage: REFCODEs_to_PDBs.py REFCODE_file missing_struct
+    Usage: REFCODEs_to_PDBs.py REFCODE_file missing_struct cross_references
         REFCODE_file (str) - file with list of REFCODEs
         missing_struct (str) - file with list of REFCODEs with missing structs
         cross_references (str) - file with list of REFCODEs that require cross_references
