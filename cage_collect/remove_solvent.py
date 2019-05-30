@@ -87,6 +87,9 @@ Usage: remove_solvent.py pdb ignore
             # output to CIF
             output = pdb.replace('.pdb', '_nosolv.cif')
             final_struct.write(output, format='cif')
+            # # turn off PBC and cells for writing pdb
+            # final_struct.set_cell([0, 0, 0])
+            # final_struct.set_pbc(False)
             output = pdb.replace('.pdb', '_nosolv.pdb')
             final_struct.write(output)
         logging.info(f'done')
