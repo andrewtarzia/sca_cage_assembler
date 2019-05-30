@@ -291,12 +291,9 @@ def append_and_write_COMs(result_dict, structure, file, suffix='.cif'):
         structure.append(cage_com)
         # add window COMs:
         for wCOM in result_dict[molecule][1]['centre_of_mass']:
-            print('----------')
-            print(wCOM)
             window_com = ase.Atom(symbol='He',
                                   position=wCOM)
             structure.append(window_com)
-            print('----------')
         # add optimized cage pore COM
         pore_com = ase.Atom(symbol='Ar',
                             position=result_dict[molecule][2])

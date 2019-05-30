@@ -11,7 +11,7 @@ Date Created: 19 Feb 2019
 """
 
 import sys
-import ase
+from ase.io import read
 import logging
 import os
 sys.path.insert(0, '/home/atarzia/thesource/')
@@ -36,12 +36,16 @@ def main():
     else:
         pdbs = [sys.argv[1]]
 
+    count = 1
     for file in pdbs:
+        logging.info(f'doing {file}: {count} of {len(pdbs)}')
         # do not redo
         if os.path.isfile(file.replace('.pdb', '_appended.cif')):
+            count += 1
             continue
-        ASE_structure = ase.io.read(file)
+        ASE_structure = read(file)
         if ASE_structure is None:
+            count += 1
             continue
         # rebuild system
         pdb = file
@@ -56,6 +60,7 @@ def main():
                                               verbose=False, include_coms=True)
         # append atoms to ASE structure as pseudo atoms and write out new CIF
         pywindow_f.append_and_write_COMs(COM_dict, ASE_structure, file, suffix='.pdb')
+        count += 1
 
 
 if __name__ == "__main__":
