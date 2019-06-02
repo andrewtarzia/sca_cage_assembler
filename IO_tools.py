@@ -29,6 +29,30 @@ def convert_MOL3000_2_PDB_XYZ(file):
     convert_PDB_2_XYZ(file=pdbfile)
 
 
+def check_ASE_handle(file, wstruct=True):
+    '''Check if ASE handles the reading of a given file.
+
+    '''
+    try:
+        structure = read(file)
+        if wstruct:
+            return file, structure
+        else:
+            return file
+    except IndexError:
+        print('ASE load failed with IndexError. Skipping...')
+        if wstruct:
+            return None, None
+        else:
+            return None
+    except ValueError:
+        print('ASE load failed with IndexError. Skipping...')
+        if wstruct:
+            return None, None
+        else:
+            return None
+
+
 def convert_CIF_2_PDB(file, wstruct=True):
     '''Convert CIF to PDB file, save and return structure.
 
