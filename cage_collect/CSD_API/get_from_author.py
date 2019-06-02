@@ -16,37 +16,42 @@ sys.path.insert(0, '/home/atarzia/thesource/')
 import CSD_f
 
 
-def write_entry(author, number, DOI, CSD, solvent, disorder):
+def write_entry(file, author, number, DOI, CSD, solvent, disorder):
     '''Write entry to CIF DB file that contains all names and references for a
     structure.
 
     '''
-    with open('CIF_DB_author.txt', 'a') as f:
+    with open(file, 'a') as f:
         f.write(author+','+number+','+DOI+','+CSD+','+solvent+','+disorder+'\n')
 
 
-def write_REFCODES(CSD):
+def write_REFCODES(file, CSD):
     '''Write REFCODE to file.
 
     '''
-    with open('DB.gcd', 'a') as f:
+    with open(file, 'a') as f:
         f.write(CSD+'\n')
 
 
 def main():
-    if (not len(sys.argv) == 3):
+    if (not len(sys.argv) == 4):
         print """
-    Usage: get_from_author.py author_file cage_type
+    Usage: get_from_author.py author_file cage_type output_prefix
         author_file (str) - file with list of authors
         cage_type (str) - organic if organic cages, metal if is_organometallic
             organic: sets is_organometallic is False
             metal: sets is_organometallic is True
             anything else: passes this test
+        output_prefix (str) - prefix of .txt and .gcd file to output
         """
         sys.exit()
     else:
         author_file = sys.argv[1]
         cage_type = sys.argv[2]
+        output_prefix = sys.argv[3]
+
+    out_txt = output_prefix+'.txt'
+    out_gcd = output_prefix+'.gcd'
 
     # files = []
     authors = []
@@ -55,10 +60,10 @@ def main():
     for line in open(author_file, 'r'):
         authors.append(line.rstrip())
 
-    with open('CIF_DB_author.txt', 'w') as f:
+    with open(out_txt, 'w') as f:
         f.write('author,number,DOI,CSD,solvent,disorder\n')
 
-    with open('DB.gcd', 'w') as f:
+    with open(out_gcd, 'w') as f:
         f.write('')
 
     count = 0
@@ -110,10 +115,10 @@ def main():
             # write REFCODE to file
             if hit.identifier not in idents:
                 idents.append(hit.identifier)
-                write_entry(author, str(hit.entry.ccdc_number),
+                write_entry(out_txt, author, str(hit.entry.ccdc_number),
                             hit.entry.doi, hit.identifier, solvent,
                             disorder)
-                write_REFCODES(hit.identifier)
+                write_REFCODES(out_gcd, hit.identifier)
                 count += 1
 
     print str(count)+' cifs found from '+str(count_no)+' authors'
