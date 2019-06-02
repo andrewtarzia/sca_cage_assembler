@@ -3,7 +3,7 @@
 # Distributed under the terms of the MIT License.
 
 """
-Script to sort CIFs based on their pyWindow results (<- extract_indep_cages.py)
+Script to sort CIFs or PDBs based on their pyWindow results (<- extract_indep_cages.py)
 
 Author: Andrew Tarzia
 
@@ -24,76 +24,81 @@ import IO_tools
 def main():
     if (not len(sys.argv) == 3):
         print("""
-    Usage: sort_structures.py DB_file output_file
+    Usage: sort_structures.py DB_file output_file file_type
         DB_file (str) - file with initial list of REFCODEs
         output_file (str) - file to output results of sorting to
+        file_type (str) - set whether to run on PDBs (enter: pdb) or CIFs (enter: cif)
         """)
         sys.exit()
     else:
         DB_file = sys.argv[1]
         output_file = sys.argv[2]
+        file_type = sys.argv[3]
 
     # temporary check for non-implemented issue with extractedm.cif cases
     # these cases were manually collected
-    for i in glob.glob('*.cif'):
+    for i in glob.glob(f'*.{file_type}'):
         if 'extractedm' in i:
             logging.error('This code cannot handled extractedm cases! Please implement them.')
 
     refcodes = sorted([i.rstrip() for i in open(DB_file, 'r').readlines()])
-    cifs = [i+'_extracted.cif' for i in refcodes]
-    logging.info(f'> started with: {len(refcodes)} CIFs to sort.')
+    files = [i+'_extracted.'+file_type for i in refcodes]
+    logging.info(f'> started with: {len(refcodes)} structures to sort.')
     if os.path.isfile(output_file):
-        # read CIFs already checked to avoid double calculations
+        # read structures already checked to avoid double calculations
         OUTDATA = pd.read_csv(output_file)
-        done_cifs = list(OUTDATA.cif)
-        logging.info(f'> {len(done_cifs)} CIFs already done.')
+        done_files = list(OUTDATA.file)
+        logging.info(f'> {len(done_files)} structures already done.')
     else:
         # write output file
         with open(output_file, 'w') as f:
-            f.write('cif,deleted\n')
+            f.write('file,deleted\n')
         OUTDATA = pd.read_csv(output_file)
-        done_cifs = []
+        done_files = []
 
-    # iterate over CIFs
-    count = len(done_cifs)
-    for cif in cifs:
-        # skip done cifs
-        if cif in done_cifs:
+    # iterate over files
+    count = len(done_files)
+    for file in files:
+        # skip done structures
+        if file in done_files:
             continue
-        if os.path.isfile(cif):
-            pdb = IO_tools.convert_CIF_2_PDB(cif, wstruct=False)
+        if os.path.isfile(file):
+            if file_type == 'cif':
+                pdb = IO_tools.convert_CIF_2_PDB(file, wstruct=False)
+            elif file_type == 'pdb':
+                pdb = IO_tools.check_ASE_handle(file, wstruct=False)
             if pdb is None:
-                logging.warning(f'> ASE failed to load {cif}')
-                # CIF missing.
-                OUTDATA = OUTDATA.append({'cif': cif, 'deleted': 'M'},
+                logging.warning(f'> ASE failed to load {file}')
+                # file failed to load in ASE
+                OUTDATA = OUTDATA.append({'file': file, 'deleted': 'M'},
                                          ignore_index=True)
-                os.remove(cif)
+                os.remove(file)
             else:
-                logging.info(f'> doing {count} of {len(cifs)}')
+                logging.info(f'> doing {count} of {len(files)}')
                 # check if at least one molecule has a pore_diameter_opt > 0.25 angstrom
-                if pywindow_f.check_PDB_for_pore(file=pdb, diam=0.25):
-                    OUTDATA = OUTDATA.append({'cif': cif, 'deleted': 'N'},
+                if pywindow_f.check_PDB_for_pore(file=pdb, diam=0.0):
+                    OUTDATA = OUTDATA.append({'file': file, 'deleted': 'N'},
                                              ignore_index=True)
                 else:
                     # delete molecule if not
-                    OUTDATA = OUTDATA.append({'cif': cif, 'deleted': 'Y'},
+                    OUTDATA = OUTDATA.append({'file': file, 'deleted': 'Y'},
                                              ignore_index=True)
-                    os.remove(cif)
+                    os.remove(file)
                     os.remove(pdb)
                     os.remove(pdb.replace('.pdb', '_rebuild.pdb'))
         else:
-            # CIF missing.
-            OUTDATA = OUTDATA.append({'cif': cif, 'deleted': 'M'},
+            # file missing.
+            OUTDATA = OUTDATA.append({'file': file, 'deleted': 'M'},
                                      ignore_index=True)
 
         # add to done cifs
-        done_cifs.append(cif)
+        done_files.append(file)
         # update output file
         OUTDATA.to_csv(output_file, index=False)
         count += 1
 
-    remaining = list(OUTDATA[OUTDATA['deleted'] == 'N']['cif'])
-    logging.info(f'> ended with: {len(remaining)} CIFs.')
+    remaining = list(OUTDATA[OUTDATA['deleted'] == 'N']['file'])
+    logging.info(f'> ended with: {len(remaining)} structures.')
 
 
 if __name__ == "__main__":
