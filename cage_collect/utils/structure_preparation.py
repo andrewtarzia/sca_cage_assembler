@@ -47,7 +47,8 @@ Usage: structure_preparation.py out_file
         f.write('')
 
     # read in initial CIF DB
-    CIF_init_DB = pd.read_csv('CIF_DB_author.txt')
+    # CIF_init_DB = pd.read_csv('CIF_DB_author.txt')
+    raise(f'You need to rewrite this to read in an arbitrary DB')
 
     all_cifs = sorted(glob.glob('*extracted*.cif'))
     for cif in all_cifs:
