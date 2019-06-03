@@ -22,7 +22,7 @@ import IO_tools
 
 
 def main():
-    if (not len(sys.argv) == 3):
+    if (not len(sys.argv) == 4):
         print("""
     Usage: sort_structures.py DB_file output_file file_type
         DB_file (str) - file with initial list of REFCODEs
@@ -84,7 +84,10 @@ def main():
                     OUTDATA = OUTDATA.append({'file': file, 'deleted': 'Y'},
                                              ignore_index=True)
                     os.remove(file)
-                    os.remove(pdb)
+                    try:
+                        os.remove(pdb)
+                    except FileNotFoundError:
+                        pass
                     os.remove(pdb.replace('.pdb', '_rebuild.pdb'))
         else:
             # file missing.
