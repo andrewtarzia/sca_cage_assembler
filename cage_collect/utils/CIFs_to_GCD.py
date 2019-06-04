@@ -17,25 +17,28 @@ import glob
 
 
 def main():
-    if (not len(sys.argv) == 2):
+    if (not len(sys.argv) == 3):
         print("""
-    Usage: CIFs_to_GCD.py gcd_file
+    Usage: CIFs_to_GCD.py gcd_file suffix
         gcd_file (str) - file to output REFCODEs to
+        suffix (str) - file ending to use to search for files ('_extracted.cif')
         """)
         sys.exit()
     else:
         gcd_file = sys.argv[1]
+        suffix = sys.argv[2]
+
+    CIFs = sorted(glob.glob(f'*{suffix}'))
 
     # temporary check for non-implemented issue with extractedm.cif cases
     # these cases were manually collected
-    for i in glob.glob('*.cif'):
+    for i in CIFs:
         if 'extractedm' in i:
             logging.error('This code cannot handled extractedm cases! Please implement them.')
 
-    CIFs = sorted(glob.glob('*.cif'))
     output_str = ''
     for cif in CIFs:
-        RC = cif.replace('_extracted.cif', '')
+        RC = cif.replace(suffix, '')
         output_str += RC+'\n'
 
     with open(gcd_file, 'w') as f:
