@@ -25,7 +25,7 @@ def main():
     if (not len(sys.argv) == 3):
         print("""
 Usage: remove_solvent.py pdb ignore
-    pdb (str) - name of pdb to analyze ('*.pdb' for all in working dir)
+    pdb (str) - name of pdb to analyze ('*_extracted.pdb' for all in working dir)
     ignore (str) - string to use to ignore certain files (set NONE if not used)
     """)
         sys.exit()
