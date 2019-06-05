@@ -68,9 +68,9 @@ Usage: get_all_struct_energies.py output_file suffix
             OUTFILE = file.replace('.mol', '_opt.mol')
             if os.path.isfile(OUTFILE) is False:
                 stk_f.optimize_structunit(infile=file,
-                                                  outfile=OUTFILE,
-                                                  exec=macromod_,
-                                                  settings=stk_f.atarzia_long_MD_settings())
+                                          outfile=OUTFILE,
+                                          exec=macromod_,
+                                          settings=stk_f.atarzia_long_MD_settings())
             outfiles.append(OUTFILE)
     else:
         if suffix != '_opt.mol':
