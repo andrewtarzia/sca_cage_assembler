@@ -70,6 +70,7 @@ Usage: build_cages_small_subset.py output_file wipe targ_aldehyde
         targ_aldehyde = sys.argv[3]
 
     macromod_ = '/home/atarzia/software/schrodinger_install'
+    macromod_output = '/data/atarzia/andrew_marsh/small_subset/'
     base_dir = '/home/atarzia/projects/andrew_marsh_structures/smaller_subset'
     alde_dir = os.path.join(base_dir, 'aldehydes/')
     ami2_dir = os.path.join(base_dir, 'diamines/')
@@ -123,13 +124,15 @@ Usage: build_cages_small_subset.py output_file wipe targ_aldehyde
                 logging.info(f'doing:{NAME}')
                 if os.path.isfile(NAME+'_opt.mol') is False:
                     # build cage and run optimization
+                    sim_output = macromod_output + NAME
                     cage = stk_f.build_and_opt_cage(prefix=NAME,
                                                     BB1=alde_struc[i],
                                                     BB2=ami2_struc,
                                                     topology=topo,
                                                     macromod_=macromod_,
                                                     pdb=True,
-                                                    settings=stk_f.atarzia_long_MD_settings())
+                                                    settings=stk_f.atarzia_long_MD_settings(),
+                                                    output_dir=sim_output)
                     # convert .pdb to .xyz using ASE
                     pdb = NAME + '_opt.pdb'
                     _, _ = IO_tools.convert_PDB_2_XYZ(pdb)
