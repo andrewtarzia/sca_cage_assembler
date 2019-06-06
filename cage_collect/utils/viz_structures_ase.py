@@ -67,10 +67,10 @@ def main():
         count += 1
         done.append(i)
         logging.info('----------------------------')
-        with open('temp_done2.gcd', 'w') as f:
+        with open(done_file, 'w') as f:
             for l in done:
                 f.write(l+'\n')
-        with open('viz_select2.gcd', 'w') as f:
+        with open(output_file, 'w') as f:
             for l in to_keep:
                 f.write(l+'\n')
 
