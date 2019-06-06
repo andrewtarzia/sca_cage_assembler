@@ -10,7 +10,7 @@ def main():
     if (not len(sys.argv) == 4):
         print("""
     Usage: viz_structures_ase.py input_file done_file output_file
-        input_file (str) - file to read in REFCODEs from
+        input_file (str) - csv file to read in REFCODEs from
         done_file (str) - file with done REFCODEs
         output_file (str) - file to output selcted REFCODEs to
         """)
