@@ -260,15 +260,16 @@ def atarzia_long_MD_settings():
         DOI:10.1039/C8NR06868B
 
     Modified on 26/04/19.
+    Modified on 06/06/19.
     '''
     Settings = {'output_dir': None,
                 'timeout': None,
                 'force_field': 16,
                 'temperature': 700,  # K
-                'conformers': 10000,
+                'conformers': 5000,  # change from 10000
                 'time_step': 0.5,  # fs
-                'eq_time': 500,  # ps
-                'simulation_time': -1000,  # ps -- 100 ns
+                'eq_time': 100,  # ps
+                'simulation_time': -500,  # ps -- 50 ns changed from 100 ns
                 'maximum_iterations': 2500,
                 'minimum_gradient': 0.05,
                 'use_cache': False}
