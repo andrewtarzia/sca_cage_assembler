@@ -385,7 +385,7 @@ def get_OPLS3_energy_of_list(out_file, structures, macromod_,
 
 
 def build_and_opt_cage(prefix, BB1, BB2, topology, macromod_,
-                       settings=None, pdb=None):
+                       settings=None, pdb=None, output_dir=None):
     '''
 
     Keyword Arguments:
@@ -395,25 +395,31 @@ def build_and_opt_cage(prefix, BB1, BB2, topology, macromod_,
         topology (stk.topology) = cage toplogy object
         macromod_ (str) - location of macromodel
         settings (dict) - settings for MacroModel Opt
-        xyz (bool) - otuput XYZ file of optimized cage (default is None)
+        pdb (bool) - output PDB file of optimized cage (default is None)
+        output_dir (str) - directory to save MacroModel output to (default is None)
     '''
     # use standard settings applied in andrew_marsh work if md/settings is None
     if settings is None:
         Settings = default_stk_MD_settings()
     else:
         Settings = settings
+
+    # use default output dir (which is CWD) is output_dir is not given
+    if output_dir is None:
+        output_dir = Settings['output_dir']
+
     # try:
     cage = stk.Cage([BB1, BB2], topology)
     cage.write(prefix + '.mol')
     cage.dump(prefix + '.json')
     # restricted=True optimization with OPLS forcefield by default
     ff = stk.MacroModelForceField(macromodel_path=macromod_,
-                                  restricted=True)
+                                  restricted=True, output_dir=output_dir)
     # MD process - run MD, collect N conformers, optimize each,
     # return lowest energy conformer
     # no restricted
     md = stk.MacroModelMD(macromodel_path=macromod_,
-                          output_dir=Settings['output_dir'],
+                          output_dir=output_dir,
                           timeout=Settings['timeout'],
                           force_field=Settings['force_field'],
                           temperature=Settings['temperature'],
