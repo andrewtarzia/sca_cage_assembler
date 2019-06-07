@@ -10,9 +10,8 @@ Author: Andrew Tarzia
 Date Created: 15 Mar 2019
 """
 import sys
-sys.path.insert(0, '/home/atarzia/thesource/')
-import pywindow_f
-import IO_tools
+import atools
+
 
 if __name__ == "__main__":
     if (not len(sys.argv) == 2):
@@ -24,11 +23,11 @@ Usage: extract_cage.py CIF
     else:
         file = sys.argv[1]
     file_prefix = file.replace('.cif', '')
-    pdb_file, ASE_structure = IO_tools.convert_CIF_2_PDB(file)
+    pdb_file, ASE_structure = atools.convert_CIF_2_PDB(file)
     if pdb_file is None and ASE_structure is None:
         sys.exit()
     # rebuild system
-    rebuilt_structure = pywindow_f.modularize(file=pdb_file)
+    rebuilt_structure = atools.modularize(file=pdb_file)
     if rebuilt_structure is None:
         # handle pyWindow failure
         sys.exit(f'pyWindow failure on {pdb_file}')
@@ -46,4 +45,4 @@ Usage: extract_cage.py CIF
             pdb_output,
             include_coms=False,
             override=True)
-        _, _ = IO_tools.convert_PDB_2_XYZ(pdb_output)
+        _, _ = atools.convert_PDB_2_XYZ(pdb_output)
