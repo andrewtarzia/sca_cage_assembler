@@ -70,8 +70,8 @@ Usage: build_cages_small_subset.py output_file wipe targ_aldehyde
         targ_aldehyde = sys.argv[3]
 
     macromod_ = '/home/atarzia/software/schrodinger_install'
-    macromod_output = '/data/atarzia/andrew_marsh/small_subset/'
     base_dir = '/home/atarzia/projects/andrew_marsh_structures/smaller_subset'
+    macromod_output = os.path.join(os.getcwd(), 'data/')
     alde_dir = os.path.join(base_dir, 'aldehydes/')
     ami2_dir = os.path.join(base_dir, 'diamines/')
     ami3_dir = os.path.join(base_dir, 'triamines/')

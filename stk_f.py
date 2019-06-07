@@ -150,17 +150,17 @@ def topo_2_property(topology, property):
          'expected_wind': 6,
          },
         '1p1':
-        {'stk_func': stk.OnePlusOne(),
-         # place bb1 on vertex (0), bb2 on vertex (1)
-         bb_positions={0: [0], 1: [1]}),
+        {'stk_func': stk.OnePlusOne(
+            # place bb1 on vertex (0), bb2 on vertex (1)
+            bb_positions={0: [0], 1: [1]}),
          'stoich': (1, 1),
          'noimines': 3,
          'expected_wind': 3,
          },
         '4p4':
-        {'stk_func': stk.FourPlusFour(),
-         # place bb1 on vertex (0, 2), bb2 on vertex (1, 3)
-         bb_positions={0: [0, 3, 5, 6], 1: [1, 2, 4, 7]}),
+        {'stk_func': stk.FourPlusFour(
+            # place bb1 on vertex (0, 2), bb2 on vertex (1, 3)
+            bb_positions={0: [0, 3, 5, 6], 1: [1, 2, 4, 7]}),
          'stoich': (4, 4),
          'noimines': 12,
          'expected_wind': 6,
