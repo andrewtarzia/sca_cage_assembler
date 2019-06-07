@@ -23,6 +23,7 @@ def main():
         print """
     Usage: get_solvent_info.py file_suffix
         file_suffix (str) - suffix following REFCODE of files to analyse
+            ('_extracted.pdb')
         """
         sys.exit()
     else:
