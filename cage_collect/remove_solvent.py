@@ -15,7 +15,6 @@ import sys
 import logging
 from ase.io import read
 from ase.atoms import Atoms
-from ase.visualize import view
 import os
 sys.path.insert(0, '/home/atarzia/thesource/')
 import pywindow_f
