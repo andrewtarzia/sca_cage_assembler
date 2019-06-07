@@ -1,2 +1,2 @@
-# thesource
-collection of all source code for all projects in one place
+# atools
+collection of packages for use in postdoc projects
