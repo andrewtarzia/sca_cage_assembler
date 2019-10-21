@@ -23,13 +23,19 @@ def build_ligand():
         building_blocks=[aldehyde, amine],
         topology_graph=p_top
     )
-    opt = stk.ETKDG()
+    opt = stk.UFF()
     opt.optimize(polymer)
     polymer.write('polymer.mol')
-    ligand = stk.BuildingBlock.init_from_molecule(
+    lig_mol = stk.BuildingBlock.init_from_molecule(
         polymer,
-        functional_groups=['NCCN_metal']
+        functional_groups=['CNC_metal']
+        # functional_groups=['NCCN_metal']
     )
+
+    ligand = {
+        'molecule': lig_mol,
+        'name': 'lig1',
+    }
 
     return ligand
 
@@ -103,12 +109,19 @@ def build_metal_centre(metal, n_atom):
     return complex
 
 
-def build_homoleptic_cage(metal, ligand, cage_name, top, n_metals):
+def build_homoleptic_cage(
+    metal,
+    ligand,
+    cage_name,
+    top,
+    n_metals,
+    metal_type
+):
     cage = stk.ConstructedMolecule(
         building_blocks=[metal, ligand],
         topology_graph=top,
         building_block_vertices={
-            metal: top.vertices[: n_metals],
+            metal: top.vertices[:n_metals],
             ligand: top.vertices[n_metals:],
         }
     )
@@ -132,7 +145,7 @@ def build_homoleptic_cage(metal, ligand, cage_name, top, n_metals):
     print('doing UFF4MOF optimisation')
     gulp_opt = stk.GulpMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF='Pd4+2',
+        metal_FF=metal_type,
         output_dir=f'cage_opt_{cage_name}_uff1'
     )
     gulp_opt.assign_FF(cage)
@@ -141,10 +154,22 @@ def build_homoleptic_cage(metal, ligand, cage_name, top, n_metals):
     cage.write(f'{cage_name}_uff4mof.xyz')
     cage.dump(f'{cage_name}_uff4mof.json')
 
+    print('doing UFF4MOF optimisation 2')
+    gulp_opt2 = stk.GulpMetalOptimizer(
+        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        metal_FF=metal_type,
+        output_dir=f'cage_opt_{cage_name}_uff2'
+    )
+    gulp_opt2.assign_FF(cage)
+    gulp_opt2.optimize(mol=cage)
+    cage.write(f'{cage_name}_uff2.mol')
+    cage.write(f'{cage_name}_uff2.xyz')
+    cage.dump(f'{cage_name}_uff2.json')
+
     print('doing UFF4MOF MD')
     gulp_MD = stk.GulpMDMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF='Pd4+2',
+        metal_FF=metal_type,
         output_dir=f'cage_opt_{cage_name}_MD',
         integrator='stochastic',
         ensemble='nvt',
@@ -160,14 +185,14 @@ def build_homoleptic_cage(metal, ligand, cage_name, top, n_metals):
     cage.write(f'{cage_name}_MD.xyz')
     cage.dump(f'{cage_name}_MD.json')
 
-    print('doing UFF4MOF optimisation 2')
-    gulp_opt2 = stk.GulpMetalOptimizer(
+    print('doing UFF4MOF optimisation 3')
+    gulp_opt3 = stk.GulpMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF='Pd4+2',
-        output_dir=f'cage_opt_{cage_name}_uff2'
+        metal_FF=metal_type,
+        output_dir=f'cage_opt_{cage_name}_uff3'
     )
-    gulp_opt2.assign_FF(cage)
-    gulp_opt2.optimize(mol=cage)
+    gulp_opt3.assign_FF(cage)
+    gulp_opt3.optimize(mol=cage)
     cage.write(f'{cage_name}_prextb.mol')
     cage.write(f'{cage_name}_prextb.xyz')
     cage.dump(f'{cage_name}_prextb.json')
@@ -223,29 +248,34 @@ def main():
     metal_centre = build_metal_centre(metal, n_atom)
     metal_centre = stk.BuildingBlock.init_from_molecule(
         metal_centre,
+        # functional_groups=['metal_bound_NMN']
         functional_groups=['metal_bound_N']
     )
 
     metal_centre.write('metal_centre.mol')
 
-    ligand = build_ligand()
-    n_metals = [6]
-    topologies = {
-        'td4_oct': stk.cage.M4L6_Oct(),
-    }
+    print(metal_centre.func_groups)
 
+    ligand = build_ligand()
+    print(ligand['molecule'].func_groups)
+
+    n_metals = [4]
+    topologies = {
+        'td4oct': stk.cage.M4L6_Oct(),
+    }
     for i, topo in enumerate(topologies):
         top = topologies[topo]
-        cage_name = f"{ligand}_{topo}"
+        cage_name = f"{ligand['name']}_{topo}"
         if not exists(f'{cage_name}_opt.mol'):
             print(f'build {cage_name}')
             # Build homo leptic cages.
             build_homoleptic_cage(
                 metal=metal_centre,
-                ligand=ligand,
+                ligand=ligand['molecule'],
                 cage_name=cage_name,
                 top=top,
                 n_metals=n_metals[i],
+                metal_type='Fe6+2'
             )
         if not exists(f'{cage_name}_opt.ey'):
             calculate_energy(cage_name, n_metals=n_metals[i])
