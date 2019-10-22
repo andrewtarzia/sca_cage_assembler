@@ -138,19 +138,47 @@ def build_homoleptic_cage(
     cage.write(f'{cage_name}_unopt.xyz')
     cage.dump(f'{cage_name}_unopt.json')
 
-    # optimizer = stk.MetalOptimizer(
-    #     metal_binder_distance=mb_dist,
-    #     metal_binder_fc=mb_fc,
-    #     binder_ligand_fc=bl_fc,
-    #     ignore_vdw=False,
-    #     rel_distance=rd,
-    #     res_steps=steps,
-    #     restrict_bonds=True,
-    #     restrict_angles=True,
-    #     restrict_orientation=True,
-    #     max_iterations=40,
-    #     do_long_opt=do_long
+    # print('doing OPLS optimisation')
+    # optimizer = stk.MacroModelFFMetalOptimizer(
+    #     macromodel_path='/home/atarzia/software/schrodinger_install',
+    #     output_dir=f'{cage_name}_opls',
+    #     restrict_all_bonds=True
     # )
+    # optimizer.optimize(cage)
+    # cage.write(f'{cage_name}_opls.mol')
+    # cage.write(f'{cage_name}_opls.xyz')
+    # cage.dump(f'{cage_name}_opls.json')
+    #
+    # print('doing OPLS MD optimisation')
+    # optimizer = stk.MacroModelMDMetalOptimizer(
+    #     macromodel_path='/home/atarzia/software/schrodinger_install',
+    #     output_dir=f'{cage_name}_oplsMD',
+    #     restrict_all_bonds=True
+    # )
+    # optimizer.optimize(cage)
+    # cage.write(f'{cage_name}_oplsMD.mol')
+    # cage.write(f'{cage_name}_oplsMD.xyz')
+    # cage.dump(f'{cage_name}_oplsMD.json')
+
+    # #
+    # # print('doing rdkit optimisation')
+    # # optimizer = stk.MetalOptimizer(
+    # #     metal_binder_distance=2.0,
+    # #     metal_binder_fc=1.0e2,
+    # #     binder_ligand_fc=0,
+    # #     ignore_vdw=False,
+    # #     rel_distance=None,
+    # #     res_steps=100,
+    # #     restrict_bonds=True,
+    # #     restrict_angles=True,
+    # #     restrict_orientation=True,
+    # #     max_iterations=40,
+    # #     do_long_opt=True
+    # # )
+    # # optimizer.optimize(cage)
+    # # cage.write(f'{cage_name}_rdkit.mol')
+    # # cage.write(f'{cage_name}_rdkit.xyz')
+    # # cage.dump(f'{cage_name}_rdkit.json')
     print('doing UFF4MOF optimisation')
     gulp_opt = stk.GulpMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
@@ -163,18 +191,6 @@ def build_homoleptic_cage(
     cage.write(f'{cage_name}_uff4mof.xyz')
     cage.dump(f'{cage_name}_uff4mof.json')
 
-    print('doing UFF4MOF optimisation 2')
-    gulp_opt2 = stk.GulpMetalOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF=metal_type,
-        output_dir=f'cage_opt_{cage_name}_uff2'
-    )
-    gulp_opt2.assign_FF(cage)
-    gulp_opt2.optimize(mol=cage)
-    cage.write(f'{cage_name}_uff2.mol')
-    cage.write(f'{cage_name}_uff2.xyz')
-    cage.dump(f'{cage_name}_uff2.json')
-
     print('doing UFF4MOF MD')
     gulp_MD = stk.GulpMDMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
@@ -186,7 +202,8 @@ def build_homoleptic_cage(
         equilbration='1.0',
         production='5.0',
         timestep='0.5',
-        N_conformers=20
+        N_conformers=20,
+        opt_conformers=False
     )
     gulp_MD.assign_FF(cage)
     gulp_MD.optimize(cage)
