@@ -8,36 +8,45 @@ import stk
 from rdkit.Chem import AllChem as Chem
 
 
-def build_ligand():
-    amine = stk.BuildingBlock(
-        smiles='Nc1ccc(-c2ccc(N)cc2)cc1',
-        functional_groups=['amine']
-    )
-    aldehyde = stk.BuildingBlock(
-        smiles='O=Cc1ccccn1',
-        functional_groups=['aldehyde']
-    )
-
-    p_top = stk.polymer.Linear('ABA', 1)
-    polymer = stk.ConstructedMolecule(
-        building_blocks=[aldehyde, amine],
-        topology_graph=p_top
-    )
-    opt = stk.UFF()
-    opt.optimize(polymer)
-    polymer.write('polymer.mol')
-    lig_mol = stk.BuildingBlock.init_from_molecule(
-        polymer,
-        functional_groups=['CNC_metal']
-        # functional_groups=['NCCN_metal']
-    )
-
-    ligand = {
-        'molecule': lig_mol,
-        'name': 'lig1',
+def build_ligands():
+    ligands = {
+        'lig1': {
+            'amine_smiles': 'Nc1ccc(-c2ccc(N)cc2)cc1',
+            'alde_smiles': 'O=Cc1ccccn1'
+        },
+        'lig2': {
+            'amine_smiles': 'Nc1ccc(-c2ccc(-c3ccc(N)cc3)cc2)cc1',
+            'alde_smiles': 'O=Cc1ccccn1'
+        }
     }
 
-    return ligand
+    for ligand in ligands:
+        li = ligands[ligand]
+        amine = stk.BuildingBlock(
+            smiles=li['amine_smiles'],
+            functional_groups=['amine']
+        )
+        aldehyde = stk.BuildingBlock(
+            smiles=li['alde_smiles'],
+            functional_groups=['aldehyde']
+        )
+
+        p_top = stk.polymer.Linear('ABA', 1)
+        polymer = stk.ConstructedMolecule(
+            building_blocks=[aldehyde, amine],
+            topology_graph=p_top
+        )
+        opt = stk.UFF()
+        opt.optimize(polymer)
+        polymer.write(f'{ligand}.mol')
+        lig_mol = stk.BuildingBlock.init_from_molecule(
+            polymer,
+            functional_groups=['CNC_metal']
+            # functional_groups=['NCCN_metal']
+        )
+        ligands[ligand]['molecule'] = lig_mol
+
+    return ligands
 
 
 def build_metal():
@@ -253,32 +262,30 @@ def main():
     )
 
     metal_centre.write('metal_centre.mol')
-
-    print(metal_centre.func_groups)
-
-    ligand = build_ligand()
-    print(ligand['molecule'].func_groups)
+    ligands = build_ligands()
 
     n_metals = [4]
     topologies = {
         'td4oct': stk.cage.M4L6_Oct(),
     }
-    for i, topo in enumerate(topologies):
-        top = topologies[topo]
-        cage_name = f"{ligand['name']}_{topo}"
-        if not exists(f'{cage_name}_opt.mol'):
-            print(f'build {cage_name}')
-            # Build homo leptic cages.
-            build_homoleptic_cage(
-                metal=metal_centre,
-                ligand=ligand['molecule'],
-                cage_name=cage_name,
-                top=top,
-                n_metals=n_metals[i],
-                metal_type='Fe6+2'
-            )
-        if not exists(f'{cage_name}_opt.ey'):
-            calculate_energy(cage_name, n_metals=n_metals[i])
+    for lig in ligands:
+        ligand = ligands[lig]
+        for i, topo in enumerate(topologies):
+            top = topologies[topo]
+            cage_name = f"{lig}_{topo}"
+            if not exists(f'{cage_name}_opt.mol'):
+                print(f'build {cage_name}')
+                # Build homo leptic cages.
+                build_homoleptic_cage(
+                    metal=metal_centre,
+                    ligand=ligand['molecule'],
+                    cage_name=cage_name,
+                    top=top,
+                    n_metals=n_metals[i],
+                    metal_type='Fe6+2'
+                )
+            if not exists(f'{cage_name}_opt.ey'):
+                calculate_energy(cage_name, n_metals=n_metals[i])
 
 
 if __name__ == "__main__":
