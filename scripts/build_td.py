@@ -24,11 +24,13 @@ def build_ligands():
         li = ligands[ligand]
         amine = stk.BuildingBlock(
             smiles=li['amine_smiles'],
-            functional_groups=['amine_metal']
+            # functional_groups=['amine_metal']
+            functional_groups=['amine']
         )
         aldehyde = stk.BuildingBlock(
             smiles=li['alde_smiles'],
-            functional_groups=['pyridine_N_metal', 'aldehyde']
+            # functional_groups=['pyridine_N_metal', 'aldehyde']
+            functional_groups=['aldehyde']
         )
         amine.write('ami.mol')
         aldehyde.write('alde.mol')
@@ -133,23 +135,22 @@ def build_homoleptic_cage(
     cage = stk.ConstructedMolecule(
         building_blocks=[
             metal,
-            # ligand['molecule']
-            ligand['amine'], ligand['aldehyde']
+            ligand['molecule']
+            # ligand['amine'], ligand['aldehyde']
         ],
         topology_graph=top,
         building_block_vertices={
             metal: top.vertices[:n_metals],
-            # ligand['molecule']: top.vertices[n_metals:],
-            ligand['amine']: top.vertices[n_metals:n_metals+6],
-            ligand['aldehyde']: top.vertices[n_metals+6:],
+            ligand['molecule']: top.vertices[n_metals:],
+            # ligand['amine']: top.vertices[n_metals:n_metals+6],
+            # ligand['aldehyde']: top.vertices[n_metals+6:],
         }
     )
     # print(cage.func_groups)
     cage.write(f'{cage_name}_unopt.mol')
     cage.write(f'{cage_name}_1.xyz')
     cage.dump(f'{cage_name}_unopt.json')
-    import sys
-    sys.exit()
+
     # print('doing OPLS optimisation')
     # optimizer = stk.MacroModelFFMetalOptimizer(
     #     macromodel_path='/home/atarzia/software/schrodinger_install',
@@ -205,7 +206,8 @@ def build_homoleptic_cage(
     cage.write(f'{cage_name}_uff4mof.mol')
     cage.write(f'{cage_name}_uff4mof.xyz')
     cage.dump(f'{cage_name}_uff4mof.json')
-
+    import sys
+    sys.exit()
     print('doing UFF4MOF MD')
     gulp_MD = stk.GulpMDMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
@@ -283,7 +285,7 @@ def calculate_energy(cage_name, n_metals):
         f.write(f'{energy}\n')
 
 
-def main():
+def build_complexes():
     metal = build_metal()
     n_atom = build_N_atom()
     metal_centre = build_metal_centre(metal, n_atom)
@@ -294,12 +296,115 @@ def main():
     )
 
     metal_centre.write('metal_centre.mol')
+    bidentate_ligand = stk.BuildingBlock(
+        'Brc1ccc(/N=C/c2ccccn2)cc1',
+        functional_groups=['CNC_metal']
+    )
+
+    complex_top = stk.cage.Octahedral_S()
+    s_complex = stk.ConstructedMolecule(
+        building_blocks=[
+            metal_centre,
+            bidentate_ligand
+        ],
+        topology_graph=complex_top,
+        building_block_vertices={
+            metal_centre: tuple([complex_top.vertices[0]]),
+            bidentate_ligand: complex_top.vertices[1:]
+        }
+    )
+    s_complex.write('s_complex.mol')
+    s_complex.write('s_complex.pdb')
+
+    print('doing UFF4MOF optimisation')
+    gulp_opt = stk.GulpMetalOptimizer(
+        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        metal_FF='Fe6+2',
+        output_dir=f's_complex_uff1'
+    )
+    gulp_opt.assign_FF(s_complex)
+    gulp_opt.optimize(mol=s_complex)
+    s_complex.write(f's_complex_uff4mof.mol')
+    s_complex.write(f's_complex_uff4mof.xyz')
+    s_complex.dump(f's_complex_uff4mof.json')
+    print('doing UFF4MOF optimisation')
+    gulp_opt = stk.GulpMetalOptimizer(
+        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        metal_FF='Fe6+2',
+        output_dir=f's_complex_uff1'
+    )
+    gulp_opt.assign_FF(s_complex)
+    gulp_opt.optimize(mol=s_complex)
+    s_complex.write(f's_complex_uff4mof.mol')
+    s_complex.write(f's_complex_uff4mof.xyz')
+    s_complex.dump(f's_complex_uff4mof.json')
+
+    S_complex = stk.BuildingBlock.init_from_molecule_wmetal(
+        s_complex,
+        functional_groups=['bromine'],
+    )
+    S_complex.write('built_s.mol')
+    print(S_complex)
+    import sys
+    sys.exit()
+    # fg_makers = (stk.fg_types[name] for name in ['bromine'])
+    # print(s_complex.func_groups)
+    # s_complex_no_metals = s_complex.to_rdkit_mol_no_metals()
+    # s_complex.func_groups = tuple(
+    #     func_group
+    #     for fg_maker in fg_makers
+    #     for func_group in fg_maker.get_functional_groups(
+    #         s_complex_no_metals
+    #     )
+    # )
+    # print(s_complex.func_groups)
+
+    complex_top = stk.cage.Octahedral_R()
+    r_complex = stk.ConstructedMolecule(
+        building_blocks=[
+            metal_centre,
+            bidentate_ligand
+        ],
+        topology_graph=complex_top,
+        building_block_vertices={
+            metal_centre: tuple([complex_top.vertices[0]]),
+            bidentate_ligand: complex_top.vertices[1:]
+        }
+    )
+    r_complex.write('r_complex.mol')
+    r_complex.write('r_complex.pdb')
+
+    print('doing UFF4MOF optimisation')
+    gulp_opt = stk.GulpMetalOptimizer(
+        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        metal_FF='Fe6+2',
+        output_dir=f'r_complex_uff1'
+    )
+    gulp_opt.assign_FF(r_complex)
+    gulp_opt.optimize(mol=r_complex)
+    r_complex.write(f'r_complex_uff4mof.mol')
+    r_complex.write(f'r_complex_uff4mof.xyz')
+    r_complex.dump(f'r_complex_uff4mof.json')
+
+    # R_complex = stk.BuildingBlock.init_from_molecule(
+    #     r_complex,
+    #     functional_groups=['bromine'],
+    # )
+
+    return S_complex, R_complex
+
+
+def main():
     ligands = build_ligands()
+    S_complex, R_complex = build_complexes()
+    print(S_complex, R_complex)
+    import sys
+    sys.exit()
 
     n_metals = [4]
     topologies = {
-        # 'td4oct': stk.cage.M4L6_Oct(),
-        'td4octssss': stk.cage.M4L6_Oct_SSSS(),
+        'td4oct': stk.cage.M4L6_Oct(),
+        # 'td4octssss': stk.cage.M4L6_Oct_SSSS(),
     }
     for lig in ligands:
         ligand = ligands[lig]
