@@ -17,6 +17,10 @@ def build_ligands():
         'lig2': {
             'amine_smiles': 'Nc1ccc(-c2ccc(-c3ccc(N)cc3)cc2)cc1',
             'alde_smiles': 'O=Cc1ccccn1'
+        },
+        'tripod': {
+            'amine_smiles': 'Nc1ccc(-c2ccc(-c3ccc(N)cc3)cc2)cc1',
+            'alde_smiles': 'O=Cc1ccccn1'
         }
     }
 
@@ -124,142 +128,6 @@ def build_metal_centre(metal, n_atom):
     return complex
 
 
-def build_homoleptic_cage(
-    metal,
-    ligand,
-    cage_name,
-    top,
-    n_metals,
-    metal_type
-):
-    cage = stk.ConstructedMolecule(
-        building_blocks=[
-            metal,
-            ligand['molecule']
-            # ligand['amine'], ligand['aldehyde']
-        ],
-        topology_graph=top,
-        building_block_vertices={
-            metal: top.vertices[:n_metals],
-            ligand['molecule']: top.vertices[n_metals:],
-            # ligand['amine']: top.vertices[n_metals:n_metals+6],
-            # ligand['aldehyde']: top.vertices[n_metals+6:],
-        }
-    )
-    # print(cage.func_groups)
-    cage.write(f'{cage_name}_unopt.mol')
-    cage.write(f'{cage_name}_1.xyz')
-    cage.dump(f'{cage_name}_unopt.json')
-
-    # print('doing OPLS optimisation')
-    # optimizer = stk.MacroModelFFMetalOptimizer(
-    #     macromodel_path='/home/atarzia/software/schrodinger_install',
-    #     output_dir=f'{cage_name}_opls',
-    #     restrict_all_bonds=True
-    # )
-    # optimizer.optimize(cage)
-    # cage.write(f'{cage_name}_opls.mol')
-    # cage.write(f'{cage_name}_2.xyz')
-    # cage.dump(f'{cage_name}_opls.json')
-    #
-    # print('doing OPLS MD optimisation')
-    # optimizer = stk.MacroModelMDMetalOptimizer(
-    #     macromodel_path='/home/atarzia/software/schrodinger_install',
-    #     output_dir=f'{cage_name}_oplsMD',
-    #     restrict_all_bonds=False
-    # )
-    # optimizer.optimize(cage)
-    # cage.write(f'{cage_name}_oplsMD.mol')
-    # cage.write(f'{cage_name}_3.xyz')
-    # cage.dump(f'{cage_name}_oplsMD.json')
-    #
-    # import sys
-    # sys.exit()
-
-    # print('doing rdkit optimisation')
-    # optimizer = stk.MetalOptimizer(
-    #     metal_binder_distance=2.0,
-    #     metal_binder_fc=1.0e2,
-    #     binder_ligand_fc=0,
-    #     ignore_vdw=False,
-    #     rel_distance=None,
-    #     res_steps=100,
-    #     restrict_bonds=True,
-    #     restrict_angles=True,
-    #     restrict_orientation=True,
-    #     max_iterations=40,
-    #     do_long_opt=True
-    # )
-    # optimizer.optimize(cage)
-    # cage.write(f'{cage_name}_rdkit.mol')
-    # cage.write(f'{cage_name}_rdkit.xyz')
-    # cage.dump(f'{cage_name}_rdkit.json')
-
-    print('doing UFF4MOF optimisation')
-    gulp_opt = stk.GulpMetalOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF=metal_type,
-        output_dir=f'cage_opt_{cage_name}_uff1'
-    )
-    gulp_opt.assign_FF(cage)
-    gulp_opt.optimize(mol=cage)
-    cage.write(f'{cage_name}_uff4mof.mol')
-    cage.write(f'{cage_name}_uff4mof.xyz')
-    cage.dump(f'{cage_name}_uff4mof.json')
-    import sys
-    sys.exit()
-    print('doing UFF4MOF MD')
-    gulp_MD = stk.GulpMDMetalOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF=metal_type,
-        output_dir=f'cage_opt_{cage_name}_MD',
-        integrator='stochastic',
-        ensemble='nvt',
-        temperature='700',
-        equilbration='1.0',
-        production='5.0',
-        timestep='0.5',
-        N_conformers=20,
-        opt_conformers=False
-    )
-    gulp_MD.assign_FF(cage)
-    gulp_MD.optimize(cage)
-    cage.write(f'{cage_name}_MD.mol')
-    cage.write(f'{cage_name}_MD.xyz')
-    cage.dump(f'{cage_name}_MD.json')
-
-    print('doing UFF4MOF optimisation 3')
-    gulp_opt3 = stk.GulpMetalOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF=metal_type,
-        output_dir=f'cage_opt_{cage_name}_uff3'
-    )
-    gulp_opt3.assign_FF(cage)
-    gulp_opt3.optimize(mol=cage)
-    cage.write(f'{cage_name}_prextb.mol')
-    cage.write(f'{cage_name}_prextb.xyz')
-    cage.dump(f'{cage_name}_prextb.json')
-
-    print('doing XTB optimisation')
-    xtb_opt = stk.XTB(
-        xtb_path='/home/atarzia/software/xtb-190806/bin/xtb',
-        output_dir=f'cage_opt_{cage_name}',
-        gfn_version=2,
-        num_cores=6,
-        opt_level='tight',
-        charge=n_metals*2,
-        num_unpaired_electrons=0,
-        max_runs=1,
-        electronic_temperature=1000,
-        calculate_hessian=False,
-        unlimited_memory=True
-    )
-    xtb_opt.optimize(mol=cage)
-    cage.write(f'{cage_name}_opt.mol')
-    cage.write(f'{cage_name}_opt.xyz')
-    cage.dump(f'{cage_name}_opt.json')
-
-
 def calculate_energy(cage_name, n_metals):
     if not exists(f'{cage_name}_opt.json'):
         sys.exit(f'{cage_name}_opt.json does not exist.')
@@ -316,17 +184,25 @@ def build_complexes():
     s_complex.write('s_complex.mol')
     s_complex.write('s_complex.pdb')
 
-    print('doing UFF4MOF optimisation')
-    gulp_opt = stk.GulpMetalOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF='Fe6+2',
-        output_dir=f's_complex_uff1'
-    )
-    gulp_opt.assign_FF(s_complex)
-    gulp_opt.optimize(mol=s_complex)
-    s_complex.write(f's_complex_uff4mof.mol')
-    s_complex.write(f's_complex_uff4mof.xyz')
-    s_complex.dump(f's_complex_uff4mof.json')
+    # print('doing rdkit optimisation')
+    # optimizer = stk.MetalOptimizer(
+    #     metal_binder_distance=2.0,
+    #     metal_binder_fc=1.0e3,
+    #     binder_ligand_fc=0,
+    #     ignore_vdw=False,
+    #     rel_distance=None,
+    #     res_steps=100,
+    #     restrict_bonds=True,
+    #     restrict_angles=True,
+    #     restrict_orientation=True,
+    #     max_iterations=20,
+    #     do_long_opt=False
+    # )
+    # optimizer.optimize(s_complex)
+    # s_complex.write(f's_complex_rdkit.mol')
+    # s_complex.write(f's_complex_rdkit.xyz')
+    # s_complex.dump(f's_complex_rdkit.json')
+    # sys.exit()
     print('doing UFF4MOF optimisation')
     gulp_opt = stk.GulpMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
@@ -339,25 +215,13 @@ def build_complexes():
     s_complex.write(f's_complex_uff4mof.xyz')
     s_complex.dump(f's_complex_uff4mof.json')
 
-    S_complex = stk.BuildingBlock.init_from_molecule_wmetal(
+    S_complex = stk.BuildingBlock.init_from_molecule(
         s_complex,
         functional_groups=['bromine'],
     )
     S_complex.write('built_s.mol')
     print(S_complex)
-    import sys
-    sys.exit()
-    # fg_makers = (stk.fg_types[name] for name in ['bromine'])
-    # print(s_complex.func_groups)
-    # s_complex_no_metals = s_complex.to_rdkit_mol_no_metals()
-    # s_complex.func_groups = tuple(
-    #     func_group
-    #     for fg_maker in fg_makers
-    #     for func_group in fg_maker.get_functional_groups(
-    #         s_complex_no_metals
-    #     )
-    # )
-    # print(s_complex.func_groups)
+    print(S_complex.func_groups)
 
     complex_top = stk.cage.Octahedral_R()
     r_complex = stk.ConstructedMolecule(
@@ -386,44 +250,175 @@ def build_complexes():
     r_complex.write(f'r_complex_uff4mof.xyz')
     r_complex.dump(f'r_complex_uff4mof.json')
 
-    # R_complex = stk.BuildingBlock.init_from_molecule(
-    #     r_complex,
-    #     functional_groups=['bromine'],
-    # )
+    R_complex = stk.BuildingBlock.init_from_molecule(
+        r_complex,
+        functional_groups=['bromine'],
+    )
+    print(R_complex)
+    print(R_complex.func_groups)
+    R_complex.write('built_r.mol')
 
     return S_complex, R_complex
+
+
+def optimize_cage(cage, cage_name, n_metals, metal_type):
+
+    # print('doing OPLS optimisation')
+    # optimizer = stk.MacroModelFFMetalOptimizer(
+    #     macromodel_path='/home/atarzia/software/schrodinger_install',
+    #     output_dir=f'{cage_name}_opls',
+    #     restrict_all_bonds=True
+    # )
+    # optimizer.optimize(cage)
+    # cage.write(f'{cage_name}_opls.mol')
+    # cage.write(f'{cage_name}_2.xyz')
+    # cage.dump(f'{cage_name}_opls.json')
+    #
+    # print('doing OPLS MD optimisation')
+    # optimizer = stk.MacroModelMDMetalOptimizer(
+    #     macromodel_path='/home/atarzia/software/schrodinger_install',
+    #     output_dir=f'{cage_name}_oplsMD',
+    #     restrict_all_bonds=False
+    # )
+    # optimizer.optimize(cage)
+    # cage.write(f'{cage_name}_oplsMD.mol')
+    # cage.write(f'{cage_name}_3.xyz')
+    # cage.dump(f'{cage_name}_oplsMD.json')
+    #
+    # import sys
+    # sys.exit()
+
+    # print('doing rdkit optimisation')
+    # optimizer = stk.MetalOptimizer(
+    #     metal_binder_distance=2.0,
+    #     metal_binder_fc=1.0e2,
+    #     binder_ligand_fc=0,
+    #     ignore_vdw=False,
+    #     rel_distance=None,
+    #     res_steps=100,
+    #     restrict_bonds=True,
+    #     restrict_angles=True,
+    #     restrict_orientation=True,
+    #     max_iterations=40,
+    #     do_long_opt=True
+    # )
+    # optimizer.optimize(cage)
+    # cage.write(f'{cage_name}_rdkit.mol')
+    # cage.write(f'{cage_name}_rdkit.xyz')
+    # cage.dump(f'{cage_name}_rdkit.json')
+
+    print('doing UFF4MOF optimisation')
+    gulp_opt = stk.GulpMetalOptimizer(
+        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        metal_FF=metal_type,
+        output_dir=f'cage_opt_{cage_name}_uff1'
+    )
+    gulp_opt.assign_FF(cage)
+    gulp_opt.optimize(mol=cage)
+    cage.write(f'{cage_name}_uff4mof.mol')
+    cage.write(f'{cage_name}_2.xyz')
+    cage.dump(f'{cage_name}_uff4mof.json')
+    return
+    print('doing UFF4MOF MD')
+    gulp_MD = stk.GulpMDMetalOptimizer(
+        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        metal_FF=metal_type,
+        output_dir=f'cage_opt_{cage_name}_MD',
+        integrator='stochastic',
+        ensemble='nvt',
+        temperature='700',
+        equilbration='1.0',
+        production='5.0',
+        timestep='0.5',
+        N_conformers=20,
+        opt_conformers=False
+    )
+    gulp_MD.assign_FF(cage)
+    gulp_MD.optimize(cage)
+    cage.write(f'{cage_name}_MD.mol')
+    cage.write(f'{cage_name}_3.xyz')
+    cage.dump(f'{cage_name}_MD.json')
+
+    print('doing UFF4MOF optimisation 3')
+    gulp_opt3 = stk.GulpMetalOptimizer(
+        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        metal_FF=metal_type,
+        output_dir=f'cage_opt_{cage_name}_uff3'
+    )
+    gulp_opt3.assign_FF(cage)
+    gulp_opt3.optimize(mol=cage)
+    cage.write(f'{cage_name}_prextb.mol')
+    cage.write(f'{cage_name}_4.xyz')
+    cage.dump(f'{cage_name}_prextb.json')
+
+    print('doing XTB optimisation')
+    xtb_opt = stk.XTB(
+        xtb_path='/home/atarzia/software/xtb-190806/bin/xtb',
+        output_dir=f'cage_opt_{cage_name}',
+        gfn_version=2,
+        num_cores=6,
+        opt_level='tight',
+        charge=n_metals*2,
+        num_unpaired_electrons=0,
+        max_runs=1,
+        electronic_temperature=1000,
+        calculate_hessian=False,
+        unlimited_memory=True
+    )
+    xtb_opt.optimize(mol=cage)
+    cage.write(f'{cage_name}_opt.mol')
+    cage.write(f'{cage_name}_5.xyz')
+    cage.dump(f'{cage_name}_opt.json')
 
 
 def main():
     ligands = build_ligands()
     S_complex, R_complex = build_complexes()
     print(S_complex, R_complex)
-    import sys
-    sys.exit()
 
     n_metals = [4]
     topologies = {
-        'td4oct': stk.cage.M4L6_Oct(),
+        'm4l6_td': stk.cage.M4L6_Oct(),
+        # 'm4l4_td': (stk.cage.M4L4_Oct(), 4),
         # 'td4octssss': stk.cage.M4L6_Oct_SSSS(),
     }
-    for lig in ligands:
-        ligand = ligands[lig]
+    ratios =[(4, 0), (3, 1), (2, 2), (1, 3), (0, 4)]
+    complexes = [S_complex, R_complex]
+    tripod = ligands['tripod']['molecule']
+    for rat in ratios:
+        print(rat[0], rat[1], rat[0]+rat[1])
         for i, topo in enumerate(topologies):
             top = topologies[topo]
-            cage_name = f"{lig}_{topo}"
+            cage_name = f"{rat[0]}_{rat[1]}_{topo}"
             if not exists(f'{cage_name}_opt.mol'):
                 print(f'build {cage_name}')
                 # Build homo leptic cages.
-                build_homoleptic_cage(
-                    metal=metal_centre,
-                    ligand=ligand,
+                cage = stk.ConstructedMolecule(
+                    building_blocks=[
+                        complexes[0],
+                        complexes[1],
+                        tripod
+                    ],
+                    topology_graph=top,
+                    building_block_vertices={
+                        complexes[0]: top.vertices[:rat[0]],
+                        complexes[1]: top.vertices[
+                            rat[0]:rat[0]+rat[1]
+                        ],
+                        tripod: top.vertices[n_metals[i]:]
+                    }
+                )
+                # print(cage.func_groups)
+                cage.write(f'{cage_name}_unopt.mol')
+                cage.write(f'{cage_name}_1.xyz')
+                cage.dump(f'{cage_name}_unopt.json')
+                optimize_cage(
+                    cage,
                     cage_name=cage_name,
-                    top=top,
                     n_metals=n_metals[i],
                     metal_type='Fe6+2'
                 )
-            import sys
-            sys.exit()
+            continue
             if not exists(f'{cage_name}_opt.ey'):
                 calculate_energy(cage_name, n_metals=n_metals[i])
 
