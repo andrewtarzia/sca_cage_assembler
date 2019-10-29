@@ -21,40 +21,60 @@ def build_ligands():
         'tripod': {
             'amine_smiles': 'Nc1ccc(-c2ccc(-c3ccc(N)cc3)cc2)cc1',
             'alde_smiles': 'O=Cc1ccccn1'
-        }
+        },
+        'spacer': {},
+        'spacer1': {}
     }
 
     for ligand in ligands:
-        li = ligands[ligand]
-        amine = stk.BuildingBlock(
-            smiles=li['amine_smiles'],
-            # functional_groups=['amine_metal']
-            functional_groups=['amine']
-        )
-        aldehyde = stk.BuildingBlock(
-            smiles=li['alde_smiles'],
-            # functional_groups=['pyridine_N_metal', 'aldehyde']
-            functional_groups=['aldehyde']
-        )
-        amine.write('ami.mol')
-        aldehyde.write('alde.mol')
+        if 'spacer' in ligand:
+            if ligand == 'spacer1':
+                continue
+            lig_mol = stk.BuildingBlock.init_from_file(
+                f'{ligand}.mol',
+                functional_groups=['bromine']
+            )
+            ligands[ligand]['molecule'] = lig_mol
+        else:
+            li = ligands[ligand]
+            amine = stk.BuildingBlock(
+                smiles=li['amine_smiles'],
+                # functional_groups=['amine_metal']
+                functional_groups=['amine']
+            )
+            aldehyde = stk.BuildingBlock(
+                smiles=li['alde_smiles'],
+                # functional_groups=['pyridine_N_metal', 'aldehyde']
+                functional_groups=['aldehyde']
+            )
+            amine.write('ami.mol')
+            aldehyde.write('alde.mol')
 
-        p_top = stk.polymer.Linear('ABA', 1)
-        polymer = stk.ConstructedMolecule(
-            building_blocks=[aldehyde, amine],
-            topology_graph=p_top
-        )
-        opt = stk.UFF()
-        opt.optimize(polymer)
-        polymer.write(f'{ligand}.mol')
-        lig_mol = stk.BuildingBlock.init_from_molecule(
-            polymer,
-            functional_groups=['CNC_metal']
-            # functional_groups=['NCCN_metal']
-        )
-        ligands[ligand]['molecule'] = lig_mol
-        ligands[ligand]['amine'] = amine
-        ligands[ligand]['aldehyde'] = aldehyde
+            p_top = stk.polymer.Linear('ABA', 1)
+            polymer = stk.ConstructedMolecule(
+                building_blocks=[aldehyde, amine],
+                topology_graph=p_top
+            )
+            opt = stk.UFF()
+            opt.optimize(polymer)
+            polymer.write(f'{ligand}.mol')
+            if 'lig' not in ligand:
+                # spacer or tripod
+                lig_mol = stk.BuildingBlock.init_from_molecule(
+                    polymer,
+                    functional_groups=['bromine']
+                    # functional_groups=['NCCN_metal']
+                )
+            else:
+                lig_mol = stk.BuildingBlock.init_from_molecule(
+                    polymer,
+                    functional_groups=['CNC_metal']
+                    # functional_groups=['NCCN_metal']
+                )
+            ligands[ligand]['molecule'] = lig_mol
+            lig_mol.write(ligand+'.mol')
+            ligands[ligand]['amine'] = amine
+            ligands[ligand]['aldehyde'] = aldehyde
 
     return ligands
 
@@ -153,7 +173,78 @@ def calculate_energy(cage_name, n_metals):
         f.write(f'{energy}\n')
 
 
+def build_complex(metal_centre, bidentate_ligand, complex_top, name):
+    complex = stk.ConstructedMolecule(
+        building_blocks=[
+            metal_centre,
+            bidentate_ligand
+        ],
+        topology_graph=complex_top,
+        building_block_vertices={
+            metal_centre: tuple([complex_top.vertices[0]]),
+            bidentate_ligand: complex_top.vertices[1:]
+        }
+    )
+    complex.write(f'{name}.mol')
+    complex.write(f'{name}.mol')
+
+    if exists(f'{name}_opt.mol'):
+        complex.update_from_file(f'{name}_opt.mol')
+    else:
+        print(f'doing opt for {name}')
+        print('doing UFF4MOF optimisation')
+        gulp_opt = stk.GulpMetalOptimizer(
+            gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+            metal_FF='Fe6+2',
+            output_dir=f'{name}_uff1'
+        )
+        gulp_opt.assign_FF(complex)
+        gulp_opt.optimize(mol=complex)
+        complex.write(f'{name}_uff1.mol')
+        complex.write(f'{name}_uff1.xyz')
+        complex.dump(f'{name}_uff1.json')
+
+        print('doing XTB optimisation')
+        xtb_opt = stk.XTB(
+            xtb_path='/home/atarzia/software/xtb-190806/bin/xtb',
+            output_dir=f'{name}_xtb',
+            gfn_version=2,
+            num_cores=6,
+            opt_level='tight',
+            charge=2,
+            num_unpaired_electrons=0,
+            max_runs=1,
+            electronic_temperature=1000,
+            calculate_hessian=False,
+            unlimited_memory=True
+        )
+        xtb_opt.optimize(mol=complex)
+        complex.write(f'{name}_opt.mol')
+        complex.write(f'{name}_opt.xyz')
+        complex.dump(f'{name}_opt.json')
+
+        # print('doing UFF4MOF optimisation 2')
+        # gulp_opt3 = stk.GulpMetalOptimizer(
+        #     gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        #     metal_FF='Fe6+2',
+        #     output_dir=f's_complex_uff3'
+        # )
+        # gulp_opt3.assign_FF(complex)
+        # gulp_opt3.optimize(mol=complex)
+        # complex.write(f's_complex_postxtb.mol')
+        # complex.write(f's_complex_4.xyz')
+        # complex.dump(f's_complex_postxtb.json')
+
+    complex = stk.BuildingBlock.init_from_molecule(
+        complex,
+        functional_groups=['bromine'],
+    )
+
+    return complex
+
+
 def build_complexes():
+    print('building complexes')
     metal = build_metal()
     n_atom = build_N_atom()
     metal_centre = build_metal_centre(metal, n_atom)
@@ -164,100 +255,37 @@ def build_complexes():
     )
 
     metal_centre.write('metal_centre.mol')
-    bidentate_ligand = stk.BuildingBlock(
-        'Brc1ccc(/N=C/c2ccccn2)cc1',
-        functional_groups=['CNC_metal']
-    )
+    if exists('bd_lig.mol'):
+        bidentate_ligand = stk.BuildingBlock.init_from_file(
+            'bd_lig.mol',
+            functional_groups=['CNC_metal']
+        )
+    else:
+        bidentate_ligand = stk.BuildingBlock(
+            'Brc1ccc(/N=C/c2ccccn2)cc1',
+            functional_groups=['CNC_metal']
+        )
+    bidentate_ligand.write('bd_lig.mol')
 
-    complex_top = stk.cage.Octahedral_S()
-    s_complex = stk.ConstructedMolecule(
-        building_blocks=[
+    topologies = {
+        's_c': stk.cage.Octahedral_S(),
+        'r_c': stk.cage.Octahedral_R(),
+    }
+
+    for top in topologies:
+        complex_top = topologies[top]
+        comp = build_complex(
             metal_centre,
-            bidentate_ligand
-        ],
-        topology_graph=complex_top,
-        building_block_vertices={
-            metal_centre: tuple([complex_top.vertices[0]]),
-            bidentate_ligand: complex_top.vertices[1:]
-        }
-    )
-    s_complex.write('s_complex.mol')
-    s_complex.write('s_complex.pdb')
+            bidentate_ligand,
+            complex_top,
+            name=f'{top}'
+        )
+        if top == 's_c':
+            S_complex = comp
+        elif top == 'r_c':
+            R_complex = comp
 
-    # print('doing rdkit optimisation')
-    # optimizer = stk.MetalOptimizer(
-    #     metal_binder_distance=2.0,
-    #     metal_binder_fc=1.0e3,
-    #     binder_ligand_fc=0,
-    #     ignore_vdw=False,
-    #     rel_distance=None,
-    #     res_steps=100,
-    #     restrict_bonds=True,
-    #     restrict_angles=True,
-    #     restrict_orientation=True,
-    #     max_iterations=20,
-    #     do_long_opt=False
-    # )
-    # optimizer.optimize(s_complex)
-    # s_complex.write(f's_complex_rdkit.mol')
-    # s_complex.write(f's_complex_rdkit.xyz')
-    # s_complex.dump(f's_complex_rdkit.json')
-    # sys.exit()
-    print('doing UFF4MOF optimisation')
-    gulp_opt = stk.GulpMetalOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF='Fe6+2',
-        output_dir=f's_complex_uff1'
-    )
-    gulp_opt.assign_FF(s_complex)
-    gulp_opt.optimize(mol=s_complex)
-    s_complex.write(f's_complex_uff4mof.mol')
-    s_complex.write(f's_complex_uff4mof.xyz')
-    s_complex.dump(f's_complex_uff4mof.json')
-
-    S_complex = stk.BuildingBlock.init_from_molecule(
-        s_complex,
-        functional_groups=['bromine'],
-    )
-    S_complex.write('built_s.mol')
-    print(S_complex)
-    print(S_complex.func_groups)
-
-    complex_top = stk.cage.Octahedral_R()
-    r_complex = stk.ConstructedMolecule(
-        building_blocks=[
-            metal_centre,
-            bidentate_ligand
-        ],
-        topology_graph=complex_top,
-        building_block_vertices={
-            metal_centre: tuple([complex_top.vertices[0]]),
-            bidentate_ligand: complex_top.vertices[1:]
-        }
-    )
-    r_complex.write('r_complex.mol')
-    r_complex.write('r_complex.pdb')
-
-    print('doing UFF4MOF optimisation')
-    gulp_opt = stk.GulpMetalOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF='Fe6+2',
-        output_dir=f'r_complex_uff1'
-    )
-    gulp_opt.assign_FF(r_complex)
-    gulp_opt.optimize(mol=r_complex)
-    r_complex.write(f'r_complex_uff4mof.mol')
-    r_complex.write(f'r_complex_uff4mof.xyz')
-    r_complex.dump(f'r_complex_uff4mof.json')
-
-    R_complex = stk.BuildingBlock.init_from_molecule(
-        r_complex,
-        functional_groups=['bromine'],
-    )
-    print(R_complex)
-    print(R_complex.func_groups)
-    R_complex.write('built_r.mol')
-
+    print('done')
     return S_complex, R_complex
 
 
