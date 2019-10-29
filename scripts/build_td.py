@@ -11,28 +11,35 @@ from rdkit.Chem import AllChem as Chem
 def build_ligands():
     ligands = {
         'lig1': {
-            'amine_smiles': 'Nc1ccc(-c2ccc(N)cc2)cc1',
+            'amine_smiles': (
+                'Nc1ccc(-c2ccc(N)cc2S(=O)(=O)O)c(S(=O)(=O)O)c1'
+            ),
             'alde_smiles': 'O=Cc1ccccn1'
         },
         'lig2': {
             'amine_smiles': 'Nc1ccc(-c2ccc(-c3ccc(N)cc3)cc2)cc1',
             'alde_smiles': 'O=Cc1ccccn1'
         },
-        'tripod': {
-            'amine_smiles': 'Nc1ccc(-c2ccc(-c3ccc(N)cc3)cc2)cc1',
-            'alde_smiles': 'O=Cc1ccccn1'
-        },
-        'spacer': {},
-        'spacer1': {}
+        'spacer3': {'name': 's3'},
+        'spacer1': {'name': 's1'},
+        'spacerni': {'name': 'sNi'},
+        'bident1': {'name': 'b1'},
+        'bident2': {'name': 'b2'},
     }
 
     for ligand in ligands:
         if 'spacer' in ligand:
-            if ligand == 'spacer1':
+            if ligand == 'spacerni':
                 continue
             lig_mol = stk.BuildingBlock.init_from_file(
                 f'{ligand}.mol',
                 functional_groups=['bromine']
+            )
+            ligands[ligand]['molecule'] = lig_mol
+        elif 'bident' in ligand:
+            lig_mol = stk.BuildingBlock.init_from_file(
+                f'{ligand}.mol',
+                functional_groups=['CNC_metal']
             )
             ligands[ligand]['molecule'] = lig_mol
         else:
@@ -243,7 +250,7 @@ def build_complex(metal_centre, bidentate_ligand, complex_top, name):
     return complex
 
 
-def build_complexes():
+def build_complexes(bidentate):
     print('building complexes')
     metal = build_metal()
     n_atom = build_N_atom()
@@ -255,18 +262,9 @@ def build_complexes():
     )
 
     metal_centre.write('metal_centre.mol')
-    if exists('bd_lig.mol'):
-        bidentate_ligand = stk.BuildingBlock.init_from_file(
-            'bd_lig.mol',
-            functional_groups=['CNC_metal']
-        )
-    else:
-        bidentate_ligand = stk.BuildingBlock(
-            'Brc1ccc(/N=C/c2ccccn2)cc1',
-            functional_groups=['CNC_metal']
-        )
-    bidentate_ligand.write('bd_lig.mol')
 
+    bidentate_ligand = bidentate['molecule']
+    bident_name = bidentate['name']
     topologies = {
         's_c': stk.cage.Octahedral_S(),
         'r_c': stk.cage.Octahedral_R(),
@@ -278,7 +276,7 @@ def build_complexes():
             metal_centre,
             bidentate_ligand,
             complex_top,
-            name=f'{top}'
+            name=f'{top}_{bident_name}'
         )
         if top == 's_c':
             S_complex = comp
@@ -346,7 +344,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_type):
     cage.write(f'{cage_name}_uff4mof.mol')
     cage.write(f'{cage_name}_2.xyz')
     cage.dump(f'{cage_name}_uff4mof.json')
-    return
+
     print('doing UFF4MOF MD')
     gulp_MD = stk.GulpMDMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
@@ -401,40 +399,60 @@ def optimize_cage(cage, cage_name, n_metals, metal_type):
 
 def main():
     ligands = build_ligands()
-    S_complex, R_complex = build_complexes()
-    print(S_complex, R_complex)
 
-    n_metals = [4]
-    topologies = {
-        'm4l6_td': stk.cage.M4L6_Oct(),
-        # 'm4l4_td': (stk.cage.M4L4_Oct(), 4),
-        # 'td4octssss': stk.cage.M4L6_Oct_SSSS(),
+    n_metals = [4, 4, 4]
+    cages = {
+        'm4l6s_td': (
+            stk.cage.M4L6_Oct_Spacer(),
+            ligands['bident2'],
+            ligands['spacer1']
+        ),
+        'm4l6_td': (
+            stk.cage.M4L6_Oct(),
+            ligands['bident1'],
+            None
+        ),
+        'm4l4_td': (
+            stk.cage.M4L4_Oct_Spacer(),
+            ligands['bident2'],
+            ligands['spacer3']
+        ),
     }
     ratios =[(4, 0), (3, 1), (2, 2), (1, 3), (0, 4)]
-    complexes = [S_complex, R_complex]
-    tripod = ligands['tripod']['molecule']
     for rat in ratios:
-        print(rat[0], rat[1], rat[0]+rat[1])
-        for i, topo in enumerate(topologies):
-            top = topologies[topo]
-            cage_name = f"{rat[0]}_{rat[1]}_{topo}"
+        print(f'ratio S:R: {rat[0]}:{rat[1]}')
+        for i, topo in enumerate(cages):
+            top, bident, spacer = cages[topo]
+            bident_name = bident['name']
+            S_complex, R_complex = build_complexes(bident)
+            complexes = [S_complex, R_complex]
+            if spacer is None:
+                cage_name = f"{bident_name}_{rat[0]}_{rat[1]}_{topo}"
+                bbs = [complexes[0], complexes[1]]
+                bb_vs = {
+                    complexes[0]: top.vertices[:rat[0]],
+                    complexes[1]: top.vertices[rat[0]:rat[0]+rat[1]]
+                }
+            else:
+                print(spacer)
+                spacer_mol = spacer['molecule']
+                s_name = spacer['name']
+                cage_name = (
+                    f"{bident_name}_{s_name}_{rat[0]}_{rat[1]}_{topo}"
+                )
+                bbs = [complexes[0], complexes[1], spacer_mol]
+                bb_vs = {
+                    complexes[0]: top.vertices[:rat[0]],
+                    complexes[1]: top.vertices[rat[0]:rat[0]+rat[1]],
+                    spacer_mol: top.vertices[n_metals[i]:]
+                }
             if not exists(f'{cage_name}_opt.mol'):
                 print(f'build {cage_name}')
                 # Build homo leptic cages.
                 cage = stk.ConstructedMolecule(
-                    building_blocks=[
-                        complexes[0],
-                        complexes[1],
-                        tripod
-                    ],
+                    building_blocks=bbs,
                     topology_graph=top,
-                    building_block_vertices={
-                        complexes[0]: top.vertices[:rat[0]],
-                        complexes[1]: top.vertices[
-                            rat[0]:rat[0]+rat[1]
-                        ],
-                        tripod: top.vertices[n_metals[i]:]
-                    }
+                    building_block_vertices=bb_vs
                 )
                 # print(cage.func_groups)
                 cage.write(f'{cage_name}_unopt.mol')
@@ -446,7 +464,6 @@ def main():
                     n_metals=n_metals[i],
                     metal_type='Fe6+2'
                 )
-            continue
             if not exists(f'{cage_name}_opt.ey'):
                 calculate_energy(cage_name, n_metals=n_metals[i])
 
