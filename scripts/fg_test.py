@@ -180,12 +180,6 @@ def build_complexes(bidentate):
     metal_centre.write('metal_centre.mol')
 
     bidentate_ligand = bidentate['molecule']
-    print('------------')
-    print(bidentate_ligand.func_groups)
-    print('------------')
-    print('------------')
-    print(metal_centre.func_groups)
-    print('------------')
     bident_name = bidentate['name']
     topologies = {
         's_c': stk.cage.Octahedral_S(),
