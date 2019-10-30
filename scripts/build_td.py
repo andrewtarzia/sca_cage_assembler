@@ -266,8 +266,8 @@ def build_complexes(bidentate):
     bidentate_ligand = bidentate['molecule']
     bident_name = bidentate['name']
     topologies = {
-        's_c': stk.cage.Octahedral_S(),
-        'r_c': stk.cage.Octahedral_R(),
+        's_c': stk.cage.Octahedral_Lambda(),
+        'r_c': stk.cage.Octahedral_Delta(),
     }
 
     for top in topologies:
