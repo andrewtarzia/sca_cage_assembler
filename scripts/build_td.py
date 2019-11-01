@@ -251,7 +251,7 @@ def build_complex(metal_centre, bidentate_ligand, complex_top, name):
 
 
 def build_complexes(bidentate):
-    print('building complexes')
+
     metal = build_metal()
     n_atom = build_N_atom()
     metal_centre = build_metal_centre(metal, n_atom)
@@ -283,7 +283,6 @@ def build_complexes(bidentate):
         elif top == 'r_c':
             R_complex = comp
 
-    print('done')
     return S_complex, R_complex
 
 
@@ -434,7 +433,6 @@ def main():
                     complexes[1]: top.vertices[rat[0]:rat[0]+rat[1]]
                 }
             else:
-                print(spacer)
                 spacer_mol = spacer['molecule']
                 s_name = spacer['name']
                 cage_name = (
