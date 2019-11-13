@@ -379,7 +379,6 @@ def get_ratios(n_metals):
     for i in itertools.product(rng, rng):
         if i[0]+i[1] == n_metals:
             rats.append(i)
-    print(rats)
     return rats
 
 
@@ -406,7 +405,7 @@ def main():
     for i, C in enumerate(cages):
         info = cages[C]
         ratios = get_ratios(n_metals=info[0])
-        print(ratios)
+        print('ratios:', ratios)
         top, bident, spacer1, spacer2 = info[1:]
         print(top, bident, spacer1, spacer2)
         for rat in ratios:
