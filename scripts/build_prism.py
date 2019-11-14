@@ -11,109 +11,57 @@ from rdkit.Chem import AllChem as Chem
 
 def build_ligands():
     ligands = {
-        'spacer3': {'name': 's3'},
-        'spacerp': {'name': 'p4'},
-        'bident': {'name': 'b1'}
-    }
-
-    for ligand in ligands:
-        if 'spacer' in ligand:
-            if ligand == 'spacerni':
-                continue
-            lig_mol = stk.BuildingBlock.init_from_file(
-                f'{ligand}.mol',
+        'spacer3': {
+            'name': 's3',
+            'molecule': stk.BuildingBlock.init_from_file(
+                f'spacer3.mol',
                 functional_groups=['bromine']
             )
-            ligands[ligand]['molecule'] = lig_mol
-        elif 'bident' in ligand:
-            lig_mol = stk.BuildingBlock.init_from_file(
-                f'{ligand}.mol',
+        },
+        'spacerp': {
+            'name': 'p4',
+            'molecule': stk.BuildingBlock.init_from_file(
+                f'spacerp.mol',
+                functional_groups=['bromine']
+            )
+        },
+        'spacerpni': {
+            'name': 'pni',
+            'molecule': stk.BuildingBlock.init_from_molecule(
+                build_porphyrin(
+                    metal='[Ni+2]',
+                    porph_name='spacerp',
+                    file_name='spacerpni'
+                ),
+                functional_groups=['bromine']
+            )
+        },
+        'bident': {
+            'name': 'b1',
+            'molecule': stk.BuildingBlock.init_from_file(
+                f'bident.mol',
                 functional_groups=['CNC_metal']
             )
-            ligands[ligand]['molecule'] = lig_mol
-        else:
-            li = ligands[ligand]
-            amine = stk.BuildingBlock(
-                smiles=li['amine_smiles'],
-                # functional_groups=['amine_metal']
-                functional_groups=['amine']
-            )
-            aldehyde = stk.BuildingBlock(
-                smiles=li['alde_smiles'],
-                # functional_groups=['pyridine_N_metal', 'aldehyde']
-                functional_groups=['aldehyde']
-            )
-            amine.write('ami.mol')
-            aldehyde.write('alde.mol')
-
-            p_top = stk.polymer.Linear('ABA', 1)
-            polymer = stk.ConstructedMolecule(
-                building_blocks=[aldehyde, amine],
-                topology_graph=p_top
-            )
-            opt = stk.UFF()
-            opt.optimize(polymer)
-            polymer.write(f'{ligand}.mol')
-            if 'lig' not in ligand:
-                # spacer or tripod
-                lig_mol = stk.BuildingBlock.init_from_molecule(
-                    polymer,
-                    functional_groups=['bromine']
-                    # functional_groups=['NCCN_metal']
-                )
-            else:
-                lig_mol = stk.BuildingBlock.init_from_molecule(
-                    polymer,
-                    functional_groups=['CNC_metal']
-                    # functional_groups=['NCCN_metal']
-                )
-            ligands[ligand]['molecule'] = lig_mol
-            lig_mol.write(ligand+'.mol')
-            ligands[ligand]['amine'] = amine
-            ligands[ligand]['aldehyde'] = aldehyde
+        }
+    }
 
     return ligands
 
 
-def build_metal():
-    m = Chem.MolFromSmiles('[Zn+2]')
+def build_metal(metal_smiles, no_fgs):
+    m = Chem.MolFromSmiles(metal_smiles)
     m.AddConformer(Chem.Conformer(m.GetNumAtoms()))
     metal = stk.BuildingBlock.init_from_rdkit_mol(
         m,
         functional_groups=None,
     )
-    metal_coord_info = {
-        0: {
-            'atom_ids': [0],
-            'bonder_ids': [0],
-            'deleter_ids': [None]
-        },
-        1: {
-            'atom_ids': [0],
-            'bonder_ids': [0],
-            'deleter_ids': [None]
-        },
-        2: {
-            'atom_ids': [0],
-            'bonder_ids': [0],
-            'deleter_ids': [None]
-        },
-        3: {
-            'atom_ids': [0],
-            'bonder_ids': [0],
-            'deleter_ids': [None]
-        },
-        4: {
-            'atom_ids': [0],
-            'bonder_ids': [0],
-            'deleter_ids': [None]
-        },
-        5: {
-            'atom_ids': [0],
-            'bonder_ids': [0],
-            'deleter_ids': [None]
-        },
+    fg_dict = {
+        'atom_ids': [0],
+        'bonder_ids': [0],
+        'deleter_ids': [None]
     }
+    metal_coord_info = {i: fg_dict for i in range(no_fgs)}
+
     metal = stk.assign_metal_fgs(
         building_block=metal,
         coordination_info=metal_coord_info
@@ -142,6 +90,46 @@ def build_metal_centre(metal, n_atom):
         }
     )
     return complex
+
+
+def build_porphyrin(metal, porph_name, file_name):
+    metal = build_metal(metal_smiles=metal, no_fgs=4)
+    porphyrin = stk.BuildingBlock.init_from_file(
+        f'{porph_name}.mol',
+        functional_groups=['metal_bound_N']
+    )
+
+    m_top = stk.metal_centre.Porphyrin()
+    porph_m = stk.ConstructedMolecule(
+        building_blocks=[metal, porphyrin],
+        topology_graph=m_top,
+        building_block_vertices={
+            metal: tuple([m_top.vertices[0]]),
+            porphyrin: m_top.vertices[1:]
+        }
+    )
+    porph_m.write(f'{file_name}.mol')
+    if exists(f'{file_name}_opt.mol'):
+        porph_m.update_from_file(f'{file_name}_opt.mol')
+    else:
+        print('doing XTB optimisation')
+        xtb_opt = stk.XTB(
+            xtb_path='/home/atarzia/software/xtb-190806/bin/xtb',
+            output_dir=f'{file_name}',
+            gfn_version=2,
+            num_cores=6,
+            opt_level='tight',
+            charge=0,
+            num_unpaired_electrons=0,
+            max_runs=1,
+            electronic_temperature=1000,
+            calculate_hessian=False,
+            unlimited_memory=True
+        )
+        xtb_opt.optimize(mol=porph_m)
+        porph_m.write(f'{file_name}_opt.mol')
+
+    return porph_m
 
 
 def calculate_energy(cage_name, n_metals):
@@ -229,7 +217,7 @@ def build_complex(metal_centre, bidentate_ligand, complex_top, name):
 
 def build_complexes(bidentate):
 
-    metal = build_metal()
+    metal = build_metal(metal_smiles='[Zn+2]', no_fgs=6)
     n_atom = build_N_atom()
     metal_centre = build_metal_centre(metal, n_atom)
     metal_centre = stk.BuildingBlock.init_from_molecule(
@@ -263,7 +251,7 @@ def build_complexes(bidentate):
     return S_complex, R_complex
 
 
-def optimize_cage(cage, cage_name, n_metals, metal_type):
+def optimize_cage(cage, cage_name, n_metals, metal_types):
 
     # print('doing OPLS optimisation')
     # optimizer = stk.MacroModelFFMetalOptimizer(
@@ -312,7 +300,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_type):
     print('doing UFF4MOF optimisation')
     gulp_opt = stk.GulpMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF=metal_type,
+        metal_FF=metal_types,
         output_dir=f'cage_opt_{cage_name}_uff1'
     )
     gulp_opt.assign_FF(cage)
@@ -324,7 +312,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_type):
     print('doing UFF4MOF MD')
     gulp_MD = stk.GulpMDMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF=metal_type,
+        metal_FF=metal_types,
         output_dir=f'cage_opt_{cage_name}_MD',
         integrator='stochastic',
         ensemble='nvt',
@@ -344,7 +332,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_type):
     print('doing UFF4MOF optimisation 3')
     gulp_opt3 = stk.GulpMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF=metal_type,
+        metal_FF=metal_types,
         output_dir=f'cage_opt_{cage_name}_uff3'
     )
     gulp_opt3.assign_FF(cage)
@@ -384,6 +372,7 @@ def get_ratios(n_metals):
 
 def main():
     ligands = build_ligands()
+    print(ligands)
 
     cages = {
         'm6l2l3': (
@@ -398,6 +387,20 @@ def main():
             stk.cage.M8L6_Oct_Face(),
             ligands['bident'],
             ligands['spacerp'],
+            None
+        ),
+        'm6l2l3ni': (
+            6,
+            stk.cage.M6L2L3_Oct(),
+            ligands['bident'],
+            ligands['spacer3'],
+            ligands['spacerpni'],
+        ),
+        'm8l6ni': (
+            8,
+            stk.cage.M8L6_Oct_Face(),
+            ligands['bident'],
+            ligands['spacerpni'],
             None
         ),
     }
@@ -460,7 +463,7 @@ def main():
                     cage,
                     cage_name=cage_name,
                     n_metals=info[0],
-                    metal_type='Zn4+2'
+                    metal_types={30: 'Zn4+2', 28: 'Ni4+2'}
                 )
             if not exists(f'{cage_name}_opt.ey'):
                 calculate_energy(cage_name, n_metals=info[0])
