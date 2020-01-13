@@ -59,6 +59,33 @@ def build_organics(ligs):
         mol.write(output)
 
     return
+
+
+def metal_containing_ligands():
+    """
+    Defines how to build metal containing ligands.
+
+    Uses smiles strings defined in ligand lib and stk topologies.
+
+    """
+
+    m_ligands = {
+        'name': ('lig name', 'topology')
+    }
+
+    return m_ligands
+
+
+def build_metal_organics(metal_lig_lib, ligs):
+
+    return
+
+
+def output_2d_image():
+
+    return
+
+
 def main():
     if (not len(sys.argv) == 2):
         print("""
@@ -76,6 +103,13 @@ Usage: build_ligand_library.py lib_file
 
     # Build and optimise all organic molecules in lib.
     build_organics(ligs)
+
+    # Build and optimise all metal containing ligands.
+    metal_lig_lib = metal_containing_ligands()
+    build_metal_organics(metal_lig_lib, ligs)
+
+    # Produce image of all built molecules.
+    output_2d_image()
     sys.exit()
 
 
