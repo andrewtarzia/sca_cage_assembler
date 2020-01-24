@@ -54,6 +54,7 @@ def build_organics(ligs):
         output = f'{name}_opt.mol'
         if exists(output):
             continue
+        print(f'doing {name}')
         mol = stk.BuildingBlock(smiles=smi)
         optimizer.optimize(mol)
         mol.write(output)
@@ -69,8 +70,74 @@ def metal_containing_ligands():
 
     """
 
+    # output_name : (
+    #     organic ligand name,
+    #     metal centre topology_graph,
+    #     metal smiles,
+    #     no. FGs
+    # )
+
     m_ligands = {
-        'name': ('lig name', 'topology')
+        'quad4_3': (
+            'quad4_prec_4',
+            stk.metal_centre.Porphyrin,
+            '[Ni+2]',
+            4
+        ),
+        'quad4_4': (
+            'quad4_prec_5',
+            stk.metal_centre.Porphyrin,
+            '[Ni+2]',
+            4
+        ),
+        'quad4_5': (
+            'quad4_prec_4',
+            stk.metal_centre.Porphyrin,
+            '[Zn+2]',
+            4
+        ),
+        'quad4_6': (
+            'quad4_prec_5',
+            stk.metal_centre.Porphyrin,
+            '[Zn+2]',
+            4
+        ),
+        'quad4_7': (
+            'quad4_prec_1',
+            stk.metal_centre.SquarePlanar,
+            '[Pt+2]',
+            4
+        ),
+        'quad4_10': (
+            'quad4_prec_1',
+            stk.metal_centre.SquarePlanar,
+            '[Pd+2]',
+            4
+        ),
+        'quad4_8': (
+            'quad4_prec_2',
+            stk.metal_centre.Paddlewheel,
+            '[Rh+2]',
+            4
+        ),
+        'quad4_9': (
+            'quad4_prec_2',
+            stk.metal_centre.Paddlewheel,
+            '[Mo+2]',
+            4
+        ),
+        'quad4_11': (
+            'quad4_prec_3',
+            stk.metal_centre.SquarePlanar,
+            '[Pt+2]',
+            4
+        ),
+        'quad4_12': (
+            'quad4_prec_3',
+            stk.metal_centre.SquarePlanar,
+            '[Pd+2]',
+            4
+        ),
     }
 
     return m_ligands
