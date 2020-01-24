@@ -12,6 +12,8 @@ Date Created: 13 Jan 2020
 
 import sys
 from os.path import exists
+import glob
+from rdkit.Chem import AllChem as rdkit
 import stk
 
 import atools
@@ -149,6 +151,23 @@ def build_metal_organics(metal_lig_lib, ligs):
 
 
 def output_2d_image():
+    # Draw 2D representation of all built molecules.
+    mol_list = []
+    name_list = []
+    opt_mols = sorted(glob.glob('_opt.mol'))
+    for mol in opt_mols:
+        name_list.append(mol.replace('_opt.mol'))
+        MOL = rdkit.MolFromMolFile(mol)
+        mol_list.append(MOL)
+
+    atools.mol_list2grid(
+        molecules=mol_list,
+        filename='built_ligands',
+        names=name_list,
+        mol_per_row=3,
+        maxrows=3,
+        subImgSize=(200, 200)
+    )
 
     return
 
