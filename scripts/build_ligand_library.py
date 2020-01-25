@@ -234,7 +234,59 @@ def metal_containing_ligands():
     return m_ligands
 
 
+def optimise_metal_centre(name, charge, complex, metal_FF):
+
+    print(f'doing UFF4MOF optimisation of {name}')
+    gulp_opt = stk.GulpMetalOptimizer(
+        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        metal_FF=metal_FF,
+        output_dir=f'{name}_uff1'
+    )
+    gulp_opt.assign_FF(complex)
+    gulp_opt.optimize(mol=complex)
+    complex.write(f'{name}_uff1.mol')
+    complex.dump(f'{name}_uff1.json')
+
+    print(f'doing XTB optimisation of {name}')
+    xtb_opt = stk.XTB(
+        xtb_path='/home/atarzia/software/xtb-190806/bin/xtb',
+        output_dir=f'{name}',
+        gfn_version=2,
+        num_cores=6,
+        opt_level='tight',
+        charge=charge,
+        num_unpaired_electrons=0,
+        max_runs=1,
+        calculate_hessian=False,
+        unlimited_memory=True
+    )
+    xtb_opt.optimize(mol=complex)
+    complex.write(f'{name}_opt.mol')
+    complex.dump(f'{name}_opt.json')
+
+    return complex
+
+
 def build_metal_organics(metal_lig_lib, ligs):
+    print(metal_lig_lib)
+
+    # Iterate over required metal-organic library.
+    for name in metal_lig_lib:
+        opt_name = f'{name}_opt.mol'
+        optjson_name = f'{name}_opt.json'
+        if exists(opt_name):
+            continue
+        print(f'building {name}')
+        # Optimise metal centre.
+        complex = optimise_metal_centre(
+            name=name,
+            charge=comp['net_charge'],
+            complex=complex,
+            metal_FF=comp['metal_FF']
+        )
+        # Output.
+        complex.write(opt_name)
+        complex.dump(optjson_name)
 
     return
 
