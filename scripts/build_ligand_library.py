@@ -17,6 +17,7 @@ from rdkit.Chem import AllChem as rdkit
 import stk
 
 import atools
+import Building
 
 
 def read_lig_lib(lib_file):
@@ -277,6 +278,46 @@ def build_metal_organics(metal_lig_lib, ligs):
         if exists(opt_name):
             continue
         print(f'building {name}')
+        print(metal_lig_lib[name])
+        comp = metal_lig_lib[name]
+
+        # Build metal atom.
+        metal = Building.build_metal(
+            metal_smiles=comp['metal_smiles'],
+            no_fgs=comp['no_metal_fgs']
+        )
+        # Get functional groups of binding atom to define coordination
+        # sites.
+        binding_fgs = list(set([
+            i.fg_type.name for i in comp['binding_atom'].func_groups
+        ]))
+        metal_centre = Building.build_metal_centre(
+            metal=metal,
+            topology=comp['metal_centre_topo'],
+            binding_atom=comp['binding_atom'],
+            return_FG=binding_fgs
+        )
+        print(metal_centre)
+        metal_centre.write(f'{name}_metal_centre.mol')
+
+        # Load in organic BB.
+        organic_BB = stk.BuildingBlock.init_from_file(
+            f"{comp['organic_BB']}_opt.mol",
+            functional_groups=comp['organic_FG']
+        )
+        print(organic_BB)
+        # Build centre/complex using stk.
+        ctopo = comp['ctopo']
+        n_metals = comp['no_metals']
+        complex = stk.ConstructedMolecule(
+            building_blocks=[metal_centre, organic_BB],
+            topology_graph=ctopo,
+            building_block_vertices={
+                metal_centre: ctopo.vertices[:n_metals],
+                organic_BB: ctopo.vertices[n_metals:]
+            }
+        )
+        complex.write(f'{name}.mol')
         # Optimise metal centre.
         complex = optimise_metal_centre(
             name=name,
