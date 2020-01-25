@@ -25,7 +25,6 @@ quad4_prec_2,O=C(O)c1ccc(Br)cc1,XXX
 quad4_prec_3,Brc1ccc(-c2c3ccccc3c(-c3ccncc3)c3ccccc23)cc1,XXX
 quad4_prec_4,Brc1ccc(-c2c3nc(c(-c4ccc(Br)cc4)c4ccc([n]4)c(-c4ccc(Br)cc4)c4nc(c(-c5ccc(Br)cc5)c5ccc2[n]5)C=C4)C=C3)cc1,XXX
 quad4_prec_5,Brc1ccc(-c2ccc(-c3c4nc(c(-c5ccc(-c6ccc(Br)cc6)cc5)c5ccc([n]5)c(-c5ccc(-c6ccc(Br)cc6)cc5)c5nc(c(-c6ccc(-c7ccc(Br)cc7)cc6)c6ccc3[n]6)C=C5)C=C4)cc2)cc1,XXX
-temp,Brc1ccc(-c2c3ccccc3c(-c3ccncc3)c3ccccc23)cc1,XXX
 tri_1,CN(c1ccc(Br)cc1)c1nc(N(C)c2ccc(Br)cc2)nc(N(C)c2ccc(Br)cc2)n1,XXX
 tri_10,Brc1ccc(N(c2ccc(Br)cc2)c2ccc(Br)cc2)cc1,XXX
 tri_11,Brc1ccc(C#Cc2cc(C#Cc3ccc(Br)cc3)cc(C#Cc3ccc(Br)cc3)c2)cc1,XXX

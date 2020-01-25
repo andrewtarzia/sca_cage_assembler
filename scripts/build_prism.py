@@ -93,6 +93,7 @@ def build_metal_centre(metal, n_atom):
 
 
 def build_porphyrin(metal, porph_name, file_name):
+    sys.exit('OLD API USED HERE, BROKEN!')
     metal = build_metal(metal_smiles=metal, no_fgs=4)
     porphyrin = stk.BuildingBlock.init_from_file(
         f'{porph_name}.mol',
