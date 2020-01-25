@@ -72,74 +72,163 @@ def metal_containing_ligands():
 
     """
 
-    # output_name : (
-    #     organic ligand name,
-    #     metal centre topology_graph,
-    #     metal smiles,
-    #     no. FGs
-    # )
+    m_FFs =  {
+        30: 'Zn4+2', 28: 'Ni4+2',
+        78: 'Pt4+2', 46: 'Pd4+2',
+        45: 'Rh6+3', 42: 'Mo4f2'
+    }
 
     m_ligands = {
-        'quad4_3': (
-            'quad4_prec_4',
-            stk.metal_centre.Porphyrin,
-            '[Ni+2]',
-            4
-        ),
-        'quad4_4': (
-            'quad4_prec_5',
-            stk.metal_centre.Porphyrin,
-            '[Ni+2]',
-            4
-        ),
-        'quad4_5': (
-            'quad4_prec_4',
-            stk.metal_centre.Porphyrin,
-            '[Zn+2]',
-            4
-        ),
-        'quad4_6': (
-            'quad4_prec_5',
-            stk.metal_centre.Porphyrin,
-            '[Zn+2]',
-            4
-        ),
-        'quad4_7': (
-            'quad4_prec_1',
-            stk.metal_centre.SquarePlanar,
-            '[Pt+2]',
-            4
-        ),
-        'quad4_10': (
-            'quad4_prec_1',
-            stk.metal_centre.SquarePlanar,
-            '[Pd+2]',
-            4
-        ),
-        'quad4_8': (
-            'quad4_prec_2',
-            stk.metal_centre.Paddlewheel,
-            '[Rh+2]',
-            4
-        ),
-        'quad4_9': (
-            'quad4_prec_2',
-            stk.metal_centre.Paddlewheel,
-            '[Mo+2]',
-            4
-        ),
-        'quad4_11': (
-            'quad4_prec_3',
-            stk.metal_centre.SquarePlanar,
-            '[Pt+2]',
-            4
-        ),
-        'quad4_12': (
-            'quad4_prec_3',
-            stk.metal_centre.SquarePlanar,
-            '[Pd+2]',
-            4
-        ),
+        'quad4_3': {
+            'organic_BB': 'quad4_prec_4',
+            'organic_FG': ['CNC_metal'],
+            'ctopo': stk.cage.Porphyrin(),
+            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
+            'metal_smiles': '[Ni+2]',
+            'no_metal_fgs': 4,
+            'no_metals': 1,
+            'net_charge': 0,
+            'binding_atom': Building.build_atom(
+                'N',
+                FG='metal_bound_N'
+            ),
+            'metal_FF': m_FFs
+        },
+        'quad4_4': {
+            'organic_BB': 'quad4_prec_5',
+            'organic_FG': ['CNC_metal'],
+            'ctopo': stk.cage.Porphyrin(),
+            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
+            'metal_smiles': '[Ni+2]',
+            'no_metal_fgs': 4,
+            'no_metals': 1,
+            'net_charge': 0,
+            'binding_atom': Building.build_atom(
+                'N',
+                FG='metal_bound_N'
+            ),
+            'metal_FF': m_FFs
+        },
+        'quad4_5': {
+            'organic_BB': 'quad4_prec_4',
+            'organic_FG': ['CNC_metal'],
+            'ctopo': stk.cage.Porphyrin(),
+            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
+            'metal_smiles': '[Zn+2]',
+            'no_metal_fgs': 4,
+            'no_metals': 1,
+            'net_charge': 0,
+            'binding_atom': Building.build_atom(
+                'N',
+                FG='metal_bound_N'
+            ),
+            'metal_FF': m_FFs
+        },
+        'quad4_6': {
+            'organic_BB': 'quad4_prec_5',
+            'organic_FG': ['CNC_metal'],
+            'ctopo': stk.cage.Porphyrin(),
+            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
+            'metal_smiles': '[Zn+2]',
+            'no_metal_fgs': 4,
+            'no_metals': 1,
+            'net_charge': 0,
+            'binding_atom': Building.build_atom(
+                'N',
+                FG='metal_bound_N'
+            ),
+            'metal_FF': m_FFs
+        },
+        'quad4_7': {
+            'organic_BB': 'quad4_prec_1',
+            'organic_FG': ['pyridine_N_metal'],
+            'ctopo': stk.cage.SquarePlanarMonodentate(),
+            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
+            'metal_smiles': '[Pt+2]',
+            'no_metal_fgs': 4,
+            'no_metals': 1,
+            'net_charge': 2,
+            'binding_atom': Building.build_atom(
+                'N',
+                FG='metal_bound_N'
+            ),
+            'metal_FF': m_FFs
+        },
+        'quad4_10': {
+            'organic_BB': 'quad4_prec_1',
+            'organic_FG': ['pyridine_N_metal'],
+            'ctopo': stk.cage.SquarePlanarMonodentate(),
+            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
+            'metal_smiles': '[Pd+2]',
+            'no_metal_fgs': 4,
+            'no_metals': 1,
+            'net_charge': 2,
+            'binding_atom': Building.build_atom(
+                'N',
+                FG='metal_bound_N'
+            ),
+            'metal_FF': m_FFs
+        },
+        'quad4_8': {
+            'organic_BB': 'quad4_prec_2',
+            'organic_FG': ['CO_metal', 'COH_metal'],
+            'ctopo': stk.cage.Paddlewheel(),
+            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
+            'metal_smiles': '[Rh+2]',
+            'no_metal_fgs': 4,
+            'no_metals': 2,
+            'net_charge': 0,
+            'binding_atom': Building.build_atom(
+                'O',
+                FG='metal_bound_O'
+            ),
+            'metal_FF': m_FFs
+        },
+        'quad4_9': {
+            'organic_BB': 'quad4_prec_2',
+            'organic_FG': ['CO_metal', 'COH_metal'],
+            'ctopo': stk.cage.Paddlewheel(),
+            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
+            'metal_smiles': '[Mo+2]',
+            'no_metal_fgs': 4,
+            'no_metals': 2,
+            'net_charge': 0,
+            'binding_atom': Building.build_atom(
+                'O',
+                FG='metal_bound_O'
+            ),
+            'metal_FF': m_FFs
+        },
+        'quad4_11': {
+            'organic_BB': 'quad4_prec_3',
+            'organic_FG': ['pyridine_N_metal'],
+            'ctopo': stk.cage.SquarePlanarMonodentate(),
+            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
+            'metal_smiles': '[Pt+2]',
+            'no_metal_fgs': 4,
+            'no_metals': 1,
+            'net_charge': 2,
+            'binding_atom': Building.build_atom(
+                'N',
+                FG='metal_bound_N'
+            ),
+            'metal_FF': m_FFs
+        },
+        'quad4_12': {
+            'organic_BB': 'quad4_prec_3',
+            'organic_FG': ['pyridine_N_metal'],
+            'ctopo': stk.cage.SquarePlanarMonodentate(),
+            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
+            'metal_smiles': '[Pd+2]',
+            'no_metal_fgs': 4,
+            'no_metals': 1,
+            'net_charge': 2,
+            'binding_atom': Building.build_atom(
+                'N',
+                FG='metal_bound_N'
+            ),
+            'metal_FF': m_FFs
+        },
     }
 
     return m_ligands
