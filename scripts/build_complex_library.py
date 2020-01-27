@@ -9,6 +9,23 @@ Author: Andrew Tarzia
 
 Date Created: 27 Jan 2020
 """
+import sys
+import json
+def read_complex_lib(lib_file):
+    """
+    Read complex lib file.
+
+    Returns dictionary of format:
+
+    ligs[name] = (smiles, flag)
+
+    """
+    with open(lib_file, 'r') as f:
+        compls = json.load(f)
+
+    print(compls)
+    return compls
+
 def main():
     if (not len(sys.argv) == 3):
         print("""

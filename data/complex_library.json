@@ -1,0 +1,82 @@
+{
+    "cl1_zn_oct_lam": {
+        "metal_smiles": "[Zn+2]",
+        "topology": "Octahedral_Lambda",
+        "coord_species": "SCA_cap_1_opt"
+    },
+    "cl2_zn_oct_del": {
+        "metal_smiles": "[Zn+2]",
+        "topology": "Octahedral_Delta",
+        "coord_species": "SCA_cap_1_opt"
+    },
+    "cl3_co_oct_lam": {
+        "metal_smiles": "[Co+2]",
+        "topology": "Octahedral_Lambda",
+        "coord_species": "SCA_cap_1_opt"
+    },
+    "cl4_co_oct_del": {
+        "metal_smiles": "[Co+2]",
+        "topology": "Octahedral_Delta",
+        "coord_species": "SCA_cap_1_opt"
+    },
+    "cl5_fe_oct_lam": {
+        "metal_smiles": "[Fe+2]",
+        "topology": "Octahedral_Lambda",
+        "coord_species": "SCA_cap_1_opt"
+    },
+    "cl6_fe_oct_del": {
+        "metal_smiles": "[Fe+2]",
+        "topology": "Octahedral_Delta",
+        "coord_species": "SCA_cap_1_opt"
+    },
+    "cl7_cd_oct_lam": {
+        "metal_smiles": "[Cd+2]",
+        "topology": "Octahedral_Lambda",
+        "coord_species": "SCA_cap_1_opt"
+    },
+    "cl8_cd_oct_del": {
+        "metal_smiles": "[Cd+2]",
+        "topology": "Octahedral_Delta",
+        "coord_species": "SCA_cap_1_opt"
+    },
+    "cl9_zn_oct_lam": {
+        "metal_smiles": "[Zn+2]",
+        "topology": "Octahedral_Lambda",
+        "coord_species": "SCA_cap_2_opt"
+    },
+    "cl10_zn_oct_del": {
+        "metal_smiles": "[Zn+2]",
+        "topology": "Octahedral_Delta",
+        "coord_species": "SCA_cap_2_opt"
+    },
+    "cl11_co_oct_lam": {
+        "metal_smiles": "[Co+2]",
+        "topology": "Octahedral_Lambda",
+        "coord_species": "SCA_cap_2_opt"
+    },
+    "cl12_co_oct_del": {
+        "metal_smiles": "[Co+2]",
+        "topology": "Octahedral_Delta",
+        "coord_species": "SCA_cap_2_opt"
+    },
+    "cl13_fe_oct_lam": {
+        "metal_smiles": "[Fe+2]",
+        "topology": "Octahedral_Lambda",
+        "coord_species": "SCA_cap_2_opt"
+    },
+    "cl14_fe_oct_del": {
+        "metal_smiles": "[Fe+2]",
+        "topology": "Octahedral_Delta",
+        "coord_species": "SCA_cap_2_opt"
+    },
+    "cl15_cd_oct_lam": {
+        "metal_smiles": "[Cd+2]",
+        "topology": "Octahedral_Lambda",
+        "coord_species": "SCA_cap_2_opt"
+    },
+    "cl16_cd_oct_del": {
+        "metal_smiles": "[Cd+2]",
+        "topology": "Octahedral_Delta",
+        "coord_species": "SCA_cap_2_opt"
+    }
+}
