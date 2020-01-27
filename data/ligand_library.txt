@@ -29,7 +29,7 @@ tri_1,CN(c1ccc(Br)cc1)c1nc(N(C)c2ccc(Br)cc2)nc(N(C)c2ccc(Br)cc2)n1,XXX
 tri_10,Brc1ccc(N(c2ccc(Br)cc2)c2ccc(Br)cc2)cc1,XXX
 tri_11,Brc1ccc(C#Cc2cc(C#Cc3ccc(Br)cc3)cc(C#Cc3ccc(Br)cc3)c2)cc1,XXX
 tri_12,O=C(NCc1ccc(Br)cc1)c1cc(C(=O)NCc2ccc(Br)cc2)cc(C(=O)NCc2ccc(Br)cc2)c1,XXX
-tri_13,C[C@H](NC(=O)c1cc(C(=O)N[C@H](C)c2ccc(Br)cc2)cc(C(=O)N[C@H](C)c2ccc(Br)cc2)c1)c1ccc(Br)cc1,XXX
+tri_13,C[C@H](NC(=O)c1cc(C(=O)N[C@@H](C)c2ccc(Br)cc2)cc(C(=O)N[C@@H](C)c2ccc(Br)cc2)c1)c1ccc(Br)cc1,XXX
 tri_2,Brc1ccc(Oc2nc(Oc3ccc(Br)cc3)nc(Oc3ccc(Br)cc3)n2)cc1,XXX
 tri_3,CCn1c2ccc(-c3ccc(Br)cc3)cc2c2c1c1c3cc(-c4ccc(Br)cc4)ccc3n(CC)c1c1c3cc(-c4ccc(Br)cc4)ccc3n(CC)c21,XXX
 tri_4,CCn1c2cc(-c3ccc(Br)cc3)ccc2c2c1c1c3ccc(-c4ccc(Br)cc4)cc3n(CC)c1c1c3ccc(-c4ccc(Br)cc4)cc3n(CC)c21,XXX
