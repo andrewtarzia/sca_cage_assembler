@@ -54,13 +54,19 @@ def build_organics(ligs):
 
     for name in ligs:
         smi = ligs[name][0]
+        input = f'manual/{name}.mol'
         output = f'{name}_opt.mol'
-        if exists(output):
+        jsonoutput = f'{name}_opt.json'
+        if exists(jsonoutput):
             continue
         print(f'doing {name}')
-        mol = stk.BuildingBlock(smiles=smi)
+        if exists(input):
+            mol = stk.BuildingBlock.init_from_file(input)
+        else:
+            mol = stk.BuildingBlock(smiles=smi)
         optimizer.optimize(mol)
         mol.write(output)
+        mol.dump(jsonoutput)
 
     return
 
@@ -275,7 +281,7 @@ def build_metal_organics(metal_lig_lib, ligs):
     for name in metal_lig_lib:
         opt_name = f'{name}_opt.mol'
         optjson_name = f'{name}_opt.json'
-        if exists(opt_name):
+        if exists(optjson_name):
             continue
         print(f'building {name}')
         print(metal_lig_lib[name])
