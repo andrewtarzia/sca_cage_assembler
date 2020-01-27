@@ -79,11 +79,7 @@ def metal_containing_ligands():
 
     """
 
-    m_FFs =  {
-        30: 'Zn4+2', 28: 'Ni4+2',
-        78: 'Pt4+2', 46: 'Pd4+2',
-        45: 'Rh6+3', 42: 'Mo4f2'
-    }
+    m_FFs = Building.metal_FFs()
 
     m_ligands = {
         'quad4_3': {
@@ -275,7 +271,6 @@ def optimise_metal_centre(name, charge, complex, metal_FF):
 
 
 def build_metal_organics(metal_lig_lib, ligs):
-    print(metal_lig_lib)
 
     # Iterate over required metal-organic library.
     for name in metal_lig_lib:
@@ -284,7 +279,6 @@ def build_metal_organics(metal_lig_lib, ligs):
         if exists(optjson_name):
             continue
         print(f'building {name}')
-        print(metal_lig_lib[name])
         comp = metal_lig_lib[name]
 
         # Build metal atom.
@@ -303,7 +297,6 @@ def build_metal_organics(metal_lig_lib, ligs):
             binding_atom=comp['binding_atom'],
             return_FG=binding_fgs
         )
-        print(metal_centre)
         metal_centre.write(f'{name}_metal_centre.mol')
 
         # Load in organic BB.
@@ -311,7 +304,6 @@ def build_metal_organics(metal_lig_lib, ligs):
             f"{comp['organic_BB']}_opt.mol",
             functional_groups=comp['organic_FG']
         )
-        print(organic_BB)
         # Build centre/complex using stk.
         ctopo = comp['ctopo']
         n_metals = comp['no_metals']
@@ -338,24 +330,17 @@ def build_metal_organics(metal_lig_lib, ligs):
     return
 
 
-def output_2d_image():
+def output_2d_images():
     # Draw 2D representation of all built molecules.
-    mol_list = []
-    name_list = []
-    opt_mols = sorted(glob.glob('_opt.mol'))
+    opt_mols = sorted(glob.glob('*_opt.json'))
     for mol in opt_mols:
-        name_list.append(mol.replace('_opt.mol'))
-        MOL = rdkit.MolFromMolFile(mol)
-        mol_list.append(MOL)
-
-    atools.mol_list2grid(
-        molecules=mol_list,
-        filename='built_ligands',
-        names=name_list,
-        mol_per_row=3,
-        maxrows=3,
-        subImgSize=(200, 200)
-    )
+        name = mol.replace('_opt.json', '')
+        MOL = stk.BuildingBlock.load(mol).to_rdkit_mol()
+        rdkit.Compute2DCoords(MOL)
+        atools.draw_mol_to_svg(
+            mol=MOL,
+            filename=f'built_ligands/{name}_opt.svg'
+        )
 
     return
 
@@ -383,7 +368,7 @@ Usage: build_ligand_library.py lib_file
     build_metal_organics(metal_lig_lib, ligs)
 
     # Produce image of all built molecules.
-    output_2d_image()
+    output_2d_images()
     sys.exit()
 
 

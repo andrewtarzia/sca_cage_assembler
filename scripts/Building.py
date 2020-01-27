@@ -33,6 +33,24 @@ def experimentally_tested(mol_name):
 
     return tested_ligand_combos
 
+
+def metal_FFs():
+    """
+    Define metal FF names for UFF4MOF.
+
+    Key = Atomic number
+    Value = UFF4MOF type
+
+    """
+    dicts = {
+        30: 'Zn4+2', 28: 'Ni4+2',
+        78: 'Pt4+2', 46: 'Pd4+2',
+        45: 'Rh6+3', 42: 'Mo4f2'
+    }
+
+    return dicts
+
+
 def build_atom(smiles, FG):
     """
     Build an stk readable atom using RDKit.
