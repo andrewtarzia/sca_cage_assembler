@@ -14,6 +14,25 @@ from rdkit.Chem import AllChem as rdkit
 import stk
 
 
+def experimentally_tested(mol_name):
+    """
+    A dataset of experimentally built cages.
+
+    THIS NEEDS DEFINITION BASED ON CAGE NOMENCLATURE.
+
+    Here a combo is defined as by all sub-component self-assembly
+    products:
+    i.e. one cage would be formed by a mixture of:
+        (SCA, quadX) or (SCA, triX)
+
+    """
+
+    raise NotImplementedError()
+
+    tested_ligand_combos = []
+
+    return tested_ligand_combos
+
 def build_atom(smiles, FG):
     """
     Build an stk readable atom using RDKit.
