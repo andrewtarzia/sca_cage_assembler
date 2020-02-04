@@ -14,6 +14,23 @@ from rdkit.Chem import AllChem as rdkit
 import stk
 
 
+def available_topologies(string):
+    """
+    Get stk function of desired topology.
+
+    """
+
+    topologies = {
+        'oct_lambda': stk.cage.Octahedral_Lambda(),
+        'oct_delta': stk.cage.Octahedral_Delta()
+    }
+
+    try:
+        return topologies[string]
+    except KeyError:
+        raise KeyError(f'{string} not in {topologies.keys()}')
+
+
 def experimentally_tested(mol_name):
     """
     A dataset of experimentally built cages.
@@ -125,7 +142,7 @@ def build_metal_centre(metal, topology, binding_atom, return_FG):
     Parameters
     ----------
     metal : :class:`stk.BuildingBlock`
-        Smiles of metal atom to use - should include charge.
+        Stk BuildingBlock of metal atom.
 
     topology : :class:`stk.MetalCentre`
         Topology of metal centre.
@@ -158,5 +175,90 @@ def build_metal_centre(metal, topology, binding_atom, return_FG):
         complex,
         functional_groups=return_FG
     )
+
+    return complex
+
+
+def optimize_SCA_complex(complex, name, dict):
+    """
+    Optimize a sub-component self assmebly complex.
+
+    """
+
+    print(f'doing UFF4MOF optimisation for {name}')
+    gulp_opt = stk.GulpMetalOptimizer(
+        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        metal_FF=metal_FFs(),
+        output_dir=f'{name}_uff1'
+    )
+    gulp_opt.assign_FF(complex)
+    gulp_opt.optimize(mol=complex)
+    complex.write(f'{name}_uff1.mol')
+    complex.dump(f'{name}_uff1.json')
+    return complex
+
+    print(f'doing xTB optimisation for {name}')
+    xtb_opt = stk.XTB(
+        xtb_path='/home/atarzia/software/xtb-190806/bin/xtb',
+        output_dir=f'{name}_xtb',
+        gfn_version=2,
+        num_cores=6,
+        opt_level='tight',
+        charge=dict['total_charge'],
+        num_unpaired_electrons=dict['unpaired_e'],
+        max_runs=1,
+        calculate_hessian=False,
+        unlimited_memory=True
+    )
+    xtb_opt.optimize(mol=complex)
+    complex.write(f'{name}_opt.mol')
+    complex.dump(f'{name}_opt.json')
+
+    return complex
+
+
+def build_SCA_complex(
+    metal_centre,
+    bidentate_ligand,
+    complex_top,
+    name,
+):
+    """
+    Build an stk metal complex post SCA coordination.
+
+    Parameters
+    ----------
+    metal_centre : :class:`stk.BuildingBlock`
+        Stk BuildingBlock of metal centre.
+
+    bidentate_ligand : :class:`stk.BuildingBlock`
+        Ligand to bind to metal centre.
+
+    complex_top : :class:`stk.Topology`
+        Topology of metal complex to build.
+
+    name : :class:`str`
+        Name of structure.
+
+    Returns
+    -------
+    complex : :class:`stk.BuildingBlock`
+        Built stk molecule as :class:`stk.BuildingBlock` with
+        `return_FG` FGs.
+
+    """
+    complex = stk.ConstructedMolecule(
+        building_blocks=[
+            metal_centre,
+            bidentate_ligand
+        ],
+        topology_graph=complex_top,
+        building_block_vertices={
+            metal_centre: tuple([complex_top.vertices[0]]),
+            bidentate_ligand: complex_top.vertices[1:]
+        }
+    )
+    complex.write(f'{name}.mol')
+    complex.write(f'{name}.mol')
 
     return complex
