@@ -1,82 +1,114 @@
 {
     "cl1_zn_oct_lam": {
         "metal_smiles": "[Zn+2]",
-        "topology": "Octahedral_Lambda",
-        "coord_species": "SCA_cap_1_opt"
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)"
     },
     "cl2_zn_oct_del": {
         "metal_smiles": "[Zn+2]",
-        "topology": "Octahedral_Delta",
-        "coord_species": "SCA_cap_1_opt"
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)"
     },
     "cl3_co_oct_lam": {
         "metal_smiles": "[Co+2]",
-        "topology": "Octahedral_Lambda",
-        "coord_species": "SCA_cap_1_opt"
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(1, 3)"
     },
     "cl4_co_oct_del": {
         "metal_smiles": "[Co+2]",
-        "topology": "Octahedral_Delta",
-        "coord_species": "SCA_cap_1_opt"
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(1, 3)"
     },
     "cl5_fe_oct_lam": {
         "metal_smiles": "[Fe+2]",
-        "topology": "Octahedral_Lambda",
-        "coord_species": "SCA_cap_1_opt"
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0, 4)"
     },
     "cl6_fe_oct_del": {
         "metal_smiles": "[Fe+2]",
-        "topology": "Octahedral_Delta",
-        "coord_species": "SCA_cap_1_opt"
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0, 4)"
     },
     "cl7_cd_oct_lam": {
         "metal_smiles": "[Cd+2]",
-        "topology": "Octahedral_Lambda",
-        "coord_species": "SCA_cap_1_opt"
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)"
     },
     "cl8_cd_oct_del": {
         "metal_smiles": "[Cd+2]",
-        "topology": "Octahedral_Delta",
-        "coord_species": "SCA_cap_1_opt"
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)"
     },
     "cl9_zn_oct_lam": {
         "metal_smiles": "[Zn+2]",
-        "topology": "Octahedral_Lambda",
-        "coord_species": "SCA_cap_2_opt"
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)"
     },
     "cl10_zn_oct_del": {
         "metal_smiles": "[Zn+2]",
-        "topology": "Octahedral_Delta",
-        "coord_species": "SCA_cap_2_opt"
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)"
     },
     "cl11_co_oct_lam": {
         "metal_smiles": "[Co+2]",
-        "topology": "Octahedral_Lambda",
-        "coord_species": "SCA_cap_2_opt"
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(1, 3)"
     },
     "cl12_co_oct_del": {
         "metal_smiles": "[Co+2]",
-        "topology": "Octahedral_Delta",
-        "coord_species": "SCA_cap_2_opt"
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(1, 3)"
     },
     "cl13_fe_oct_lam": {
         "metal_smiles": "[Fe+2]",
-        "topology": "Octahedral_Lambda",
-        "coord_species": "SCA_cap_2_opt"
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0, 4)"
     },
     "cl14_fe_oct_del": {
         "metal_smiles": "[Fe+2]",
-        "topology": "Octahedral_Delta",
-        "coord_species": "SCA_cap_2_opt"
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0, 4)"
     },
     "cl15_cd_oct_lam": {
         "metal_smiles": "[Cd+2]",
-        "topology": "Octahedral_Lambda",
-        "coord_species": "SCA_cap_2_opt"
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)"
     },
     "cl16_cd_oct_del": {
         "metal_smiles": "[Cd+2]",
-        "topology": "Octahedral_Delta",
-        "coord_species": "SCA_cap_2_opt"
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)"
     }
 }
