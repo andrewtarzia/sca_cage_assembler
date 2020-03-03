@@ -93,3 +93,196 @@ class HetPrism:
     cages.
 
     """
+
+    def __init__(
+        self,
+        name,
+        prism_dict,
+        complex_dicts,
+        ligand_dir,
+        complex_dir
+    ):
+        self.name = name
+        self.prism_dict = prism_dict
+        self.complex_dicts = complex_dicts
+        self.cages_to_build = self.define_cages_to_build(
+            ligand_dir,
+            complex_dir
+        )
+
+    def __str__(self):
+        return (
+            f'{self.__class__.__name__}'
+            f'(name={self.name})\n'
+            f'{self.prism_dict}'
+        )
+
+    def __repr__(self):
+        return str(self)
+
+    def get_ratios(self, n_metals):
+        rng = range(0, n_metals+1)
+        rats = []
+        for i in product(rng, rng):
+            if i[0]+i[1] == n_metals:
+                rats.append(i)
+        return rats
+
+    def load_complex(self, complex_name, complex_dir):
+        unopt_c = stk.ConstructedMolecule.load(
+            join(complex_dir, f'{complex_name}_opt.json')
+        )
+        complex = stk.BuildingBlock.init_from_molecule(
+            unopt_c,
+            functional_groups=['bromine']
+        )
+
+        return complex
+
+    def load_ligand(self, ligand_name, ligand_dir):
+        unopt_l = stk.Molecule.load(
+            join(ligand_dir, f'{ligand_name}_opt.json')
+        )
+        ligand = stk.BuildingBlock.init_from_molecule(
+            unopt_l,
+            functional_groups=['bromine']
+        )
+
+        return ligand
+
+    def define_cages_to_build(self, ligand_dir, complex_dir):
+        """
+        Defines the name and objects of all cages to build.
+
+        """
+
+        cages_to_build = []
+
+        # Get Delta and Lambda complex.
+        print(self.complex_dicts)
+        D_complex_name = [
+            i for i in self.complex_dicts if 'del' in i
+        ][0]
+        L_complex_name = [
+            i for i in self.complex_dicts if 'lam' in i
+        ][0]
+        print(D_complex_name, L_complex_name)
+        L_complex = self.load_complex(
+            complex_name=L_complex_name,
+            complex_dir=complex_dir
+        )
+        D_complex = self.load_complex(
+            complex_name=D_complex_name,
+            complex_dir=complex_dir
+        )
+
+        # Get all linkers.
+        tet_linker = self.load_ligand(
+            ligand_name=self.prism_dict['tetratopic'],
+            ligand_dir=ligand_dir
+        )
+        tri_linker = self.load_ligand(
+            ligand_name=self.prism_dict['tritopic'],
+            ligand_dir=ligand_dir
+        )
+
+        print(D_complex, L_complex, tet_linker, tri_linker)
+
+        # Tetratopic homoleptic cages of all symmetries.
+        tet_topo_name, tet_topo = available_topologies(
+            string='m8l6face'
+        )
+
+        tet_n_metals = 8
+        tet_ratios = self.get_ratios(tet_n_metals)
+        for rat in tet_ratios:
+            print(rat)
+            new_name = (
+                f"C_{self.prism_dict['corner_name']}_"
+                f"{self.prism_dict['tetratopic']}_"
+                f"{tet_topo_name}_"
+                f"d{rat[0]}l{rat[1]}_"
+                f"`symm`"
+            )
+            new_bbs = [D_complex, L_complex, tet_linker]
+            new_bb_vertices = {
+                D_complex: tet_topo.vertices[:rat[0]],
+                L_complex: tet_topo.vertices[rat[0]:rat[0]+rat[1]],
+                tet_linker: tet_topo.vertices[tet_n_metals:]
+            }
+            new_cage = Cage(
+                name=new_name,
+                bbs=new_bbs,
+                topology=tet_topo,
+                bb_vertices=new_bb_vertices
+            )
+            cages_to_build.append(new_cage)
+            print(new_cage)
+            return cages_to_build
+
+        # Tritopic homoleptic cages of all symmetries.
+        tri_topo_name, tri_topo = available_topologies(
+            string='m4l4spacer'
+        )
+
+        tri_n_metals = 4
+        tri_ratios = self.get_ratios(tri_n_metals)
+        for rat in tri_ratios:
+            print(rat)
+            new_name = (
+                f"C_{self.prism_dict['corner_name']}_"
+                f"{self.prism_dict['tritopic']}_"
+                f"{tri_topo_name}_"
+                f"d{rat[0]}l{rat[1]}_"
+                f"`symm`"
+            )
+            new_bbs = [D_complex, L_complex, tri_linker]
+            new_bb_vertices = {
+                D_complex: tet_topo.vertices[:rat[0]],
+                L_complex: tet_topo.vertices[rat[0]:rat[0]+rat[1]],
+                tri_linker: tet_topo.vertices[tri_n_metals:]
+            }
+            new_cage = Cage(
+                name=new_name,
+                bbs=new_bbs,
+                topology=tri_topo,
+                bb_vertices=new_bb_vertices
+            )
+            cages_to_build.append(new_cage)
+            print(new_cage)
+
+        # Prisms of all symmetries.
+        pri_topo_name, pri_topo = available_topologies(
+            string='m6l2l3'
+        )
+
+        pri_n_metals = 6
+        pri_ratios = self.get_ratios(pri_n_metals)
+        for rat in pri_ratios:
+            new_name = (
+                f"HeP_{self.prism_dict['corner_name']}_"
+                f"{self.prism_dict['tritopic']}_"
+                f"{self.prism_dict['tetratopic']}_"
+                f"{pri_topo_name}_"
+                f"d{rat[0]}l{rat[1]}_"
+                f"`symm`"
+            )
+            new_bbs = [D_complex, L_complex, tri_linker, tet_linker]
+            new_bb_vertices = {
+                D_complex: tet_topo.vertices[:rat[0]],
+                L_complex: tet_topo.vertices[rat[0]:rat[0]+rat[1]],
+                tri_linker: tet_topo.vertices[
+                    pri_n_metals:pri_n_metals+2
+                ],
+                tet_linker: tet_topo.vertices[pri_n_metals+2:]
+            }
+            new_cage = Cage(
+                name=new_name,
+                bbs=new_bbs,
+                topology=pri_topo,
+                bb_vertices=new_bb_vertices
+            )
+            cages_to_build.append(new_cage)
+            print(new_cage)
+
+        return cages_to_build
