@@ -31,6 +31,28 @@ def available_topologies(string):
         raise KeyError(f'{string} not in {topologies.keys()}')
 
 
+def order_FGs(mol, order=None):
+    """
+    Order ligand FGs based on given order.
+
+    """
+
+    if order is None:
+        print('no changes made')
+        return mol
+
+    def sort_(FG):
+        FG_name = FG.fg_type.name
+        return order.index(FG_name)
+
+    orig_fgs = list(mol.func_groups)
+    # Reorder those in `order`, the rest remain in their position.
+    new_fgs = sorted(orig_fgs, key=sort_)
+    mol.func_groups = new_fgs
+
+    return mol
+
+
 def experimentally_tested(mol_name):
     """
     A dataset of experimentally built cages.

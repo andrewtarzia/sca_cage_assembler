@@ -72,7 +72,10 @@ def build_complexes(complexes, ligand_directory):
             join(ligand_directory, comp['coord_species']),
             ['CNC_metal', 'CNBr_metal']
         )
-        print(coord_species.func_groups)
+        coord_species = Building.order_FGs(
+            mol=coord_species,
+            order=['CNBr_metal', 'CNC_metal']
+        )
 
         topology = Building.available_topologies(comp['topology'])
 
