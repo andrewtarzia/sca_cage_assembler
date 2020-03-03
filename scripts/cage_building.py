@@ -3,7 +3,7 @@
 # Distributed under the terms of the MIT License.
 
 """
-Modules defining the Cage class and subclasses.
+Modules defining and building the Cage class and subclasses.
 
 Author: Andrew Tarzia
 

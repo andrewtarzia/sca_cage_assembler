@@ -17,7 +17,7 @@ from rdkit.Chem import AllChem as rdkit
 import stk
 
 import atools
-import Building
+import molecule_building
 
 
 def read_lig_lib(lib_file):
@@ -79,7 +79,7 @@ def metal_containing_ligands():
 
     """
 
-    m4_FFs = Building.metal_FFs(CN=4)
+    m4_FFs = molecule_building.metal_FFs(CN=4)
 
     m_ligands = {
         'quad4_3': {
@@ -91,7 +91,7 @@ def metal_containing_ligands():
             'no_metal_fgs': 4,
             'no_metals': 1,
             'net_charge': 0,
-            'binding_atom': Building.build_atom(
+            'binding_atom': molecule_building.build_atom(
                 'N',
                 FG='metal_bound_N'
             ),
@@ -106,7 +106,7 @@ def metal_containing_ligands():
             'no_metal_fgs': 4,
             'no_metals': 1,
             'net_charge': 0,
-            'binding_atom': Building.build_atom(
+            'binding_atom': molecule_building.build_atom(
                 'N',
                 FG='metal_bound_N'
             ),
@@ -121,7 +121,7 @@ def metal_containing_ligands():
             'no_metal_fgs': 4,
             'no_metals': 1,
             'net_charge': 0,
-            'binding_atom': Building.build_atom(
+            'binding_atom': molecule_building.build_atom(
                 'N',
                 FG='metal_bound_N'
             ),
@@ -136,7 +136,7 @@ def metal_containing_ligands():
             'no_metal_fgs': 4,
             'no_metals': 1,
             'net_charge': 0,
-            'binding_atom': Building.build_atom(
+            'binding_atom': molecule_building.build_atom(
                 'N',
                 FG='metal_bound_N'
             ),
@@ -151,7 +151,7 @@ def metal_containing_ligands():
             'no_metal_fgs': 4,
             'no_metals': 1,
             'net_charge': 2,
-            'binding_atom': Building.build_atom(
+            'binding_atom': molecule_building.build_atom(
                 'N',
                 FG='metal_bound_N'
             ),
@@ -166,7 +166,7 @@ def metal_containing_ligands():
             'no_metal_fgs': 4,
             'no_metals': 1,
             'net_charge': 2,
-            'binding_atom': Building.build_atom(
+            'binding_atom': molecule_building.build_atom(
                 'N',
                 FG='metal_bound_N'
             ),
@@ -181,7 +181,7 @@ def metal_containing_ligands():
             'no_metal_fgs': 4,
             'no_metals': 2,
             'net_charge': 0,
-            'binding_atom': Building.build_atom(
+            'binding_atom': molecule_building.build_atom(
                 'O',
                 FG='metal_bound_O'
             ),
@@ -196,7 +196,7 @@ def metal_containing_ligands():
             'no_metal_fgs': 4,
             'no_metals': 2,
             'net_charge': 0,
-            'binding_atom': Building.build_atom(
+            'binding_atom': molecule_building.build_atom(
                 'O',
                 FG='metal_bound_O'
             ),
@@ -211,7 +211,7 @@ def metal_containing_ligands():
             'no_metal_fgs': 4,
             'no_metals': 1,
             'net_charge': 2,
-            'binding_atom': Building.build_atom(
+            'binding_atom': molecule_building.build_atom(
                 'N',
                 FG='metal_bound_N'
             ),
@@ -226,7 +226,7 @@ def metal_containing_ligands():
             'no_metal_fgs': 4,
             'no_metals': 1,
             'net_charge': 2,
-            'binding_atom': Building.build_atom(
+            'binding_atom': molecule_building.build_atom(
                 'N',
                 FG='metal_bound_N'
             ),
@@ -282,7 +282,7 @@ def build_metal_organics(metal_lig_lib):
         comp = metal_lig_lib[name]
 
         # Build metal atom.
-        metal = Building.build_metal(
+        metal = molecule_building.build_metal(
             metal_smiles=comp['metal_smiles'],
             no_fgs=comp['no_metal_fgs']
         )
@@ -291,7 +291,7 @@ def build_metal_organics(metal_lig_lib):
         binding_fgs = list(set([
             i.fg_type.name for i in comp['binding_atom'].func_groups
         ]))
-        metal_centre = Building.build_metal_centre(
+        metal_centre = molecule_building.build_metal_centre(
             metal=metal,
             topology=comp['metal_centre_topo'],
             binding_atom=comp['binding_atom'],
