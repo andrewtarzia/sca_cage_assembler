@@ -330,17 +330,46 @@ def build_metal_organics(metal_lig_lib):
     return
 
 
-def output_2d_images():
+def output_2d_images(metal_lig_lib):
     # Draw 2D representation of all built molecules.
     opt_mols = sorted(glob.glob('*_opt.json'))
+    mols = []
+    names = []
     for mol in opt_mols:
         name = mol.replace('_opt.json', '')
-        MOL = stk.BuildingBlock.load(mol).to_rdkit_mol()
-        rdkit.Compute2DCoords(MOL)
+        if name in metal_lig_lib:
+            comp = metal_lig_lib[name]
+            BB = stk.BuildingBlock.load(
+                f"{comp['organic_BB']}_opt.json"
+            ).to_rdkit_mol()
+            smi = rdkit.MolToSmiles(BB)
+            msmi = comp['metal_smiles']
+            tot_smi = f'{msmi}.{smi}'
+            MOL = rdkit.MolFromSmiles(tot_smi)
+            mols.append(MOL)
+            top_str = str(comp['ctopo']).replace('cage.', '')
+            top_str = top_str.split('(')[0]
+            label = f'{name}\n{top_str}'
+            names.append(label)
+        else:
+            MOL = stk.BuildingBlock.load(mol).to_rdkit_mol()
+            MOL = rdkit.MolFromSmiles(rdkit.MolToSmiles(MOL))
+            mols.append(MOL)
+            names.append(name)
         atools.draw_mol_to_svg(
             mol=MOL,
             filename=f'built_ligands/{name}_opt.svg'
         )
+
+    # Draw 2D representation of all built molecules.
+    atools.mol_list2grid(
+        molecules=mols,
+        names=names,
+        filename='built_ligands/built_ligands',
+        mol_per_row=3,
+        maxrows=3,
+        subImgSize=(250, 250)
+    )
 
     return
 
