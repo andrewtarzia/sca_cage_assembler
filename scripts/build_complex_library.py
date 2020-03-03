@@ -82,10 +82,11 @@ def build_complexes(complexes, ligand_directory):
 
         complex = molecule_building.build_SCA_complex(
             metal_centre=metal_centre,
-            name=name,
             complex_top=topology,
             bidentate_ligand=coord_species
         )
+        complex.write(f'{name}.mol')
+        complex.write(f'{name}.mol')
 
         # Not interested in unpaired electron checks at this stage.
         # So just select first one.

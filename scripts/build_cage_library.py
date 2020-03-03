@@ -17,7 +17,7 @@ import glob
 from rdkit.Chem import AllChem as rdkit
 import stk
 
-import Cage
+import cage_building
 
 
 def read_lib(lib_file):
@@ -45,9 +45,22 @@ def build_cages(
         pris = prisms[name]
         compl_names = pris['corners'].strip(')(').split(', ')
         print(compl_names)
-        comps = [complexes[i] for i in compl_names]
+        comps = {i: complexes[i] for i in compl_names}
         print(pris)
         print(comps)
+        het_cage = cage_building.HetPrism(
+            name=name,
+            prism_dict=pris,
+            complex_dicts=comps,
+            ligand_dir=ligand_directory,
+            complex_dir=complex_directory
+        )
+        # print(het_cage)
+        print('tob', het_cage.cages_to_build)
+        for C in het_cage.cages_to_build:
+            print(C)
+            C.build()
+            sys.exit()
         sys.exit()
 
 

@@ -238,8 +238,7 @@ def optimize_SCA_complex(complex, name, dict, metal_FFs):
 def build_SCA_complex(
     metal_centre,
     bidentate_ligand,
-    complex_top,
-    name,
+    complex_top
 ):
     """
     Build an stk metal complex post SCA coordination.
@@ -254,9 +253,6 @@ def build_SCA_complex(
 
     complex_top : :class:`stk.Topology`
         Topology of metal complex to build.
-
-    name : :class:`str`
-        Name of structure.
 
     Returns
     -------
@@ -276,7 +272,5 @@ def build_SCA_complex(
             bidentate_ligand: complex_top.vertices[1:]
         }
     )
-    complex.write(f'{name}.mol')
-    complex.write(f'{name}.mol')
 
     return complex
