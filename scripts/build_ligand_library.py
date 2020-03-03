@@ -35,7 +35,7 @@ def read_lig_lib(lib_file):
 
     for line in lines[1:]:
         row = line.rstrip().split(',')
-        ligs[row[0]] = (row[1], row[2])
+        ligs[row[0]] = row[1]
     return ligs
 
 
@@ -59,7 +59,7 @@ def build_organics(ligs):
         jsonoutput = f'{name}_opt.json'
         if exists(jsonoutput):
             continue
-        print(f'doing {name}')
+        print(f'...building {name}')
         if exists(input):
             mol = stk.BuildingBlock.init_from_file(input)
         else:
@@ -79,7 +79,7 @@ def metal_containing_ligands():
 
     """
 
-    m_FFs = Building.metal_FFs()
+    m4_FFs = Building.metal_FFs(CN=4)
 
     m_ligands = {
         'quad4_3': {
@@ -95,7 +95,7 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m_FFs
+            'metal_FF': m4_FFs
         },
         'quad4_4': {
             'organic_BB': 'quad4_prec_5',
@@ -110,7 +110,7 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m_FFs
+            'metal_FF': m4_FFs
         },
         'quad4_5': {
             'organic_BB': 'quad4_prec_4',
@@ -125,7 +125,7 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m_FFs
+            'metal_FF': m4_FFs
         },
         'quad4_6': {
             'organic_BB': 'quad4_prec_5',
@@ -140,7 +140,7 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m_FFs
+            'metal_FF': m4_FFs
         },
         'quad4_7': {
             'organic_BB': 'quad4_prec_1',
@@ -155,7 +155,7 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m_FFs
+            'metal_FF': m4_FFs
         },
         'quad4_10': {
             'organic_BB': 'quad4_prec_1',
@@ -170,7 +170,7 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m_FFs
+            'metal_FF': m4_FFs
         },
         'quad4_8': {
             'organic_BB': 'quad4_prec_2',
@@ -185,7 +185,7 @@ def metal_containing_ligands():
                 'O',
                 FG='metal_bound_O'
             ),
-            'metal_FF': m_FFs
+            'metal_FF': m4_FFs
         },
         'quad4_9': {
             'organic_BB': 'quad4_prec_2',
@@ -200,7 +200,7 @@ def metal_containing_ligands():
                 'O',
                 FG='metal_bound_O'
             ),
-            'metal_FF': m_FFs
+            'metal_FF': m4_FFs
         },
         'quad4_11': {
             'organic_BB': 'quad4_prec_3',
@@ -215,7 +215,7 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m_FFs
+            'metal_FF': m4_FFs
         },
         'quad4_12': {
             'organic_BB': 'quad4_prec_3',
@@ -230,7 +230,7 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m_FFs
+            'metal_FF': m4_FFs
         },
     }
 
@@ -239,7 +239,7 @@ def metal_containing_ligands():
 
 def optimise_metal_centre(name, charge, complex, metal_FF):
 
-    print(f'doing UFF4MOF optimisation of {name}')
+    print(f'.......UFF4MOF optimisation of {name}')
     gulp_opt = stk.GulpMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
         metal_FF=metal_FF,
@@ -250,7 +250,7 @@ def optimise_metal_centre(name, charge, complex, metal_FF):
     complex.write(f'{name}_uff1.mol')
     complex.dump(f'{name}_uff1.json')
 
-    print(f'doing XTB optimisation of {name}')
+    print(f'.......XTB optimisation of {name}')
     xtb_opt = stk.XTB(
         xtb_path='/home/atarzia/software/xtb-190806/bin/xtb',
         output_dir=f'{name}',
@@ -270,7 +270,7 @@ def optimise_metal_centre(name, charge, complex, metal_FF):
     return complex
 
 
-def build_metal_organics(metal_lig_lib, ligs):
+def build_metal_organics(metal_lig_lib):
 
     # Iterate over required metal-organic library.
     for name in metal_lig_lib:
@@ -278,7 +278,7 @@ def build_metal_organics(metal_lig_lib, ligs):
         optjson_name = f'{name}_opt.json'
         if exists(optjson_name):
             continue
-        print(f'building {name}')
+        print(f'.......building {name}')
         comp = metal_lig_lib[name]
 
         # Build metal atom.
@@ -365,10 +365,10 @@ Usage: build_ligand_library.py lib_file
 
     # Build and optimise all metal containing ligands.
     metal_lig_lib = metal_containing_ligands()
-    build_metal_organics(metal_lig_lib, ligs)
+    build_metal_organics(metal_lig_lib)
 
     # Produce image of all built molecules.
-    output_2d_images()
+    output_2d_images(metal_lig_lib)
     sys.exit()
 
 

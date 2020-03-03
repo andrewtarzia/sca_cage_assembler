@@ -51,19 +51,36 @@ def experimentally_tested(mol_name):
     return tested_ligand_combos
 
 
-def metal_FFs():
+def metal_FFs(CN):
     """
     Define metal FF names for UFF4MOF.
 
     Key = Atomic number
     Value = UFF4MOF type
+    CN = coordination number of metal.
 
     """
-    dicts = {
-        30: 'Zn4+2', 28: 'Ni4+2',
-        78: 'Pt4+2', 46: 'Pd4+2',
-        45: 'Rh6+3', 42: 'Mo4f2'
-    }
+    if CN == 4:
+        dicts = {
+            26: 'Fe4+2',
+            27: 'Co4+2',
+            28: 'Ni4+2',
+            30: 'Zn4+2',
+            42: 'Mo4f2',
+            45: 'Rh6+3',  # No alternative available.
+            46: 'Pd4+2',
+            48: 'Cd4f2',
+            78: 'Pt4+2',
+        }
+    elif CN == 6:
+        dicts = {
+            26: 'Fe6+2',
+            27: 'Co6+2',
+            28: 'Ni4+2',  # No alternative available.
+            30: 'Zn4+2',  # No alternative available for 90 degrees.
+            45: 'Rh6+3',
+            48: 'Cd4f2',  # No alternative available.
+        }
 
     return dicts
 
@@ -179,7 +196,7 @@ def build_metal_centre(metal, topology, binding_atom, return_FG):
     return complex
 
 
-def optimize_SCA_complex(complex, name, dict):
+def optimize_SCA_complex(complex, name, dict, metal_FFs):
     """
     Optimize a sub-component self assmebly complex.
 
@@ -188,14 +205,13 @@ def optimize_SCA_complex(complex, name, dict):
     print(f'doing UFF4MOF optimisation for {name}')
     gulp_opt = stk.GulpMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF=metal_FFs(),
+        metal_FF=metal_FFs,
         output_dir=f'{name}_uff1'
     )
     gulp_opt.assign_FF(complex)
     gulp_opt.optimize(mol=complex)
     complex.write(f'{name}_uff1.mol')
     complex.dump(f'{name}_uff1.json')
-    return complex
 
     print(f'doing xTB optimisation for {name}')
     xtb_opt = stk.XTB(

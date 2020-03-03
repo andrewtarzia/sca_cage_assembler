@@ -3,8 +3,8 @@ SCA_cap_1,Br/N=C/c1ccccn1
 SCA_cap_2,Cc1cccc(/C=N/Br)n1
 quad2_1,Brc1ccc(-c2cc(-c3ccc(Br)cc3)c3ccc4c(-c5ccc(Br)cc5)cc(-c5ccc(Br)cc5)c5ccc2c3c54)cc1
 quad2_10,Brc1ccc(-c2cc(-c3ccc(Br)cc3)cc(-c3ccc(-c4ccc(-c5ccc(-c6cc(-c7ccc(Br)cc7)cc(-c7ccc(Br)cc7)c6)cc5)cc4)cc3)c2)cc1
-quad2_11,CCC(CC)n1c(=O)c2c(-c3ccc(Br)cc3)cc3c4cc(-c5ccc(Br)cc5)c5c(=O)n(C(CC)CC)c(=O)c6c(-c7cccc(Br)c7)cc(c7cc(-c8ccc(Br)cc8)c(c1=O)c2c37)c4c56
-quad2_12,Brc1ccc(-c2cc3cc(-c4ccc(Br)cc4)cc4c5cc(-c6cccc(Br)c6)cc6cc(-c7ccc(Br)cc7)cc(c(c2)c34)c65)cc1
+quad2_11,CCC(CC)n1c(=O)c2c(-c3ccc(Br)cc3)cc3c4cc(-c5ccc(Br)cc5)c5c(=O)n(C(CC)CC)c(=O)c6c(-c7ccc(Br)cc7)cc(c7cc(-c8ccc(Br)cc8)c(c1=O)c2c37)c4c56
+quad2_12,Brc1ccc(-c2cc3cc(-c4ccc(Br)cc4)cc4c5cc(-c6ccc(Br)cc6)cc6cc(-c7ccc(Br)cc7)cc(c(c2)c34)c65)cc1
 quad2_13,Brc1cc(Br)cc(-c2ccc(-c3cc(Br)cc(Br)c3)cc2)c1
 quad2_14,Brc1cc(Br)cc(-c2ccc(-c3ccc(-c4cc(Br)cc(Br)c4)cc3)cc2)c1
 quad2_15,Brc1cc(Br)cc(-c2ccc3cc(-c4cc(Br)cc(Br)c4)ccc3c2)c1

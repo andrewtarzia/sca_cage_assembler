@@ -82,14 +82,21 @@ def build_complexes(complexes, ligand_directory):
             complex_top=topology,
             bidentate_ligand=coord_species
         )
-        print(complex)
 
+        # Not interested in unpaired electron checks at this stage.
+        # So just select first one.
+        comp['unpaired_e'] = int(
+            comp['unpaired_e'].strip(')()').split(',')[0]
+        )
+
+        # Define metal_FFs to use in optimisation.
+        custom_metal_FFs = Building.metal_FFs(CN=6)
         complex = Building.optimize_SCA_complex(
             complex=complex,
             name=name,
-            dict=comp
+            dict=comp,
+            metal_FFs=custom_metal_FFs
         )
-        sys.exit()
 
         complex.write(output)
         complex.dump(jsonoutput)
