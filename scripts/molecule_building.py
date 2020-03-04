@@ -62,27 +62,25 @@ def metal_FFs(CN):
     CN = coordination number of metal.
 
     """
+
+    # Default settings.
+    dicts = {
+        26: 'Fe4+2',
+        27: 'Co4+2',
+        28: 'Ni4+2',  # No alternative available.
+        30: 'Zn4+2',  # No alternative available for 90 degrees.
+        42: 'Mo4f2',
+        45: 'Rh6+3',  # No alternative available.
+        46: 'Pd4+2',
+        48: 'Cd4f2',  # No alternative available.
+        78: 'Pt4+2',
+    }
+
     if CN == 4:
-        dicts = {
-            26: 'Fe4+2',
-            27: 'Co4+2',
-            28: 'Ni4+2',
-            30: 'Zn4+2',
-            42: 'Mo4f2',
-            45: 'Rh6+3',  # No alternative available.
-            46: 'Pd4+2',
-            48: 'Cd4f2',
-            78: 'Pt4+2',
-        }
+        pass
     elif CN == 6:
-        dicts = {
-            26: 'Fe6+2',
-            27: 'Co6+2',
-            28: 'Ni4+2',  # No alternative available.
-            30: 'Zn4+2',  # No alternative available for 90 degrees.
-            45: 'Rh6+3',
-            48: 'Cd4f2',  # No alternative available.
-        }
+        dicts[26] = 'Fe6+2'
+        dicts[27] = 'Co6+2'
 
     return dicts
 
