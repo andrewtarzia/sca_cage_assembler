@@ -60,7 +60,7 @@ class Cage:
         self.topology = topology
         self.bb_vertices = bb_vertices
         self.unopt_file = f'{self.name}_unopt'
-        self.rdk_file = f'{self.name}_rdk'
+        self.crush_file = f'{self.name}_cru'
         self.uff4mof_file = f'{self.name}_uff'
         self.uffMD_file = f'{self.name}_prextb'
         self.opt_file = f'{self.name}_optc'
@@ -87,16 +87,17 @@ class Cage:
             return
         print(f'....optimizing {self.name}')
 
-        # Run if rdkit output does not exist.
-        if not exists(f'{self.rdk_file}.mol'):
-            self.cage = atools.MOC_rdkit_opt(
+        # Run if crush output does not exist.
+        if not exists(f'{self.crush_file}.mol'):
+            self.cage = atools.MOC_collapse(
                 self.cage,
                 self.name,
-                do_long=True
+                step_size=0.05,
+                distance_cut=2.0
             )
-            self.cage.write(f'{self.rdk_file}.mol')
+            self.cage.write(f'{self.crush_file}.mol')
         else:
-            self.cage.update_from_file(f'{self.rdk_file}.mol')
+            self.cage.update_from_file(f'{self.crush_file}.mol')
 
         # Run if uff4mof opt output does not exist.
         if not exists(f'{self.uff4mof_file}.mol'):
@@ -111,20 +112,15 @@ class Cage:
 
         # Run if uff4mof MD output does not exist.
         if not exists(f'{self.uffMD_file}.mol'):
-            self.cage = atools.MOC_uff_opt(
-                self.cage,
-                self.name,
-                metal_FFs=custom_metal_FFs
-            )
             self.cage = atools.MOC_MD_opt(
                 self.cage,
                 self.name,
                 integrator='leapfrog verlet',
                 temperature='700',
-                N=50,
+                N=10,
                 timestep='0.5',
                 equib='0.1',
-                production='5',
+                production='2',
                 metal_FFs=custom_metal_FFs,
                 opt_conf=True,
                 save_conf=False
