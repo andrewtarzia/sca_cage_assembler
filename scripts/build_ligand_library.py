@@ -12,6 +12,7 @@ Date Created: 13 Jan 2020
 
 import sys
 from os.path import exists
+import json
 import glob
 from rdkit.Chem import AllChem as rdkit
 import stk
@@ -52,8 +53,12 @@ def build_organics(ligs):
         unlimited_memory=True
     )
 
+    mol_data = {}
     for name in ligs:
         smi = ligs[name][0]
+        charge = 0
+        free_e = [0]
+        mol_data[name] = (charge, free_e)
         input = f'manual/{name}.mol'
         output = f'{name}_opt.mol'
         jsonoutput = f'{name}_opt.json'
@@ -68,7 +73,7 @@ def build_organics(ligs):
         mol.write(output)
         mol.dump(jsonoutput)
 
-    return
+    return mol_data
 
 
 def metal_containing_ligands():
@@ -95,7 +100,8 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m4_FFs
+            'metal_FF': m4_FFs,
+            'total_unpaired_e': [2]
         },
         'quad4_4': {
             'organic_BB': 'quad4_prec_5',
@@ -110,7 +116,8 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m4_FFs
+            'metal_FF': m4_FFs,
+            'total_unpaired_e': [2]
         },
         'quad4_5': {
             'organic_BB': 'quad4_prec_4',
@@ -125,7 +132,8 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m4_FFs
+            'metal_FF': m4_FFs,
+            'total_unpaired_e': [0]
         },
         'quad4_6': {
             'organic_BB': 'quad4_prec_5',
@@ -140,7 +148,8 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m4_FFs
+            'metal_FF': m4_FFs,
+            'total_unpaired_e': [0]
         },
         'quad4_7': {
             'organic_BB': 'quad4_prec_1',
@@ -155,7 +164,8 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m4_FFs
+            'metal_FF': m4_FFs,
+            'total_unpaired_e': [0]
         },
         'quad4_10': {
             'organic_BB': 'quad4_prec_1',
@@ -170,7 +180,8 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m4_FFs
+            'metal_FF': m4_FFs,
+            'total_unpaired_e': [0]
         },
         'quad4_8': {
             'organic_BB': 'quad4_prec_2',
@@ -185,7 +196,8 @@ def metal_containing_ligands():
                 'O',
                 FG='metal_bound_O'
             ),
-            'metal_FF': m4_FFs
+            'metal_FF': m4_FFs,
+            'total_unpaired_e': [2]
         },
         'quad4_9': {
             'organic_BB': 'quad4_prec_2',
@@ -200,7 +212,8 @@ def metal_containing_ligands():
                 'O',
                 FG='metal_bound_O'
             ),
-            'metal_FF': m4_FFs
+            'metal_FF': m4_FFs,
+            'total_unpaired_e': [0, 4]
         },
         'quad4_11': {
             'organic_BB': 'quad4_prec_3',
@@ -215,7 +228,8 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m4_FFs
+            'metal_FF': m4_FFs,
+            'total_unpaired_e': [0]
         },
         'quad4_12': {
             'organic_BB': 'quad4_prec_3',
@@ -230,7 +244,8 @@ def metal_containing_ligands():
                 'N',
                 FG='metal_bound_N'
             ),
-            'metal_FF': m4_FFs
+            'metal_FF': m4_FFs,
+            'total_unpaired_e': [0]
         },
     }
 
@@ -270,16 +285,17 @@ def optimise_metal_centre(name, charge, complex, metal_FF):
     return complex
 
 
-def build_metal_organics(metal_lig_lib):
+def build_metal_organics(metal_lig_lib, mol_data):
 
     # Iterate over required metal-organic library.
     for name in metal_lig_lib:
         opt_name = f'{name}_opt.mol'
         optjson_name = f'{name}_opt.json'
+        comp = metal_lig_lib[name]
+        mol_data[name] = (comp['net_charge'], comp['total_unpaired_e'])
         if exists(optjson_name):
             continue
         print(f'.......building {name}')
-        comp = metal_lig_lib[name]
 
         # Build metal atom.
         metal = molecule_building.build_metal(
@@ -327,7 +343,7 @@ def build_metal_organics(metal_lig_lib):
         complex.write(opt_name)
         complex.dump(optjson_name)
 
-    return
+    return mol_data
 
 
 def output_2d_images(metal_lig_lib):
@@ -381,6 +397,7 @@ Usage: build_ligand_library.py lib_file
 
     lib_file : (str)
         File containing ligand information (name, smiles, flag)
+
     """)
         sys.exit()
     else:
@@ -390,15 +407,17 @@ Usage: build_ligand_library.py lib_file
     ligs = read_lig_lib(lib_file)
 
     # Build and optimise all organic molecules in lib.
-    build_organics(ligs)
+    mol_data = build_organics(ligs)
 
     # Build and optimise all metal containing ligands.
     metal_lig_lib = metal_containing_ligands()
-    build_metal_organics(metal_lig_lib)
+    build_metal_organics(metal_lig_lib, mol_data)
 
     # Produce image of all built molecules.
     output_2d_images(metal_lig_lib)
-    sys.exit()
+
+    with open('ligand_data.json', 'w') as f:
+        json.dump(mol_data, f)
 
 
 if __name__ == "__main__":

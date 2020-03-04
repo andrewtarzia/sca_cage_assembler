@@ -13,11 +13,9 @@ Date Created: 27 Jan 2020
 import sys
 import json
 from os.path import exists, join
-import glob
-from rdkit.Chem import AllChem as rdkit
+
 import stk
 
-import atools
 import molecule_building
 
 
