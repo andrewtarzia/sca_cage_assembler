@@ -60,6 +60,10 @@ def build_cages(
         for C in het_cage.cages_to_build:
             print(C)
             C.build()
+            default_free_e = C.free_electron_options[0]
+            print(C.free_electron_options, default_free_e)
+            input()
+            C.optimize(free_e=default_free_e)
             sys.exit()
         sys.exit()
 
