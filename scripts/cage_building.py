@@ -13,8 +13,12 @@ Date Created: 03 Mar 2020
 
 from itertools import product
 from os.path import exists, join
+import json
 
 import stk
+
+import atools
+from molecule_building import metal_FFs
 
 
 def available_topologies(string):
@@ -41,11 +45,28 @@ class Cage:
 
     """
 
-    def __init__(self, name, bbs, topology, bb_vertices):
+    def __init__(
+        self,
+        name,
+        bbs,
+        topology,
+        bb_vertices,
+        charge,
+        free_electron_options
+    ):
+
         self.name = name
         self.bbs = bbs
         self.topology = topology
         self.bb_vertices = bb_vertices
+        self.unopt_file = f'{self.name}_unopt'
+        self.rdk_file = f'{self.name}_rdk'
+        self.uff4mof_file = f'{self.name}_uff'
+        self.uffMD_file = f'{self.name}_prextb'
+        self.opt_file = f'{self.name}_optc'
+        self.charge = charge
+        self.free_electron_options = free_electron_options
+        print(self.charge, self.free_electron_options)
 
     def build(self):
         print(f'....building {self.name}')
@@ -54,14 +75,76 @@ class Cage:
             topology_graph=self.topology,
             building_block_vertices=self.bb_vertices
         )
-        cage.write(f'{self.name}_unopt.mol')
-        cage.dump(f'{self.name}_unopt.json')
+        cage.write(f'{self.unopt_file}.mol')
+        cage.dump(f'{self.unopt_file}.json')
         self.cage = cage
 
-    def optimize(self):
-        if not exists(f'{self.name}_opt.json'):
-            print(f'....optimizing {self.name}')
-            raise NotImplementedError()
+    def optimize(self, free_e):
+        custom_metal_FFs = metal_FFs(CN=6)
+
+        # Skip if _opt.json exists.
+        if exists(f'{self.opt_file}.json'):
+            return
+        print(f'....optimizing {self.name}')
+
+        # Run if rdkit output does not exist.
+        if not exists(f'{self.rdk_file}.mol'):
+            self.cage = atools.MOC_rdkit_opt(
+                self.cage,
+                self.name,
+                do_long=True
+            )
+            self.cage.write(f'{self.rdk_file}.mol')
+        else:
+            self.cage.update_from_file(f'{self.rdk_file}.mol')
+
+        # Run if uff4mof opt output does not exist.
+        if not exists(f'{self.uff4mof_file}.mol'):
+            self.cage = atools.MOC_uff_opt(
+                self.cage,
+                self.name,
+                metal_FFs=custom_metal_FFs
+            )
+            self.cage.write(f'{self.uff4mof_file}.mol')
+        else:
+            self.cage.update_from_file(f'{self.uff4mof_file}.mol')
+
+        # Run if uff4mof MD output does not exist.
+        if not exists(f'{self.uffMD_file}.mol'):
+            self.cage = atools.MOC_uff_opt(
+                self.cage,
+                self.name,
+                metal_FFs=custom_metal_FFs
+            )
+            self.cage = atools.MOC_MD_opt(
+                self.cage,
+                self.name,
+                integrator='leapfrog verlet',
+                temperature='700',
+                N=50,
+                timestep='0.5',
+                equib='0.1',
+                production='5',
+                metal_FFs=custom_metal_FFs,
+                opt_conf=True,
+                save_conf=False
+            )
+            self.cage.write(f'{self.uffMD_file}.mol')
+        else:
+            self.cage.update_from_file(f'{self.uffMD_file}.mol')
+
+        atools.MOC_xtb_opt(
+            self.cage,
+            self.name,
+            nc=6,
+            free_e=free_e,
+            charge=self.charge,
+            opt_level='normal',
+            etemp=300,
+            # solvent=('dmso', 'verytight')
+        )
+        self.cage.write(f'{self.opt_file}.mol')
+        self.cage.dump(f'{self.opt_file}.json')
 
     def get_energy(self):
         print(f'....getting energy of {self.name}')
@@ -148,7 +231,11 @@ class HetPrism:
             functional_groups=['bromine']
         )
 
-        return ligand
+        with open(join(ligand_dir, 'ligand_data.json'), 'r') as f:
+            lig_prop = json.load(f)
+        properties = lig_prop[ligand_name]
+
+        return ligand, properties
 
     def define_cages_to_build(self, ligand_dir, complex_dir):
         """
@@ -176,12 +263,23 @@ class HetPrism:
             complex_dir=complex_dir
         )
 
+        D_charge = self.complex_dicts[D_complex_name]['total_charge']
+        L_charge = self.complex_dicts[L_complex_name]['total_charge']
+        D_free_e = self.complex_dicts[D_complex_name][
+            'unpaired_e'
+        ].strip(')()').split(',')
+        L_free_e = self.complex_dicts[L_complex_name][
+            'unpaired_e'
+        ].strip(')()').split(',')
+        print(D_charge, D_free_e, L_charge, L_free_e)
+        input()
+
         # Get all linkers.
-        tet_linker = self.load_ligand(
+        tet_linker, tet_prop = self.load_ligand(
             ligand_name=self.prism_dict['tetratopic'],
             ligand_dir=ligand_dir
         )
-        tri_linker = self.load_ligand(
+        tri_linker, tri_prop = self.load_ligand(
             ligand_name=self.prism_dict['tritopic'],
             ligand_dir=ligand_dir
         )
@@ -210,11 +308,31 @@ class HetPrism:
                 L_complex: tet_topo.vertices[rat[0]:rat[0]+rat[1]],
                 tet_linker: tet_topo.vertices[tet_n_metals:]
             }
+            # Merge linker and complex charges.
+            complex_charge = rat[0]*int(D_charge)+rat[1]*int(L_charge)
+            new_charge = int(tet_prop[0])*6 + complex_charge
+
+            print(tet_prop[1])
+            lig_free_e = [int(i)*6 for i in tet_prop[1]]
+            compl_free_e = [
+                int(i)*rat[0] + int(j)*rat[1]
+                for i, j in zip(D_free_e, L_free_e)
+            ]
+            print(lig_free_e, compl_free_e)
+
+            new_free_electron_options = []
+            for opt in product(lig_free_e, compl_free_e):
+                print(opt)
+                new_free_electron_options.append(opt[0]+opt[1])
+
+            print(new_charge, new_free_electron_options)
             new_cage = Cage(
                 name=new_name,
                 bbs=new_bbs,
                 topology=tet_topo,
-                bb_vertices=new_bb_vertices
+                bb_vertices=new_bb_vertices,
+                charge=new_charge,
+                free_electron_options=new_free_electron_options
             )
             cages_to_build.append(new_cage)
             print(new_cage)
@@ -242,11 +360,31 @@ class HetPrism:
                 L_complex: tet_topo.vertices[rat[0]:rat[0]+rat[1]],
                 tri_linker: tet_topo.vertices[tri_n_metals:]
             }
+            # Merge linker and complex charges.
+            complex_charge = rat[0]*D_charge + rat[1]*L_charge
+            new_charge = tri_prop[0]*4 + complex_charge
+
+            print(tri_prop[1])
+            lig_free_e = [int(i)*4 for i in tri_prop[1]]
+            compl_free_e = [
+                int(i)*rat[0] + int(j)*rat[1]
+                for i, j in zip(D_free_e, L_free_e)
+            ]
+            print(lig_free_e, compl_free_e)
+
+            new_free_electron_options = []
+            for opt in product(lig_free_e, compl_free_e):
+                print(opt)
+                new_free_electron_options.append(opt[0]+opt[1])
+
+            print(new_charge, new_free_electron_options)
             new_cage = Cage(
                 name=new_name,
                 bbs=new_bbs,
                 topology=tri_topo,
-                bb_vertices=new_bb_vertices
+                bb_vertices=new_bb_vertices,
+                charge=new_charge,
+                free_electron_options=new_free_electron_options
             )
             cages_to_build.append(new_cage)
             print(new_cage)
@@ -276,11 +414,32 @@ class HetPrism:
                 ],
                 tet_linker: tet_topo.vertices[pri_n_metals+2:]
             }
+            # Merge linker and complex charges.
+            complex_charge = rat[0]*D_charge + rat[1]*L_charge
+            new_charge = tri_prop[0]*2 + tet_prop[0]*3 + complex_charge
+
+            print(tri_prop[1], tet_prop[1])
+            tri_free_e = [int(i)*2 for i in tri_prop[1]]
+            tet_free_e = [int(i)*3 for i in tet_prop[1]]
+            compl_free_e = [
+                int(i)*rat[0] + int(j)*rat[1]
+                for i, j in zip(D_free_e, L_free_e)
+            ]
+            print(tri_free_e, tet_free_e, compl_free_e)
+
+            new_free_electron_options = []
+            for opt in product(tri_free_e, tet_free_e, compl_free_e):
+                print(opt)
+                new_free_electron_options.append(opt[0]+opt[1]+opt[2])
+
+            print(new_charge, new_free_electron_options)
             new_cage = Cage(
                 name=new_name,
                 bbs=new_bbs,
                 topology=pri_topo,
-                bb_vertices=new_bb_vertices
+                bb_vertices=new_bb_vertices,
+                charge=new_charge,
+                free_electron_options=new_free_electron_options
             )
             cages_to_build.append(new_cage)
             print(new_cage)
