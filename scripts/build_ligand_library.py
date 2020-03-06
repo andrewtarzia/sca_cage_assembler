@@ -101,7 +101,7 @@ def metal_containing_ligands():
                 FG='metal_bound_N'
             ),
             'metal_FF': m4_FFs,
-            'total_unpaired_e': [2]
+            'total_unpaired_e': [0, 2]
         },
         'quad4_4': {
             'organic_BB': 'quad4_prec_5',
@@ -117,7 +117,7 @@ def metal_containing_ligands():
                 FG='metal_bound_N'
             ),
             'metal_FF': m4_FFs,
-            'total_unpaired_e': [2]
+            'total_unpaired_e': [0, 2]
         },
         'quad4_5': {
             'organic_BB': 'quad4_prec_4',
