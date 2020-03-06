@@ -122,7 +122,7 @@ class Cage:
                 equib='0.1',
                 production='2',
                 metal_FFs=custom_metal_FFs,
-                opt_conf=True,
+                opt_conf=False,
                 save_conf=False
             )
             self.cage.write(f'{self.uffMD_file}.mol')
