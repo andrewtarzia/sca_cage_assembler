@@ -14,6 +14,8 @@ Date Created: 03 Mar 2020
 from itertools import product
 from os.path import exists, join
 import json
+import pywindow as pw
+import os
 
 import stk
 
@@ -64,6 +66,8 @@ class Cage:
         self.uff4mof_file = f'{self.name}_uff'
         self.uffMD_file = f'{self.name}_prextb'
         self.opt_file = f'{self.name}_optc'
+        self.pw_file = f'{self.name}_pw'
+        self.op_file = f'{self.name}_OP'
         self.charge = charge
         self.free_electron_options = free_electron_options
         print(self.charge, self.free_electron_options)
@@ -151,8 +155,78 @@ class Cage:
         raise NotImplementedError()
 
     def analyze_cage_geometry(self):
-        print(f'....analyzing {self.name}')
-        raise NotImplementedError()
+        """
+        Analyse cage geometry using order parameters.
+
+        """
+
+        # Check if output file exists.
+        if not exists(f'{self.op_file}.json'):
+            print(f'....analyzing geometry of {self.name}')
+
+            # Get atomic numbers of all present metals.
+            pres_atm_no = [
+                i.atomic_number for i in self.cage.atoms
+                if i.atomic_number in metal_FFs(CN=4).keys()
+            ]
+            print(pres_atm_no)
+
+            # Get OPs for each metal independantly.
+            # Save to dict with atom id and atom type.
+            op_res = {}
+            for metal in pres_atm_no:
+                op_set = atools.get_order_values(
+                    mol=self.cage,
+                    metal=metal,
+                    per_site=True
+                )
+                op_res[metal] = op_set
+                print(metal, op_set)
+
+            print(op_res)
+
+            # Save to output files.
+            with open(f'{self.op_file}.json', 'w') as f:
+                json.dump(op_res, f)
+
+        # Get data.
+        with open(f'{self.op_file}.json', 'r') as f:
+            op_data = json.load(f)
+
+        return op_data
+
+    def analyze_cage_porosity(self):
+        """
+        Analyse cage porosity with pywindow.
+
+        """
+
+        # Check if output file exists.
+        if not exists(f'{self.pw_file}.json'):
+            print(f'....analyzing porosity of {self.name}')
+            # Load cage into pywindow.
+            self.cage.write('temp.xyz')
+            pw_cage = pw.MolecularSystem.load_file(
+                'temp.xyz'
+            )
+            os.system('rm temp.xyz')
+
+            # Run analysis.
+            pw_cage.full_analysis()
+            print(pw_cage.properties)
+
+            # Save files.
+            pw_cage.dump_properties_json(f'{self.pw_file}.json')
+            pw_cage.dump_molecule(
+                f'{self.pw_file}.pdb',
+                include_coms=True
+            )
+
+        # Get data.
+        with open(f'{self.pw_file}.json', 'r') as f:
+            pw_data = json.load(f)
+
+        return pw_data
 
     def __str__(self):
         return (

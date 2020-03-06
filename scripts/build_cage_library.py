@@ -62,8 +62,9 @@ def build_cages(
             C.build()
             default_free_e = C.free_electron_options[0]
             print(C.free_electron_options, default_free_e)
-            input()
             C.optimize(free_e=default_free_e)
+            C.analyze_cage_geometry()
+            C.analyze_cage_porosity()
             sys.exit()
         sys.exit()
 
