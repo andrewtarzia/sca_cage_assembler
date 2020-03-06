@@ -13,23 +13,20 @@ Date Created: 27 Jan 2020
 import sys
 import json
 from os.path import exists, join
-import glob
-from rdkit.Chem import AllChem as rdkit
+
 import stk
 
-import atools
-import Building
+import molecule_building
 
 
 def read_complex_lib(lib_file):
     """
     Read complex lib file.
 
-    Returns dictionary of format:
-
-    ligs[name] = (smiles, flag)
+    Returns dictionary.
 
     """
+
     with open(lib_file, 'r') as f:
         compls = json.load(f)
 
@@ -48,19 +45,19 @@ def build_complexes(complexes, ligand_directory):
         print(f'doing {name}')
 
         # Build metal atom.
-        metal = Building.build_metal(
+        metal = molecule_building.build_metal(
             metal_smiles=comp['metal_smiles'],
             no_fgs=6
         )
         # Define binding atom and binding FG.
-        binding_atom = Building.build_atom(
+        binding_atom = molecule_building.build_atom(
             'N',
             FG='metal_bound_N'
         )
         binding_fgs = ['metal_bound_N']
         # Build initial metal centre for all complexes.
         # Always a six coordinate, octahedral complex with N atoms.
-        metal_centre = Building.build_metal_centre(
+        metal_centre = molecule_building.build_metal_centre(
             metal=metal,
             topology=stk.metal_centre.Octahedral(),
             binding_atom=binding_atom,
@@ -72,24 +69,37 @@ def build_complexes(complexes, ligand_directory):
             join(ligand_directory, comp['coord_species']),
             ['CNC_metal', 'CNBr_metal']
         )
-        print(coord_species.func_groups)
+        coord_species = molecule_building.order_FGs(
+            mol=coord_species,
+            order=['CNBr_metal', 'CNC_metal']
+        )
 
-        topology = Building.available_topologies(comp['topology'])
+        topology = molecule_building.available_topologies(
+            comp['topology']
+        )
 
-        complex = Building.build_SCA_complex(
+        complex = molecule_building.build_SCA_complex(
             metal_centre=metal_centre,
-            name=name,
             complex_top=topology,
             bidentate_ligand=coord_species
         )
-        print(complex)
+        complex.write(f'{name}.mol')
+        complex.write(f'{name}.mol')
 
-        complex = Building.optimize_SCA_complex(
+        # Not interested in unpaired electron checks at this stage.
+        # So just select first one.
+        comp['unpaired_e'] = int(
+            comp['unpaired_e'].strip(')()').split(',')[0]
+        )
+
+        # Define metal_FFs to use in optimisation.
+        custom_metal_FFs = molecule_building.metal_FFs(CN=6)
+        complex = molecule_building.optimize_SCA_complex(
             complex=complex,
             name=name,
-            dict=comp
+            dict=comp,
+            metal_FFs=custom_metal_FFs
         )
-        sys.exit()
 
         complex.write(output)
         complex.dump(jsonoutput)

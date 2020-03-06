@@ -3,7 +3,7 @@
 # Distributed under the terms of the MIT License.
 
 """
-Modules/functions for building structures.
+Modules/functions for building molecules.
 
 Author: Andrew Tarzia
 
@@ -31,39 +31,56 @@ def available_topologies(string):
         raise KeyError(f'{string} not in {topologies.keys()}')
 
 
-def experimentally_tested(mol_name):
+def order_FGs(mol, order=None):
     """
-    A dataset of experimentally built cages.
-
-    THIS NEEDS DEFINITION BASED ON CAGE NOMENCLATURE.
-
-    Here a combo is defined as by all sub-component self-assembly
-    products:
-    i.e. one cage would be formed by a mixture of:
-        (SCA, quadX) or (SCA, triX)
+    Order ligand FGs based on given order.
 
     """
 
-    raise NotImplementedError()
+    if order is None:
+        print('no changes made')
+        return mol
 
-    tested_ligand_combos = []
+    def sort_(FG):
+        FG_name = FG.fg_type.name
+        return order.index(FG_name)
 
-    return tested_ligand_combos
+    orig_fgs = list(mol.func_groups)
+    # Reorder those in `order`, the rest remain in their position.
+    new_fgs = sorted(orig_fgs, key=sort_)
+    mol.func_groups = new_fgs
+
+    return mol
 
 
-def metal_FFs():
+def metal_FFs(CN):
     """
     Define metal FF names for UFF4MOF.
 
     Key = Atomic number
     Value = UFF4MOF type
+    CN = coordination number of metal.
 
     """
+
+    # Default settings.
     dicts = {
-        30: 'Zn4+2', 28: 'Ni4+2',
-        78: 'Pt4+2', 46: 'Pd4+2',
-        45: 'Rh6+3', 42: 'Mo4f2'
+        26: 'Fe4+2',
+        27: 'Co4+2',
+        28: 'Ni4+2',  # No alternative available.
+        30: 'Zn4+2',  # No alternative available for 90 degrees.
+        42: 'Mo4f2',
+        45: 'Rh6+3',  # No alternative available.
+        46: 'Pd4+2',
+        48: 'Cd4f2',  # No alternative available.
+        78: 'Pt4+2',
     }
+
+    if CN == 4:
+        pass
+    elif CN == 6:
+        dicts[26] = 'Fe6+2'
+        dicts[27] = 'Co6+2'
 
     return dicts
 
@@ -179,7 +196,7 @@ def build_metal_centre(metal, topology, binding_atom, return_FG):
     return complex
 
 
-def optimize_SCA_complex(complex, name, dict):
+def optimize_SCA_complex(complex, name, dict, metal_FFs):
     """
     Optimize a sub-component self assmebly complex.
 
@@ -188,14 +205,13 @@ def optimize_SCA_complex(complex, name, dict):
     print(f'doing UFF4MOF optimisation for {name}')
     gulp_opt = stk.GulpMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
-        metal_FF=metal_FFs(),
+        metal_FF=metal_FFs,
         output_dir=f'{name}_uff1'
     )
     gulp_opt.assign_FF(complex)
     gulp_opt.optimize(mol=complex)
     complex.write(f'{name}_uff1.mol')
     complex.dump(f'{name}_uff1.json')
-    return complex
 
     print(f'doing xTB optimisation for {name}')
     xtb_opt = stk.XTB(
@@ -220,8 +236,7 @@ def optimize_SCA_complex(complex, name, dict):
 def build_SCA_complex(
     metal_centre,
     bidentate_ligand,
-    complex_top,
-    name,
+    complex_top
 ):
     """
     Build an stk metal complex post SCA coordination.
@@ -236,9 +251,6 @@ def build_SCA_complex(
 
     complex_top : :class:`stk.Topology`
         Topology of metal complex to build.
-
-    name : :class:`str`
-        Name of structure.
 
     Returns
     -------
@@ -258,7 +270,5 @@ def build_SCA_complex(
             bidentate_ligand: complex_top.vertices[1:]
         }
     )
-    complex.write(f'{name}.mol')
-    complex.write(f'{name}.mol')
 
     return complex
