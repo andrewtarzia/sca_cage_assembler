@@ -12,10 +12,7 @@ Date Created: 27 Jan 2020
 
 import sys
 import json
-from os.path import exists, join
-import glob
-from rdkit.Chem import AllChem as rdkit
-import stk
+import numpy as np
 
 import cage_building
 
@@ -34,6 +31,43 @@ def read_lib(lib_file):
     return lib
 
 
+def analyse_cages(het_cages):
+
+    for het_cage in het_cages:
+        het_cage.load_properties()
+        built_prop = het_cage.built_cage_properties
+        print(het_cage.built_cage_properties)
+        # Compare average pore volume of each of the three topologies.
+        three_top = {'m4l4spacer': [], 'm8l6face': [], 'm6l2l3': []}
+        for C in built_prop:
+            TOPO = C.name.split('_')[3]
+            prop = built_prop[C]
+            print(TOPO)
+            three_top[TOPO].append(prop['pw_prop']['pore_volume_opt'])
+            print(three_top)
+        avg_pore_vol = {
+            i: np.mean(three_top[i]) for i in three_top
+        }
+        print(avg_pore_vol)
+
+        # Ensure at least one prismatic cage is stable.
+        prism_oct_op = {}
+        for C in built_prop:
+            TOPO = C.name.split('_')[3]
+            if TOPO != 'm6l2l3':
+                continue
+            prop = built_prop[C]
+            # Get minimium octahedral OP of the metal that is in the
+            # complex building block.
+            print(C.__dict__)
+            print(het_cage.__dict__)
+            input('how to get the metal that is in the complex only?')
+            prism_oct_op[C.name] = prop['op_prop']
+            sys.exit()
+
+        sys.exit()
+
+
 def build_cages(
     complexes,
     prisms,
@@ -41,6 +75,7 @@ def build_cages(
     complex_directory
 ):
 
+    cages = []
     for name in prisms:
         pris = prisms[name]
         compl_names = pris['corners'].strip(')(').split(', ')
@@ -48,6 +83,7 @@ def build_cages(
         comps = {i: complexes[i] for i in compl_names}
         print(pris)
         print(comps)
+
         het_cage = cage_building.HetPrism(
             name=name,
             prism_dict=pris,
@@ -55,8 +91,7 @@ def build_cages(
             ligand_dir=ligand_directory,
             complex_dir=complex_directory
         )
-        # print(het_cage)
-        print('tob', het_cage.cages_to_build)
+        print('tob,..............', het_cage.cages_to_build)
         for C in het_cage.cages_to_build:
             print(C)
             C.build()
@@ -65,8 +100,16 @@ def build_cages(
             C.optimize(free_e=default_free_e)
             C.analyze_cage_geometry()
             C.analyze_cage_porosity()
-            sys.exit()
-        sys.exit()
+            het_cage.built_cage_properties[C.name] = {
+                'pw_prop': C.pw_data,
+                'op_prop': C.op_data,
+            }
+            # Dump to JSON.
+            het_cage.dump_properties()
+
+        cages.append(het_cage)
+
+    return cages
 
 
 def main():
@@ -104,7 +147,14 @@ def main():
     compls = read_lib(compl_lib_file)
 
     # Build and optimise all organic molecules in lib.
-    build_cages(compls, prisms, ligand_directory, compl_directory)
+    cages = build_cages(
+        compls,
+        prisms,
+        ligand_directory,
+        compl_directory
+    )
+
+    analyse_cages(cages)
 
     sys.exit()
 
