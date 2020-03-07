@@ -88,6 +88,7 @@ class Cage:
 
         # Skip if _opt.json exists.
         if exists(f'{self.opt_file}.json'):
+            self.cage.update_from_file(f'{self.opt_file}.mol')
             return
         print(f'....optimizing {self.name}')
 
@@ -165,11 +166,10 @@ class Cage:
             print(f'....analyzing geometry of {self.name}')
 
             # Get atomic numbers of all present metals.
-            pres_atm_no = [
+            pres_atm_no = list(set([
                 i.atomic_number for i in self.cage.atoms
                 if i.atomic_number in metal_FFs(CN=4).keys()
-            ]
-            print(pres_atm_no)
+            ]))
 
             # Get OPs for each metal independantly.
             # Save to dict with atom id and atom type.
@@ -181,9 +181,6 @@ class Cage:
                     per_site=True
                 )
                 op_res[metal] = op_set
-                print(metal, op_set)
-
-            print(op_res)
 
             # Save to output files.
             with open(f'{self.op_file}.json', 'w') as f:
@@ -191,9 +188,7 @@ class Cage:
 
         # Get data.
         with open(f'{self.op_file}.json', 'r') as f:
-            op_data = json.load(f)
-
-        return op_data
+            self.op_data = json.load(f)
 
     def analyze_cage_porosity(self):
         """
@@ -209,24 +204,23 @@ class Cage:
             pw_cage = pw.MolecularSystem.load_file(
                 'temp.xyz'
             )
+            pw_cage_mol = pw_cage.system_to_molecule()
             os.system('rm temp.xyz')
 
-            # Run analysis.
-            pw_cage.full_analysis()
-            print(pw_cage.properties)
+            # Calculate pore size.
+            pw_cage_mol.calculate_pore_diameter_opt()
+            pw_cage_mol.calculate_pore_volume_opt()
 
             # Save files.
-            pw_cage.dump_properties_json(f'{self.pw_file}.json')
-            pw_cage.dump_molecule(
+            pw_cage_mol.dump_properties_json(f'{self.pw_file}.json')
+            pw_cage_mol.dump_molecule(
                 f'{self.pw_file}.pdb',
                 include_coms=True
             )
 
         # Get data.
         with open(f'{self.pw_file}.json', 'r') as f:
-            pw_data = json.load(f)
-
-        return pw_data
+            self.pw_data = json.load(f)
 
     def __str__(self):
         return (
@@ -256,12 +250,30 @@ class HetPrism:
         complex_dir
     ):
         self.name = name
+        self.properties_file = f'{self.name}_HP.json'
         self.prism_dict = prism_dict
         self.complex_dicts = complex_dicts
         self.cages_to_build = self.define_cages_to_build(
             ligand_dir,
             complex_dir
         )
+        self.built_cage_properties = {}
+
+    def load_properties(self):
+        """
+        Load class from JSON file.
+
+        """
+        with open(self.properties_file, 'r') as f:
+            self.built_cage_properties = json.load(f)
+
+    def dump_properties(self):
+        """
+        Dump class to JSON file.
+
+        """
+        with open(self.properties_file, 'w') as f:
+            json.dump(self.built_cage_properties, f)
 
     def __str__(self):
         return (
@@ -342,7 +354,6 @@ class HetPrism:
             'unpaired_e'
         ].strip(')()').split(',')
         print(D_charge, D_free_e, L_charge, L_free_e)
-        input()
 
         # Get all linkers.
         tet_linker, tet_prop = self.load_ligand(
@@ -370,7 +381,7 @@ class HetPrism:
                 f"{self.prism_dict['tetratopic']}_"
                 f"{tet_topo_name}_"
                 f"d{rat[0]}l{rat[1]}_"
-                f"`symm`"
+                f"SYMM"
             )
             new_bbs = [D_complex, L_complex, tet_linker]
             new_bb_vertices = {
@@ -405,8 +416,8 @@ class HetPrism:
                 free_electron_options=new_free_electron_options
             )
             cages_to_build.append(new_cage)
-            print(new_cage)
-            return cages_to_build
+            print('NOT BUILDING ALL RATIOS CURRENTLY!!!!!!')
+            break
 
         # Tritopic homoleptic cages of all symmetries.
         tri_topo_name, tri_topo = available_topologies(
@@ -422,7 +433,7 @@ class HetPrism:
                 f"{self.prism_dict['tritopic']}_"
                 f"{tri_topo_name}_"
                 f"d{rat[0]}l{rat[1]}_"
-                f"`symm`"
+                f"SYMM"
             )
             new_bbs = [D_complex, L_complex, tri_linker]
             new_bb_vertices = {
@@ -431,8 +442,8 @@ class HetPrism:
                 tri_linker: tet_topo.vertices[tri_n_metals:]
             }
             # Merge linker and complex charges.
-            complex_charge = rat[0]*D_charge + rat[1]*L_charge
-            new_charge = tri_prop[0]*4 + complex_charge
+            complex_charge = rat[0]*int(D_charge)+rat[1]*int(L_charge)
+            new_charge = int(tri_prop[0])*4 + complex_charge
 
             print(tri_prop[1])
             lig_free_e = [int(i)*4 for i in tri_prop[1]]
@@ -457,7 +468,8 @@ class HetPrism:
                 free_electron_options=new_free_electron_options
             )
             cages_to_build.append(new_cage)
-            print(new_cage)
+            print('NOT BUILDING ALL RATIOS CURRENTLY!!!!!!')
+            break
 
         # Prisms of all symmetries.
         pri_topo_name, pri_topo = available_topologies(
@@ -473,7 +485,7 @@ class HetPrism:
                 f"{self.prism_dict['tetratopic']}_"
                 f"{pri_topo_name}_"
                 f"d{rat[0]}l{rat[1]}_"
-                f"`symm`"
+                f"SYMM"
             )
             new_bbs = [D_complex, L_complex, tri_linker, tet_linker]
             new_bb_vertices = {
@@ -485,8 +497,9 @@ class HetPrism:
                 tet_linker: tet_topo.vertices[pri_n_metals+2:]
             }
             # Merge linker and complex charges.
-            complex_charge = rat[0]*D_charge + rat[1]*L_charge
-            new_charge = tri_prop[0]*2 + tet_prop[0]*3 + complex_charge
+            complex_charge = rat[0]*int(D_charge)+rat[1]*int(L_charge)
+            new_charge = int(tri_prop[0])*2
+            new_charge += int(tet_prop[0])*3 + complex_charge
 
             print(tri_prop[1], tet_prop[1])
             tri_free_e = [int(i)*2 for i in tri_prop[1]]
@@ -512,6 +525,7 @@ class HetPrism:
                 free_electron_options=new_free_electron_options
             )
             cages_to_build.append(new_cage)
-            print(new_cage)
+            print('NOT BUILDING ALL RATIOS CURRENTLY!!!!!!')
+            break
 
         return cages_to_build
