@@ -28,10 +28,11 @@ def plot_distances(data, atomic_number):
 
     distance_list = list(data.DIST1)+list(data.DIST2)
     distance_list += list(data.DIST3)+list(data.DIST4)
+    distance_list += list(data.DIST5)+list(data.DIST6)
 
     fig, ax = atools.histogram_plot_N(
         Y=distance_list,
-        X_range=(1.8, 2.4),
+        X_range=(1.5, 3.0),
         width=0.025,
         alpha=1.0,
         color=atools.colors_i_like()[2],
@@ -54,7 +55,10 @@ def plot_angles(data, atomic_number):
 
     angle_list = list(data.ANG1)+list(data.ANG2)
     angle_list += list(data.ANG3)+list(data.ANG4)
-    angle_list += list(data.V1)+list(data.V2)
+    angle_list += list(data.ANG5)+list(data.ANG6)
+    angle_list += list(data.ANG7)+list(data.ANG8)
+    angle_list += list(data.ANG9)+list(data.ANG10)
+    angle_list += list(data.ANG11)+list(data.ANG12)
 
     angle_list1 = [i for i in angle_list if i < 120]
     angle_list2 = [i for i in angle_list if i > 120]
@@ -111,14 +115,17 @@ def calculate_orderparams(coord_set):
     return OPs
 
 
-def plot_orderparams(struct_dir, atomic_number):
+def plot_orderparams(struct_dir, atomic_number, CN):
 
     # Just in case.
-    clean_dir = struct_dir.replace('/', '')
-    file_list = sorted(glob.glob(f'{clean_dir}/*.cif'))
+    if struct_dir[-1] == '/':
+        file_list = sorted(glob.glob(f'{struct_dir}*.cif'))
+    else:
+        file_list = sorted(glob.glob(f'{struct_dir}/*.cif'))
     # If calculations have been done, then do not repeat.
-    if exists('op_results.json'):
-        with open('op_results.json', 'r') as f:
+    op_res_file = f'op_results{atomic_number}.json'
+    if exists(op_res_file):
+        with open(op_res_file, 'r') as f:
             results = json.load(f)
     else:
         results = {
@@ -131,10 +138,15 @@ def plot_orderparams(struct_dir, atomic_number):
         }
         # Get neighbours and order parameters directly from CIF with
         # pymatgen.
-        exceptions = {}
+        exceptions = [
+            'ACOMAG_extracted.cif'
+        ]
         for file in file_list:
             print(file)
-            clean_file = file.replace(struct_dir+'/', '')
+            if struct_dir[-1] == '/':
+                clean_file = file.replace(struct_dir, '')
+            else:
+                clean_file = file.replace(struct_dir+'/', '')
             if clean_file in exceptions:
                 continue
             # Set high occupancy_tolerance to allow reading.
@@ -149,39 +161,57 @@ def plot_orderparams(struct_dir, atomic_number):
             # Make supercell.
             pmg_struct.make_supercell([2, 2, 2])
             print(len(pmg_struct.species))
-            pd_site_ids = atools.get_element_sites(
+            metal_site_ids = atools.get_element_sites(
                 pmg_struct,
                 atomic_no=atomic_number
             )
-
             # Define neighbouring N atoms.
             v = CrystalNN()
             centre_mols = {}
-            for pdsite in pd_site_ids:
+            for msite in metal_site_ids:
                 crossing = False
-                nninfo = v.get_nn_info(pmg_struct, n=pdsite)
+                non_nitrogrens = False
+                nninfo = v.get_nn_info(pmg_struct, n=msite)
                 Nsites = []
                 for i in nninfo:
-                    # Remove pd sites that cross boundaries.
+                    # Remove metal sites that cross boundaries.
                     if i['image'] != (0, 0, 0):
                         crossing = True
-                    Nsites.append(i['site_index'])
-                if not crossing:
-                    centre_mol = Molecule(
-                        species=['Pd', 'N', 'N', 'N', 'N'],
-                        coords=[
-                            pmg_struct[pdsite].coords,
-                            pmg_struct[Nsites[0]].coords,
-                            pmg_struct[Nsites[1]].coords,
-                            pmg_struct[Nsites[2]].coords,
-                            pmg_struct[Nsites[3]].coords
-                        ]
+                    isite = pmg_struct.species[i['site_index']]
+                    isite_symbol = isite.symbol
+                    if isite_symbol != 'N':
+                        non_nitrogrens = True
+                        break
+                    else:
+                        Nsites.append(i['site_index'])
+                # Skip msite if any elements != N or N_sites != CN.
+                if non_nitrogrens:
+                    print(
+                        f'for {msite}, an element is non-Nitrogen '
+                        f'{isite} - {isite_symbol}'
                     )
-                    centre_mols[pdsite] = centre_mol
+                    continue
+                if len(Nsites) != CN:
+                    print(
+                        f'for {msite}, no. Nsites != {CN} - skipping'
+                        f'\n{Nsites} :: '
+                        f'{[pmg_struct[i] for i in Nsites]}'
+                    )
+                    continue
+                if not crossing:
+                    coords = [pmg_struct[msite].coords]
+                    for site in Nsites:
+                        coords.append(pmg_struct[site].coords)
+                    m_symbol = pmg_struct.species[msite]
+                    centre_mol = Molecule(
+                        species=[m_symbol]+['N']*CN,
+                        coords=coords
+                    )
+                    centre_mols[msite] = centre_mol
 
             # Calculate order parameters.
-            for pdsite in centre_mols:
-                cmol = centre_mols[pdsite]
+            for msite in centre_mols:
+                cmol = centre_mols[msite]
                 order_values = atools.calculate_sites_order_values(
                     molecule=cmol,
                     site_idxs=[0],
@@ -194,13 +224,13 @@ def plot_orderparams(struct_dir, atomic_number):
                     print(file)
                     print(OPs)
                 results['file'].append(file)
-                results['pdsite'].append(pdsite)
+                results['pdsite'].append(msite)
                 results['sqpl'].append(OPs['sq_plan'])
                 results['oct'].append(OPs['oct'])
                 results['q4'].append(OPs['q4'])
                 results['q6'].append(OPs['q6'])
 
-        with open('op_results.json', 'w') as f:
+        with open(op_res_file, 'w') as f:
             json.dump(results, f)
 
     # for i, c in enumerate(results['coords']):
@@ -294,23 +324,25 @@ def plot_orderparams(struct_dir, atomic_number):
 
 
 def main():
-    if (not len(sys.argv) == 4):
+    if (not len(sys.argv) == 5):
         print("""
     Usage: centre_survey.py file struct_dir atomic_number
         file (str) - csv file to analyze
         struct_dir (str) - dir with struct files to analyze
         atomic_number (str) - atomic number of metal to analyse
+        CN (str) - integer number of nitrogen neighbours of metal
         """)
         sys.exit()
     else:
         file = sys.argv[1]
         struct_dir = sys.argv[2]
-        atomic_number = sys.argv[3]
+        atomic_number = int(sys.argv[3])
+        CN = int(sys.argv[4])
 
     data = pd.read_csv(file)
     print(data.columns)
 
-    plot_orderparams(struct_dir, atomic_number)
+    plot_orderparams(struct_dir, atomic_number, CN)
     plot_distances(data, atomic_number)
     plot_angles(data, atomic_number)
 
