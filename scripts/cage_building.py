@@ -13,6 +13,7 @@ Date Created: 03 Mar 2020
 
 from itertools import product
 from os.path import exists, join
+import matplotlib.pyplot as plt
 import json
 import pywindow as pw
 import os
@@ -535,3 +536,57 @@ class HetPrism:
             break
 
         return cages_to_build
+
+    def plot_min_OPs_avg_PV(self, X, Y, T):
+        topo_c_m = {
+            'm4l4spacer': ('#E074AF', 'o', r'M$_4$L$_4$'),
+            'm8l6face': ('#AFE074', 'X', r'M$_8$L$_6$'),
+            'm6l2l3': ('#74AFE0', 'P', r'M$_6$L$^a_2$L$^b_3$')
+        }
+
+        Cs = [
+            topo_c_m[C.topology_string][0]
+            for C in self.cages_to_build
+        ]
+        print(len(X), len(Y), len(Cs))
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+        for x, y, t in zip(X, Y, T):
+            ax.scatter(
+                x,
+                y,
+                c=topo_c_m[t][0],
+                edgecolors='k',
+                marker=topo_c_m[t][1],
+                alpha=1.0,
+                s=80
+            )
+        # Set number of ticks for x-axis
+        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.set_xlabel(r'pore volume [$\mathrm{\AA}^3$]', fontsize=16)
+        ax.set_ylabel(r'min. $q_{\mathrm{oct}}$', fontsize=16)
+        ax.set_xlim(0, 2000)
+        ax.set_ylim(0, 1)
+
+        # Implement legend.
+        for i in topo_c_m:
+            ax.scatter(
+                -1000,
+                -1000,
+                c=topo_c_m[i][0],
+                edgecolors='k',
+                marker=topo_c_m[i][1],
+                alpha=1.0,
+                s=80,
+                label=topo_c_m[i][2]
+            )
+
+        ax.legend(fontsize=16)
+
+        fig.tight_layout()
+        fig.savefig(
+            f'{self.name}_minOPsVSporevol.pdf',
+            dpi=720,
+            bbox_inches='tight'
+        )
+        plt.close()

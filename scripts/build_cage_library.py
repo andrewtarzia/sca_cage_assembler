@@ -35,36 +35,63 @@ def analyse_cages(het_cages):
 
     for het_cage in het_cages:
         het_cage.load_properties()
-        built_prop = het_cage.built_cage_properties
-        print(het_cage.built_cage_properties)
         # Compare average pore volume of each of the three topologies.
         three_top = {'m4l4spacer': [], 'm8l6face': [], 'm6l2l3': []}
-        for C in built_prop:
-            TOPO = C.name.split('_')[3]
-            prop = built_prop[C]
-            print(TOPO)
-            three_top[TOPO].append(prop['pw_prop']['pore_volume_opt'])
-            print(three_top)
+        built_prop = het_cage.built_cage_properties
+        all_pore_volumes = []
+        all_min_OPs = []
+        all_topo_strs = []
+        for C in het_cage.cages_to_build:
+            C_data = built_prop[C.name]
+            TOPO = C.topology_string
+            three_top[TOPO].append(
+                C_data['pw_prop']['pore_volume_opt']
+            )
+            all_pore_volumes.append(
+                C_data['pw_prop']['pore_volume_opt']
+            )
+            all_topo_strs.append(TOPO)
         avg_pore_vol = {
             i: np.mean(three_top[i]) for i in three_top
         }
-        print(avg_pore_vol)
+        print('avg pore volumes:', avg_pore_vol)
 
         # Ensure at least one prismatic cage is stable.
         prism_oct_op = {}
-        for C in built_prop:
-            TOPO = C.name.split('_')[3]
-            if TOPO != 'm6l2l3':
-                continue
-            prop = built_prop[C]
+        for C in het_cage.cages_to_build:
+            C_data = built_prop[C.name]
+            TOPO = C.topology_string
             # Get minimium octahedral OP of the metal that is in the
             # complex building block.
-            print(C.__dict__)
-            print(het_cage.__dict__)
-            input('how to get the metal that is in the complex only?')
-            prism_oct_op[C.name] = prop['op_prop']
-            sys.exit()
+            print(het_cage.complex_dicts)
+            atom_no_of_interest = list(set([
+                int(het_cage.complex_dicts[i]['metal_atom_no'])
+                for i in het_cage.complex_dicts
+            ]))
+            print(atom_no_of_interest)
+            print('rrrr',)
+            C_OP = [
+                C_data['op_prop'][str(i)]
+                for i in atom_no_of_interest
+            ]
+            print(C_OP)
+            target_OPs = [
+                i[j]['oct']
+                for i in C_OP
+                for j in i
+            ]
+            print('t', target_OPs)
+            all_min_OPs.append(min(target_OPs))
+            if TOPO == 'm6l2l3':
+                prism_oct_op[C.name] = min(target_OPs)
+        print('minimum prism OPs:', prism_oct_op)
 
+        # Plot all order parameter minimums VS average pore volumes.
+        het_cage.plot_min_OPs_avg_PV(
+            X=all_pore_volumes,
+            Y=all_min_OPs,
+            T=all_topo_strs
+        )
         sys.exit()
 
 
