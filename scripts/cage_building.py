@@ -85,7 +85,7 @@ class Cage:
         cage.dump(f'{self.unopt_file}.json')
         self.cage = cage
 
-    def optimize(self, free_e):
+    def optimize(self, free_e, step_size, distance_cut):
         custom_metal_FFs = metal_FFs(CN=6)
 
         # Skip if _opt.json exists.
@@ -99,8 +99,8 @@ class Cage:
             self.cage = atools.MOC_collapse(
                 self.cage,
                 self.name,
-                step_size=0.05,
-                distance_cut=2.0
+                step_size=step_size,
+                distance_cut=distance_cut
             )
             self.cage.write(f'{self.crush_file}.mol')
         else:

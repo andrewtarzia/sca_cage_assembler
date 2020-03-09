@@ -97,7 +97,19 @@ def build_cages(
             C.build()
             default_free_e = C.free_electron_options[0]
             print(C.free_electron_options, default_free_e)
-            C.optimize(free_e=default_free_e)
+            if 'm6l2l3' in C.name:
+                # Use a slightly different collapser threshold for
+                # prism.
+                step_size = 0.05
+                distance_cut = 3.0
+            else:
+                step_size = 0.05
+                distance_cut = 2.0
+            C.optimize(
+                free_e=default_free_e,
+                step_size=step_size,
+                distance_cut=distance_cut
+            )
             C.analyze_cage_geometry()
             C.analyze_cage_porosity()
             het_cage.built_cage_properties[C.name] = {
