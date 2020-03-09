@@ -52,6 +52,7 @@ class Cage:
         name,
         bbs,
         topology,
+        topology_string,
         bb_vertices,
         charge,
         free_electron_options
@@ -60,6 +61,7 @@ class Cage:
         self.name = name
         self.bbs = bbs
         self.topology = topology
+        self.topology_string = topology_string
         self.bb_vertices = bb_vertices
         self.unopt_file = f'{self.name}_unopt'
         self.crush_file = f'{self.name}_cru'
@@ -190,7 +192,7 @@ class Cage:
         with open(f'{self.op_file}.json', 'r') as f:
             self.op_data = json.load(f)
 
-    def analyze_cage_porosity(self):
+    def analyze_cage_porosity(self, dump_molecule=False):
         """
         Analyse cage porosity with pywindow.
 
@@ -213,10 +215,11 @@ class Cage:
 
             # Save files.
             pw_cage_mol.dump_properties_json(f'{self.pw_file}.json')
-            pw_cage_mol.dump_molecule(
-                f'{self.pw_file}.pdb',
-                include_coms=True
-            )
+            if dump_molecule:
+                pw_cage_mol.dump_molecule(
+                    f'{self.pw_file}.pdb',
+                    include_coms=True
+                )
 
         # Get data.
         with open(f'{self.pw_file}.json', 'r') as f:
@@ -273,7 +276,7 @@ class HetPrism:
 
         """
         with open(self.properties_file, 'w') as f:
-            json.dump(self.built_cage_properties, f)
+            json.dump(self.built_cage_properties, f, indent=4)
 
     def __str__(self):
         return (
@@ -411,6 +414,7 @@ class HetPrism:
                 name=new_name,
                 bbs=new_bbs,
                 topology=tet_topo,
+                topology_string=tet_topo_name,
                 bb_vertices=new_bb_vertices,
                 charge=new_charge,
                 free_electron_options=new_free_electron_options
@@ -437,9 +441,9 @@ class HetPrism:
             )
             new_bbs = [D_complex, L_complex, tri_linker]
             new_bb_vertices = {
-                D_complex: tet_topo.vertices[:rat[0]],
-                L_complex: tet_topo.vertices[rat[0]:rat[0]+rat[1]],
-                tri_linker: tet_topo.vertices[tri_n_metals:]
+                D_complex: tri_topo.vertices[:rat[0]],
+                L_complex: tri_topo.vertices[rat[0]:rat[0]+rat[1]],
+                tri_linker: tri_topo.vertices[tri_n_metals:]
             }
             # Merge linker and complex charges.
             complex_charge = rat[0]*int(D_charge)+rat[1]*int(L_charge)
@@ -463,6 +467,7 @@ class HetPrism:
                 name=new_name,
                 bbs=new_bbs,
                 topology=tri_topo,
+                topology_string=tri_topo_name,
                 bb_vertices=new_bb_vertices,
                 charge=new_charge,
                 free_electron_options=new_free_electron_options
@@ -489,12 +494,12 @@ class HetPrism:
             )
             new_bbs = [D_complex, L_complex, tri_linker, tet_linker]
             new_bb_vertices = {
-                D_complex: tet_topo.vertices[:rat[0]],
-                L_complex: tet_topo.vertices[rat[0]:rat[0]+rat[1]],
-                tri_linker: tet_topo.vertices[
+                D_complex: pri_topo.vertices[:rat[0]],
+                L_complex: pri_topo.vertices[rat[0]:rat[0]+rat[1]],
+                tri_linker: pri_topo.vertices[
                     pri_n_metals:pri_n_metals+2
                 ],
-                tet_linker: tet_topo.vertices[pri_n_metals+2:]
+                tet_linker: pri_topo.vertices[pri_n_metals+2:]
             }
             # Merge linker and complex charges.
             complex_charge = rat[0]*int(D_charge)+rat[1]*int(L_charge)
@@ -520,6 +525,7 @@ class HetPrism:
                 name=new_name,
                 bbs=new_bbs,
                 topology=pri_topo,
+                topology_string=pri_topo_name,
                 bb_vertices=new_bb_vertices,
                 charge=new_charge,
                 free_electron_options=new_free_electron_options
