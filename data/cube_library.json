@@ -1,0 +1,9 @@
+{
+    "cl1_tri_1_quad4_3": {
+        "corners": "(cl1_zn_oct_del, cl1_zn_oct_lam)",
+        "corner_name": "cl1",
+        "tetratopic": "quad4_3",
+        "tritopic": "tri_1",
+        "experimental": "True"
+    }
+}

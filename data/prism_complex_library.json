@@ -1,0 +1,130 @@
+{
+    "cl1_zn_oct_lam": {
+        "metal_smiles": "[Zn+2]",
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)",
+        "metal_atom_no": "30"
+    },
+    "cl1_zn_oct_del": {
+        "metal_smiles": "[Zn+2]",
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)",
+        "metal_atom_no": "30"
+    },
+    "cl2_co_oct_lam": {
+        "metal_smiles": "[Co+2]",
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(1, 3)",
+        "metal_atom_no": "27"
+    },
+    "cl2_co_oct_del": {
+        "metal_smiles": "[Co+2]",
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(1, 3)",
+        "metal_atom_no": "27"
+    },
+    "cl3_fe_oct_lam": {
+        "metal_smiles": "[Fe+2]",
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0, 4)",
+        "metal_atom_no": "26"
+    },
+    "cl3_fe_oct_del": {
+        "metal_smiles": "[Fe+2]",
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0, 4)",
+        "metal_atom_no": "26"
+    },
+    "cl4_cd_oct_lam": {
+        "metal_smiles": "[Cd+2]",
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)",
+        "metal_atom_no": "48"
+    },
+    "cl4_cd_oct_del": {
+        "metal_smiles": "[Cd+2]",
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_1_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)",
+        "metal_atom_no": "48"
+    },
+    "cl5_zn_oct_lam": {
+        "metal_smiles": "[Zn+2]",
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)",
+        "metal_atom_no": "30"
+    },
+    "cl5_zn_oct_del": {
+        "metal_smiles": "[Zn+2]",
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)",
+        "metal_atom_no": "30"
+    },
+    "cl6_co_oct_lam": {
+        "metal_smiles": "[Co+2]",
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(1, 3)",
+        "metal_atom_no": "27"
+    },
+    "cl6_co_oct_del": {
+        "metal_smiles": "[Co+2]",
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(1, 3)",
+        "metal_atom_no": "27"
+    },
+    "cl7_fe_oct_lam": {
+        "metal_smiles": "[Fe+2]",
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0, 4)",
+        "metal_atom_no": "26"
+    },
+    "cl7_fe_oct_del": {
+        "metal_smiles": "[Fe+2]",
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0, 4)",
+        "metal_atom_no": "26"
+    },
+    "cl8_cd_oct_lam": {
+        "metal_smiles": "[Cd+2]",
+        "topology": "oct_lambda",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)",
+        "metal_atom_no": "48"
+    },
+    "cl8_cd_oct_del": {
+        "metal_smiles": "[Cd+2]",
+        "topology": "oct_delta",
+        "coord_species": "SCA_cap_2_opt.mol",
+        "total_charge": "2",
+        "unpaired_e": "(0)",
+        "metal_atom_no": "48"
+    }
+}
