@@ -30,13 +30,10 @@ def read_lig_lib(lib_file):
     ligs[name] = (smiles, flag)
 
     """
-    ligs = {}
-    with open(lib_file, 'r') as f:
-        lines = f.readlines()
 
-    for line in lines[1:]:
-        row = line.rstrip().split(',')
-        ligs[row[0]] = row[1]
+    with open(lib_file, 'rb') as f:
+        ligs = json.load(f)
+
     return ligs
 
 
@@ -53,27 +50,24 @@ def build_organics(ligs):
         unlimited_memory=True
     )
 
-    mol_data = {}
     for name in ligs:
-        smi = ligs[name][0]
-        charge = 0
-        free_e = [0]
-        mol_data[name] = (charge, free_e)
-        input = f'manual/{name}.mol'
-        output = f'{name}_opt.mol'
+        if ligs[name]['is_organic'] is False:
+            continue
+        input_file = f"{ligs[name]['file_loc']}{name}.mol"
+        output_file = f'{name}_opt.mol'
         jsonoutput = f'{name}_opt.json'
         if exists(jsonoutput):
             continue
         print(f'...building {name}')
+        continue
         if exists(input):
-            mol = stk.BuildingBlock.init_from_file(input)
+            mol = stk.BuildingBlock.init_from_file(input_file)
         else:
+            smi = ligs[name]['smiles']
             mol = stk.BuildingBlock(smiles=smi)
         optimizer.optimize(mol)
-        mol.write(output)
+        mol.write(output_file)
         mol.dump(jsonoutput)
-
-    return mol_data
 
 
 def metal_containing_ligands():
@@ -285,10 +279,25 @@ def optimise_metal_centre(name, charge, complex, metal_FF):
     return complex
 
 
-def build_metal_organics(metal_lig_lib, mol_data):
+def build_metal_organics(ligs):
+
+    m4_FFs = molecule_building.metal_FFs(CN=4)
+    m6_FFs = molecule_building.metal_FFs(CN=6)
+
+# 'ctopo': stk.cage.Porphyrin(),
+# 'metal_centre_topo': stk.metal_centre.SquarePlanar(),
+# 'net_charge': 0,
+# 'binding_atom': molecule_building.build_atom(
+# 'N',
+# FG='metal_bound_N'
+# ),
 
     # Iterate over required metal-organic library.
-    for name in metal_lig_lib:
+    for name in ligs:
+        if ligs[name]['is_organic']:
+            print(ligs[name], 'is organic!')
+            input()
+            continue
         opt_name = f'{name}_opt.mol'
         optjson_name = f'{name}_opt.json'
         comp = metal_lig_lib[name]
@@ -296,7 +305,7 @@ def build_metal_organics(metal_lig_lib, mol_data):
         if exists(optjson_name):
             continue
         print(f'.......building {name}')
-
+        continue
         # Build metal atom.
         metal = molecule_building.build_metal(
             metal_smiles=comp['metal_smiles'],
@@ -342,8 +351,6 @@ def build_metal_organics(metal_lig_lib, mol_data):
         # Output.
         complex.write(opt_name)
         complex.dump(optjson_name)
-
-    return mol_data
 
 
 def output_2d_images(metal_lig_lib):
@@ -407,17 +414,13 @@ Usage: build_ligand_library.py lib_file
     ligs = read_lig_lib(lib_file)
 
     # Build and optimise all organic molecules in lib.
-    mol_data = build_organics(ligs)
+    build_organics(ligs)
 
     # Build and optimise all metal containing ligands.
-    metal_lig_lib = metal_containing_ligands()
-    build_metal_organics(metal_lig_lib, mol_data)
-
+    build_metal_organics(ligs)
+    sys.exit()
     # Produce image of all built molecules.
-    output_2d_images(metal_lig_lib)
-
-    with open('ligand_data.json', 'w') as f:
-        json.dump(mol_data, f)
+    output_2d_images(ligs)
 
 
 if __name__ == "__main__":
