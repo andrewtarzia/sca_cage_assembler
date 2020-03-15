@@ -12,29 +12,12 @@ Date Created: 13 Jan 2020
 
 import sys
 from os.path import exists
-import json
-import glob
 from rdkit.Chem import AllChem as rdkit
 import stk
 
 import atools
 import molecule_building
-
-
-def read_lig_lib(lib_file):
-    """
-    Read ligand lib file.
-
-    Returns dictionary of format:
-
-    ligs[name] = (smiles, flag)
-
-    """
-
-    with open(lib_file, 'rb') as f:
-        ligs = json.load(f)
-
-    return ligs
+from utilities import read_lib
 
 
 def build_organics(ligs):
@@ -259,8 +242,7 @@ Usage: build_ligand_library.py lib_file
     else:
         lib_file = sys.argv[1]
 
-    print(f'reading {lib_file}')
-    ligs = read_lig_lib(lib_file)
+    ligs = read_lib(lib_file)
 
     # Build and optimise all organic molecules in lib.
     build_organics(ligs)

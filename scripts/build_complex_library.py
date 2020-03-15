@@ -11,26 +11,12 @@ Date Created: 27 Jan 2020
 """
 
 import sys
-import json
 from os.path import exists, join
 
 import stk
 
 import molecule_building
-
-
-def read_complex_lib(lib_file):
-    """
-    Read complex lib file.
-
-    Returns dictionary.
-
-    """
-
-    with open(lib_file, 'r') as f:
-        compls = json.load(f)
-
-    return compls
+from utilities import read_lib
 
 
 def build_complexes(complexes, ligand_directory):
@@ -122,8 +108,7 @@ Usage: build_complex_library.py lib_file ligand_directory
         lib_file = sys.argv[1]
         ligand_directory = sys.argv[2]
 
-    print(f'reading {lib_file}')
-    compls = read_complex_lib(lib_file)
+    compls = read_lib(lib_file)
 
     # Build and optimise all organic molecules in lib.
     build_complexes(compls, ligand_directory)

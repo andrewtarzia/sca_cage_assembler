@@ -11,24 +11,10 @@ Date Created: 27 Jan 2020
 """
 
 import sys
-import json
 import numpy as np
 
 import cage_building
-
-
-def read_lib(lib_file):
-    """
-    Read lib file.
-
-    Returns dictionary.
-
-    """
-
-    with open(lib_file, 'r') as f:
-        lib = json.load(f)
-
-    return lib
+from utilities import read_lib
 
 
 def analyse_cages(het_cages):
@@ -96,6 +82,7 @@ def analyse_cages(het_cages):
 
 
 def build_cages(
+    ligands,
     complexes,
     prisms,
     ligand_directory,
@@ -153,12 +140,15 @@ def build_cages(
 
 def main():
     first_line = (
-        'Usage: build_cage_library.py prism_lib_file compl_lib_file'
-        'lig_directory compl_directory'
+        'Usage: build_cage_library.py lig_lib_file prism_lib_file '
+        'compl_lib_file lig_directory compl_directory'
     )
-    if (not len(sys.argv) == 5):
+    if (not len(sys.argv) == 6):
         print(f"""
 {first_line}
+
+    lig_lib_file : (str)
+        File containing ligand information (XXXXX)
 
     compl_lib_file : (str)
         File containing complex information (XXXXX).
@@ -175,18 +165,19 @@ def main():
     """)
         sys.exit()
     else:
-        compl_lib_file = sys.argv[1]
-        prism_lib_file = sys.argv[2]
-        ligand_directory = sys.argv[3]
-        compl_directory = sys.argv[4]
+        lig_lib_file = sys.argv[1]
+        compl_lib_file = sys.argv[2]
+        prism_lib_file = sys.argv[3]
+        ligand_directory = sys.argv[4]
+        compl_directory = sys.argv[5]
 
-    print(f'reading {prism_lib_file}')
     prisms = read_lib(prism_lib_file)
-    print(f'reading {compl_lib_file}')
     compls = read_lib(compl_lib_file)
+    ligs = read_lib(lig_lib_file)
 
     # Build and optimise all organic molecules in lib.
     cages = build_cages(
+        ligs,
         compls,
         prisms,
         ligand_directory,
