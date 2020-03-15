@@ -4,6 +4,7 @@
         "corner_name": "cl1",
         "tetratopic": "quad4_3",
         "tritopic": "tri_1",
+        "heteroleptic": true,
         "experimental": true
     }
 }

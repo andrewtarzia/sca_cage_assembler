@@ -84,29 +84,41 @@ def analyse_cages(het_cages):
 def build_cages(
     ligands,
     complexes,
-    prisms,
+    cage_lib,
     ligand_directory,
     complex_directory
 ):
 
     cages = []
-    for name in prisms:
-        pris = prisms[name]
-        compl_names = pris['corners']
+    for name in cage_lib:
+        cage_c = cage_lib[name]
+        compl_names = cage_c['corners']
         print(compl_names)
         comps = {i: complexes[i] for i in compl_names}
-        print(pris)
+        print(cage_c)
         print(comps)
 
-        het_cage = cage_building.HetPrism(
-            name=name,
-            prism_dict=pris,
-            complex_dicts=comps,
-            ligand_dir=ligand_directory,
-            complex_dir=complex_directory
-        )
-        print('tob,..............', het_cage.cages_to_build)
-        for C in het_cage.cages_to_build:
+        if cage_c['heteroleptic']:
+            cage = cage_building.HetPrism(
+                name=name,
+                cage_dict=cage_c,
+                complex_dicts=comps,
+                ligand_dicts=ligands,
+                ligand_dir=ligand_directory,
+                complex_dir=complex_directory
+            )
+        else:
+            cage = cage_building.HoCube(
+                name=name,
+                cage_dict=cage_c,
+                complex_dicts=comps,
+                ligand_dicts=ligands,
+                ligand_dir=ligand_directory,
+                complex_dir=complex_directory
+            )
+
+        print('tob,..............', cage.cages_to_build)
+        for C in cage.cages_to_build:
             print(C)
             C.build()
             default_free_e = C.free_electron_options[0]
@@ -119,6 +131,7 @@ def build_cages(
             else:
                 step_size = 0.05
                 distance_cut = 2.0
+            sys.exit()
             C.optimize(
                 free_e=default_free_e,
                 step_size=step_size,
@@ -126,14 +139,14 @@ def build_cages(
             )
             C.analyze_cage_geometry()
             C.analyze_cage_porosity()
-            het_cage.built_cage_properties[C.name] = {
+            cage.built_cage_properties[C.name] = {
                 'pw_prop': C.pw_data,
                 'op_prop': C.op_data,
             }
             # Dump to JSON.
-            het_cage.dump_properties()
+            cage.dump_properties()
 
-        cages.append(het_cage)
+        cages.append(cage)
 
     return cages
 
@@ -153,8 +166,8 @@ def main():
     compl_lib_file : (str)
         File containing complex information (XXXXX).
 
-    prism_lib_file : (str)
-        File containing prism information (XXXXX).
+    cage_lib_file : (str)
+        File containing cage information (XXXXX).
 
     lig_directory : (str)
         Directory with required ligand structures.
@@ -167,11 +180,11 @@ def main():
     else:
         lig_lib_file = sys.argv[1]
         compl_lib_file = sys.argv[2]
-        prism_lib_file = sys.argv[3]
+        cage_lib_file = sys.argv[3]
         ligand_directory = sys.argv[4]
         compl_directory = sys.argv[5]
 
-    prisms = read_lib(prism_lib_file)
+    cage_lib = read_lib(cage_lib_file)
     compls = read_lib(compl_lib_file)
     ligs = read_lib(lig_lib_file)
 
@@ -179,7 +192,7 @@ def main():
     cages = build_cages(
         ligs,
         compls,
-        prisms,
+        cage_lib,
         ligand_directory,
         compl_directory
     )
