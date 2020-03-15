@@ -22,7 +22,11 @@ def available_topologies(string):
 
     topologies = {
         'oct_lambda': stk.cage.Octahedral_Lambda(),
-        'oct_delta': stk.cage.Octahedral_Delta()
+        'oct_delta': stk.cage.Octahedral_Delta(),
+        'c_porphyrin': stk.cage.Porphyrin(),
+        'c_sqpl_mono': stk.cage.SquarePlanarMonodentate(),
+        'c_pw': stk.cage.Paddlewheel(),
+        'mc_sqpl': stk.metal_centre.SquarePlanar()
     }
 
     try:

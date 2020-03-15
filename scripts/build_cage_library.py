@@ -105,7 +105,7 @@ def build_cages(
     cages = []
     for name in prisms:
         pris = prisms[name]
-        compl_names = pris['corners'].strip(')(').split(', ')
+        compl_names = pris['corners']
         print(compl_names)
         comps = {i: complexes[i] for i in compl_names}
         print(pris)

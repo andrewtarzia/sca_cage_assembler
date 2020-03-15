@@ -130,8 +130,6 @@ Usage: build_complex_library.py lib_file ligand_directory
     # Build and optimise all organic molecules in lib.
     build_complexes(compls, ligand_directory)
 
-    sys.exit()
-
 
 if __name__ == "__main__":
     main()
