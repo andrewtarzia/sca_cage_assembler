@@ -11,6 +11,7 @@ Date Created: 13 Jan 2020
 """
 
 import sys
+from os import mkdir
 from os.path import exists
 from rdkit.Chem import AllChem as rdkit
 import stk
@@ -186,6 +187,9 @@ def build_metal_organics(ligs):
 
 
 def output_2d_images(ligs):
+
+    if not exists('built_ligands/'):
+        mkdir('built_ligands')
 
     # Draw 2D representation of all built molecules.
     mols = []
