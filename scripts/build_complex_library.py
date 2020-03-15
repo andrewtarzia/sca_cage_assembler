@@ -88,9 +88,7 @@ def build_complexes(complexes, ligand_directory):
 
         # Not interested in unpaired electron checks at this stage.
         # So just select first one.
-        comp['unpaired_e'] = int(
-            comp['unpaired_e'].strip(')()').split(',')[0]
-        )
+        comp['unpaired_e'] = comp['unpaired_e'][0]
 
         # Define metal_FFs to use in optimisation.
         custom_metal_FFs = molecule_building.metal_FFs(CN=6)
