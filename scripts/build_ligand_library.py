@@ -60,7 +60,7 @@ def build_organics(ligs):
             continue
         print(f'...building {name}')
 
-        if exists(input):
+        if exists(input_file):
             mol = stk.BuildingBlock.init_from_file(input_file)
         else:
             smi = ligs[name]['smiles']
