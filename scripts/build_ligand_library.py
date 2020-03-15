@@ -59,7 +59,7 @@ def build_organics(ligs):
         if exists(jsonoutput):
             continue
         print(f'...building {name}')
-        continue
+
         if exists(input):
             mol = stk.BuildingBlock.init_from_file(input_file)
         else:
@@ -70,180 +70,32 @@ def build_organics(ligs):
         mol.dump(jsonoutput)
 
 
-def metal_containing_ligands():
+def binding_atoms(string):
     """
-    Defines how to build metal containing ligands.
+    Defines available binding atoms for metal-containing ligands.
 
-    Uses smiles strings defined in ligand lib and stk topologies.
+    Returns stk.BuildingBlock.
 
     """
 
-    m4_FFs = molecule_building.metal_FFs(CN=4)
-
-    m_ligands = {
-        'quad4_3': {
-            'organic_BB': 'quad4_prec_4',
-            'organic_FG': ['CNC_metal'],
-            'ctopo': stk.cage.Porphyrin(),
-            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
-            'metal_smiles': '[Ni+2]',
-            'no_metal_fgs': 4,
-            'no_metals': 1,
-            'net_charge': 0,
-            'binding_atom': molecule_building.build_atom(
-                'N',
-                FG='metal_bound_N'
-            ),
-            'metal_FF': m4_FFs,
-            'total_unpaired_e': [0, 2]
-        },
-        'quad4_4': {
-            'organic_BB': 'quad4_prec_5',
-            'organic_FG': ['CNC_metal'],
-            'ctopo': stk.cage.Porphyrin(),
-            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
-            'metal_smiles': '[Ni+2]',
-            'no_metal_fgs': 4,
-            'no_metals': 1,
-            'net_charge': 0,
-            'binding_atom': molecule_building.build_atom(
-                'N',
-                FG='metal_bound_N'
-            ),
-            'metal_FF': m4_FFs,
-            'total_unpaired_e': [0, 2]
-        },
-        'quad4_5': {
-            'organic_BB': 'quad4_prec_4',
-            'organic_FG': ['CNC_metal'],
-            'ctopo': stk.cage.Porphyrin(),
-            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
-            'metal_smiles': '[Zn+2]',
-            'no_metal_fgs': 4,
-            'no_metals': 1,
-            'net_charge': 0,
-            'binding_atom': molecule_building.build_atom(
-                'N',
-                FG='metal_bound_N'
-            ),
-            'metal_FF': m4_FFs,
-            'total_unpaired_e': [0]
-        },
-        'quad4_6': {
-            'organic_BB': 'quad4_prec_5',
-            'organic_FG': ['CNC_metal'],
-            'ctopo': stk.cage.Porphyrin(),
-            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
-            'metal_smiles': '[Zn+2]',
-            'no_metal_fgs': 4,
-            'no_metals': 1,
-            'net_charge': 0,
-            'binding_atom': molecule_building.build_atom(
-                'N',
-                FG='metal_bound_N'
-            ),
-            'metal_FF': m4_FFs,
-            'total_unpaired_e': [0]
-        },
-        'quad4_7': {
-            'organic_BB': 'quad4_prec_1',
-            'organic_FG': ['pyridine_N_metal'],
-            'ctopo': stk.cage.SquarePlanarMonodentate(),
-            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
-            'metal_smiles': '[Pt+2]',
-            'no_metal_fgs': 4,
-            'no_metals': 1,
-            'net_charge': 2,
-            'binding_atom': molecule_building.build_atom(
-                'N',
-                FG='metal_bound_N'
-            ),
-            'metal_FF': m4_FFs,
-            'total_unpaired_e': [0]
-        },
-        'quad4_10': {
-            'organic_BB': 'quad4_prec_1',
-            'organic_FG': ['pyridine_N_metal'],
-            'ctopo': stk.cage.SquarePlanarMonodentate(),
-            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
-            'metal_smiles': '[Pd+2]',
-            'no_metal_fgs': 4,
-            'no_metals': 1,
-            'net_charge': 2,
-            'binding_atom': molecule_building.build_atom(
-                'N',
-                FG='metal_bound_N'
-            ),
-            'metal_FF': m4_FFs,
-            'total_unpaired_e': [0]
-        },
-        'quad4_8': {
-            'organic_BB': 'quad4_prec_2',
-            'organic_FG': ['CO_metal', 'COH_metal'],
-            'ctopo': stk.cage.Paddlewheel(),
-            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
-            'metal_smiles': '[Rh+2]',
-            'no_metal_fgs': 4,
-            'no_metals': 2,
-            'net_charge': 0,
-            'binding_atom': molecule_building.build_atom(
-                'O',
-                FG='metal_bound_O'
-            ),
-            'metal_FF': m4_FFs,
-            'total_unpaired_e': [2]
-        },
-        'quad4_9': {
-            'organic_BB': 'quad4_prec_2',
-            'organic_FG': ['CO_metal', 'COH_metal'],
-            'ctopo': stk.cage.Paddlewheel(),
-            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
-            'metal_smiles': '[Mo+2]',
-            'no_metal_fgs': 4,
-            'no_metals': 2,
-            'net_charge': 0,
-            'binding_atom': molecule_building.build_atom(
-                'O',
-                FG='metal_bound_O'
-            ),
-            'metal_FF': m4_FFs,
-            'total_unpaired_e': [0, 4]
-        },
-        'quad4_11': {
-            'organic_BB': 'quad4_prec_3',
-            'organic_FG': ['pyridine_N_metal'],
-            'ctopo': stk.cage.SquarePlanarMonodentate(),
-            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
-            'metal_smiles': '[Pt+2]',
-            'no_metal_fgs': 4,
-            'no_metals': 1,
-            'net_charge': 2,
-            'binding_atom': molecule_building.build_atom(
-                'N',
-                FG='metal_bound_N'
-            ),
-            'metal_FF': m4_FFs,
-            'total_unpaired_e': [0]
-        },
-        'quad4_12': {
-            'organic_BB': 'quad4_prec_3',
-            'organic_FG': ['pyridine_N_metal'],
-            'ctopo': stk.cage.SquarePlanarMonodentate(),
-            'metal_centre_topo': stk.metal_centre.SquarePlanar(),
-            'metal_smiles': '[Pd+2]',
-            'no_metal_fgs': 4,
-            'no_metals': 1,
-            'net_charge': 2,
-            'binding_atom': molecule_building.build_atom(
-                'N',
-                FG='metal_bound_N'
-            ),
-            'metal_FF': m4_FFs,
-            'total_unpaired_e': [0]
-        },
+    dictionary = {
+        'metal_bound_N': molecule_building.build_atom(
+            'N',
+            FG='metal_bound_N'
+        ),
+        'metal_bound_O': molecule_building.build_atom(
+            'O',
+            FG='metal_bound_O'
+        )
     }
 
-    return m_ligands
+    if string not in dictionary.keys():
+        raise KeyError(
+            f'{string} not in dictionary.\n'
+            f'available binding atoms: {dictionary.keys()}'
+        )
+
+    return dictionary[string]
 
 
 def optimise_metal_centre(name, charge, complex, metal_FF):
@@ -284,28 +136,17 @@ def build_metal_organics(ligs):
     m4_FFs = molecule_building.metal_FFs(CN=4)
     m6_FFs = molecule_building.metal_FFs(CN=6)
 
-# 'ctopo': stk.cage.Porphyrin(),
-# 'metal_centre_topo': stk.metal_centre.SquarePlanar(),
-# 'net_charge': 0,
-# 'binding_atom': molecule_building.build_atom(
-# 'N',
-# FG='metal_bound_N'
-# ),
-
-    # Iterate over required metal-organic library.
+    # Iterate over required library.
     for name in ligs:
         if ligs[name]['is_organic']:
-            print(ligs[name], 'is organic!')
-            input()
             continue
+        comp = ligs[name]
         opt_name = f'{name}_opt.mol'
         optjson_name = f'{name}_opt.json'
-        comp = metal_lig_lib[name]
-        mol_data[name] = (comp['net_charge'], comp['total_unpaired_e'])
         if exists(optjson_name):
             continue
         print(f'.......building {name}')
-        continue
+
         # Build metal atom.
         metal = molecule_building.build_metal(
             metal_smiles=comp['metal_smiles'],
@@ -313,13 +154,17 @@ def build_metal_organics(ligs):
         )
         # Get functional groups of binding atom to define coordination
         # sites.
+        binding_atom = binding_atoms(string=comp['binding_atom'])
         binding_fgs = list(set([
-            i.fg_type.name for i in comp['binding_atom'].func_groups
+            i.fg_type.name for i in binding_atom.func_groups
         ]))
+        mc_topo = molecule_building.available_topologies(
+            comp['metal_centre_topo']
+        )
         metal_centre = molecule_building.build_metal_centre(
             metal=metal,
-            topology=comp['metal_centre_topo'],
-            binding_atom=comp['binding_atom'],
+            topology=mc_topo,
+            binding_atom=binding_atom,
             return_FG=binding_fgs
         )
         metal_centre.write(f'{name}_metal_centre.mol')
@@ -330,7 +175,9 @@ def build_metal_organics(ligs):
             functional_groups=comp['organic_FG']
         )
         # Build centre/complex using stk.
-        ctopo = comp['ctopo']
+        ctopo = molecule_building.available_topologies(
+            comp['ctopo']
+        )
         n_metals = comp['no_metals']
         complex = stk.ConstructedMolecule(
             building_blocks=[metal_centre, organic_BB],
@@ -342,26 +189,33 @@ def build_metal_organics(ligs):
         )
         complex.write(f'{name}.mol')
         # Optimise metal centre.
+        # Assign metal UFF forcefields.
+        mffs = m4_FFs if comp['metal_FF'] == 'm4' else m6_FFs
         complex = optimise_metal_centre(
             name=name,
             charge=comp['net_charge'],
             complex=complex,
-            metal_FF=comp['metal_FF']
+            metal_FF=mffs
         )
         # Output.
         complex.write(opt_name)
         complex.dump(optjson_name)
 
 
-def output_2d_images(metal_lig_lib):
+def output_2d_images(ligs):
+
     # Draw 2D representation of all built molecules.
-    opt_mols = sorted(glob.glob('*_opt.json'))
     mols = []
     names = []
-    for mol in opt_mols:
-        name = mol.replace('_opt.json', '')
-        if name in metal_lig_lib:
-            comp = metal_lig_lib[name]
+    for name in ligs:
+        comp = ligs[name]
+        optjson_name = f'{name}_opt.json'
+        if ligs[name]['is_organic']:
+            MOL = stk.BuildingBlock.load(optjson_name).to_rdkit_mol()
+            MOL = rdkit.MolFromSmiles(rdkit.MolToSmiles(MOL))
+            mols.append(MOL)
+            names.append(name)
+        else:
             BB = stk.BuildingBlock.load(
                 f"{comp['organic_BB']}_opt.json"
             ).to_rdkit_mol()
@@ -370,15 +224,10 @@ def output_2d_images(metal_lig_lib):
             tot_smi = f'{msmi}.{smi}'
             MOL = rdkit.MolFromSmiles(tot_smi)
             mols.append(MOL)
-            top_str = str(comp['ctopo']).replace('cage.', '')
-            top_str = top_str.split('(')[0]
+            top_str = comp['ctopo']
             label = f'{name}\n{top_str}'
             names.append(label)
-        else:
-            MOL = stk.BuildingBlock.load(mol).to_rdkit_mol()
-            MOL = rdkit.MolFromSmiles(rdkit.MolToSmiles(MOL))
-            mols.append(MOL)
-            names.append(name)
+
         atools.draw_mol_to_svg(
             mol=MOL,
             filename=f'built_ligands/{name}_opt.svg'
@@ -418,7 +267,7 @@ Usage: build_ligand_library.py lib_file
 
     # Build and optimise all metal containing ligands.
     build_metal_organics(ligs)
-    sys.exit()
+
     # Produce image of all built molecules.
     output_2d_images(ligs)
 
