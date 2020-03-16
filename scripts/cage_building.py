@@ -31,9 +31,9 @@ def available_topologies(string):
     """
 
     topologies = {
-        'm4l4spacer': stk.cage.M4L4_Oct_Spacer(),
-        'm8l6face': stk.cage.M8L6_Oct_Face(),
-        'm6l2l3': stk.cage.M6L2L3_Oct()
+        'm4l4spacer': stk.cage.M4L4_Oct_Spacer,
+        'm8l6face': stk.cage.M8L6_Oct_Face,
+        'm6l2l3': stk.cage.M6L2L3_Oct
     }
 
     try:
@@ -252,7 +252,7 @@ class CageSet:
         complex_dir
     ):
         self.name = name
-        self.properties_file = f'{self.name}_HP.json'
+        self.properties_file = f'{self.name}_CS.json'
         self.cage_dict = cage_dict
         self.complex_dicts = complex_dicts
         self.ligand_dicts = ligand_dicts
@@ -267,8 +267,10 @@ class CageSet:
         Load class from JSON file.
 
         """
-        with open(self.properties_file, 'r') as f:
-            self.built_cage_properties = json.load(f)
+
+        if exists(self.properties_file):
+            with open(self.properties_file, 'r') as f:
+                self.built_cage_properties = json.load(f)
 
     def dump_properties(self):
         """
@@ -288,12 +290,57 @@ class CageSet:
     def __repr__(self):
         return str(self)
 
+    def _get_no_vertices(self, string):
+        """
+        Get the number of vertices for a given topology.
+
+        """
+
+        topologies = {
+            'm4l4spacer': 8,
+            'm8l6face': 14,
+            'm6l2l3': 10
+        }
+
+        try:
+            return topologies[string]
+        except KeyError:
+            raise KeyError(f'{string} not in {topologies.keys()}')
+
+    def _get_rot_vertices(self, string):
+        """
+        Get the list of rotatable vertices for a given topology.
+
+        Only ligand vertices are rotatable in this case.
+
+        # TODO: Currently only defined for cube (90 deg). Add tri-face.
+
+        """
+
+        if string in ['m4l4spacer', 'm6l2l3']:
+            raise NotImplementedError(
+                'Currently only defined for cube (90 deg). Add tri.'
+            )
+
+        topologies = {
+            'm4l4spacer': [4, 5, 6, 7],
+            'm8l6face': [8, 9, 10, 11, 12, 13],
+            'm6l2l3': [8, 9, 10]
+        }
+
+        try:
+            return topologies[string]
+        except KeyError:
+            raise KeyError(f'{string} not in {topologies.keys()}')
+
     def _get_ratios(self, n_metals):
+        # TODO: Remove break statement.
         rng = range(0, n_metals+1)
         rats = []
         for i in product(rng, rng):
             if i[0]+i[1] == n_metals:
                 rats.append(i)
+                break
         return rats
 
     def _load_complex(self, complex_name, complex_dir):
@@ -360,37 +407,70 @@ class HoCube(CageSet):
         L_free_e = self.complex_dicts[L_complex_name]['unpaired_e']
         print(D_charge, D_free_e, L_charge, L_free_e)
 
-        # Get all linkers.
+        # Get all linkers and their face orientations.
         tet_prop = self.ligand_dicts[self.cage_dict['tetratopic']]
         tet_linker = self._load_ligand(
             ligand_name=self.cage_dict['tetratopic'],
             ligand_dir=ligand_dir
         )
 
-        print(D_complex, L_complex, tet_linker)
-        print('tprop', tet_prop)
-
-        # Tetratopic homoleptic cages of all symmetries.
+        # Tetratopic homoleptic cages.
+        # Get topology as object to be used in following list.
         tet_topo_name, tet_topo = available_topologies(
             string='m8l6face'
         )
 
+        no_vertices = self._get_no_vertices(string='m8l6face')
+        rotatable_vertices = self._get_rot_vertices(string='m8l6face')
+        print(rotatable_vertices)
+
+        topologies_to_build = {}
+        if tet_prop['check_orientations']:
+            # Need to define a list of orientations to use by iterating
+            # over the vertex alignments of each vertex.
+            # Here we have assumed that each ligand can take two
+            # orientations (original, and 90deg rotation about face
+            # plane).
+            iteration = product([0, 1], repeat=len(rotatable_vertices))
+            for i in iteration:
+                v_align = {i: 0 for i in range(no_vertices)}
+                for j, rv in enumerate(rotatable_vertices):
+                    v_align[rv] = i[j]
+                v_align_string = ''.join([
+                    str(i) for i in list(v_align.values())
+                ])
+                topologies_to_build[v_align_string] = tet_topo(
+                    vertex_alignments=v_align
+                )
+        else:
+            # Use only a single orientation topology.
+            v_align = {i: 0 for i in range(no_vertices)}
+            v_align_string = ''.join(list(v_align.values()))
+            topologies_to_build[v_align_string] = tet_topo(
+                vertex_alignments=v_align
+            )
+
+        print('tprop', tet_prop)
+        print(topologies_to_build)
+        print(f'{len(topologies_to_build)} topologies')
         tet_n_metals = 8
         tet_ratios = self._get_ratios(tet_n_metals)
-        for rat in tet_ratios:
-            print(rat)
+        # Iterate over all face orientations and complex symmetries.
+        iteration = product(topologies_to_build, tet_ratios)
+        for topo, rat in iteration:
+            topo_f = topologies_to_build[topo]
             new_name = (
                 f"C_{self.cage_dict['corner_name']}_"
                 f"{self.cage_dict['tetratopic']}_"
                 f"{tet_topo_name}_"
                 f"d{rat[0]}l{rat[1]}_"
-                f"SYMM"
+                f"{topo}"
             )
             new_bbs = [D_complex, L_complex, tet_linker]
             new_bb_vertices = {
-                D_complex: tet_topo.vertices[:rat[0]],
-                L_complex: tet_topo.vertices[rat[0]:rat[0]+rat[1]],
-                tet_linker: tet_topo.vertices[tet_n_metals:]
+                D_complex: topo_f.vertices[:rat[0]],
+                L_complex: topo_f.vertices[rat[0]:rat[0]+rat[1]],
+                tet_linker: topo_f.vertices[tet_n_metals:]
             }
             # Merge linker and complex charges.
             complex_charge = rat[0]*int(D_charge)+rat[1]*int(L_charge)
@@ -415,7 +495,7 @@ class HoCube(CageSet):
             new_cage = Cage(
                 name=new_name,
                 bbs=new_bbs,
-                topology=tet_topo,
+                topology=topo_f,
                 topology_string=tet_topo_name,
                 bb_vertices=new_bb_vertices,
                 charge=new_charge,
@@ -423,7 +503,6 @@ class HoCube(CageSet):
             )
             cages_to_build.append(new_cage)
             print('NOT BUILDING ALL RATIOS CURRENTLY!!!!!!')
-            break
 
         return cages_to_build
 
@@ -538,9 +617,11 @@ class HetPrism(CageSet):
         print(D_complex, L_complex, tet_linker, tri_linker)
 
         # Tetratopic homoleptic cages of all symmetries.
+        # Get topology as object.
         tet_topo_name, tet_topo = available_topologies(
             string='m8l6face'
         )
+        tet_topo = tet_topo()
 
         tet_n_metals = 8
         tet_ratios = self._get_ratios(tet_n_metals)
@@ -591,9 +672,11 @@ class HetPrism(CageSet):
             break
 
         # Tritopic homoleptic cages of all symmetries.
+        # Get topology as object.
         tri_topo_name, tri_topo = available_topologies(
             string='m4l4spacer'
         )
+        tri_topo = tri_topo()
 
         tri_n_metals = 4
         tri_ratios = self._get_ratios(tri_n_metals)
@@ -646,9 +729,11 @@ class HetPrism(CageSet):
             break
 
         # Prisms of all symmetries.
+        # Get topology as object.
         pri_topo_name, pri_topo = available_topologies(
             string='m6l2l3'
         )
+        pri_topo = pri_topo()
 
         pri_n_metals = 6
         pri_ratios = self._get_ratios(pri_n_metals)
