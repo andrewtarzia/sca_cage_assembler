@@ -383,7 +383,7 @@ class HoCube(CageSet):
 
         cages_to_build = []
 
-        # Get Delta and Lambda complex.
+        # Get Delta and Lambda complexes.
         print(self.complex_dicts)
         D_complex_name = [
             i for i in self.complex_dicts if 'del' in i
