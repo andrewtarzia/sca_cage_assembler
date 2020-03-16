@@ -17,17 +17,17 @@ import cage_building
 from utilities import read_lib
 
 
-def analyse_cages(het_cages):
+def analyse_cages(cages):
 
-    for het_cage in het_cages:
-        het_cage.load_properties()
+    for cage in cages:
+        cage.load_properties()
         # Compare average pore volume of each of the three topologies.
         three_top = {'m4l4spacer': [], 'm8l6face': [], 'm6l2l3': []}
-        built_prop = het_cage.built_cage_properties
+        built_prop = cage.built_cage_properties
         all_pore_volumes = []
         all_min_OPs = []
         all_topo_strs = []
-        for C in het_cage.cages_to_build:
+        for C in cage.cages_to_build:
             C_data = built_prop[C.name]
             TOPO = C.topology_string
             three_top[TOPO].append(
@@ -44,15 +44,15 @@ def analyse_cages(het_cages):
 
         # Ensure at least one prismatic cage is stable.
         prism_oct_op = {}
-        for C in het_cage.cages_to_build:
+        for C in cage.cages_to_build:
             C_data = built_prop[C.name]
             TOPO = C.topology_string
             # Get minimium octahedral OP of the metal that is in the
             # complex building block.
-            print(het_cage.complex_dicts)
+            print(cage.complex_dicts)
             atom_no_of_interest = list(set([
-                int(het_cage.complex_dicts[i]['metal_atom_no'])
-                for i in het_cage.complex_dicts
+                int(cage.complex_dicts[i]['metal_atom_no'])
+                for i in cage.complex_dicts
             ]))
             print(atom_no_of_interest)
             print('rrrr',)
@@ -73,7 +73,7 @@ def analyse_cages(het_cages):
         print('minimum prism OPs:', prism_oct_op)
 
         # Plot all order parameter minimums VS average pore volumes.
-        het_cage.plot_min_OPs_avg_PV(
+        cage.plot_min_OPs_avg_PV(
             X=all_pore_volumes,
             Y=all_min_OPs,
             T=all_topo_strs
@@ -131,7 +131,7 @@ def build_cages(
             else:
                 step_size = 0.05
                 distance_cut = 2.0
-            sys.exit()
+            continue
             C.optimize(
                 free_e=default_free_e,
                 step_size=step_size,
@@ -196,7 +196,7 @@ def main():
         ligand_directory,
         compl_directory
     )
-
+    sys.exit()
     analyse_cages(cages)
 
     sys.exit()
