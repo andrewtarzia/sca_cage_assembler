@@ -334,13 +334,11 @@ class CageSet:
             raise KeyError(f'{string} not in {topologies.keys()}')
 
     def _get_ratios(self, n_metals):
-        # TODO: Remove break statement.
         rng = range(0, n_metals+1)
         rats = []
         for i in product(rng, rng):
             if i[0]+i[1] == n_metals:
                 rats.append(i)
-                break
         return rats
 
     def _load_complex(self, complex_name, complex_dir):
@@ -422,7 +420,12 @@ class HoCube(CageSet):
 
         no_vertices = self._get_no_vertices(string='m8l6face')
         rotatable_vertices = self._get_rot_vertices(string='m8l6face')
-        print(rotatable_vertices)
+        # Assumes metal complex vertices is all non-rotatable_vertices.
+        complex_vertices = [
+            i for i in range(no_vertices)
+            if i not in rotatable_vertices
+        ]
+        print('nos', no_vertices, rotatable_vertices, complex_vertices)
 
         topologies_to_build = {}
         if tet_prop['check_orientations']:
@@ -438,7 +441,7 @@ class HoCube(CageSet):
                     v_align[rv] = i[j]
                 v_align_string = ''.join([
                     str(i) for i in list(v_align.values())
-                ])
+                ])[len(rotatable_vertices):]
                 topologies_to_build[v_align_string] = tet_topo(
                     vertex_alignments=v_align
                 )
@@ -449,60 +452,93 @@ class HoCube(CageSet):
             topologies_to_build[v_align_string] = tet_topo(
                 vertex_alignments=v_align
             )
-
-        print('tprop', tet_prop)
-        print(topologies_to_build)
         print(f'{len(topologies_to_build)} topologies')
+
         tet_n_metals = 8
-        tet_ratios = self._get_ratios(tet_n_metals)
         # Iterate over all face orientations and complex symmetries.
-        iteration = product(topologies_to_build, tet_ratios)
-        for topo, rat in iteration:
+        for topo in topologies_to_build:
             topo_f = topologies_to_build[topo]
-            new_name = (
-                f"C_{self.cage_dict['corner_name']}_"
-                f"{self.cage_dict['tetratopic']}_"
-                f"{tet_topo_name}_"
-                f"d{rat[0]}l{rat[1]}_"
-                f"{topo}"
+
+            # For each ratio, must define all the possible places
+            # for each complex symmetry.
+            symmetries_to_build = {}
+            # Need to define a list of bb vertex inputs of the two
+            # symmetry complexes that produces all possible placement
+            # variation on the cage metal vertices.
+            iteration = product(
+                [0, 1], repeat=len(complex_vertices)
             )
-            new_bbs = [D_complex, L_complex, tet_linker]
-            new_bb_vertices = {
-                D_complex: topo_f.vertices[:rat[0]],
-                L_complex: topo_f.vertices[rat[0]:rat[0]+rat[1]],
-                tet_linker: topo_f.vertices[tet_n_metals:]
-            }
-            # Merge linker and complex charges.
-            complex_charge = rat[0]*int(D_charge)+rat[1]*int(L_charge)
-            new_charge = tet_prop['net_charge']*6 + complex_charge
+            for iter in iteration:
+                D_verts = [
+                    v for i, v in enumerate(
+                        topo_f.vertices[:tet_n_metals]
+                    )
+                    if iter[i] == 0
+                ]
+                L_verts = [
+                    v for i, v in enumerate(
+                        topo_f.vertices[:tet_n_metals]
+                    )
+                    if iter[i] == 1
+                ]
+                ratio = (len(D_verts), len(L_verts))
+                linker_verts = topo_f.vertices[tet_n_metals:]
+                bb_vert = {
+                    D_complex: D_verts,
+                    L_complex: L_verts,
+                    tet_linker: linker_verts
+                }
+                bb_vert_string = ''.join([str(i) for i in iter])
+                symmetries_to_build[bb_vert_string] = (bb_vert, ratio)
+            print(f'{len(symmetries_to_build)} symmetries')
 
-            print(tet_prop['total_unpaired_e'])
-            lig_free_e = [
-                int(i)*6 for i in tet_prop['total_unpaired_e']
-            ]
-            compl_free_e = [
-                int(i)*rat[0] + int(j)*rat[1]
-                for i, j in zip(D_free_e, L_free_e)
-            ]
-            print(lig_free_e, compl_free_e)
+            for symm in symmetries_to_build:
+                name_string = symm+topo
 
-            new_free_electron_options = []
-            for opt in product(lig_free_e, compl_free_e):
-                print(opt)
-                new_free_electron_options.append(opt[0]+opt[1])
+                print(name_string)
+                new_name = (
+                    f"C_{self.cage_dict['corner_name']}_"
+                    f"{self.cage_dict['tetratopic']}_"
+                    f"{name_string}"
+                )
+                print(new_name)
+                new_bbs = [D_complex, L_complex, tet_linker]
+                new_bb_vertices = symmetries_to_build[symm][0]
+                rat = symmetries_to_build[symm][1]
+                print(rat)
 
-            print(new_charge, new_free_electron_options)
-            new_cage = Cage(
-                name=new_name,
-                bbs=new_bbs,
-                topology=topo_f,
-                topology_string=tet_topo_name,
-                bb_vertices=new_bb_vertices,
-                charge=new_charge,
-                free_electron_options=new_free_electron_options
-            )
-            cages_to_build.append(new_cage)
-            print('NOT BUILDING ALL RATIOS CURRENTLY!!!!!!')
+                # Merge linker and complex charges.
+                complex_charge = rat[0]*int(D_charge)
+                complex_charge += rat[1]*int(L_charge)
+                new_charge = tet_prop['net_charge']*6 + complex_charge
+
+                print(tet_prop['total_unpaired_e'])
+                lig_free_e = [
+                    int(i)*6 for i in tet_prop['total_unpaired_e']
+                ]
+                compl_free_e = [
+                    int(i)*rat[0] + int(j)*rat[1]
+                    for i, j in zip(D_free_e, L_free_e)
+                ]
+                print(lig_free_e, compl_free_e)
+
+                new_free_electron_options = []
+                for opt in product(lig_free_e, compl_free_e):
+                    print(opt)
+                    new_free_electron_options.append(opt[0]+opt[1])
+
+                print(new_charge, new_free_electron_options)
+                new_cage = Cage(
+                    name=new_name,
+                    bbs=new_bbs,
+                    topology=topo_f,
+                    topology_string=tet_topo_name,
+                    bb_vertices=new_bb_vertices,
+                    charge=new_charge,
+                    free_electron_options=new_free_electron_options
+                )
+                cages_to_build.append(new_cage)
+            break
 
         return cages_to_build
 
