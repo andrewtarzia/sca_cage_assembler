@@ -363,6 +363,126 @@ class CageSet:
 
         return ligand
 
+    def cage_symmetries(
+        self,
+        string,
+        topo,
+        D_complex,
+        L_complex,
+        linker,
+        check_orientation,
+        get_all=False
+    ):
+        """
+        Yields cage symmetries for a given topology.
+
+        """
+
+        no_vertices = self._get_no_vertices(string='m8l6face')
+        rotatable_vertices = self._get_rot_vertices(string='m8l6face')
+        # Assumes metal complex vertices is all non-rotatable_vertices.
+        complex_vertices = [
+            i for i in range(no_vertices)
+            if i not in rotatable_vertices
+        ]
+        print('nos', no_vertices, rotatable_vertices, complex_vertices)
+
+        if string == 'm4l4spacer':
+            symm_list = {}
+            raise NotImplementedError(
+                'symmetries not defined for m4l4'
+            )
+        elif string == 'm8l6face':
+            symm_list = {}
+
+            if get_all:
+                topologies_to_build = {}
+                if check_orientation:
+                    # Need to define a list of orientations to use by
+                    # iterating over the vertex alignments of each
+                    # vertex.Here we have assumed that each ligand can
+                    # take twoorientations (original, and 90deg
+                    # rotation about face plane).
+                    iteration = product(
+                        [0, 1],
+                        repeat=len(rotatable_vertices)
+                    )
+                    for i in iteration:
+                        v_align = {i: 0 for i in range(no_vertices)}
+                        for j, rv in enumerate(rotatable_vertices):
+                            v_align[rv] = i[j]
+                        v_align_string = ''.join([
+                            str(i) for i in list(v_align.values())
+                        ])[len(rotatable_vertices):]
+                        topologies_to_build[v_align_string] = topo(
+                            vertex_alignments=v_align
+                        )
+                else:
+                    # Use only a single orientation topology.
+                    v_align = {i: 0 for i in range(no_vertices)}
+                    v_align_string = ''.join(list(v_align.values()))
+                    topologies_to_build[v_align_string] = topo(
+                        vertex_alignments=v_align
+                    )
+                print(f'{len(topologies_to_build)} topologies')
+
+                n_metals = 8
+                # Iterate over all face orientations and complex
+                # symmetries.
+                for topo in topologies_to_build:
+                    topo_f = topologies_to_build[topo]
+
+                    # For each ratio, must define all the possible
+                    # places for each complex symmetry.
+                    # Need to define a list of bb vertex inputs of the
+                    # two symmetry complexes that produces all
+                    # possible placementvariation on the cage metal
+                    # vertices.
+                    iteration = product(
+                        [0, 1], repeat=len(complex_vertices)
+                    )
+                    for iter in iteration:
+                        D_verts = [
+                            v for i, v in enumerate(
+                                topo_f.vertices[:n_metals]
+                            )
+                            if iter[i] == 0
+                        ]
+                        L_verts = [
+                            v for i, v in enumerate(
+                                topo_f.vertices[:n_metals]
+                            )
+                            if iter[i] == 1
+                        ]
+                        ratio = (len(D_verts), len(L_verts))
+                        linker_verts = topo_f.vertices[n_metals:]
+                        bb_vert = {
+                            D_complex: D_verts,
+                            L_complex: L_verts,
+                            linker: linker_verts
+                        }
+                        bb_vert_string = ''.join([
+                            str(i) for i in iter
+                        ])
+                        name_string = bb_vert_string+topo
+                        symm_list[name_string] = (
+                            topo_f,
+                            bb_vert,
+                            ratio
+                        )
+                print(f'{len(symm_list)} symmetries')
+
+
+        elif string == 'm6l2l3':
+            symm_list = {}
+            raise NotImplementedError(
+                'symmetries not defined for m6l2l3'
+            )
+        else:
+            raise KeyError(f'{string} not in defined')
+
+        return symm_list
+
 
 class HoCube(CageSet):
     """
@@ -418,127 +538,62 @@ class HoCube(CageSet):
             string='m8l6face'
         )
 
-        no_vertices = self._get_no_vertices(string='m8l6face')
-        rotatable_vertices = self._get_rot_vertices(string='m8l6face')
-        # Assumes metal complex vertices is all non-rotatable_vertices.
-        complex_vertices = [
-            i for i in range(no_vertices)
-            if i not in rotatable_vertices
-        ]
-        print('nos', no_vertices, rotatable_vertices, complex_vertices)
-
-        topologies_to_build = {}
-        if tet_prop['check_orientations']:
-            # Need to define a list of orientations to use by iterating
-            # over the vertex alignments of each vertex.
-            # Here we have assumed that each ligand can take two
-            # orientations (original, and 90deg rotation about face
-            # plane).
-            iteration = product([0, 1], repeat=len(rotatable_vertices))
-            for i in iteration:
-                v_align = {i: 0 for i in range(no_vertices)}
-                for j, rv in enumerate(rotatable_vertices):
-                    v_align[rv] = i[j]
-                v_align_string = ''.join([
-                    str(i) for i in list(v_align.values())
-                ])[len(rotatable_vertices):]
-                topologies_to_build[v_align_string] = tet_topo(
-                    vertex_alignments=v_align
-                )
-        else:
-            # Use only a single orientation topology.
-            v_align = {i: 0 for i in range(no_vertices)}
-            v_align_string = ''.join(list(v_align.values()))
-            topologies_to_build[v_align_string] = tet_topo(
-                vertex_alignments=v_align
+        symmetries_to_build = self.cage_symmetries(
+            string='m8l6face',
+            topo=tet_topo,
+            D_complex=D_complex,
+            L_complex=L_complex,
+            linker=tet_linker,
+            check_orientation=tet_prop['check_orientations'],
+            get_all=False
+        )
+        for name_string in symmetries_to_build:
+            print(symmetries_to_build[name_string])
+            print(name_string)
+            input()
+            new_name = (
+                f"C_{self.cage_dict['corner_name']}_"
+                f"{self.cage_dict['tetratopic']}_"
+                f"{name_string}"
             )
-        print(f'{len(topologies_to_build)} topologies')
+            print(new_name)
+            new_bbs = [D_complex, L_complex, tet_linker]
+            topo_f = symmetries_to_build[name_string][0]
+            new_bb_vertices = symmetries_to_build[name_string][1]
+            rat = symmetries_to_build[name_string][2]
+            print(rat)
 
-        tet_n_metals = 8
-        # Iterate over all face orientations and complex symmetries.
-        for topo in topologies_to_build:
-            topo_f = topologies_to_build[topo]
+            # Merge linker and complex charges.
+            complex_charge = rat[0]*int(D_charge)
+            complex_charge += rat[1]*int(L_charge)
+            new_charge = tet_prop['net_charge']*6 + complex_charge
 
-            # For each ratio, must define all the possible places
-            # for each complex symmetry.
-            symmetries_to_build = {}
-            # Need to define a list of bb vertex inputs of the two
-            # symmetry complexes that produces all possible placement
-            # variation on the cage metal vertices.
-            iteration = product(
-                [0, 1], repeat=len(complex_vertices)
+            print(tet_prop['total_unpaired_e'])
+            lig_free_e = [
+                int(i)*6 for i in tet_prop['total_unpaired_e']
+            ]
+            compl_free_e = [
+                int(i)*rat[0] + int(j)*rat[1]
+                for i, j in zip(D_free_e, L_free_e)
+            ]
+            print(lig_free_e, compl_free_e)
+
+            new_free_electron_options = []
+            for opt in product(lig_free_e, compl_free_e):
+                print(opt)
+                new_free_electron_options.append(opt[0]+opt[1])
+
+            print(new_charge, new_free_electron_options)
+            new_cage = Cage(
+                name=new_name,
+                bbs=new_bbs,
+                topology=topo_f,
+                topology_string=tet_topo_name,
+                bb_vertices=new_bb_vertices,
+                charge=new_charge,
+                free_electron_options=new_free_electron_options
             )
-            for iter in iteration:
-                D_verts = [
-                    v for i, v in enumerate(
-                        topo_f.vertices[:tet_n_metals]
-                    )
-                    if iter[i] == 0
-                ]
-                L_verts = [
-                    v for i, v in enumerate(
-                        topo_f.vertices[:tet_n_metals]
-                    )
-                    if iter[i] == 1
-                ]
-                ratio = (len(D_verts), len(L_verts))
-                linker_verts = topo_f.vertices[tet_n_metals:]
-                bb_vert = {
-                    D_complex: D_verts,
-                    L_complex: L_verts,
-                    tet_linker: linker_verts
-                }
-                bb_vert_string = ''.join([str(i) for i in iter])
-                symmetries_to_build[bb_vert_string] = (bb_vert, ratio)
-            print(f'{len(symmetries_to_build)} symmetries')
-
-            for symm in symmetries_to_build:
-                name_string = symm+topo
-
-                print(name_string)
-                new_name = (
-                    f"C_{self.cage_dict['corner_name']}_"
-                    f"{self.cage_dict['tetratopic']}_"
-                    f"{name_string}"
-                )
-                print(new_name)
-                new_bbs = [D_complex, L_complex, tet_linker]
-                new_bb_vertices = symmetries_to_build[symm][0]
-                rat = symmetries_to_build[symm][1]
-                print(rat)
-
-                # Merge linker and complex charges.
-                complex_charge = rat[0]*int(D_charge)
-                complex_charge += rat[1]*int(L_charge)
-                new_charge = tet_prop['net_charge']*6 + complex_charge
-
-                print(tet_prop['total_unpaired_e'])
-                lig_free_e = [
-                    int(i)*6 for i in tet_prop['total_unpaired_e']
-                ]
-                compl_free_e = [
-                    int(i)*rat[0] + int(j)*rat[1]
-                    for i, j in zip(D_free_e, L_free_e)
-                ]
-                print(lig_free_e, compl_free_e)
-
-                new_free_electron_options = []
-                for opt in product(lig_free_e, compl_free_e):
-                    print(opt)
-                    new_free_electron_options.append(opt[0]+opt[1])
-
-                print(new_charge, new_free_electron_options)
-                new_cage = Cage(
-                    name=new_name,
-                    bbs=new_bbs,
-                    topology=topo_f,
-                    topology_string=tet_topo_name,
-                    bb_vertices=new_bb_vertices,
-                    charge=new_charge,
-                    free_electron_options=new_free_electron_options
-                )
-                cages_to_build.append(new_cage)
-            break
+            cages_to_build.append(new_cage)
 
         return cages_to_build
 
