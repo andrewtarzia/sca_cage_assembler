@@ -472,6 +472,119 @@ class CageSet:
                         )
                 print(f'{len(symm_list)} symmetries')
 
+            else:
+                # Predefined list of symmetries.
+                n_metals = 8
+                # O symmetry options.
+                # All default orientation.
+                orient_1 = topo(vertex_alignments={
+                    i: 0 for i in range(no_vertices)
+                })
+                linker_verts_1 = orient_1.vertices[n_metals:]
+                # All rotated orientation.
+                orient_2 = topo(vertex_alignments={
+                    i: 1 for i in range(no_vertices)
+                })
+                linker_verts_2 = orient_2.vertices[n_metals:]
+                # All default orientation. All Delta.
+                symm_list['o1'] = (
+                    orient_1,
+                    {
+                        D_complex: orient_1.vertices[:n_metals],
+                        linker: linker_verts_1
+                    },
+                    (8, 0)
+                )
+                # All default orientation. All Lambda.
+                symm_list['o2'] = (
+                    orient_1,
+                    {
+                        L_complex: orient_1.vertices[:n_metals],
+                        linker: linker_verts_1
+                    },
+                    (0, 8)
+                )
+                # All rotated orientation. All Delta.
+                symm_list['o3'] = (
+                    orient_2,
+                    {
+                        D_complex: orient_2.vertices[:n_metals],
+                        linker: linker_verts_2
+                    },
+                    (8, 0)
+                )
+                # All rotated orientation. All Lambda.
+                symm_list['o4'] = (
+                    orient_2,
+                    {
+                        L_complex: orient_2.vertices[:n_metals],
+                        linker: linker_verts_2
+                    },
+                    (0, 8)
+                )
+
+                # Th symmetry.
+                # With default rotation pattern.
+                th_orient_1 = topo(vertex_alignments={
+                    # Metals.
+                    0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
+                    # Linkers.
+                    8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0
+                })
+
+
+
+                # Set metal complex symmetries.
+                iter = [0, 1, 0, 1, 0, 1, 0, 1]
+                th_D_verts_1 = [
+                    v for i, v in enumerate(
+                        th_orient_1.vertices[:n_metals]
+                    )
+                    if iter[i] == 0
+                ]
+                th_L_verts_1 = [
+                    v for i, v in enumerate(
+                        th_orient_1.vertices[:n_metals]
+                    )
+                    if iter[i] == 1
+                ]
+                th_D_verts_2 = [
+                    v for i, v in enumerate(
+                        th_orient_2.vertices[:n_metals]
+                    )
+                    if iter[i] == 0
+                ]
+                th_L_verts_2 = [
+                    v for i, v in enumerate(
+                        th_orient_2.vertices[:n_metals]
+                    )
+                    if iter[i] == 1
+                ]
+                symm_list['th1'] = (
+                    th_orient_1,
+                    {
+                        D_complex: th_D_verts_1,
+                        L_complex: th_L_verts_1,
+                        linker: th_orient_1.vertices[n_metals:]
+                    },
+                    (4, 4)
+                )
+                # With rotated pattern.
+                symm_list['th2'] = (
+                    th_orient_2,
+                    {
+                        D_complex: th_D_verts_2,
+                        L_complex: th_L_verts_2,
+                        linker: th_orient_2.vertices[n_metals:]
+                    },
+                    (4, 4)
+                )
+
+                # T symmetry.
+
+                # D3 symmetry.
+
+                print(f'{len(symm_list)} symmetries')
 
         elif string == 'm6l2l3':
             symm_list = {}
