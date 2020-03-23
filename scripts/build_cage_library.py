@@ -131,7 +131,7 @@ def build_cages(
             else:
                 step_size = 0.05
                 distance_cut = 2.0
-            continue
+
             C.optimize(
                 free_e=default_free_e,
                 step_size=step_size,

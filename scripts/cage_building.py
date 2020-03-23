@@ -374,7 +374,7 @@ class CageSet:
         get_all=False
     ):
         """
-        Yields cage symmetries for a given topology.
+        Returns cage symmetries for a given topology.
 
         """
 
@@ -810,9 +810,6 @@ class HoCube(CageSet):
             get_all=False
         )
         for name_string in symmetries_to_build:
-            print(symmetries_to_build[name_string])
-            print(name_string)
-            input()
             new_name = (
                 f"C_{self.cage_dict['corner_name']}_"
                 f"{self.cage_dict['tetratopic']}_"
