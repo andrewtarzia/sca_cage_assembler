@@ -529,10 +529,15 @@ class CageSet:
                     # Metals.
                     0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
                     # Linkers.
-                    8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0
+                    8: 0, 9: 1, 10: 1, 11: 1, 12: 0, 13: 1
                 })
-
-
+                # With opposite rotation pattern.
+                th_orient_2 = topo(vertex_alignments={
+                    # Metals.
+                    0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
+                    # Linkers.
+                    8: 1, 9: 0, 10: 0, 11: 0, 12: 1, 13: 0
+                })
 
                 # Set metal complex symmetries.
                 iter = [0, 1, 0, 1, 0, 1, 0, 1]
@@ -581,8 +586,152 @@ class CageSet:
                 )
 
                 # T symmetry.
+                # All Delta, orientation pattern 1.
+                symm_list['t1'] = (
+                    th_orient_1,
+                    {
+                        D_complex: th_orient_1.vertices[:n_metals],
+                        linker: th_orient_1.vertices[n_metals:]
+                    },
+                    (8, 0)
+                )
+                # All Delta, orientation pattern 2.
+                symm_list['t2'] = (
+                    th_orient_2,
+                    {
+                        D_complex: th_orient_2.vertices[:n_metals],
+                        linker: th_orient_2.vertices[n_metals:]
+                    },
+                    (8, 0)
+                )
+                # All Lambda, orientation pattern 1.
+                symm_list['t3'] = (
+                    th_orient_1,
+                    {
+                        L_complex: th_orient_1.vertices[:n_metals],
+                        linker: th_orient_1.vertices[n_metals:]
+                    },
+                    (0, 8)
+                )
+                # All Lambda, orientation pattern 2.
+                symm_list['t4'] = (
+                    th_orient_2,
+                    {
+                        L_complex: th_orient_2.vertices[:n_metals],
+                        linker: th_orient_2.vertices[n_metals:]
+                    },
+                    (0, 8)
+                )
 
                 # D3 symmetry.
+                # Main metal symmetry is Delta.
+                # With default rotation pattern.
+                d3_orient_1 = topo(vertex_alignments={
+                    # Metals.
+                    0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
+                    # Linkers.
+                    8: 0, 9: 1, 10: 1, 11: 0, 12: 1, 13: 0
+                })
+                # With opposite rotation pattern.
+                d3_orient_2 = topo(vertex_alignments={
+                    # Metals.
+                    0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
+                    # Linkers.
+                    8: 1, 9: 0, 10: 0, 11: 1, 12: 0, 13: 1
+                })
+
+                # Set metal complex symmetries.
+                d3_iter_1 = [0, 0, 0, 1, 0, 1, 0, 0]
+                d3_D_verts_1 = [
+                    v for i, v in enumerate(
+                        d3_orient_1.vertices[:n_metals]
+                    )
+                    if d3_iter_1[i] == 0
+                ]
+                d3_L_verts_1 = [
+                    v for i, v in enumerate(
+                        d3_orient_1.vertices[:n_metals]
+                    )
+                    if d3_iter_1[i] == 1
+                ]
+                symm_list['d31'] = (
+                    d3_orient_1,
+                    {
+                        D_complex: d3_D_verts_1,
+                        L_complex: d3_L_verts_1,
+                        linker: d3_orient_1.vertices[n_metals:]
+                    },
+                    (6, 2)
+                )
+
+                d3_D_verts_1 = [
+                    v for i, v in enumerate(
+                        d3_orient_2.vertices[:n_metals]
+                    )
+                    if d3_iter_1[i] == 0
+                ]
+                d3_L_verts_1 = [
+                    v for i, v in enumerate(
+                        d3_orient_2.vertices[:n_metals]
+                    )
+                    if d3_iter_1[i] == 1
+                ]
+                symm_list['d32'] = (
+                    d3_orient_2,
+                    {
+                        D_complex: d3_D_verts_1,
+                        L_complex: d3_L_verts_1,
+                        linker: d3_orient_2.vertices[n_metals:]
+                    },
+                    (6, 2)
+                )
+
+                # Main metal symmetry is Lambda.
+                # Set metal complex symmetries.
+                d3_iter_2 = [1, 1, 1, 0, 1, 0, 1, 1]
+                d3_D_verts_3 = [
+                    v for i, v in enumerate(
+                        d3_orient_1.vertices[:n_metals]
+                    )
+                    if d3_iter_2[i] == 0
+                ]
+                d3_L_verts_3 = [
+                    v for i, v in enumerate(
+                        d3_orient_1.vertices[:n_metals]
+                    )
+                    if d3_iter_2[i] == 1
+                ]
+                symm_list['d33'] = (
+                    d3_orient_1,
+                    {
+                        D_complex: d3_D_verts_3,
+                        L_complex: d3_L_verts_3,
+                        linker: d3_orient_1.vertices[n_metals:]
+                    },
+                    (2, 6)
+                )
+
+                d3_D_verts_4 = [
+                    v for i, v in enumerate(
+                        d3_orient_2.vertices[:n_metals]
+                    )
+                    if d3_iter_2[i] == 0
+                ]
+                d3_L_verts_4 = [
+                    v for i, v in enumerate(
+                        d3_orient_2.vertices[:n_metals]
+                    )
+                    if d3_iter_2[i] == 1
+                ]
+                symm_list['d34'] = (
+                    d3_orient_2,
+                    {
+                        D_complex: d3_D_verts_4,
+                        L_complex: d3_L_verts_4,
+                        linker: d3_orient_2.vertices[n_metals:]
+                    },
+                    (2, 6)
+                )
 
                 print(f'{len(symm_list)} symmetries')
 
