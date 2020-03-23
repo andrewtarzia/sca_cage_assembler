@@ -17,68 +17,129 @@ import cage_building
 from utilities import read_lib
 
 
+def het_prism_analysis(cage):
+    """
+    Analyse cage set.
+
+    Analysis performed:
+         -
+         -
+
+    """
+
+    cage.load_properties()
+    # Compare average pore volume of each of the three topologies.
+    three_top = {'m4l4spacer': [], 'm8l6face': [], 'm6l2l3': []}
+    built_prop = cage.built_cage_properties
+    all_pore_volumes = []
+    all_min_OPs = []
+    all_topo_strs = []
+    for C in cage.cages_to_build:
+        C_data = built_prop[C.name]
+        TOPO = C.topology_string
+        three_top[TOPO].append(
+            C_data['pw_prop']['pore_volume_opt']
+        )
+        all_pore_volumes.append(
+            C_data['pw_prop']['pore_volume_opt']
+        )
+        all_topo_strs.append(TOPO)
+    avg_pore_vol = {
+        i: np.mean(three_top[i]) for i in three_top
+    }
+    print('avg pore volumes:', avg_pore_vol)
+
+    # Ensure at least one prismatic cage is stable.
+    prism_oct_op = {}
+    for C in cage.cages_to_build:
+        C_data = built_prop[C.name]
+        TOPO = C.topology_string
+        # Get minimium octahedral OP of the metal that is in the
+        # complex building block.
+        print(cage.complex_dicts)
+        atom_no_of_interest = list(set([
+            int(cage.complex_dicts[i]['metal_atom_no'])
+            for i in cage.complex_dicts
+        ]))
+        print(atom_no_of_interest)
+        print('rrrr',)
+        C_OP = [
+            C_data['op_prop'][str(i)]
+            for i in atom_no_of_interest
+        ]
+        print(C_OP)
+        target_OPs = [
+            i[j]['oct']
+            for i in C_OP
+            for j in i
+        ]
+        print('t', target_OPs)
+        all_min_OPs.append(min(target_OPs))
+        if TOPO == 'm6l2l3':
+            prism_oct_op[C.name] = min(target_OPs)
+    print('minimum prism OPs:', prism_oct_op)
+
+    # Plot all order parameter minimums VS average pore volumes.
+    cage.plot_min_OPs_avg_PV(
+        X=all_pore_volumes,
+        Y=all_min_OPs,
+        T=all_topo_strs
+    )
+    sys.exit()
+
+
+def homo_cube_analysis(cage):
+    """
+    Analyse cage set.
+
+    Analysis performed:
+         -
+         -
+
+    """
+
+    cage.load_properties()
+    built_prop = cage.built_cage_properties
+
+    # Get measures of all cages.
+    oct_op = {}
+    for C in cage.cages_to_build:
+        C_data = built_prop[C.name]
+        # Get minimium octahedral OP of the metal that is in the
+        # complex building block.
+        print(cage.complex_dicts)
+        atom_no_of_interest = list(set([
+            int(cage.complex_dicts[i]['metal_atom_no'])
+            for i in cage.complex_dicts
+        ]))
+        print(atom_no_of_interest)
+        print('rrrr',)
+        C_OP = [
+            C_data['op_prop'][str(i)]
+            for i in atom_no_of_interest
+        ]
+        print(C_OP)
+        target_OPs = [
+            i[j]['oct']
+            for i in C_OP
+            for j in i
+        ]
+        print('t', target_OPs)
+        oct_op[C.name] = min(target_OPs)
+    print('minimum OPs:', oct_op)
+
+    # Plot all order parameter minimums.
+    cage.plot_min_OPs(data=oct_op)
+    sys.exit()
+
+
 def analyse_cages(cages):
 
     for cage in cages:
-        cage.load_properties()
-        # Compare average pore volume of each of the three topologies.
-        three_top = {'m4l4spacer': [], 'm8l6face': [], 'm6l2l3': []}
-        built_prop = cage.built_cage_properties
-        all_pore_volumes = []
-        all_min_OPs = []
-        all_topo_strs = []
-        for C in cage.cages_to_build:
-            C_data = built_prop[C.name]
-            TOPO = C.topology_string
-            three_top[TOPO].append(
-                C_data['pw_prop']['pore_volume_opt']
-            )
-            all_pore_volumes.append(
-                C_data['pw_prop']['pore_volume_opt']
-            )
-            all_topo_strs.append(TOPO)
-        avg_pore_vol = {
-            i: np.mean(three_top[i]) for i in three_top
-        }
-        print('avg pore volumes:', avg_pore_vol)
-
-        # Ensure at least one prismatic cage is stable.
-        prism_oct_op = {}
-        for C in cage.cages_to_build:
-            C_data = built_prop[C.name]
-            TOPO = C.topology_string
-            # Get minimium octahedral OP of the metal that is in the
-            # complex building block.
-            print(cage.complex_dicts)
-            atom_no_of_interest = list(set([
-                int(cage.complex_dicts[i]['metal_atom_no'])
-                for i in cage.complex_dicts
-            ]))
-            print(atom_no_of_interest)
-            print('rrrr',)
-            C_OP = [
-                C_data['op_prop'][str(i)]
-                for i in atom_no_of_interest
-            ]
-            print(C_OP)
-            target_OPs = [
-                i[j]['oct']
-                for i in C_OP
-                for j in i
-            ]
-            print('t', target_OPs)
-            all_min_OPs.append(min(target_OPs))
-            if TOPO == 'm6l2l3':
-                prism_oct_op[C.name] = min(target_OPs)
-        print('minimum prism OPs:', prism_oct_op)
-
-        # Plot all order parameter minimums VS average pore volumes.
-        cage.plot_min_OPs_avg_PV(
-            X=all_pore_volumes,
-            Y=all_min_OPs,
-            T=all_topo_strs
-        )
-        sys.exit()
+        if cage.__class__.__name__ == 'HetPrism':
+            het_prism_analysis(cage)
+        elif cage.__class__.__name__ == 'HoCube':
+            homo_cube_analysis(cage)
 
 
 def build_cages(
@@ -196,7 +257,6 @@ def main():
         ligand_directory,
         compl_directory
     )
-    sys.exit()
     analyse_cages(cages)
 
     sys.exit()

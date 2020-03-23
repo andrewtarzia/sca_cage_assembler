@@ -856,55 +856,42 @@ class HoCube(CageSet):
 
         return cages_to_build
 
-    def plot_min_OPs_avg_PV(self, X, Y, T):
-        topo_c_m = {
-            'm4l4spacer': ('#E074AF', 'o', r'M$_4$L$_4$'),
-            'm8l6face': ('#AFE074', 'X', r'M$_8$L$_6$'),
-            'm6l2l3': ('#74AFE0', 'P', r'M$_6$L$^a_2$L$^b_3$')
-        }
-
-        Cs = [
-            topo_c_m[C.topology_string][0]
-            for C in self.cages_to_build
-        ]
-        print(len(X), len(Y), len(Cs))
+    def plot_min_OPs(self, data):
+        C = '#AFE074'
+        M = 'o'
 
         fig, ax = plt.subplots(figsize=(8, 5))
-        for x, y, t in zip(X, Y, T):
+        x_pos_list = []
+        names_list = []
+        for i, name in enumerate(data):
+            print(i, name)
+            X = i+2
+            names_list.append(name.split('_')[-1])
+            print(name, names_list)
+            input('check this!')
+            raise NotImplementedError('seriously check this')
+            x_pos_list.append(X)
             ax.scatter(
-                x,
-                y,
-                c=topo_c_m[t][0],
+                X,
+                data[name],
+                c=C,
                 edgecolors='k',
-                marker=topo_c_m[t][1],
+                marker=M,
                 alpha=1.0,
-                s=80
+                s=120
             )
         # Set number of ticks for x-axis
         ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.set_xlabel(r'pore volume [$\mathrm{\AA}^3$]', fontsize=16)
+        # ax.set_xlabel(r'pore volume [$\mathrm{\AA}^3$]', fontsize=16)
         ax.set_ylabel(r'min. $q_{\mathrm{oct}}$', fontsize=16)
-        ax.set_xlim(0, 2000)
+        ax.set_xlim(0, i+3)
         ax.set_ylim(0, 1)
-
-        # Implement legend.
-        for i in topo_c_m:
-            ax.scatter(
-                -1000,
-                -1000,
-                c=topo_c_m[i][0],
-                edgecolors='k',
-                marker=topo_c_m[i][1],
-                alpha=1.0,
-                s=80,
-                label=topo_c_m[i][2]
-            )
-
-        ax.legend(fontsize=16)
+        ax.set_xticklabels(names_list)
+        ax.set_xticks(x_pos_list)
 
         fig.tight_layout()
         fig.savefig(
-            f'{self.name}_minOPsVSporevol.pdf',
+            f'{self.name}_minOPs.pdf',
             dpi=720,
             bbox_inches='tight'
         )
