@@ -148,6 +148,7 @@ class Cage:
             # solvent=('dmso', 'verytight')
         )
         self.cage.write(f'{self.opt_file}.mol')
+        self.cage.write(f'{self.opt_file}.xyz')
         self.cage.dump(f'{self.opt_file}.json')
 
     def get_energy(self):
@@ -867,9 +868,6 @@ class HoCube(CageSet):
             print(i, name)
             X = i+2
             names_list.append(name.split('_')[-1])
-            print(name, names_list)
-            input('check this!')
-            raise NotImplementedError('seriously check this')
             x_pos_list.append(X)
             ax.scatter(
                 X,
