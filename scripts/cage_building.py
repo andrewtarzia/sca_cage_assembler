@@ -90,10 +90,7 @@ class Cage:
     def save_bb_xyz(self):
         self.cage.write(f'{self.bb_file}.xyz')
 
-        bb_ids = {i.id: i.building_block_id for i in self.cage.atoms}
         bb_types = [i for i in self.cage.get_building_blocks()]
-        print(bb_types)
-        input()
 
         # Add column to XYZ file.
         with open(f'{self.bb_file}.xyz', 'r') as f:
@@ -104,7 +101,6 @@ class Cage:
             if i < 2:
                 continue
             atom_id = i-2
-            bb_id = bb_ids[atom_id]
             bb_type = str(
                 bb_types.index(self.cage.atoms[atom_id].building_block)
             )
