@@ -875,6 +875,30 @@ class HoCube(CageSet):
 
     """
 
+    def __init__(
+        self,
+        name,
+        cage_dict,
+        complex_dicts,
+        ligand_dicts,
+        ligand_dir,
+        complex_dir
+    ):
+
+        super().__init__(
+            name,
+            cage_dict,
+            complex_dicts,
+            ligand_dicts,
+            ligand_dir,
+            complex_dir
+        )
+
+        # Get ligand aspect ratio.
+        self.ligand_aspect_ratio = self._get_ligand_AR(ligand_dir)
+        print(self.name, self.ligand_aspect_ratio)
+        input('check AR')
+
     def define_cages_to_build(self, ligand_dir, complex_dir):
         """
         Defines the name and objects of all cages to build.
@@ -1023,6 +1047,26 @@ class HetPrism(CageSet):
     cages.
 
     """
+
+    def __init__(
+        self,
+        name,
+        cage_dict,
+        complex_dicts,
+        ligand_dicts,
+        ligand_dir,
+        complex_dir
+    ):
+
+
+        super().__init__(
+            name,
+            cage_dict,
+            complex_dicts,
+            ligand_dicts,
+            ligand_dir,
+            complex_dir
+        )
 
     def define_cages_to_build(self, ligand_dir, complex_dir):
         """
