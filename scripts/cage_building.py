@@ -541,7 +541,7 @@ class CageSet:
                 })
 
                 # Set metal complex symmetries.
-                iter = [0, 1, 0, 1, 0, 1, 0, 1]
+                iter = [0, 1, 0, 1, 1, 0, 1, 0]
                 th_D_verts_1 = [
                     v for i, v in enumerate(
                         th_orient_1.vertices[:n_metals]
@@ -732,6 +732,100 @@ class CageSet:
                         linker: d3_orient_2.vertices[n_metals:]
                     },
                     (2, 6)
+                )
+
+                # S6 symmetry has Th face orientations, with new
+                # complex patterns.
+                # Set metal complex symmetries.
+                iter = [0, 0, 0, 1, 1, 0, 1, 1]
+                s6_D_verts_1 = [
+                    v for i, v in enumerate(
+                        th_orient_1.vertices[:n_metals]
+                    )
+                    if iter[i] == 0
+                ]
+                s6_L_verts_1 = [
+                    v for i, v in enumerate(
+                        th_orient_1.vertices[:n_metals]
+                    )
+                    if iter[i] == 1
+                ]
+                s6_D_verts_2 = [
+                    v for i, v in enumerate(
+                        th_orient_1.vertices[:n_metals]
+                    )
+                    if iter[i] == 1
+                ]
+                s6_L_verts_2 = [
+                    v for i, v in enumerate(
+                        th_orient_1.vertices[:n_metals]
+                    )
+                    if iter[i] == 0
+                ]
+                s6_D_verts_3 = [
+                    v for i, v in enumerate(
+                        th_orient_2.vertices[:n_metals]
+                    )
+                    if iter[i] == 0
+                ]
+                s6_L_verts_3 = [
+                    v for i, v in enumerate(
+                        th_orient_2.vertices[:n_metals]
+                    )
+                    if iter[i] == 1
+                ]
+                s6_D_verts_4 = [
+                    v for i, v in enumerate(
+                        th_orient_2.vertices[:n_metals]
+                    )
+                    if iter[i] == 1
+                ]
+                s6_L_verts_4 = [
+                    v for i, v in enumerate(
+                        th_orient_2.vertices[:n_metals]
+                    )
+                    if iter[i] == 0
+                ]
+                # T symmetry.
+                # Complex orientation 1, orientation pattern 1.
+                symm_list['s61'] = (
+                    th_orient_1,
+                    {
+                        D_complex: s6_D_verts_1,
+                        L_complex: s6_L_verts_1,
+                        linker: th_orient_1.vertices[n_metals:]
+                    },
+                    (4, 4)
+                )
+                # Complex orientation 2, orientation pattern 1.
+                symm_list['s62'] = (
+                    th_orient_1,
+                    {
+                        D_complex: s6_D_verts_2,
+                        L_complex: s6_L_verts_2,
+                        linker: th_orient_1.vertices[n_metals:]
+                    },
+                    (4, 4)
+                )
+                # Complex orientation 1, orientation pattern 2.
+                symm_list['s63'] = (
+                    th_orient_2,
+                    {
+                        D_complex: s6_D_verts_3,
+                        L_complex: s6_L_verts_3,
+                        linker: th_orient_2.vertices[n_metals:]
+                    },
+                    (4, 4)
+                )
+                # Complex orientation 2, orientation pattern 2.
+                symm_list['s64'] = (
+                    th_orient_2,
+                    {
+                        D_complex: s6_D_verts_4,
+                        L_complex: s6_L_verts_4,
+                        linker: th_orient_2.vertices[n_metals:]
+                    },
+                    (4, 4)
                 )
 
                 print(f'{len(symm_list)} symmetries')
