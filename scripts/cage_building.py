@@ -65,6 +65,7 @@ class Cage:
         self.topology_string = topology_string
         self.bb_vertices = bb_vertices
         self.unopt_file = f'{self.name}_unopt'
+        self.bb_file = f'{self.name}_BBs'
         self.crush_file = f'{self.name}_cru'
         self.uff4mof_file = f'{self.name}_uff'
         self.uffMD_file = f'{self.name}_prextb'
@@ -85,6 +86,34 @@ class Cage:
         cage.write(f'{self.unopt_file}.mol')
         cage.dump(f'{self.unopt_file}.json')
         self.cage = cage
+
+    def save_bb_xyz(self):
+        self.cage.write(f'{self.bb_file}.xyz')
+
+        bb_ids = {i.id: i.building_block_id for i in self.cage.atoms}
+        bb_types = [i for i in self.cage.get_building_blocks()]
+        print(bb_types)
+        input()
+
+        # Add column to XYZ file.
+        with open(f'{self.bb_file}.xyz', 'r') as f:
+            lines = f.readlines()
+
+        new_lines = [i.rstrip() for i in lines]
+        for i, nl in enumerate(new_lines):
+            if i < 2:
+                continue
+            atom_id = i-2
+            bb_id = bb_ids[atom_id]
+            bb_type = str(
+                bb_types.index(self.cage.atoms[atom_id].building_block)
+            )
+            new_line = nl+' '+bb_type
+            new_lines[i] = new_line
+
+        with open(f'{self.bb_file}.xyz', 'w') as f:
+            for line in new_lines:
+                f.write(line+'\n')
 
     def optimize(self, free_e, step_size, distance_cut):
         custom_metal_FFs = metal_FFs(CN=6)
