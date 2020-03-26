@@ -12,9 +12,49 @@ Date Created: 27 Jan 2020
 
 import sys
 import numpy as np
+import matplotlib.pyplot as plt
 
 import cage_building
 from utilities import read_lib
+
+
+def plot_set_Y_vs_aniso(data, Y_name, ylabel, ylim, filename):
+    C = '#AFE074'
+    M = 'o'
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for name in data:
+        X = data[name]['aspect_ratio']
+        # Iterate over all cages in set.
+        for Y_d in data[name][Y_name]:
+            Y = data[name][Y_name][Y_d]
+            print(name, X, Y)
+            print(data[name])
+            print(data[name][Y_name])
+            input()
+            ax.scatter(
+                X,
+                Y,
+                c=C,
+                edgecolors='k',
+                marker=M,
+                alpha=1.0,
+                s=120
+            )
+    # Set number of ticks for x-axis
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.set_xlabel('ligand aspect ratio [1:X]', fontsize=16)
+    ax.set_ylabel(ylabel, fontsize=16)
+    ax.set_xlim(1, 10)
+    ax.set_ylim(ylim)
+
+    fig.tight_layout()
+    fig.savefig(
+        filename,
+        dpi=720,
+        bbox_inches='tight'
+    )
+    plt.close()
 
 
 def het_prism_analysis(cage):
@@ -129,17 +169,44 @@ def homo_cube_analysis(cage):
     print('minimum OPs:', oct_op)
 
     # Plot all order parameter minimums.
-    cage.plot_min_OPs(data=oct_op)
-    sys.exit()
+    cage.plot_Y(
+        data=oct_op,
+        ylabel=r'min. $q_{\mathrm{oct}}$',
+        ylim=(0, 1),
+        filename=f'{cage.name}_minOPs.pdf'
+    )
+
+    return oct_op
 
 
 def analyse_cages(cages):
 
+    AR_data = {}
     for cage in cages:
         if cage.__class__.__name__ == 'HetPrism':
             het_prism_analysis(cage)
         elif cage.__class__.__name__ == 'HoCube':
-            homo_cube_analysis(cage)
+            oct_op = homo_cube_analysis(cage)
+            # For all HoCube sets, collect ligand aspect ratio data.
+            AR_data[cage.name] = {
+                'min_OPs': oct_op,
+                'aspect_ratio': cage.ligand_aspect_ratio
+            }
+
+    # Plot ligand aspect ratio data.
+    tests = {
+        # Test: (ylabel, ylim)
+        'min_OP': (r'min. $q_{\mathrm{oct}}$', (0, 1))
+    }
+    if len(AR_data) > 0:
+        for t in tests:
+            plot_set_Y_vs_aniso(
+                data=AR_data,
+                Y_name=t,
+                ylabel=tests[t][0],
+                ylim=tests[t][0],
+                filename=f'plotset_{t}_VA.pdf'
+            )
 
 
 def build_cages(

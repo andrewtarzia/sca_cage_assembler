@@ -1050,7 +1050,7 @@ class HoCube(CageSet):
 
         return cages_to_build
 
-    def plot_min_OPs(self, data):
+    def plot_Y(self, data, ylabel, ylim, filename):
         C = '#AFE074'
         M = 'o'
 
@@ -1074,15 +1074,15 @@ class HoCube(CageSet):
         # Set number of ticks for x-axis
         ax.tick_params(axis='both', which='major', labelsize=16)
         # ax.set_xlabel(r'pore volume [$\mathrm{\AA}^3$]', fontsize=16)
-        ax.set_ylabel(r'min. $q_{\mathrm{oct}}$', fontsize=16)
+        ax.set_ylabel(ylabel, fontsize=16)
         ax.set_xlim(0, i+3)
-        ax.set_ylim(0, 1)
+        ax.set_ylim(ylim)
         ax.set_xticklabels(names_list)
         ax.set_xticks(x_pos_list)
 
         fig.tight_layout()
         fig.savefig(
-            f'{self.name}_minOPs.pdf',
+            filename,
             dpi=720,
             bbox_inches='tight'
         )
