@@ -182,6 +182,7 @@ def build_cages(
         for C in cage.cages_to_build:
             print(C)
             C.build()
+            C.save_bb_xyz()
             default_free_e = C.free_electron_options[0]
             print(C.free_electron_options, default_free_e)
             if 'm6l2l3' in C.name:
@@ -192,7 +193,7 @@ def build_cages(
             else:
                 step_size = 0.05
                 distance_cut = 2.0
-
+            continue
             C.optimize(
                 free_e=default_free_e,
                 step_size=step_size,
@@ -257,9 +258,9 @@ def main():
         ligand_directory,
         compl_directory
     )
+    sys.exit()
     analyse_cages(cages)
 
-    sys.exit()
 
 
 if __name__ == "__main__":
