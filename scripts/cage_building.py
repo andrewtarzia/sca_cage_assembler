@@ -111,7 +111,7 @@ class Cage:
             for line in new_lines:
                 f.write(line+'\n')
 
-    def optimize(self, free_e, step_size, distance_cut):
+    def optimize(self, free_e, step_size, distance_cut, scale_steps):
         custom_metal_FFs = metal_FFs(CN=6)
 
         # Skip if _opt.json exists.
@@ -126,12 +126,12 @@ class Cage:
                 self.cage,
                 self.name,
                 step_size=step_size,
-                distance_cut=distance_cut
+                distance_cut=distance_cut,
+                scale_steps=scale_steps
             )
             self.cage.write(f'{self.crush_file}.mol')
         else:
             self.cage.update_from_file(f'{self.crush_file}.mol')
-
         # Run if uff4mof opt output does not exist.
         if not exists(f'{self.uff4mof_file}.mol'):
             self.cage = atools.MOC_uff_opt(

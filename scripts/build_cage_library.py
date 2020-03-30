@@ -252,20 +252,28 @@ def build_cages(
             C.save_bb_xyz()
             default_free_e = C.free_electron_options[0]
             print(C.free_electron_options, default_free_e)
-            if 'm6l2l3' in C.name:
+            if C.topology_string == 'm6l2l3':
                 # Use a slightly different collapser threshold for
                 # prism.
                 step_size = 0.05
                 distance_cut = 3.0
+                scale_steps = True
+            elif C.topology_string == 'm8l6face':
+                step_size = 0.05
+                distance_cut = 2.0
+                scale_steps = False
             else:
                 step_size = 0.05
                 distance_cut = 2.0
-            continue
+                scale_steps = True
+
             C.optimize(
                 free_e=default_free_e,
                 step_size=step_size,
-                distance_cut=distance_cut
+                distance_cut=distance_cut,
+                scale_steps=scale_steps
             )
+            continue
             C.analyze_cage_geometry()
             C.analyze_cage_porosity()
             cage.built_cage_properties[C.name] = {
