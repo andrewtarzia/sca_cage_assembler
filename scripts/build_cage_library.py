@@ -266,7 +266,6 @@ def build_cages(
                 step_size = 0.05
                 distance_cut = 2.0
                 scale_steps = True
-
             C.optimize(
                 free_e=default_free_e,
                 step_size=step_size,
@@ -274,6 +273,7 @@ def build_cages(
                 scale_steps=scale_steps
             )
             continue
+
             C.analyze_cage_geometry()
             C.analyze_cage_porosity()
             cage.built_cage_properties[C.name] = {
