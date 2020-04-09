@@ -5,5 +5,19 @@
         "tetratopic": "quad2_12",
         "heteroleptic": false,
         "experimental": true
+    },
+    "cl1_quad2_12": {
+        "corners": ["cl1_zn_oct_del", "cl1_zn_oct_lam"],
+        "corner_name": "cl2",
+        "tetratopic": "quad2_8",
+        "heteroleptic": false,
+        "experimental": true
+    },
+    "cl1_quad2_12": {
+        "corners": ["cl1_zn_oct_del", "cl1_zn_oct_lam"],
+        "corner_name": "cl3",
+        "tetratopic": "quad2_16",
+        "heteroleptic": false,
+        "experimental": true
     }
 }
