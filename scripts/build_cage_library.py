@@ -274,8 +274,10 @@ def build_cages(
             )
             continue
 
-            C.analyze_cage_geometry()
+            C.analyze_cage_metal_strain()
             C.analyze_cage_porosity()
+            C.analyze_cage_formation_energy()
+            C.analyze_cage_ligand_strain()
             cage.built_cage_properties[C.name] = {
                 'pw_prop': C.pw_data,
                 'op_prop': C.op_data,

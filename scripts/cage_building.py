@@ -185,7 +185,23 @@ class Cage:
         print(f'....comparing UHF of {self.name}')
         raise NotImplementedError()
 
-    def analyze_cage_geometry(self):
+    def analyze_cage_formation_energy(self):
+        """
+        Analyse cage geometry using order parameters.
+
+        """
+
+        raise NotImplementedError()
+
+    def analyze_cage_ligand_strain(self):
+        """
+        Analyse cage geometry using order parameters.
+
+        """
+
+        raise NotImplementedError()
+
+    def analyze_cage_metal_strain(self):
         """
         Analyse cage geometry using order parameters.
 
