@@ -6,14 +6,14 @@
         "heteroleptic": false,
         "experimental": true
     },
-    "cl1_quad2_12": {
+    "cl2_quad2_8": {
         "corners": ["cl1_zn_oct_del", "cl1_zn_oct_lam"],
         "corner_name": "cl2",
         "tetratopic": "quad2_8",
         "heteroleptic": false,
         "experimental": true
     },
-    "cl1_quad2_12": {
+    "cl3_quad2_16": {
         "corners": ["cl1_zn_oct_del", "cl1_zn_oct_lam"],
         "corner_name": "cl3",
         "tetratopic": "quad2_16",
