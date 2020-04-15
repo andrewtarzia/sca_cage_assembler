@@ -69,6 +69,7 @@ class Cage:
         self.bb_file = f'{self.name}_BBs'
         self.crush_file = f'{self.name}_cru'
         self.uff4mof_file = f'{self.name}_uff'
+        self.uff4mof_CG_file = f'{self.name}_uffCG'
         self.uffMD_file = f'{self.name}_prextb'
         self.opt_file = f'{self.name}_optc'
         self.pw_file = f'{self.name}_pw'
@@ -133,6 +134,19 @@ class Cage:
             self.cage.write(f'{self.crush_file}.mol')
         else:
             self.cage.update_from_file(f'{self.crush_file}.mol')
+
+        # Run if uff4mof opt output does not exist.
+        if not exists(f'{self.uff4mof_CG_file}.mol'):
+            self.cage = atools.MOC_uff_opt(
+                self.cage,
+                self.name,
+                metal_FFs=custom_metal_FFs,
+                CG=True
+            )
+            self.cage.write(f'{self.uff4mof_CG_file}.mol')
+        else:
+            self.cage.update_from_file(f'{self.uff4mof_CG_file}.mol')
+
         # Run if uff4mof opt output does not exist.
         if not exists(f'{self.uff4mof_file}.mol'):
             self.cage = atools.MOC_uff_opt(
