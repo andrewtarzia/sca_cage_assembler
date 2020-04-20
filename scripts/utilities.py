@@ -115,3 +115,49 @@ def optimize_molecule(
     xtb_opt.optimize(mol=mol)
 
     return mol
+
+def calculate_binding_AR(mol):
+    """
+    Calculate ligand aspect ratio based on binder positions.
+
+    Defined as:
+
+    """
+
+    print(mol.func_groups)
+    fg_ids = range(len(mol.func_groups))
+    print(fg_ids)
+    if len(mol.func_groups) != 4:
+        return None
+
+    binder_atom_ids = [
+        list(mol.get_bonder_ids(fg_ids=[i]))
+        for i in fg_ids
+    ]
+    print(binder_atom_ids)
+    binder_atom_dists = sorted(
+        list(mol.get_bonder_distances()),
+        key=lambda a: a[2]
+    )
+
+    print(binder_atom_dists)
+    far_binder_pair = (
+        binder_atom_dists[-1][0],
+        binder_atom_dists[-1][1]
+    )
+    print(far_binder_pair)
+    ARs = []
+    for fg_id in far_binder_pair:
+        print(fg_id)
+        ds = sorted([
+            i[2] for i in binder_atom_dists
+            if fg_id in (i[0], i[1])
+        ])
+        print(ds)
+        AR = ds[1]/min(ds)
+        print(AR)
+        ARs.append(AR)
+
+    ligand_AR = sum(ARs)/len(ARs)
+    print(ARs, ligand_AR)
+    return ligand_AR

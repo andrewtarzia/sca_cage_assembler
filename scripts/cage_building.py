@@ -567,13 +567,10 @@ class HoCube(CageSet):
         # Get ligand aspect ratio.
         self.ligand_aspect_ratio = self._get_ligand_AR(ligand_dir)
         print(self.name, self.ligand_aspect_ratio)
-        input('check AR')
 
     def _get_ligand_AR(self, ligand_dir):
         """
         Calculate ligand aspect ratio based on binder positions.
-
-        Defined as:
 
         """
 
@@ -582,41 +579,8 @@ class HoCube(CageSet):
             ligand_dir=ligand_dir
         )
         print(tet_linker, self.cage_dict['tetratopic'])
+        ligand_AR = calculate_binding_AR(tet_linker)
 
-        print(tet_linker.func_groups)
-        fg_ids = range(len(tet_linker.func_groups))
-        print(fg_ids)
-
-        binder_atom_ids = [
-            list(tet_linker.get_bonder_ids(fg_ids=[i]))
-            for i in fg_ids
-        ]
-        print(binder_atom_ids)
-        binder_atom_dists = sorted(
-            list(tet_linker.get_bonder_distances()),
-            key=lambda a: a[2]
-        )
-
-        print(binder_atom_dists)
-        far_binder_pair = (
-            binder_atom_dists[-1][0],
-            binder_atom_dists[-1][1]
-        )
-        print(far_binder_pair)
-        ARs = []
-        for fg_id in far_binder_pair:
-            print(fg_id)
-            ds = sorted([
-                i[2] for i in binder_atom_dists
-                if fg_id in (i[0], i[1])
-            ])
-            print(ds)
-            AR = ds[1]/min(ds)
-            print(AR)
-            ARs.append(AR)
-
-        ligand_AR = sum(ARs)/len(ARs)
-        print(ARs, ligand_AR)
         return ligand_AR
 
     def define_cages_to_build(self, ligand_dir, complex_dir):

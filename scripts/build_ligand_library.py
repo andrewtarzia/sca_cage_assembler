@@ -18,7 +18,7 @@ import stk
 
 import atools
 import molecule_building
-from utilities import read_lib
+from utilities import read_lib, calculate_binding_AR
 
 
 def build_organics(ligs):
@@ -198,21 +198,40 @@ def output_2d_images(ligs):
         comp = ligs[name]
         optjson_name = f'{name}_opt.json'
         if ligs[name]['is_organic']:
-            MOL = stk.BuildingBlock.load(optjson_name).to_rdkit_mol()
-            MOL = rdkit.MolFromSmiles(rdkit.MolToSmiles(MOL))
+            BB = stk.BuildingBlock.load(optjson_name)
+            MOL = rdkit.MolFromSmiles(
+                rdkit.MolToSmiles(BB.to_rdkit_mol())
+            )
             mols.append(MOL)
-            names.append(name)
+            AR = calculate_binding_AR(
+                stk.BuildingBlock.init_from_molecule(
+                    BB,
+                    functional_groups=['bromine']
+                )
+            )
+            label = f'{name}'
+            if AR is not None:
+                label = f'{label}: {round(AR,2)}'
+            names.append(label)
         else:
             BB = stk.BuildingBlock.load(
                 f"{comp['organic_BB']}_opt.json"
-            ).to_rdkit_mol()
-            smi = rdkit.MolToSmiles(BB)
+            )
+            smi = rdkit.MolToSmiles(BB.to_rdkit_mol())
             msmi = comp['metal_smiles']
             tot_smi = f'{msmi}.{smi}'
             MOL = rdkit.MolFromSmiles(tot_smi)
             mols.append(MOL)
             top_str = comp['ctopo']
             label = f'{name}\n{top_str}'
+            AR = calculate_binding_AR(
+                stk.BuildingBlock.init_from_molecule(
+                    BB,
+                    functional_groups=['bromine']
+                )
+            )
+            if AR is not None:
+                label = f'{label}: {round(AR,2)}'
             names.append(label)
 
         atools.draw_mol_to_svg(
@@ -227,7 +246,7 @@ def output_2d_images(ligs):
         filename='built_ligands/built_ligands',
         mol_per_row=3,
         maxrows=3,
-        subImgSize=(250, 250)
+        subImgSize=(250, 200)
     )
 
     return
