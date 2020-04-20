@@ -208,12 +208,50 @@ class Cage:
         raise NotImplementedError()
 
     def analyze_cage_ligand_strain(self):
+    def get_organic_linkers(self, metal_atom_no):
         """
         Analyse cage geometry using order parameters.
+        Extract a list of organic linker structures from the cage.
 
         """
 
         raise NotImplementedError()
+        org_lig = {}
+
+        # Produce a graph from the cage that does not include metals.
+        cage_g = nx.Graph()
+        atom_ids_in_G = []
+        for atom in self.cage.atoms:
+            if atom.atomic_number == metal_atom_no:
+                continue
+            cage_g.add_node(atom)
+            atom_ids_in_G.append(atom.id)
+
+        # Add edges.
+        for bond in self.cage.bonds:
+            a1id = bond.atom1.id
+            a2id = bond.atom2.id
+            if a1id in atom_ids_in_G and a2id in atom_ids_in_G:
+                cage_g.add_edge(bond.atom1, bond.atom2)
+
+        # Get disconnected subgraphs as molecules.
+        connected_graphs = nx.connected_components(cage_g)
+        for i, cg in enumerate(connected_graphs):
+            # Get atoms from nodes.
+            atoms = list(cg)
+            atom_ids = [i.id for i in atoms]
+
+            # Write to mol file.
+            filename_ = f'{self.name}_sg_{i}.mol'
+            self.cage.write(
+                filename_,
+                atom_ids=atom_ids
+            )
+            org_lig[i] = stk.BuildingBlock.init_from_file(filename_)
+            # Rewrite to fix atom ids.
+            org_lig[i].write(filename_)
+
+        return org_lig
 
     def analyze_cage_metal_strain(self):
         """
