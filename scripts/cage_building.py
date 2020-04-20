@@ -210,12 +210,10 @@ class Cage:
     def analyze_cage_ligand_strain(self):
     def get_organic_linkers(self, metal_atom_no):
         """
-        Analyse cage geometry using order parameters.
         Extract a list of organic linker structures from the cage.
 
         """
 
-        raise NotImplementedError()
         org_lig = {}
 
         # Produce a graph from the cage that does not include metals.
@@ -236,20 +234,32 @@ class Cage:
 
         # Get disconnected subgraphs as molecules.
         connected_graphs = nx.connected_components(cage_g)
+        # Define ligand types based on the number of nodes in them.
+        # This assumes that two different ligands must have different
+        # numbers of atoms.
+        lig_types = {
+            i: str(i)
+            for i in sorted(
+                list(len(j) for j in nx.connected_components(cage_g))
+            )
+        }
+
         for i, cg in enumerate(connected_graphs):
             # Get atoms from nodes.
             atoms = list(cg)
             atom_ids = [i.id for i in atoms]
-
+            sgt = lig_types[len(atoms)]
             # Write to mol file.
-            filename_ = f'{self.name}_sg_{i}.mol'
+            filename_ = f'{self.name}_sg{sgt}_{i}.mol'
             self.cage.write(
                 filename_,
                 atom_ids=atom_ids
             )
-            org_lig[i] = stk.BuildingBlock.init_from_file(filename_)
+            org_lig[filename_] = stk.BuildingBlock.init_from_file(
+                filename_
+            )
             # Rewrite to fix atom ids.
-            org_lig[i].write(filename_)
+            org_lig[filename_].write(filename_)
 
         return org_lig
 
@@ -684,7 +694,7 @@ class HoCube(CageSet):
 
         return cages_to_build
 
-    def plot_Y(self, data, ylabel, ylim, filename):
+    def plot_Y(self, data, ylabel, filename, ylim=None):
         C = '#AFE074'
         M = 'o'
 
