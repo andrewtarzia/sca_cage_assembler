@@ -12,6 +12,9 @@ Date Created: 15 Mar 2020
 
 import json
 import stk
+from rdkit.Chem import AllChem as rdkit
+
+import atools
 
 
 def read_lib(lib_file):
@@ -54,6 +57,7 @@ def calculate_energy(
     Calculate GFN-xTB energy of molecule.
 
     """
+
     print(f'....getting energy of {name}')
     if solvent is None:
         solvent_str = None
@@ -92,6 +96,7 @@ def optimize_molecule(
     Run simple GFN-xTB optimisation of molecule.
 
     """
+
     print(f'....optimizing {name}')
     if solvent is None:
         solvent_str = None
@@ -115,6 +120,98 @@ def optimize_molecule(
     xtb_opt.optimize(mol=mol)
 
     return mol
+
+
+def build_conformers(mol, N):
+    conformers = mol.to_rdkit_mol()
+    etkdg = rdkit.ETKDGv2()
+    etkdg.randomSeed = 1000
+    cids = rdkit.EmbedMultipleConfs(
+        mol=conformers,
+        numConfs=N,
+        params=etkdg
+    )
+    return conformers, cids
+
+
+def calculate_lowest_E_conformer(
+    name,
+    mol,
+    opt_level='extreme',
+    charge=0,
+    no_unpaired_e=0,
+    max_runs=1,
+    calc_hessian=False,
+    solvent=None
+):
+    """
+    Get lowest energy conformer of molecule.
+
+    Method:
+        1) ETKDG conformer search on molecule
+        2) xTB normal optimisation of each conformer
+        3) xTB opt_level optimisation of lowest energy conformer
+        4) save file
+
+    """
+
+    # Run ETKDG on molecule.
+    print(f'....running ETKDG on {name}')
+    confs, cids = build_conformers(mol, N=100)
+
+    # Optimize all conformers at normal level with xTB.
+    low_e_conf_id = -100
+    low_e = 10E20
+    for cid in cids:
+        name_ = f'{name}_confs/c_{cid}'
+        ey_file = f'{name}_confs/c_{cid}_eyout'
+        print(name, ey_file)
+        mol = atools.update_from_rdkit_conf(
+            mol,
+            confs,
+            conf_id=cid
+        )
+        mol.write(f'temp_c_{cid}.mol')
+
+        # Optimize.
+        opt_mol = optimize_molecule(
+            name=name_+'_opt',
+            mol=mol,
+            opt_level='normal'
+        )
+
+        # Get energy.
+        calculate_energy(
+            name=name_+'_ey',
+            mol=opt_mol,
+            ey_file=ey_file
+        )
+        ey = read_ey(ey_file)
+        if ey < low_e:
+            low_e_conf_id = cid
+            low_e = ey
+        print(ey, low_e, low_e_conf_id, cid)
+
+    # Get lowest energy conformer.
+    low_e_conf = atools.update_from_rdkit_conf(
+        mol,
+        confs,
+        conf_id=low_e_conf_id
+    )
+    low_e_conf.write('temp_pre_opt.mol')
+
+    # Optimize lowest energy conformer at opt_level.
+    low_e_conf = optimize_molecule(
+        name=name_+'low_e_opt',
+        mol=low_e_conf,
+        opt_level=opt_level
+    )
+    low_e_conf.write('temp_post_opt.mol')
+    print(low_e_conf_id)
+
+    # Return molecule.
+    return low_e_conf
+
 
 def calculate_binding_AR(mol):
     """
