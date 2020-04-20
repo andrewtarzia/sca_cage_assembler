@@ -143,6 +143,7 @@ def homo_cube_analysis(cage):
 
     # Get measures of all cages.
     oct_op = {}
+    lse_max = {}
     for C in cage.cages_to_build:
         C_data = built_prop[C.name]
         # Get minimium octahedral OP of the metal that is in the
@@ -166,7 +167,12 @@ def homo_cube_analysis(cage):
         ]
         print('t', target_OPs)
         oct_op[C.name] = min(target_OPs)
+        lse_max[C.name] = max([
+            C_data['li_prop']['strain_energies'][i]
+            for i in C_data['li_prop']['strain_energies']
+        ])
     print('minimum OPs:', oct_op)
+    print('max LSE:', lse_max)
 
     # Plot all order parameter minimums.
     cage.plot_Y(
@@ -174,6 +180,12 @@ def homo_cube_analysis(cage):
         ylabel=r'min. $q_{\mathrm{oct}}$',
         ylim=(0, 1),
         filename=f'{cage.name}_minOPs.pdf'
+    )
+    cage.plot_Y(
+        data=lse_max,
+        ylabel=r'max ligand strain energy [kJ/mol]',
+        ylim=None,
+        filename=f'{cage.name}_maxLSE.pdf'
     )
 
     return oct_op
@@ -192,6 +204,8 @@ def analyse_cages(cages):
                 'min_OPs': oct_op,
                 'aspect_ratio': cage.ligand_aspect_ratio
             }
+
+    sys.exit('add the following tests')
 
     # Plot ligand aspect ratio data.
     tests = {
@@ -252,9 +266,9 @@ def build_cages(
             C.save_bb_xyz()
             default_free_e = C.free_electron_options[0]
             print(C.free_electron_options, default_free_e)
+            # Use a slightly different collapser threshold for
+            # different topologies.
             if C.topology_string == 'm6l2l3':
-                # Use a slightly different collapser threshold for
-                # prism.
                 step_size = 0.05
                 distance_cut = 3.0
                 scale_steps = True
@@ -272,15 +286,21 @@ def build_cages(
                 distance_cut=distance_cut,
                 scale_steps=scale_steps
             )
-            continue
-
             C.analyze_cage_metal_strain()
             C.analyze_cage_porosity()
-            C.analyze_cage_formation_energy()
-            C.analyze_cage_ligand_strain()
+            # C.analyze_cage_formation_energy()
+            C.analyze_cage_ligand_strain(
+                # Assumes only one type of metal atom.
+                metal_atom_no=[
+                    cage.complex_dicts[i]['metal_atom_no']
+                    for i in cage.complex_dicts
+                ][0]
+            )
             cage.built_cage_properties[C.name] = {
                 'pw_prop': C.pw_data,
                 'op_prop': C.op_data,
+                # 'form_energy': C.FE,
+                'li_prop': C.ls_data
             }
             # Dump to JSON.
             cage.dump_properties()
@@ -335,9 +355,7 @@ def main():
         ligand_directory,
         compl_directory
     )
-    sys.exit()
     analyse_cages(cages)
-
 
 
 if __name__ == "__main__":
