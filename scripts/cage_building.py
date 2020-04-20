@@ -205,13 +205,56 @@ class Cage:
 
     def analyze_cage_formation_energy(self):
         """
-        Analyse cage geometry using order parameters.
+        Calculate cage formation energy.
+
+        Defined as (for a homoleptic system):
+        FE = [(cage energy) + a*(free precursor lig. energy)]
+             - [b*(metal precursor energy) + c*(free ligand energy)]
+
+        Where a = 6*b (octahedral metal complex).
+
+        In practice, this is done alchemically based on the building
+        blocks present in the molecules.
+
+        FE =
+        [(cage energy) + a*(energy of deleter atoms)] -
+        [sum_i(b_i*(energy BB_i))]
+
+        Where a is determined by the atoms in each BB and i is over all
+        BBs used to build the cage.
 
         """
-
         raise NotImplementedError()
 
-    def analyze_cage_ligand_strain(self):
+        # Define reactant list (all building blocks * count in cage)
+        reactant_ey_files = []
+        reactant_molecules = []
+        # Iterate over all BBs and add to product molecules.
+        # Define charge and no. unpaired e from lib file.
+
+        print(reactant_ey_files, reactant_molecules)
+
+        # Define product list (cage + deleters).
+        cage = self.cage.update_from_file(f'{self.opt_file}.mol')
+        product_ey_files = []
+        product_molecules = [
+            (cage, cage_name, cage_ey_file, cage_charge, cage_no_e)
+        ]
+
+        # Iterate over deleters and add to product molecules.
+        # Define charge apriori, Br is -1.
+
+        print(product_molecules, product_ey_files)
+
+        # Run calculations with xTB.
+
+        # Calculate FE in KJ/mol.
+        react_eys = [read_ey(f'{i}.ey') for i in reactant_ey_files]
+        produ_eys = [read_ey(f'{i}.ey') for i in product_ey_files]
+        #  kJ/mol
+        FE = produ_eys - react_eys
+        self.FE = FE
+
     def get_organic_linkers(self, metal_atom_no):
         """
         Extract a list of organic linker structures from the cage.
