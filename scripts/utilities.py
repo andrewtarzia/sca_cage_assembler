@@ -123,18 +123,20 @@ def optimize_molecule(
 
 
 def build_conformers(mol, N):
-    conformers = mol.to_rdkit_mol()
-    etkdg = rdkit.ETKDGv2()
-    etkdg.randomSeed = 1000
+    molecule = mol.to_rdkit_mol()
+    molecule.RemoveAllConformers()
+
     cids = rdkit.EmbedMultipleConfs(
-        mol=conformers,
+        mol=molecule,
         numConfs=N,
-        params=etkdg
+        randomSeed=1000,
+        useExpTorsionAnglePrefs=True,
+        useBasicKnowledge=True
     )
-    return conformers, cids
+    return cids, molecule
 
 
-def calculate_lowest_E_conformer(
+def get_lowest_energy_conformer(
     name,
     mol,
     opt_level='extreme',
@@ -157,7 +159,7 @@ def calculate_lowest_E_conformer(
 
     # Run ETKDG on molecule.
     print(f'....running ETKDG on {name}')
-    confs, cids = build_conformers(mol, N=100)
+    cids, confs = build_conformers(mol, N=100)
 
     # Optimize all conformers at normal level with xTB.
     low_e_conf_id = -100

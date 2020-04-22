@@ -27,7 +27,7 @@ import symmetries
 from utilities import (
     read_ey,
     calculate_energy,
-    calculate_lowest_E_conformer,
+    get_lowest_energy_conformer,
     calculate_binding_AR
 )
 
@@ -265,12 +265,12 @@ class Cage:
 
         # Produce a graph from the cage that does not include metals.
         cage_g = nx.Graph()
-        atom_ids_in_G = []
+        atom_ids_in_G = set()
         for atom in self.cage.atoms:
             if atom.atomic_number == metal_atom_no:
                 continue
             cage_g.add_node(atom)
-            atom_ids_in_G.append(atom.id)
+            atom_ids_in_G.add(atom.id)
 
         # Add edges.
         for bond in self.cage.bonds:
@@ -280,22 +280,17 @@ class Cage:
                 cage_g.add_edge(bond.atom1, bond.atom2)
 
         # Get disconnected subgraphs as molecules.
-        connected_graphs = nx.connected_components(cage_g)
-        # Define ligand types based on the number of nodes in them.
-        # This assumes that two different ligands must have different
-        # numbers of atoms.
-        lig_types = {
-            i: str(i)
-            for i in sorted(
-                list(len(j) for j in nx.connected_components(cage_g))
-            )
-        }
-
+        # Sort and sort atom ids to ensure molecules are read by RDKIT
+        # correctly.
+        connected_graphs = [
+            sorted(subgraph, key=lambda a: a.id)
+            for subgraph in sorted(nx.connected_components(cage_g))
+        ]
         for i, cg in enumerate(connected_graphs):
             # Get atoms from nodes.
             atoms = list(cg)
             atom_ids = [i.id for i in atoms]
-            sgt = lig_types[len(atoms)]
+            sgt = str(len(atoms))
             # Write to mol file.
             filename_ = f'{self.name}_sg{sgt}_{i}.mol'
             self.cage.write(
@@ -307,7 +302,9 @@ class Cage:
             )
             # Rewrite to fix atom ids.
             org_lig[filename_].write(filename_)
-
+            org_lig[filename_] = stk.BuildingBlock.init_from_file(
+                filename_
+            )
         return org_lig
 
     def get_lowest_energy_conformers(self, org_ligs):
@@ -325,10 +322,11 @@ class Cage:
             opt_lig_n = opt_lig_n[:-2]+[opt_lig_n[-1]]
             opt_lig_n = '_'.join(opt_lig_n)+'_opt'
             opt_lig_file = f'{opt_lig_n}.mol'
+
             if not exists(opt_lig_file):
                 if not exists(f'{opt_lig_n}_confs/'):
                     os.mkdir(f'{opt_lig_n}_confs/')
-                low_e_conf = calculate_lowest_E_conformer(
+                low_e_conf = get_lowest_energy_conformer(
                     name=opt_lig_n,
                     mol=stk_lig
                 )
