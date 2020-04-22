@@ -203,7 +203,7 @@ class Cage:
         print(f'....comparing UHF of {self.name}')
         raise NotImplementedError()
 
-    def analyze_cage_formation_energy(self):
+    def analyze_formation_energy(self):
         """
         Calculate cage formation energy.
 
@@ -384,15 +384,6 @@ class Cage:
                 # kJ/mol.
                 strain_energies[lig] = lse
 
-            # Get difference from zero.
-            print(strain_energies)
-            print(min(strain_energies.values()))
-            strain_energies = {
-                i: strain_energies[i]-min(strain_energies.values())
-                for i in strain_energies
-            }
-            print(strain_energies)
-            input()
             # Write data.
             with open(f'{self.ls_file}.json', 'w') as f:
                 json.dump(strain_energies, f)
@@ -433,7 +424,7 @@ class Cage:
 
         return []
 
-    def analyze_cage_ligand_strain(self, metal_atom_no):
+    def analyze_ligand_strain(self, metal_atom_no):
         """
         Analyse cage ligand geometry for strain.
 
@@ -454,7 +445,7 @@ class Cage:
             'core_planarities': planarity_list
         }
 
-    def analyze_cage_metal_strain(self):
+    def analyze_metal_strain(self):
         """
         Analyse cage geometry using order parameters.
 
@@ -489,7 +480,7 @@ class Cage:
         with open(f'{self.op_file}.json', 'r') as f:
             self.op_data = json.load(f)
 
-    def analyze_cage_porosity(self, dump_molecule=False):
+    def analyze_porosity(self, dump_molecule=False):
         """
         Analyse cage porosity with pywindow.
 

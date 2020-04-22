@@ -182,9 +182,11 @@ def homo_cube_analysis(cage):
         filename=f'{cage.name}_minOPs.pdf'
     )
     cage.plot_Y(
-        data=lse_max,
-        ylabel=r'max ligand strain energy [kJ/mol]',
-        ylim=None,
+        data={
+            i: lse_max[i]-min(lse_max.values()) for i in lse_max
+        },
+        ylabel=r'rel. max. strain energy [kJ/mol]',
+        ylim=(-4, 50),
         filename=f'{cage.name}_maxLSE.pdf'
     )
 
@@ -286,10 +288,10 @@ def build_cages(
                 distance_cut=distance_cut,
                 scale_steps=scale_steps
             )
-            C.analyze_cage_metal_strain()
-            C.analyze_cage_porosity()
-            # C.analyze_cage_formation_energy()
-            C.analyze_cage_ligand_strain(
+            C.analyze_metal_strain()
+            C.analyze_porosity()
+            # C.analyze_formation_energy()
+            C.analyze_ligand_strain(
                 # Assumes only one type of metal atom.
                 metal_atom_no=[
                     cage.complex_dicts[i]['metal_atom_no']
