@@ -133,6 +133,8 @@ def build_conformers(mol, N):
         useExpTorsionAnglePrefs=True,
         useBasicKnowledge=True
     )
+    print(f'there are {molecule.GetNumConformers()} conformers')
+    input()
     return cids, molecule
 
 
