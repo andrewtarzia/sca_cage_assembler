@@ -8,25 +8,87 @@ Modules/functions for building molecules.
 Author: Andrew Tarzia
 
 Date Created: 23 Jan 2020
+
 """
 
-from rdkit.Chem import AllChem as rdkit
 import stk
+import stko
+
+from atools import NPyridineFactory
+
+
+def build_oct_lambda(metal, ligand):
+
+    complex = stk.ConstructedMolecule(
+        topology_graph=stk.metal_complex.OctahedralLambda(
+            metals={metal: 0},
+            ligands={ligand: (0, 1, 2)},
+        )
+    )
+
+    return complex
+
+
+def build_oct_delta(metal, ligand):
+
+    complex = stk.ConstructedMolecule(
+        topology_graph=stk.metal_complex.OctahedralDelta(
+            metals={metal: 0},
+            ligands={ligand: (0, 1, 2)},
+        )
+    )
+
+    return complex
+
+
+def build_porphyrin(metal, ligand):
+
+    complex = stk.ConstructedMolecule(
+        topology_graph=stk.metal_complex.Porphyrin(
+            metals={metal: 0},
+            ligands={ligand: 0},
+        )
+    )
+
+    return complex
+
+
+def build_pw(metal, ligand):
+
+    complex = stk.ConstructedMolecule(
+        topology_graph=stk.metal_complex.Paddlewheel(
+            metals={metal: (0, 1)},
+            ligands={ligand: (0, 1, 2, 3)},
+        )
+    )
+
+    return complex
+
+
+def build_sqpl(metal, ligand):
+
+    complex = stk.ConstructedMolecule(
+        topology_graph=stk.metal_complex.SquarePlanar(
+            metals={metal: 0},
+            ligands={ligand: (0, 1, 2, 3)},
+        )
+    )
+
+    return complex
 
 
 def available_topologies(string):
     """
-    Get stk function of desired topology.
+    Get function to build desired topology.
 
     """
 
     topologies = {
-        'oct_lambda': stk.cage.Octahedral_Lambda(),
-        'oct_delta': stk.cage.Octahedral_Delta(),
-        'c_porphyrin': stk.cage.Porphyrin(),
-        'c_sqpl_mono': stk.cage.SquarePlanarMonodentate(),
-        'c_pw': stk.cage.Paddlewheel(),
-        'mc_sqpl': stk.metal_centre.SquarePlanar()
+        'oct_lambda': build_oct_lambda,
+        'oct_delta': build_oct_delta,
+        'porphyrin': build_porphyrin,
+        'pw': build_pw,
+        'sqpl_mono': build_sqpl,
     }
 
     try:
@@ -89,117 +151,6 @@ def metal_FFs(CN):
     return dicts
 
 
-def build_atom(smiles, FG):
-    """
-    Build an stk readable atom using RDKit.
-
-    Parameters
-    ----------
-    smiles : :class:`str`
-        Smiles of metal atom to use - should include charge.
-
-    FG : :class:`str`
-        Type of functional group to assign to atom.
-
-    Returns
-    -------
-    stk_atom : :class:`stk.BuildingBlock`
-        Built stk molecule with functional group.
-
-    """
-
-    atom = rdkit.MolFromSmiles(smiles)
-    atom.AddConformer(rdkit.Conformer(atom.GetNumAtoms()))
-    stk_atom = stk.BuildingBlock.init_from_rdkit_mol(
-        atom,
-        functional_groups=[FG],
-    )
-    return stk_atom
-
-
-def build_metal(metal_smiles, no_fgs):
-    """
-    Build an stk readable metal atom using RDKit.
-
-    Parameters
-    ----------
-    metal_smiles : :class:`str`
-        Smiles of metal atom to use - should include charge.
-
-    no_fgs : :class:`int`
-        Number of functional groups to give metal atom.
-
-    Returns
-    -------
-    metal : :class:`stk.BuildingBlock`
-        Built stk molecule with functional groups.
-
-    """
-
-    m = rdkit.MolFromSmiles(metal_smiles)
-    m.AddConformer(rdkit.Conformer(m.GetNumAtoms()))
-    metal = stk.BuildingBlock.init_from_rdkit_mol(
-        m,
-        functional_groups=None,
-    )
-    fg_dict = {
-        'atom_ids': [0],
-        'bonder_ids': [0],
-        'deleter_ids': [None]
-    }
-    metal_coord_info = {i: fg_dict for i in range(no_fgs)}
-
-    metal = stk.assign_metal_fgs(
-        building_block=metal,
-        coordination_info=metal_coord_info
-    )
-    return metal
-
-
-def build_metal_centre(metal, topology, binding_atom, return_FG):
-    """
-    Build an stk metal centre.
-
-    Parameters
-    ----------
-    metal : :class:`stk.BuildingBlock`
-        Stk BuildingBlock of metal atom.
-
-    topology : :class:`stk.MetalCentre`
-        Topology of metal centre.
-
-    binding_atom : :class:`stk.BuildingBlock`
-        Atom to be placed at coordinating sites.
-
-    return_FG : :class:`list`
-        Functional groups to read in building block.
-
-
-    Returns
-    -------
-    complex : :class:`stk.BuildingBlock`
-        Built stk molecule as :class:`stk.BuildingBlock` with
-        `return_FG` FGs.
-
-    """
-
-    complex = stk.ConstructedMolecule(
-        building_blocks=[metal, binding_atom],
-        topology_graph=topology,
-        building_block_vertices={
-            metal: tuple([topology.vertices[0]]),
-            binding_atom: topology.vertices[1:]
-        }
-    )
-
-    complex = stk.BuildingBlock.init_from_molecule(
-        complex,
-        functional_groups=return_FG
-    )
-
-    return complex
-
-
 def optimize_SCA_complex(complex, name, dict, metal_FFs):
     """
     Optimize a sub-component self assmebly complex.
@@ -207,19 +158,18 @@ def optimize_SCA_complex(complex, name, dict, metal_FFs):
     """
 
     print(f'doing UFF4MOF optimisation for {name}')
-    gulp_opt = stk.GulpMetalOptimizer(
+    gulp_opt = stko.GulpMetalOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
         metal_FF=metal_FFs,
         output_dir=f'{name}_uff1'
     )
     gulp_opt.assign_FF(complex)
-    gulp_opt.optimize(mol=complex)
+    complex = gulp_opt.optimize(mol=complex)
     complex.write(f'{name}_uff1.mol')
-    complex.dump(f'{name}_uff1.json')
 
     print(f'doing xTB optimisation for {name}')
-    xtb_opt = stk.XTB(
-        xtb_path='/home/atarzia/software/xtb-190806/bin/xtb',
+    xtb_opt = stko.XTB(
+        xtb_path='/home/atarzia/software/xtb-6.3.1/bin/xtb',
         output_dir=f'{name}_xtb',
         gfn_version=2,
         num_cores=6,
@@ -230,49 +180,7 @@ def optimize_SCA_complex(complex, name, dict, metal_FFs):
         calculate_hessian=False,
         unlimited_memory=True
     )
-    xtb_opt.optimize(mol=complex)
+    complex = xtb_opt.optimize(mol=complex)
     complex.write(f'{name}_opt.mol')
-    complex.dump(f'{name}_opt.json')
-
-    return complex
-
-
-def build_SCA_complex(
-    metal_centre,
-    bidentate_ligand,
-    complex_top
-):
-    """
-    Build an stk metal complex post SCA coordination.
-
-    Parameters
-    ----------
-    metal_centre : :class:`stk.BuildingBlock`
-        Stk BuildingBlock of metal centre.
-
-    bidentate_ligand : :class:`stk.BuildingBlock`
-        Ligand to bind to metal centre.
-
-    complex_top : :class:`stk.Topology`
-        Topology of metal complex to build.
-
-    Returns
-    -------
-    complex : :class:`stk.BuildingBlock`
-        Built stk molecule as :class:`stk.BuildingBlock` with
-        `return_FG` FGs.
-
-    """
-    complex = stk.ConstructedMolecule(
-        building_blocks=[
-            metal_centre,
-            bidentate_ligand
-        ],
-        topology_graph=complex_top,
-        building_block_vertices={
-            metal_centre: tuple([complex_top.vertices[0]]),
-            bidentate_ligand: complex_top.vertices[1:]
-        }
-    )
 
     return complex
