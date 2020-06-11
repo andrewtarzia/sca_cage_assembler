@@ -97,26 +97,40 @@ def available_topologies(string):
         raise KeyError(f'{string} not in {topologies.keys()}')
 
 
-def order_FGs(mol, order=None):
+def custom_fg_factories(string):
     """
-    Order ligand FGs based on given order.
+    Get factory of desired FG.
 
     """
 
-    if order is None:
-        print('no changes made')
-        return mol
+    factories = {
+        'pyridine_N_metal': NPyridineFactory(),
+        'CO_metal': stk.SmartsFunctionalGroupFactory(
+            smarts='[#6]~[#8X1]',
+            bonders=(1, ),
+            deleters=(),
+        ),
+        'COH_metal': stk.SmartsFunctionalGroupFactory(
+            smarts='[#6]~[#8]~[#1]',
+            bonders=(1, ),
+            deleters=(2, ),
+        ),
+        'CNC_metal': stk.SmartsFunctionalGroupFactory(
+            smarts='[#6]~[#7X2]~[#6]',
+            bonders=(1, ),
+            deleters=(),
+        ),
+        'CNBr_metal': stk.SmartsFunctionalGroupFactory(
+            smarts='[#6]~[#7X2]~[#35]',
+            bonders=(1, ),
+            deleters=(),
+        ),
+    }
 
-    def sort_(FG):
-        FG_name = FG.fg_type.name
-        return order.index(FG_name)
-
-    orig_fgs = list(mol.func_groups)
-    # Reorder those in `order`, the rest remain in their position.
-    new_fgs = sorted(orig_fgs, key=sort_)
-    mol.func_groups = new_fgs
-
-    return mol
+    try:
+        return factories[string]
+    except KeyError:
+        raise KeyError(f'{string} not in {factories.keys()}')
 
 
 def metal_FFs(CN):
