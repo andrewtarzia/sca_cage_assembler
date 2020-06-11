@@ -25,51 +25,38 @@ def build_complexes(complexes, ligand_directory):
         comp = complexes[name]
         print(comp)
         output = f'{name}_opt.mol'
-        jsonoutput = f'{name}_opt.json'
-        if exists(jsonoutput):
+        if exists(output):
             continue
         print(f'doing {name}')
 
         # Build metal atom.
-        metal = molecule_building.build_metal(
-            metal_smiles=comp['metal_smiles'],
-            no_fgs=6
+        metal = stk.BuildingBlock(
+            smiles=comp['metal_smiles'],
+            functional_groups=(
+                stk.SingleAtom(stk.Atom(
+                    id=0,
+                    charge=2,
+                    atomic_number=comp['metal_atom_no'],
+                ))
+                for i in range(6)
+            ),
+            position_matrix=[[0, 0, 0]],
         )
-        # Define binding atom and binding FG.
-        binding_atom = molecule_building.build_atom(
-            'N',
-            FG='metal_bound_N'
-        )
-        binding_fgs = ['metal_bound_N']
-        # Build initial metal centre for all complexes.
-        # Always a six coordinate, octahedral complex with N atoms.
-        metal_centre = molecule_building.build_metal_centre(
-            metal=metal,
-            topology=stk.metal_centre.Octahedral(),
-            binding_atom=binding_atom,
-            return_FG=binding_fgs
-        )
-        metal_centre.write(f'{name}_metal_centre.mol')
 
+        ligand_fg_factories = [
+            molecule_building.custom_fg_factories(i)
+            for i in ['CNBr_metal', 'CNC_metal']
+        ]
         coord_species = stk.BuildingBlock.init_from_file(
             join(ligand_directory, comp['coord_species']),
-            ['CNC_metal', 'CNBr_metal']
-        )
-        coord_species = molecule_building.order_FGs(
-            mol=coord_species,
-            order=['CNBr_metal', 'CNC_metal']
+            functional_groups=ligand_fg_factories
         )
 
-        topology = molecule_building.available_topologies(
+        topology_builder = molecule_building.available_topologies(
             comp['topology']
         )
 
-        complex = molecule_building.build_SCA_complex(
-            metal_centre=metal_centre,
-            complex_top=topology,
-            bidentate_ligand=coord_species
-        )
-        complex.write(f'{name}.mol')
+        complex = topology_builder(metal=metal, ligand=coord_species)
         complex.write(f'{name}.mol')
 
         # Not interested in unpaired electron checks at this stage.
@@ -86,7 +73,6 @@ def build_complexes(complexes, ligand_directory):
         )
 
         complex.write(output)
-        complex.dump(jsonoutput)
 
     return
 
