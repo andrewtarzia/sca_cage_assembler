@@ -225,40 +225,33 @@ def calculate_binding_AR(mol):
 
     """
 
-    print(mol.func_groups)
-    fg_ids = range(len(mol.func_groups))
-    print(fg_ids)
-    if len(mol.func_groups) != 4:
+    if mol.get_num_functional_groups() != 4:
         return None
 
     binder_atom_ids = [
-        list(mol.get_bonder_ids(fg_ids=[i]))
-        for i in fg_ids
+        list(fg.get_bonder_ids())
+        for fg in mol.get_functional_groups()
     ]
-    print(binder_atom_ids)
     binder_atom_dists = sorted(
-        list(mol.get_bonder_distances()),
+        [
+            (idx1, idx2, get_atom_distance(mol, idx1, idx2))
+            for idx1, idx2 in combinations(binder_atom_ids, r=2)
+        ],
         key=lambda a: a[2]
     )
 
-    print(binder_atom_dists)
     far_binder_pair = (
         binder_atom_dists[-1][0],
         binder_atom_dists[-1][1]
     )
-    print(far_binder_pair)
     ARs = []
     for fg_id in far_binder_pair:
-        print(fg_id)
         ds = sorted([
             i[2] for i in binder_atom_dists
             if fg_id in (i[0], i[1])
         ])
-        print(ds)
         AR = ds[1]/min(ds)
-        print(AR)
         ARs.append(AR)
 
     ligand_AR = sum(ARs)/len(ARs)
-    print(ARs, ligand_AR)
     return ligand_AR
