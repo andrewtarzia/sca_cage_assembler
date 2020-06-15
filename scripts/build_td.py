@@ -77,7 +77,7 @@ def build_porphyrin(metal, porph_name, file_name):
     else:
         print('doing XTB optimisation')
         xtb_opt = stk.XTB(
-            xtb_path='/home/atarzia/software/xtb-190806/bin/xtb',
+            xtb_path='',
             output_dir=f'{file_name}',
             gfn_version=2,
             num_cores=6,
@@ -148,7 +148,7 @@ def calculate_energy(cage_name, n_metals):
 
     # Extract energy.
     xtb_energy = stk.XTBEnergy(
-        xtb_path='/home/atarzia/software/xtb-190806/bin/xtb',
+        xtb_path='',
         output_dir=f'cage_opt_{cage_name}',
         num_cores=6,
         charge=n_metals*2,
@@ -196,7 +196,7 @@ def build_complex(metal_centre, bidentate_ligand, complex_top, name):
 
         print('doing XTB optimisation')
         xtb_opt = stk.XTB(
-            xtb_path='/home/atarzia/software/xtb-190806/bin/xtb',
+            xtb_path='',
             output_dir=f'{name}_xtb',
             gfn_version=2,
             num_cores=6,
@@ -361,7 +361,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_types):
 
     print('doing XTB optimisation')
     xtb_opt = stk.XTB(
-        xtb_path='/home/atarzia/software/xtb-190806/bin/xtb',
+        xtb_path='',
         output_dir=f'cage_opt_{cage_name}',
         gfn_version=2,
         num_cores=6,

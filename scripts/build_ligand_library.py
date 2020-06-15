@@ -25,7 +25,7 @@ from utilities import read_lib, calculate_binding_AR
 def build_organics(ligs):
 
     optimizer = stko.XTB(
-        xtb_path='/home/atarzia/software/xtb-6.3.0/bin/xtb',
+        xtb_path='/home/atarzia/software/xtb-6.3.1/bin/xtb',
         output_dir='lig_opt_',
         gfn_version=2,
         num_cores=6,
