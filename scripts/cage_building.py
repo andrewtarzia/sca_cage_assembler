@@ -346,173 +346,6 @@ class Cage:
         FE = produ_eys - react_eys
         self.FE = FE
 
-    def get_organic_linkers(self, metal_atom_no):
-        """
-        Extract a list of organic linker structures from the cage.
-
-        """
-
-        org_lig = {}
-
-        # Produce a graph from the cage that does not include metals.
-        cage_g = nx.Graph()
-        atom_ids_in_G = set()
-        for atom in self.cage.atoms:
-            if atom.atomic_number == metal_atom_no:
-                continue
-            cage_g.add_node(atom)
-            atom_ids_in_G.add(atom.id)
-
-        # Add edges.
-        for bond in self.cage.bonds:
-            a1id = bond.atom1.id
-            a2id = bond.atom2.id
-            if a1id in atom_ids_in_G and a2id in atom_ids_in_G:
-                cage_g.add_edge(bond.atom1, bond.atom2)
-
-        # Get disconnected subgraphs as molecules.
-        # Sort and sort atom ids to ensure molecules are read by RDKIT
-        # correctly.
-        connected_graphs = [
-            sorted(subgraph, key=lambda a: a.id)
-            for subgraph in sorted(nx.connected_components(cage_g))
-        ]
-        for i, cg in enumerate(connected_graphs):
-            # Get atoms from nodes.
-            atoms = list(cg)
-            atom_ids = [i.id for i in atoms]
-            sgt = str(len(atoms))
-            # Write to mol file.
-            filename_ = f'{self.name}_sg{sgt}_{i}.mol'
-            self.cage.write(
-                filename_,
-                atom_ids=atom_ids
-            )
-            org_lig[filename_] = stk.BuildingBlock.init_from_file(
-                filename_
-            )
-            # Rewrite to fix atom ids.
-            org_lig[filename_].write(filename_)
-            org_lig[filename_] = stk.BuildingBlock.init_from_file(
-                filename_
-            )
-        return org_lig
-
-    def get_lowest_energy_conformers(self, org_ligs):
-        """
-        Determine the lowest energy conformer of cage organic linkers.
-
-        Will do multiple if there are multiple types.
-
-        """
-
-        for lig in org_ligs:
-            stk_lig = org_ligs[lig]
-            # Get optimized ligand name that excludes symmetry.
-            opt_lig_n = lig.replace('.mol', '').split('_')[:-1]
-            opt_lig_n = opt_lig_n[:-2]+[opt_lig_n[-1]]
-            opt_lig_n = '_'.join(opt_lig_n)+'_opt'
-            opt_lig_file = f'{opt_lig_n}.mol'
-
-            if not exists(opt_lig_file):
-                if not exists(f'{opt_lig_n}_confs/'):
-                    os.mkdir(f'{opt_lig_n}_confs/')
-                low_e_conf = get_lowest_energy_conformer(
-                    name=opt_lig_n,
-                    mol=stk_lig
-                )
-                low_e_conf.write(opt_lig_file)
-
-    def calculate_ligand_SE(self, org_ligs):
-        """
-        Calculate the strain energy of each ligand in the cage.
-
-        """
-
-        # Check if output file exists.
-        if not exists(f'{self.ls_file}.json'):
-            strain_energies = {}
-            # Iterate over ligands.
-            for lig in org_ligs:
-                stk_lig = org_ligs[lig]
-                ey_file = lig.replace('mol', 'ey')
-                # Get optimized ligand name that excludes symmetry.
-                opt_lig_n = lig.replace('.mol', '').split('_')[:-1]
-                opt_lig_n = opt_lig_n[:-2]+[opt_lig_n[-1]]
-                opt_lig_n = '_'.join(opt_lig_n)+'_opt'
-                opt_lig_ey = f'{opt_lig_n}.ey'
-                opt_lig_file = f'{opt_lig_n}.mol'
-                # Calculate energy of extracted ligand.
-                if not exists(ey_file):
-                    calculate_energy(
-                        name=lig.replace('.mol', ''),
-                        mol=stk_lig,
-                        ey_file=ey_file
-                    )
-                # Read energy.
-                # kJ/mol.
-                E_extracted = read_ey(ey_file)
-
-                # Calculate energy of optimised ligand.
-                # Load in lowest energy conformer.
-                opt_mol = stk.BuildingBlock.init_from_file(
-                    opt_lig_file
-                )
-                if not exists(opt_lig_ey):
-                    calculate_energy(
-                        name=opt_lig_n,
-                        mol=opt_mol,
-                        ey_file=opt_lig_ey
-                    )
-                # Read energy.
-                # kJ/mol.
-                E_free = read_ey(opt_lig_ey)
-                # Add to list the strain energy:
-                # (E(extracted) - E(optimised/free))
-                lse = E_extracted - E_free
-                # kJ/mol.
-                strain_energies[lig] = lse
-
-            # Write data.
-            with open(f'{self.ls_file}.json', 'w') as f:
-                json.dump(strain_energies, f)
-
-        # Get data.
-        with open(f'{self.ls_file}.json', 'r') as f:
-            strain_energies = json.load(f)
-        print('strains', strain_energies)
-        return strain_energies
-
-    def calculate_imine_torsions(self, org_ligs):
-        """
-        Calculate the imine torsion of all ligands in the cage.
-
-        """
-
-        # Iterate over each ligand and find imines.
-
-        # Calculate torsions.
-
-        # Save to list.
-
-        return []
-
-    def calculate_ligand_planarities(self, org_ligs):
-        """
-        Calculate the change in planarity of the core of all ligands.
-
-        """
-
-        # Iterate over each ligand and find core based on the input
-        # molecule and its FGs (i.e. the core is the parts of the
-        # input molecule that is not part of the FGs).
-
-        # Calculate planarity of the cores compared to input molecule.
-
-        # Save to list.
-
-        return []
-
     def analyze_ligand_strain(self, metal_atom_no):
         """
         Analyse cage ligand geometry for strain.
@@ -521,17 +354,45 @@ class Cage:
 
         # Collect the atomic positions of the organic linkers in the
         # cage for analysis.
-        org_ligs = self.get_organic_linkers(metal_atom_no)
-        self.get_lowest_energy_conformers(org_ligs)
+        org_ligs, smiles_keys = atools.get_organic_linkers(
+            cage=self.cage,
+            metal_atom_nos=(metal_atom_no, ),
+            file_prefix=f'{self.name}_sg'
+        )
 
-        lse_dict = self.calculate_ligand_SE(org_ligs)
-        imine_torsion_list = self.calculate_imine_torsions(org_ligs)
-        planarity_list = self.calculate_ligand_planarities(org_ligs)
+        atools.get_lowest_energy_conformers(
+            org_ligs=org_ligs,
+            smiles_keys=smiles_keys,
+            file_prefix=f'{self.name}_sg',
+        )
+
+        lse_dict = atools.calculate_ligand_SE(
+            org_ligs=org_ligs,
+            smiles_keys=smiles_keys,
+            output_json=f'{self.ls_file}.json',
+            file_prefix=f'{self.name}_sg'
+        )
+        imine_torsion_dict = atools.calculate_imine_torsions(
+            org_ligs=org_ligs,
+            smiles_keys=smiles_keys,
+            file_prefix=f'{self.name}_sg'
+        )
+        print(imine_torsion_dict)
+        import sys
+        sys.exit('check file conventions')
+        planarity_dict = atools.calculate_ligand_planarities(
+            org_ligs=org_ligs,
+            smiles_keys=smiles_keys,
+            file_prefix=f'{self.name}_sg'
+        )
+        print(planarity_dict)
+        import sys
+        sys.exit('check file conventions')
 
         self.ls_data = {
             'strain_energies': lse_dict,
-            'imine_torsions': imine_torsion_list,
-            'core_planarities': planarity_list
+            'imine_torsions': imine_torsion_dict,
+            'core_planarities': planarity_dict
         }
 
     def analyze_metal_strain(self):
