@@ -197,9 +197,9 @@ def analyse_cages(cages):
 
     AR_data = {}
     for cage in cages:
-        if cage.__class__.__name__ == 'HetPrism':
+        if isinstance(cage, cage_building.HetPrism):
             het_prism_analysis(cage)
-        elif cage.__class__.__name__ == 'HoCube':
+        if isinstance(cage, cage_building.HoCube):
             oct_op = homo_cube_analysis(cage)
             # For all HoCube sets, collect ligand aspect ratio data.
             AR_data[cage.name] = {
@@ -233,17 +233,14 @@ def build_cages(
     complex_directory
 ):
 
-    cages = []
+    cage_sets = []
     for name in cage_lib:
         cage_c = cage_lib[name]
         compl_names = cage_c['corners']
-        print(compl_names)
         comps = {i: complexes[i] for i in compl_names}
-        print(cage_c)
-        print(comps)
 
         if cage_c['heteroleptic']:
-            cage = cage_building.HetPrism(
+            cage_set = cage_building.HetPrism(
                 name=name,
                 cage_dict=cage_c,
                 complex_dicts=comps,
@@ -252,7 +249,7 @@ def build_cages(
                 complex_dir=complex_directory
             )
         else:
-            cage = cage_building.HoCube(
+            cage_set = cage_building.HoCube(
                 name=name,
                 cage_dict=cage_c,
                 complex_dicts=comps,
@@ -261,13 +258,10 @@ def build_cages(
                 complex_dir=complex_directory
             )
 
-        print('tob,..............', cage.cages_to_build)
-        for C in cage.cages_to_build:
-            print(C)
+        for C in cage_set.cages_to_build:
             C.build()
-            C.save_bb_xyz()
+
             default_free_e = C.free_electron_options[0]
-            print(C.free_electron_options, default_free_e)
             # Use a slightly different collapser threshold for
             # different topologies.
             if C.topology_string == 'm6l2l3':
@@ -288,28 +282,29 @@ def build_cages(
                 distance_cut=distance_cut,
                 scale_steps=scale_steps
             )
+
             C.analyze_metal_strain()
             C.analyze_porosity()
             # C.analyze_formation_energy()
             C.analyze_ligand_strain(
                 # Assumes only one type of metal atom.
                 metal_atom_no=[
-                    cage.complex_dicts[i]['metal_atom_no']
-                    for i in cage.complex_dicts
+                    cage_set.complex_dicts[i]['metal_atom_no']
+                    for i in cage_set.complex_dicts
                 ][0]
             )
-            cage.built_cage_properties[C.name] = {
+            cage_set.built_cage_properties[C.name] = {
                 'pw_prop': C.pw_data,
                 'op_prop': C.op_data,
                 # 'form_energy': C.FE,
                 'li_prop': C.ls_data
             }
             # Dump to JSON.
-            cage.dump_properties()
+            cage_set.dump_properties()
 
-        cages.append(cage)
+        cage_sets.append(cage_set)
 
-    return cages
+    return cage_sets
 
 
 def main():
@@ -350,14 +345,14 @@ def main():
     ligs = read_lib(lig_lib_file)
 
     # Build and optimise all organic molecules in lib.
-    cages = build_cages(
+    cage_sets = build_cages(
         ligs,
         compls,
         cage_lib,
         ligand_directory,
         compl_directory
     )
-    analyse_cages(cages)
+    analyse_cages(cage_sets)
 
 
 if __name__ == "__main__":
