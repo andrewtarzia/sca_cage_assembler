@@ -12,11 +12,40 @@ Date Created: 27 Jan 2020
 
 import sys
 from os.path import exists, join
+import json
 
 import stk
+import stko
 
 import molecule_building
 from utilities import read_lib
+
+
+def get_spin_state_energies(complex, name, dict):
+    """
+    Calculate total electronic energy of each spin state of complex.
+
+    Energy obtained from GFN2-xTB.
+
+    """
+
+    spin_energy_file = f'{name}_spin_energies.json'
+
+    # Iterate over number of unpaired electrons possible.
+    spin_energies = {}
+    for upe in dict['unpaired_e']:
+        xtb_energy = stko.XTBEnergy(
+            xtb_path='/home/atarzia/software/xtb-6.3.1/bin/xtb',
+            output_dir=f'{name}_{upe}_xtbey',
+            charge=dict['total_charge'],
+            num_unpaired_electrons=upe,
+            unlimited_memory=True,
+        )
+        energy = xtb_energy.get_energy(complex)
+        spin_energies[upe] = energy
+
+    with open(spin_energy_file, 'w') as f:
+        json.dump(spin_energies, f)
 
 
 def build_complexes(complexes, ligand_directory):
@@ -61,6 +90,7 @@ def build_complexes(complexes, ligand_directory):
 
         # Not interested in unpaired electron checks at this stage.
         # So just select first one.
+        range_of_unpaired_e = comp['unpaired_e']
         comp['unpaired_e'] = comp['unpaired_e'][0]
 
         # Define metal_FFs to use in optimisation.
@@ -73,6 +103,13 @@ def build_complexes(complexes, ligand_directory):
         )
 
         complex.write(output)
+
+        comp['unpaired_e'] = range_of_unpaired_e
+        get_spin_state_energies(
+            complex=complex,
+            name=name,
+            dict=comp,
+        )
 
     return
 
