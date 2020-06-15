@@ -57,7 +57,7 @@ def plot_set_Y_vs_aniso(data, Y_name, ylabel, ylim, filename):
     plt.close()
 
 
-def het_prism_analysis(cage):
+def het_prism_analysis(cage_set):
     """
     Analyse cage set.
 
@@ -67,14 +67,14 @@ def het_prism_analysis(cage):
 
     """
 
-    cage.load_properties()
+    cage_set.load_properties()
     # Compare average pore volume of each of the three topologies.
     three_top = {'m4l4spacer': [], 'm8l6face': [], 'm6l2l3': []}
-    built_prop = cage.built_cage_properties
+    built_prop = cage_set.built_cage_properties
     all_pore_volumes = []
     all_min_OPs = []
     all_topo_strs = []
-    for C in cage.cages_to_build:
+    for C in cage_set.cages_to_build:
         C_data = built_prop[C.name]
         TOPO = C.topology_string
         three_top[TOPO].append(
@@ -91,15 +91,15 @@ def het_prism_analysis(cage):
 
     # Ensure at least one prismatic cage is stable.
     prism_oct_op = {}
-    for C in cage.cages_to_build:
+    for C in cage_set.cages_to_build:
         C_data = built_prop[C.name]
         TOPO = C.topology_string
         # Get minimium octahedral OP of the metal that is in the
         # complex building block.
-        print(cage.complex_dicts)
+        print(cage_set.complex_dicts)
         atom_no_of_interest = list(set([
-            int(cage.complex_dicts[i]['metal_atom_no'])
-            for i in cage.complex_dicts
+            int(cage_set.complex_dicts[i]['metal_atom_no'])
+            for i in cage_set.complex_dicts
         ]))
         print(atom_no_of_interest)
         print('rrrr',)
@@ -120,7 +120,7 @@ def het_prism_analysis(cage):
     print('minimum prism OPs:', prism_oct_op)
 
     # Plot all order parameter minimums VS average pore volumes.
-    cage.plot_min_OPs_avg_PV(
+    cage_set.plot_min_OPs_avg_PV(
         X=all_pore_volumes,
         Y=all_min_OPs,
         T=all_topo_strs
@@ -128,7 +128,7 @@ def het_prism_analysis(cage):
     sys.exit()
 
 
-def homo_cube_analysis(cage):
+def homo_cube_analysis(cage_set):
     """
     Analyse cage set.
 
@@ -138,73 +138,103 @@ def homo_cube_analysis(cage):
 
     """
 
-    cage.load_properties()
-    built_prop = cage.built_cage_properties
+    cage_set.load_properties()
+    built_prop = cage_set.built_cage_properties
 
     # Get measures of all cages.
     oct_op = {}
     lse_max = {}
-    for C in cage.cages_to_build:
+    min_imine_torsions = {}
+    max_ligand_distortion = {}
+    for C in cage_set.cages_to_build:
         C_data = built_prop[C.name]
         # Get minimium octahedral OP of the metal that is in the
         # complex building block.
-        print(cage.complex_dicts)
         atom_no_of_interest = list(set([
-            int(cage.complex_dicts[i]['metal_atom_no'])
-            for i in cage.complex_dicts
+            int(cage_set.complex_dicts[i]['metal_atom_no'])
+            for i in cage_set.complex_dicts
         ]))
-        print(atom_no_of_interest)
-        print('rrrr',)
         C_OP = [
             C_data['op_prop'][str(i)]
             for i in atom_no_of_interest
         ]
-        print(C_OP)
         target_OPs = [
             i[j]['oct']
             for i in C_OP
             for j in i
         ]
-        print('t', target_OPs)
         oct_op[C.name] = min(target_OPs)
         lse_max[C.name] = max([
             C_data['li_prop']['strain_energies'][i]
             for i in C_data['li_prop']['strain_energies']
         ])
+        min_imine_torsions[C.name] = min([
+            j
+            for i in C_data['li_prop']['imine_torsions']
+            for j in C_data['li_prop']['imine_torsions'][i]
+        ])
+        print('6*4 imines;', len([
+            j
+            for i in C_data['li_prop']['imine_torsions']
+            for j in C_data['li_prop']['imine_torsions'][i]
+        ]))
+        max_ligand_distortion[C.name] = max([
+            C_data['li_prop']['core_planarities'][i]
+            for i in C_data['li_prop']['core_planarities']
+        ])
+        print('core planars:', [
+            C_data['li_prop']['core_planarities'][i]
+            for i in C_data['li_prop']['core_planarities']
+        ])
+
     print('minimum OPs:', oct_op)
     print('max LSE:', lse_max)
-
+    print('min imine torsion:', min_imine_torsions)
+    print('max core planarities:', max_ligand_distortion)
+    input()
     # Plot all order parameter minimums.
-    cage.plot_Y(
+    cage_set.plot_Y(
         data=oct_op,
         ylabel=r'min. $q_{\mathrm{oct}}$',
         ylim=(0, 1),
-        filename=f'{cage.name}_minOPs.pdf'
+        filename=f'{cage_set.name}_minOPs.pdf'
     )
-    cage.plot_Y(
+    cage_set.plot_Y(
         data={
             i: lse_max[i]-min(lse_max.values()) for i in lse_max
         },
         ylabel=r'rel. max. strain energy [kJ/mol]',
         ylim=(-4, 50),
-        filename=f'{cage.name}_maxLSE.pdf'
+        filename=f'{cage_set.name}_maxLSE.pdf'
+    )
+    cage_set.plot_Y(
+        data=min_imine_torsions,
+        ylabel=r'min. imine torsion [degrees]',
+        ylim=(0, 185),
+        filename=f'{cage_set.name}_mintors.pdf'
+    )
+    cage_set.plot_Y(
+        data=max_ligand_distortion,
+        ylabel=r'max. ligand distortion [$\mathrm{\AA}$]',
+        ylim=(0, 185),
+        filename=f'{cage_set.name}_maxdistortion.pdf'
     )
 
     return oct_op
 
 
-def analyse_cages(cages):
+def analyse_cages(cage_sets):
 
     AR_data = {}
-    for cage in cages:
-        if isinstance(cage, cage_building.HetPrism):
-            het_prism_analysis(cage)
-        if isinstance(cage, cage_building.HoCube):
-            oct_op = homo_cube_analysis(cage)
+    for cage_set in cage_sets:
+        if isinstance(cage_set, cage_building.HetPrism):
+            het_prism_analysis(cage_set)
+        if isinstance(cage_set, cage_building.HoCube):
+            oct_op = homo_cube_analysis(cage_set)
             # For all HoCube sets, collect ligand aspect ratio data.
-            AR_data[cage.name] = {
+            AR_data[cage_set.name] = {
                 'min_OPs': oct_op,
-                'aspect_ratio': cage.ligand_aspect_ratio
+                'aspect_ratio': cage_set.ligand_aspect_ratio
             }
 
     sys.exit('add the following tests')
@@ -301,6 +331,7 @@ def build_cages(
             }
             # Dump to JSON.
             cage_set.dump_properties()
+            print(cage_set.built_cage_properties)
 
         cage_sets.append(cage_set)
 
