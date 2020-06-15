@@ -17,19 +17,74 @@ import matplotlib.pyplot as plt
 import json
 import pywindow as pw
 import os
-import networkx as nx
 
 import stk
 
 import atools
 from molecule_building import metal_FFs
 import symmetries
-from utilities import (
-    read_ey,
-    calculate_energy,
-    get_lowest_energy_conformer,
-    calculate_binding_AR
-)
+from utilities import calculate_binding_AR
+
+
+def m4l4spacer_graph(metal_corner, ligand, ligand2=None):
+
+    raise NotImplementedError('see m8l6 for example')
+
+    if ligand.get_num_functional_groups() != 3:
+        raise ValueError(f'{ligand} does not have 3 functional groups')
+
+    cage = stk.ConstructedMolecule(
+        topology_graph=stk.cage.M4L4Tetrahedron(
+            building_blocks={
+                metal_corner: range(4),
+                ligand: range(4, 8)
+            },
+        )
+    )
+
+    return cage
+
+
+def m8l6_graph(building_blocks, vertex_alignments):
+
+    topology_graph = stk.cage.M8L6Cube(
+        building_blocks=building_blocks,
+        vertex_alignments=vertex_alignments,
+    )
+
+    return topology_graph
+
+
+def m6l2l3_graph(metal_corner, ligand, ligand2):
+
+    raise NotImplementedError('see m8l6 for example')
+
+    lig_num_fgs = ligand.get_num_functional_groups()
+    lig2_num_fgs = ligand2.get_num_functional_groups()
+
+    if lig_num_fgs == 3 and lig2_num_fgs == 4:
+        tri_ligand = ligand
+        tet_ligand = ligand2
+    elif lig_num_fgs == 4 and lig2_num_fgs == 3:
+        tri_ligand = ligand2
+        tet_ligand = ligand
+    else:
+        raise ValueError(
+            f'{ligand} or {ligand2} does not have 3 or 4 functional '
+            'groups'
+        )
+
+    cage = stk.ConstructedMolecule(
+        topology_graph=stk.cage.M6L2L3Prism(
+            building_blocks={
+                metal_corner: range(6),
+                tri_ligand: range(6, 8),
+                tet_ligand: range(8, 11)
+            },
+        )
+    )
+
+    return cage
 
 
 def available_topologies(string):
@@ -39,13 +94,13 @@ def available_topologies(string):
     """
 
     topologies = {
-        'm4l4spacer': stk.cage.M4L4_Oct_Spacer,
-        'm8l6face': stk.cage.M8L6_Oct_Face,
-        'm6l2l3': stk.cage.M6L2L3_Oct
+        'm4l4spacer': m4l4spacer_graph,
+        'm8l6face': m8l6_graph,
+        'm6l2l3': m6l2l3_graph,
     }
 
     try:
-        return string, topologies[string]
+        return topologies[string]
     except KeyError:
         raise KeyError(f'{string} not in {topologies.keys()}')
 
@@ -59,19 +114,23 @@ class Cage:
     def __init__(
         self,
         name,
-        bbs,
-        topology,
+        topology_fn,
         topology_string,
-        bb_vertices,
+        building_blocks,
+        vertex_alignments,
         charge,
         free_electron_options
     ):
 
         self.name = name
-        self.bbs = bbs
-        self.topology = topology
+        self.topology_fn = topology_fn
         self.topology_string = topology_string
-        self.bb_vertices = bb_vertices
+        self.building_blocks = building_blocks
+        self.vertex_alignments = vertex_alignments
+        self.topology_graph = self.topology_fn(
+            building_blocks=self.building_blocks,
+            vertex_alignments=self.vertex_alignments,
+        )
         self.unopt_file = f'{self.name}_unopt'
         self.bb_file = f'{self.name}_BBs'
         self.crush_file = f'{self.name}_cru'
@@ -84,17 +143,11 @@ class Cage:
         self.ls_file = f'{self.name}_LSE'
         self.charge = charge
         self.free_electron_options = free_electron_options
-        print(self.charge, self.free_electron_options)
 
     def build(self):
         print(f'....building {self.name}')
-        cage = stk.ConstructedMolecule(
-            building_blocks=self.bbs,
-            topology_graph=self.topology,
-            building_block_vertices=self.bb_vertices
-        )
+        cage = stk.ConstructedMolecule(self.topology_graph)
         cage.write(f'{self.unopt_file}.mol')
-        cage.dump(f'{self.unopt_file}.json')
         self.cage = cage
 
     def save_bb_xyz(self):
@@ -124,9 +177,11 @@ class Cage:
     def optimize(self, free_e, step_size, distance_cut, scale_steps):
         custom_metal_FFs = metal_FFs(CN=6)
 
-        # Skip if _opt.json exists.
-        if exists(f'{self.opt_file}.json'):
-            self.cage.update_from_file(f'{self.opt_file}.mol')
+        # Skip if _opt.mol exists.
+        if exists(f'{self.opt_file}.mol'):
+            self.cage = self.cage.with_structure_from_file(
+                f'{self.opt_file}.mol'
+            )
             return
         print(f'....optimizing {self.name}')
 
@@ -141,7 +196,9 @@ class Cage:
             )
             self.cage.write(f'{self.crush_file}.mol')
         else:
-            self.cage.update_from_file(f'{self.crush_file}.mol')
+            self.cage = self.cage.with_structure_from_file(
+                f'{self.crush_file}.mol'
+            )
 
         # Run if uff4mof opt output does not exist.
         if not exists(f'{self.uff4mof_CG_file}.mol'):
@@ -153,7 +210,9 @@ class Cage:
             )
             self.cage.write(f'{self.uff4mof_CG_file}.mol')
         else:
-            self.cage.update_from_file(f'{self.uff4mof_CG_file}.mol')
+            self.cage = self.cage.with_structure_from_file(
+                f'{self.uff4mof_CG_file}.mol'
+            )
 
         # Run if uff4mof opt output does not exist.
         if not exists(f'{self.uff4mof_file}.mol'):
@@ -164,7 +223,9 @@ class Cage:
             )
             self.cage.write(f'{self.uff4mof_file}.mol')
         else:
-            self.cage.update_from_file(f'{self.uff4mof_file}.mol')
+            self.cage = self.cage.with_structure_from_file(
+                f'{self.uff4mof_file}.mol'
+            )
 
         # Run if uff4mof MD output does not exist.
         if not exists(f'{self.uffMD_file}.mol'):
@@ -172,22 +233,25 @@ class Cage:
                 self.cage,
                 self.name,
                 integrator='leapfrog verlet',
-                temperature='700',
+                temperature=700,
                 N=10,
-                timestep='0.5',
-                equib='0.1',
-                production='2',
+                timestep=0.5,
+                equib=0.1,
+                production=2,
                 metal_FFs=custom_metal_FFs,
                 opt_conf=False,
                 save_conf=False
             )
             self.cage.write(f'{self.uffMD_file}.mol')
         else:
-            self.cage.update_from_file(f'{self.uffMD_file}.mol')
+            self.cage = self.cage.with_structure_from_file(
+                f'{self.uffMD_file}.mol'
+            )
 
-        atools.MOC_xtb_opt(
+        self.cage = atools.MOC_xtb_opt(
             self.cage,
             self.name,
+            gfn_exec='/home/atarzia/software/xtb-6.3.1/bin/xtb',
             nc=6,
             free_e=free_e,
             charge=self.charge,
@@ -196,8 +260,6 @@ class Cage:
             # solvent=('dmso', 'verytight')
         )
         self.cage.write(f'{self.opt_file}.mol')
-        self.cage.write(f'{self.opt_file}.xyz')
-        self.cage.dump(f'{self.opt_file}.json')
 
     def compare_UHF_values(self):
         print(f'....comparing UHF of {self.name}')
@@ -455,8 +517,8 @@ class Cage:
 
             # Get atomic numbers of all present metals.
             pres_atm_no = list(set([
-                i.atomic_number for i in self.cage.atoms
-                if i.atomic_number in metal_FFs(CN=4).keys()
+                i.get_atomic_number() for i in self.cage.get_atoms()
+                if i.get_atomic_number() in metal_FFs(CN=4).keys()
             ]))
 
             # Get OPs for each metal independantly.
@@ -514,7 +576,7 @@ class Cage:
     def __str__(self):
         return (
             f'{self.__class__.__name__}'
-            f'(name={self.name}, topology={self.topology})'
+            f'(name={self.name}, topology={self.topology_graph})'
         )
 
     def __repr__(self):
@@ -569,7 +631,7 @@ class CageSet:
         return (
             f'{self.__class__.__name__}'
             f'(name={self.name})\n'
-            f'{self.prism_dict}'
+            f'{self.cage_dict}'
         )
 
     def __repr__(self):
@@ -627,23 +689,17 @@ class CageSet:
         return rats
 
     def _load_complex(self, complex_name, complex_dir):
-        unopt_c = stk.ConstructedMolecule.load(
-            join(complex_dir, f'{complex_name}_opt.json')
-        )
-        complex = stk.BuildingBlock.init_from_molecule(
-            unopt_c,
-            functional_groups=['bromine']
+        complex = stk.BuildingBlock.init_from_file(
+            join(complex_dir, f'{complex_name}_opt.mol'),
+            functional_groups=[stk.BromoFactory()]
         )
 
         return complex
 
     def _load_ligand(self, ligand_name, ligand_dir):
-        unopt_l = stk.Molecule.load(
-            join(ligand_dir, f'{ligand_name}_opt.json')
-        )
-        ligand = stk.BuildingBlock.init_from_molecule(
-            unopt_l,
-            functional_groups=['bromine']
+        ligand = stk.BuildingBlock.init_from_file(
+            join(ligand_dir, f'{ligand_name}_opt.mol'),
+            functional_groups=[stk.BromoFactory()]
         )
 
         return ligand
@@ -651,7 +707,6 @@ class CageSet:
     def cage_symmetries(
         self,
         string,
-        topo,
         D_complex,
         L_complex,
         linker,
@@ -663,14 +718,13 @@ class CageSet:
 
         """
 
-        no_vertices = self._get_no_vertices(string='m8l6face')
-        rotatable_vertices = self._get_rot_vertices(string='m8l6face')
+        no_vertices = self._get_no_vertices(string=string)
+        rotatable_vertices = self._get_rot_vertices(string=string)
         # Assumes metal complex vertices is all non-rotatable_vertices.
         complex_vertices = [
             i for i in range(no_vertices)
             if i not in rotatable_vertices
         ]
-        print('nos', no_vertices, rotatable_vertices, complex_vertices)
 
         if string == 'm4l4spacer':
             symm_list = {}
@@ -682,7 +736,6 @@ class CageSet:
 
             if get_all:
                 symm_list = symmetries.all_m8l6face_symmetries(
-                    topo=topo,
                     D_complex=D_complex,
                     L_complex=L_complex,
                     linker=linker,
@@ -700,7 +753,6 @@ class CageSet:
                     L_complex=L_complex,
                     linker=linker,
                     n_metals=n_metals,
-                    topo=topo,
                     no_vertices=no_vertices
                 )
                 symm_list['o1'] = m8l6_symm.o1()
@@ -713,7 +765,6 @@ class CageSet:
                 symm_list['d32'] = m8l6_symm.d32()
                 symm_list['c2v'] = m8l6_symm.c2v()
                 symm_list['c2h'] = m8l6_symm.c2h()
-                print(f'{len(symm_list)} symmetries')
 
         elif string == 'm6l2l3':
             symm_list = {}
@@ -723,6 +774,7 @@ class CageSet:
         else:
             raise KeyError(f'{string} not in defined')
 
+        print(f'{len(symm_list)} symmetries to build')
         return symm_list
 
 
@@ -756,7 +808,6 @@ class HoCube(CageSet):
 
         # Get ligand aspect ratio.
         self.ligand_aspect_ratio = self._get_ligand_AR(ligand_dir)
-        print(self.name, self.ligand_aspect_ratio)
 
     def _get_ligand_AR(self, ligand_dir):
         """
@@ -768,7 +819,6 @@ class HoCube(CageSet):
             ligand_name=self.cage_dict['tetratopic'],
             ligand_dir=ligand_dir
         )
-        print(tet_linker, self.cage_dict['tetratopic'])
         ligand_AR = calculate_binding_AR(tet_linker)
 
         return ligand_AR
@@ -782,14 +832,12 @@ class HoCube(CageSet):
         cages_to_build = []
 
         # Get Delta and Lambda complexes.
-        print(self.complex_dicts)
         D_complex_name = [
             i for i in self.complex_dicts if 'del' in i
         ][0]
         L_complex_name = [
             i for i in self.complex_dicts if 'lam' in i
         ][0]
-        print(D_complex_name, L_complex_name)
         L_complex = self._load_complex(
             complex_name=L_complex_name,
             complex_dir=complex_dir
@@ -803,7 +851,6 @@ class HoCube(CageSet):
         L_charge = self.complex_dicts[L_complex_name]['total_charge']
         D_free_e = self.complex_dicts[D_complex_name]['unpaired_e']
         L_free_e = self.complex_dicts[L_complex_name]['unpaired_e']
-        print(D_charge, D_free_e, L_charge, L_free_e)
 
         # Get all linkers and their face orientations.
         tet_prop = self.ligand_dicts[self.cage_dict['tetratopic']]
@@ -814,38 +861,37 @@ class HoCube(CageSet):
 
         # Tetratopic homoleptic cages.
         # Get topology as object to be used in following list.
-        tet_topo_name, tet_topo = available_topologies(
-            string='m8l6face'
-        )
+        tet_topo_name = 'm8l6face'
+        tet_topo_fn = available_topologies(string=tet_topo_name)
 
         symmetries_to_build = self.cage_symmetries(
             string='m8l6face',
-            topo=tet_topo,
             D_complex=D_complex,
             L_complex=L_complex,
             linker=tet_linker,
             check_orientation=tet_prop['check_orientations'],
             get_all=False
         )
+
         for name_string in symmetries_to_build:
             new_name = (
                 f"C_{self.cage_dict['corner_name']}_"
                 f"{self.cage_dict['tetratopic']}_"
                 f"{name_string}"
             )
-            print(new_name)
-            new_bbs = [D_complex, L_complex, tet_linker]
-            topo_f = symmetries_to_build[name_string][0]
-            new_bb_vertices = symmetries_to_build[name_string][1]
-            rat = symmetries_to_build[name_string][2]
-            print(rat)
+            building_blocks = (
+                symmetries_to_build[name_string]['building_blocks']
+            )
+            vertex_alignments = (
+                symmetries_to_build[name_string]['vertex_alignments']
+            )
+            rat = symmetries_to_build[name_string]['ratio']
 
             # Merge linker and complex charges.
             complex_charge = rat[0]*int(D_charge)
             complex_charge += rat[1]*int(L_charge)
             new_charge = tet_prop['net_charge']*6 + complex_charge
 
-            print(tet_prop['total_unpaired_e'])
             lig_free_e = [
                 int(i)*6 for i in tet_prop['total_unpaired_e']
             ]
@@ -853,20 +899,16 @@ class HoCube(CageSet):
                 int(i)*rat[0] + int(j)*rat[1]
                 for i, j in zip(D_free_e, L_free_e)
             ]
-            print(lig_free_e, compl_free_e)
-
             new_free_electron_options = []
             for opt in product(lig_free_e, compl_free_e):
-                print(opt)
                 new_free_electron_options.append(opt[0]+opt[1])
 
-            print(new_charge, new_free_electron_options)
             new_cage = Cage(
                 name=new_name,
-                bbs=new_bbs,
-                topology=topo_f,
+                topology_fn=tet_topo_fn,
+                building_blocks=building_blocks,
+                vertex_alignments=vertex_alignments,
                 topology_string=tet_topo_name,
-                bb_vertices=new_bb_vertices,
                 charge=new_charge,
                 free_electron_options=new_free_electron_options
             )
@@ -931,7 +973,6 @@ class HetPrism(CageSet):
         ligand_dir,
         complex_dir
     ):
-
 
         super().__init__(
             name,

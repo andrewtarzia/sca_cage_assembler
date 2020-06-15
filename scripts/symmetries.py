@@ -135,14 +135,12 @@ class M8L6_Symmetry(Symmetry):
         L_complex,
         linker,
         n_metals,
-        topo,
         no_vertices
     ):
         self.D_complex = D_complex
         self.L_complex = L_complex
         self.linker = linker
         self.n_metals = n_metals
-        self.topo = topo
         self.no_vertices = no_vertices
 
     def o1(self):
@@ -155,20 +153,20 @@ class M8L6_Symmetry(Symmetry):
 
         """
 
-        # All default orientation.
-        orient_1 = self.topo(vertex_alignments={
-            i: 0 for i in range(self.no_vertices)
-        })
-        linker_verts_1 = orient_1.vertices[self.n_metals:]
         # All default orientation. All Delta.
-        return (
-            orient_1,
-            {
-                self.D_complex: orient_1.vertices[:self.n_metals],
-                self.linker: linker_verts_1
-            },
-            (8, 0)
-        )
+        vertex_alignments = {
+            i: 0 for i in range(self.no_vertices)
+        }
+        building_blocks = {
+            self.D_complex: range(self.n_metals),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
+
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (8, 0)
+        }
 
     def th1(self):
         """
@@ -179,37 +177,24 @@ class M8L6_Symmetry(Symmetry):
         """
 
         # With default rotation pattern.
-        th_orient_1 = self.topo(vertex_alignments={
+        # Set metal complex symmetries.
+        vertex_alignments = {
             # Metals.
             0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
             # Linkers.
             8: 0, 9: 1, 10: 1, 11: 1, 12: 0, 13: 1
-        })
+        }
+        building_blocks = {
+            self.D_complex: (0, 2, 5, 7),
+            self.L_complex: (1, 3, 4, 6),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
 
-        # Set metal complex symmetries.
-        iter = [0, 1, 0, 1, 1, 0, 1, 0]
-        th_D_verts_1 = [
-            v for i, v in enumerate(
-                th_orient_1.vertices[:self.n_metals]
-            )
-            if iter[i] == 0
-        ]
-        th_L_verts_1 = [
-            v for i, v in enumerate(
-                th_orient_1.vertices[:self.n_metals]
-            )
-            if iter[i] == 1
-        ]
-
-        return (
-            th_orient_1,
-            {
-                self.D_complex: th_D_verts_1,
-                self.L_complex: th_L_verts_1,
-                self.linker: th_orient_1.vertices[self.n_metals:]
-            },
-            (4, 4)
-        )
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (4, 4)
+        }
 
     def th2(self):
         """
@@ -220,37 +205,24 @@ class M8L6_Symmetry(Symmetry):
         """
 
         # With opposite rotation pattern.
-        th_orient_2 = self.topo(vertex_alignments={
+        # Set metal complex symmetries.
+        vertex_alignments = {
             # Metals.
             0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
             # Linkers.
             8: 1, 9: 0, 10: 0, 11: 0, 12: 1, 13: 0
-        })
+        }
+        building_blocks = {
+            self.D_complex: (0, 2, 5, 7),
+            self.L_complex: (1, 3, 4, 6),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
 
-        iter = [0, 1, 0, 1, 1, 0, 1, 0]
-        th_D_verts_2 = [
-            v for i, v in enumerate(
-                th_orient_2.vertices[:self.n_metals]
-            )
-            if iter[i] == 0
-        ]
-        th_L_verts_2 = [
-            v for i, v in enumerate(
-                th_orient_2.vertices[:self.n_metals]
-            )
-            if iter[i] == 1
-        ]
-
-        # With rotated pattern.
-        return (
-            th_orient_2,
-            {
-                self.D_complex: th_D_verts_2,
-                self.L_complex: th_L_verts_2,
-                self.linker: th_orient_2.vertices[self.n_metals:]
-            },
-            (4, 4)
-        )
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (4, 4)
+        }
 
     def t1(self):
         """
@@ -263,22 +235,23 @@ class M8L6_Symmetry(Symmetry):
         """
 
         # With default rotation pattern.
-        th_orient_1 = self.topo(vertex_alignments={
+        # All Delta, orientation pattern 1.
+        vertex_alignments = {
             # Metals.
             0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
             # Linkers.
             8: 0, 9: 1, 10: 1, 11: 1, 12: 0, 13: 1
-        })
+        }
+        building_blocks = {
+            self.D_complex: range(self.n_metals),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
 
-        # All Delta, orientation pattern 1.
-        return (
-            th_orient_1,
-            {
-                self.D_complex: th_orient_1.vertices[:self.n_metals],
-                self.linker: th_orient_1.vertices[self.n_metals:]
-            },
-            (8, 0)
-        )
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (8, 0)
+        }
 
     def s61(self):
         """
@@ -292,37 +265,24 @@ class M8L6_Symmetry(Symmetry):
         """
 
         # With default rotation pattern.
-        th_orient_1 = self.topo(vertex_alignments={
+        # Set metal complex symmetries.
+        vertex_alignments = {
             # Metals.
             0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
             # Linkers.
             8: 0, 9: 1, 10: 1, 11: 1, 12: 0, 13: 1
-        })
+        }
+        building_blocks = {
+            self.D_complex: (0, 1, 2, 5),
+            self.L_complex: (3, 4, 6, 7),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
 
-        iter = [0, 0, 0, 1, 1, 0, 1, 1]
-        s6_D_verts = [
-            v for i, v in enumerate(
-                th_orient_1.vertices[:self.n_metals]
-            )
-            if iter[i] == 0
-        ]
-        s6_L_verts = [
-            v for i, v in enumerate(
-                th_orient_1.vertices[:self.n_metals]
-            )
-            if iter[i] == 1
-        ]
-
-        # Complex orientation 1, orientation pattern 1.
-        return (
-            th_orient_1,
-            {
-                self.D_complex: s6_D_verts,
-                self.L_complex: s6_L_verts,
-                self.linker: th_orient_1.vertices[self.n_metals:]
-            },
-            (4, 4)
-        )
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (4, 4)
+        }
 
     def s62(self):
         """
@@ -336,37 +296,24 @@ class M8L6_Symmetry(Symmetry):
         """
 
         # With opposite rotation pattern.
-        th_orient_2 = self.topo(vertex_alignments={
+        # Set metal complex symmetries.
+        vertex_alignments = {
             # Metals.
             0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
             # Linkers.
             8: 1, 9: 0, 10: 0, 11: 0, 12: 1, 13: 0
-        })
+        }
+        building_blocks = {
+            self.D_complex: (0, 1, 2, 5),
+            self.L_complex: (3, 4, 6, 7),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
 
-        iter = [0, 0, 0, 1, 1, 0, 1, 1]
-        s6_D_verts = [
-            v for i, v in enumerate(
-                th_orient_2.vertices[:self.n_metals]
-            )
-            if iter[i] == 0
-        ]
-        s6_L_verts = [
-            v for i, v in enumerate(
-                th_orient_2.vertices[:self.n_metals]
-            )
-            if iter[i] == 1
-        ]
-
-        # Complex orientation 1, orientation pattern 2.
-        return (
-            th_orient_2,
-            {
-                self.D_complex: s6_D_verts,
-                self.L_complex: s6_L_verts,
-                self.linker: th_orient_2.vertices[self.n_metals:]
-            },
-            (4, 4)
-        )
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (4, 4)
+        }
 
     def d31(self):
         """
@@ -382,36 +329,24 @@ class M8L6_Symmetry(Symmetry):
         """
 
         # With default rotation pattern.
-        d3_orient_1 = self.topo(vertex_alignments={
+        # Set metal complex symmetries.
+        vertex_alignments = {
             # Metals.
             0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
             # Linkers.
             8: 0, 9: 1, 10: 0, 11: 0, 12: 1, 13: 1
-        })
+        }
+        building_blocks = {
+            self.D_complex: (0, 2, 3, 4, 5, 6),
+            self.L_complex: (1, 7),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
 
-        d3_iter_1 = [0, 1, 0, 0, 0, 0, 0, 1]
-
-        d3_D_verts_1 = [
-            v for i, v in enumerate(
-                d3_orient_1.vertices[:self.n_metals]
-            )
-            if d3_iter_1[i] == 0
-        ]
-        d3_L_verts_1 = [
-            v for i, v in enumerate(
-                d3_orient_1.vertices[:self.n_metals]
-            )
-            if d3_iter_1[i] == 1
-        ]
-        return (
-            d3_orient_1,
-            {
-                self.D_complex: d3_D_verts_1,
-                self.L_complex: d3_L_verts_1,
-                self.linker: d3_orient_1.vertices[self.n_metals:]
-            },
-            (6, 2)
-        )
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (6, 2)
+        }
 
     def d32(self):
         """
@@ -427,36 +362,24 @@ class M8L6_Symmetry(Symmetry):
         """
 
         # With opposite rotation pattern.
-        d3_orient_2 = self.topo(vertex_alignments={
+        # Set metal complex symmetries.
+        vertex_alignments = {
             # Metals.
             0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
             # Linkers.
             8: 1, 9: 0, 10: 1, 11: 1, 12: 0, 13: 0
-        })
+        }
+        building_blocks = {
+            self.D_complex: (0, 2, 3, 4, 5, 6),
+            self.L_complex: (1, 7),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
 
-        d3_iter_1 = [0, 1, 0, 0, 0, 0, 0, 1]
-
-        d3_D_verts_1 = [
-            v for i, v in enumerate(
-                d3_orient_2.vertices[:self.n_metals]
-            )
-            if d3_iter_1[i] == 0
-        ]
-        d3_L_verts_1 = [
-            v for i, v in enumerate(
-                d3_orient_2.vertices[:self.n_metals]
-            )
-            if d3_iter_1[i] == 1
-        ]
-        return (
-            d3_orient_2,
-            {
-                self.D_complex: d3_D_verts_1,
-                self.L_complex: d3_L_verts_1,
-                self.linker: d3_orient_2.vertices[self.n_metals:]
-            },
-            (6, 2)
-        )
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (6, 2)
+        }
 
     def c2v(self):
         """
@@ -469,37 +392,24 @@ class M8L6_Symmetry(Symmetry):
         """
 
         # With default rotation pattern.
-        orient = self.topo(vertex_alignments={
+        # Set metal complex symmetries.
+        vertex_alignments = {
             # Metals.
             0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
             # Linkers.
             8: 0, 9: 1, 10: 1, 11: 1, 12: 0, 13: 1
-        })
+        }
+        building_blocks = {
+            self.D_complex: (1, 2, 4, 7),
+            self.L_complex: (0, 3, 5, 6),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
 
-        # Set metal complex symmetries.
-        iter = [1, 0, 0, 1, 0, 1, 1, 0]
-        D_verts = [
-            v for i, v in enumerate(
-                orient.vertices[:self.n_metals]
-            )
-            if iter[i] == 0
-        ]
-        L_verts = [
-            v for i, v in enumerate(
-                orient.vertices[:self.n_metals]
-            )
-            if iter[i] == 1
-        ]
-
-        return (
-            orient,
-            {
-                self.D_complex: D_verts,
-                self.L_complex: L_verts,
-                self.linker: orient.vertices[self.n_metals:]
-            },
-            (4, 4)
-        )
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (4, 4)
+        }
 
     def c2h(self):
         """
@@ -512,34 +422,21 @@ class M8L6_Symmetry(Symmetry):
         """
 
         # With default rotation pattern.
-        orient = self.topo(vertex_alignments={
+        # Set metal complex symmetries.
+        vertex_alignments = {
             # Metals.
             0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
             # Linkers.
             8: 0, 9: 1, 10: 1, 11: 1, 12: 0, 13: 1
-        })
+        }
+        building_blocks = {
+            self.D_complex: (0, 1, 2, 3),
+            self.L_complex: (4, 5, 6, 7),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
 
-        # Set metal complex symmetries.
-        iter = [1, 1, 1, 1, 0, 0, 0, 0]
-        D_verts = [
-            v for i, v in enumerate(
-                orient.vertices[:self.n_metals]
-            )
-            if iter[i] == 0
-        ]
-        L_verts = [
-            v for i, v in enumerate(
-                orient.vertices[:self.n_metals]
-            )
-            if iter[i] == 1
-        ]
-
-        return (
-            orient,
-            {
-                self.D_complex: D_verts,
-                self.L_complex: L_verts,
-                self.linker: orient.vertices[self.n_metals:]
-            },
-            (4, 4)
-        )
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (4, 4)
+        }
