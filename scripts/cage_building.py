@@ -114,6 +114,7 @@ class Cage:
     def __init__(
         self,
         name,
+        base_name,
         topology_fn,
         topology_string,
         building_blocks,
@@ -123,6 +124,7 @@ class Cage:
     ):
 
         self.name = name
+        self.base_name = base_name
         self.topology_fn = topology_fn
         self.topology_string = topology_string
         self.building_blocks = building_blocks
@@ -352,6 +354,7 @@ class Cage:
 
         """
 
+        print(f'....analyzing ligand geometry of {self.name}')
         # Collect the atomic positions of the organic linkers in the
         # cage for analysis.
         org_ligs, smiles_keys = atools.get_organic_linkers(
@@ -363,23 +366,18 @@ class Cage:
         atools.get_lowest_energy_conformers(
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
-            file_prefix=f'{self.name}_sg',
+            file_prefix=f'{self.base_name}_sg',
         )
 
         lse_dict = atools.calculate_ligand_SE(
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
             output_json=f'{self.ls_file}.json',
-            file_prefix=f'{self.name}_sg'
+            file_prefix=f'{self.base_name}_sg'
         )
-        imine_torsion_dict = atools.calculate_imine_torsions(
-            org_ligs=org_ligs,
-            smiles_keys=smiles_keys,
-            file_prefix=f'{self.name}_sg'
+        imine_torsion_dict = atools.calculate_abs_imine_torsions(
+            org_ligs
         )
-        print(imine_torsion_dict)
-        import sys
-        sys.exit('check file conventions')
         planarity_dict = atools.calculate_ligand_planarities(
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
@@ -403,7 +401,7 @@ class Cage:
 
         # Check if output file exists.
         if not exists(f'{self.op_file}.json'):
-            print(f'....analyzing geometry of {self.name}')
+            print(f'....analyzing metal geometry of {self.name}')
 
             # Get atomic numbers of all present metals.
             pres_atm_no = list(set([
@@ -775,11 +773,11 @@ class HoCube(CageSet):
         )
 
         for name_string in symmetries_to_build:
-            new_name = (
+            base_name = (
                 f"C_{self.cage_dict['corner_name']}_"
-                f"{self.cage_dict['tetratopic']}_"
-                f"{name_string}"
+                f"{self.cage_dict['tetratopic']}"
             )
+            new_name = f"{base_name}_{name_string}"
             building_blocks = (
                 symmetries_to_build[name_string]['building_blocks']
             )
@@ -806,6 +804,7 @@ class HoCube(CageSet):
 
             new_cage = Cage(
                 name=new_name,
+                base_name=base_name,
                 topology_fn=tet_topo_fn,
                 building_blocks=building_blocks,
                 vertex_alignments=vertex_alignments,
@@ -825,7 +824,6 @@ class HoCube(CageSet):
         x_pos_list = []
         names_list = []
         for i, name in enumerate(data):
-            print(i, name)
             X = i+2
             names_list.append(name.split('_')[-1])
             x_pos_list.append(X)
@@ -836,7 +834,7 @@ class HoCube(CageSet):
                 edgecolors='k',
                 marker=M,
                 alpha=1.0,
-                s=120
+                s=180
             )
         # Set number of ticks for x-axis
         ax.tick_params(axis='both', which='major', labelsize=16)
