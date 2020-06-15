@@ -151,23 +151,52 @@ class Cage:
         self.cage = cage
 
     def save_bb_xyz(self):
+
+        raise NotImplementedError('Currently broken.')
+
+        if exists(f'{self.opt_file}.mol'):
+            self.cage = self.cage.with_structure_from_file(
+                f'{self.opt_file}.mol'
+            )
         self.cage.write(f'{self.bb_file}.xyz')
 
-        bb_types = [i for i in self.cage.get_building_blocks()]
+        bb_pos = {
+            stk.Smiles().get_key(i): j
+            for i, j in self.building_blocks.items()
+        }
+        bb_data = {}
+        for bb in self.cage.get_building_blocks():
+            smiles = stk.Smiles().get_key(bb)
+            if smiles not in bb_data:
+                bb_data[smiles] = {
+                    'no': len(bb_data),
+                    'pos': bb_pos[smiles]
+                }
 
         # Add column to XYZ file.
         with open(f'{self.bb_file}.xyz', 'r') as f:
             lines = f.readlines()
 
         new_lines = [i.rstrip() for i in lines]
+        unique_ids = {}
         for i, nl in enumerate(new_lines):
             if i < 2:
                 continue
             atom_id = i-2
-            bb_type = str(
-                bb_types.index(self.cage.atoms[atom_id].building_block)
-            )
-            new_line = nl+' '+bb_type
+            atom_info, = self.cage.get_atom_infos(atom_id)
+            building_block = atom_info.get_building_block()
+            building_block_id = atom_info.get_building_block_id()
+            smi = stk.Smiles().get_key(building_block)
+            bb_d = bb_data[smi]
+            va = self.vertex_alignments[
+                building_block_id
+            ]
+            bb_type = f"{bb_d['no']+1}{va+1}"
+            if bb_type not in unique_ids:
+                unique_ids[bb_type] = str(len(unique_ids)+1)
+
+            bb_ids = unique_ids[bb_type]
+            new_line = nl+' '+bb_ids
             new_lines[i] = new_line
 
         with open(f'{self.bb_file}.xyz', 'w') as f:
@@ -609,6 +638,16 @@ class CageSet:
         )
         self.built_cage_properties = {}
 
+    def define_cages_to_build(self):
+        """
+        Defines the name and objects of all cages to build.
+
+        """
+
+        raise NotImplementedError(
+            f'Not implemented for {self.__class__}'
+        )
+
     def load_properties(self):
         """
         Load class from JSON file.
@@ -735,6 +774,7 @@ class CageSet:
             symm_list = {}
 
             if get_all:
+                raise NotImplementedError()
                 symm_list = symmetries.all_m8l6face_symmetries(
                     D_complex=D_complex,
                     L_complex=L_complex,
