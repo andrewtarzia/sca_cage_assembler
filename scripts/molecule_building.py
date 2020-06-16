@@ -14,7 +14,7 @@ Date Created: 23 Jan 2020
 import stk
 import stko
 
-from atools import NPyridineFactory
+from atools import AromaticCNCFactory
 
 
 def build_oct_lambda(metal, ligand):
@@ -104,7 +104,7 @@ def custom_fg_factories(string):
     """
 
     factories = {
-        'pyridine_N_metal': NPyridineFactory(),
+        'pyridine_N_metal': AromaticCNCFactory(),
         'CO_metal': stk.SmartsFunctionalGroupFactory(
             smarts='[#6]~[#8X1]',
             bonders=(1, ),
