@@ -178,7 +178,7 @@ def build_complex(metal_centre, bidentate_ligand, complex_top, name):
     else:
         print(f'doing opt for {name}')
         print('doing UFF4MOF optimisation')
-        gulp_opt = stk.GulpMetalOptimizer(
+        gulp_opt = stk.GulpUFFOptimizer(
             gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
             metal_FF='Zn4+2',
             output_dir=f'{name}_uff1'
@@ -299,7 +299,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_types):
     # cage.dump(f'{cage_name}_rdkit.json')
 
     print('doing UFF4MOF optimisation')
-    gulp_opt = stk.GulpMetalOptimizer(
+    gulp_opt = stk.GulpUFFOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
         metal_FF=metal_types,
         output_dir=f'cage_opt_{cage_name}_uff1'
@@ -311,7 +311,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_types):
     cage.dump(f'{cage_name}_uff4mof.json')
 
     print('doing UFF4MOF MD')
-    gulp_MD = stk.GulpMDMetalOptimizer(
+    gulp_MD = stk.GulpUFFMDOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
         metal_FF=metal_types,
         output_dir=f'cage_opt_{cage_name}_MD',
@@ -331,7 +331,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_types):
     cage.dump(f'{cage_name}_MD.json')
 
     print('doing UFF4MOF optimisation 3')
-    gulp_opt3 = stk.GulpMetalOptimizer(
+    gulp_opt3 = stk.GulpUFFOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
         metal_FF=metal_types,
         output_dir=f'cage_opt_{cage_name}_uff3'

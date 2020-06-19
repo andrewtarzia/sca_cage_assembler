@@ -172,7 +172,7 @@ def optimize_SCA_complex(complex, name, dict, metal_FFs):
     """
 
     print(f'doing UFF4MOF optimisation for {name}')
-    gulp_opt = stko.GulpMetalOptimizer(
+    gulp_opt = stko.GulpUFFOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
         metal_FF=metal_FFs,
         output_dir=f'{name}_uff1'

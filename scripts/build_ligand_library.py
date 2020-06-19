@@ -56,7 +56,7 @@ def build_organics(ligs):
 def optimise_metal_centre(name, charge, complex, metal_FF):
 
     print(f'.......UFF4MOF optimisation of {name}')
-    gulp_opt = stko.GulpMetalOptimizer(
+    gulp_opt = stko.GulpUFFOptimizer(
         gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
         metal_FF=metal_FF,
         output_dir=f'{name}_uff1'
