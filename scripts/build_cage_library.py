@@ -173,16 +173,7 @@ def homo_cube_analysis(cage_set):
             for i in C_data['li_prop']['imine_torsions']
             for j in C_data['li_prop']['imine_torsions'][i]
         ])
-        print('6*4 imines;', len([
-            j
-            for i in C_data['li_prop']['imine_torsions']
-            for j in C_data['li_prop']['imine_torsions'][i]
-        ]))
         max_ligand_distortion[C.name] = max([
-            C_data['li_prop']['core_planarities'][i]
-            for i in C_data['li_prop']['core_planarities']
-        ])
-        print('core planars:', [
             C_data['li_prop']['core_planarities'][i]
             for i in C_data['li_prop']['core_planarities']
         ])
@@ -331,7 +322,6 @@ def build_cages(
             }
             # Dump to JSON.
             cage_set.dump_properties()
-            print(cage_set.built_cage_properties)
 
         cage_sets.append(cage_set)
 

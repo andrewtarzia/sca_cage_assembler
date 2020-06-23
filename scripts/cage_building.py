@@ -376,16 +376,11 @@ class Cage:
             file_prefix=f'{self.base_name}_sg'
         )
         imine_torsion_dict = atools.calculate_abs_imine_torsions(
-            org_ligs
+            org_ligs=org_ligs
         )
         planarity_dict = atools.calculate_ligand_planarities(
-            org_ligs=org_ligs,
-            smiles_keys=smiles_keys,
-            file_prefix=f'{self.name}_sg'
+            org_ligs=org_ligs
         )
-        print(planarity_dict)
-        import sys
-        sys.exit('check file conventions')
 
         self.ls_data = {
             'strain_energies': lse_dict,
