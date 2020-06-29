@@ -54,6 +54,7 @@ def m8l6_graph(building_blocks, vertex_alignments):
     topology_graph = stk.cage.M8L6Cube(
         building_blocks=building_blocks,
         vertex_alignments=vertex_alignments,
+        num_processes=2,
     )
 
     return topology_graph
@@ -241,7 +242,9 @@ class Cage:
                 self.cage,
                 self.name,
                 metal_FFs=custom_metal_FFs,
-                CG=True
+                CG=True,
+                maxcyc=100,
+                metal_ligand_bond_order='',
             )
             self.cage.write(f'{self.uff4mof_CG_file}.mol')
         else:
@@ -254,7 +257,8 @@ class Cage:
             self.cage = atools.MOC_uff_opt(
                 self.cage,
                 self.name,
-                metal_FFs=custom_metal_FFs
+                metal_FFs=custom_metal_FFs,
+                metal_ligand_bond_order='',
             )
             self.cage.write(f'{self.uff4mof_file}.mol')
         else:
@@ -274,6 +278,7 @@ class Cage:
                 equib=0.1,
                 production=2,
                 metal_FFs=custom_metal_FFs,
+                metal_ligand_bond_order='half',
                 opt_conf=False,
                 save_conf=False
             )
