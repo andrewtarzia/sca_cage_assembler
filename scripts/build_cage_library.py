@@ -289,14 +289,18 @@ def build_cages(
                 step_size = 0.05
                 distance_cut = 3.0
                 scale_steps = True
+                expected_ligands = 2
             elif C.topology_string == 'm8l6face':
                 step_size = 0.05
                 distance_cut = 2.0
                 scale_steps = False
+                expected_ligands = 1
             else:
                 step_size = 0.05
                 distance_cut = 2.0
                 scale_steps = True
+                expected_ligands = 1
+
             C.optimize(
                 free_e=default_free_e,
                 step_size=step_size,
@@ -312,7 +316,8 @@ def build_cages(
                 metal_atom_no=[
                     cage_set.complex_dicts[i]['metal_atom_no']
                     for i in cage_set.complex_dicts
-                ][0]
+                ][0],
+                expected_ligands=expected_ligands
             )
             cage_set.built_cage_properties[C.name] = {
                 'pw_prop': C.pw_data,

@@ -26,6 +26,10 @@ import symmetries
 from utilities import calculate_binding_AR
 
 
+class UnexpectedNumLigands(Exception):
+    ...
+
+
 def m4l4spacer_graph(metal_corner, ligand, ligand2=None):
 
     raise NotImplementedError('see m8l6 for example')
@@ -348,7 +352,7 @@ class Cage:
         FE = produ_eys - react_eys
         self.FE = FE
 
-    def analyze_ligand_strain(self, metal_atom_no):
+    def analyze_ligand_strain(self, metal_atom_no, expected_ligands):
         """
         Analyse cage ligand geometry for strain.
 
@@ -362,6 +366,14 @@ class Cage:
             metal_atom_nos=(metal_atom_no, ),
             file_prefix=f'{self.name}_sg'
         )
+
+        num_unique_ligands = len(set(smiles_keys.values()))
+        if num_unique_ligands != expected_ligands:
+            raise UnexpectedNumLigands(
+                f'{self.name} had {num_unique_ligands} unique ligands'
+                f', {expected_ligands} were expected. Suggests bad '
+                'optimization.'
+            )
 
         atools.get_lowest_energy_conformers(
             org_ligs=org_ligs,
