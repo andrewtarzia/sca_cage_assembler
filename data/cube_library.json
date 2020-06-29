@@ -6,32 +6,46 @@
         "heteroleptic": false,
         "experimental": true
     },
-    "cl2_quad2_8": {
+    "cl1_quad2_8": {
         "corners": ["cl1_zn_oct_del", "cl1_zn_oct_lam"],
-        "corner_name": "cl2",
+        "corner_name": "cl1",
         "tetratopic": "quad2_8",
         "heteroleptic": false,
         "experimental": true
     },
-    "cl3_quad2_16": {
+    "cl1_quad2_16": {
         "corners": ["cl1_zn_oct_del", "cl1_zn_oct_lam"],
-        "corner_name": "cl3",
+        "corner_name": "cl1",
         "tetratopic": "quad2_16",
         "heteroleptic": false,
         "experimental": true
     },
-    "cl3_quad2_1": {
+    "cl1_quad2_1": {
         "corners": ["cl1_zn_oct_del", "cl1_zn_oct_lam"],
-        "corner_name": "cl3",
+        "corner_name": "cl1",
         "tetratopic": "quad2_1",
         "heteroleptic": false,
         "experimental": true
     },
-    "cl3_quad2_11": {
+    "cl1_quad2_11": {
         "corners": ["cl1_zn_oct_del", "cl1_zn_oct_lam"],
-        "corner_name": "cl3",
+        "corner_name": "cl1",
         "tetratopic": "quad2_11",
         "heteroleptic": false,
         "experimental": true
-    }
+    },
+    "cl1_quad2_5": {
+        "corners": ["cl1_zn_oct_del", "cl1_zn_oct_lam"],
+        "corner_name": "cl1",
+        "tetratopic": "quad2_5",
+        "heteroleptic": false,
+        "experimental": true
+    },
+    "cl1_quad2_3": {
+        "corners": ["cl1_zn_oct_del", "cl1_zn_oct_lam"],
+        "corner_name": "cl1",
+        "tetratopic": "quad2_3",
+        "heteroleptic": false,
+        "experimental": true
+    },
 }
