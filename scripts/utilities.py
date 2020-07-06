@@ -71,3 +71,68 @@ def calculate_binding_AR(mol):
 
     ligand_AR = sum(ARs)/len(ARs)
     return ligand_AR
+
+
+def calculate_paired_face_anisotropies(mol, metal_atom_ids, face_sets):
+    """
+    Calculate face anisotropy of opposing sides of a prism.
+
+    Defined as:
+        Ratio of metal-metal distances defined by two edges eminating
+        from a chosen metal on each face.
+
+    """
+
+    # Get all metal-metal distances with metal atom ids.
+    metal_atom_dists = sorted(
+        [
+            (idx1, idx2, get_atom_distance(mol, idx1, idx2))
+            for idx1, idx2 in combinations(metal_atom_ids, r=2)
+        ],
+        key=lambda a: a[2]
+    )
+
+    face_anisotropies = {}
+    for fs in face_sets:
+        fsv = face_sets[fs]['vertices']
+        fsc = face_sets[fs]['connected']
+        fs_atom_ids = tuple(metal_atom_ids[i] for i in fsv)
+        fs_distances = tuple(
+            i for i in metal_atom_dists
+            if i[0] in fs_atom_ids and i[1] in fs_atom_ids
+        )
+        # Pick one metal.
+        idx = fsv[0]
+        conn = [
+            j
+            for i in fsc if idx in i
+            for j in i if j != idx
+        ]
+        fs_idx = metal_atom_ids[idx]
+        fs_conn = [metal_atom_ids[i] for i in conn]
+
+        # Define aniso based on the distances between its two
+        # connections.
+        pair1 = (fs_idx, fs_conn[0])
+        pair2 = (fs_idx, fs_conn[1])
+        d1, = (
+            i[2]
+            for i in fs_distances
+            if i[0] in pair1 and i[1] in pair1
+        )
+        d2, = (
+            i[2]
+            for i in fs_distances
+            if i[0] in pair2 and i[1] in pair2
+        )
+        face_aniso = d2 / d1 if d2 > d1 else d1 / d2
+        face_anisotropies[fs] = face_aniso
+
+    # Pair the face anisotropies of opposing faces.
+    paired_face_anisotropies = [
+        (i, j, face_anisotropies[i], face_anisotropies[j])
+        for i, j in combinations(face_anisotropies, r=2)
+        if face_sets[i]['opposite'] == j
+    ]
+
+    return paired_face_anisotropies
