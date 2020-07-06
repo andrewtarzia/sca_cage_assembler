@@ -285,6 +285,7 @@ def build_cages(
     cage_lib,
     ligand_directory,
     complex_directory
+    read_data,
 ):
 
     cage_sets = []
@@ -312,55 +313,58 @@ def build_cages(
                 complex_dir=complex_directory
             )
 
-        for C in cage_set.cages_to_build:
-            C.build()
+        if read_data and exists(cage_set.properties_file):
+            cage_set.load_properties()
+        else:
+            for C in cage_set.cages_to_build:
+                C.build()
 
-            default_free_e = C.free_electron_options[0]
-            # Use a slightly different collapser threshold for
-            # different topologies.
-            if C.topology_string == 'm6l2l3':
-                step_size = 0.05
-                distance_cut = 3.0
-                scale_steps = True
-                expected_ligands = 2
-            elif C.topology_string == 'm8l6face':
-                step_size = 0.05
-                distance_cut = 2.5
-                scale_steps = False
-                expected_ligands = 1
-            else:
-                step_size = 0.05
-                distance_cut = 2.0
-                scale_steps = True
-                expected_ligands = 1
+                default_free_e = C.free_electron_options[0]
+                # Use a slightly different collapser threshold for
+                # different topologies.
+                if C.topology_string == 'm6l2l3':
+                    step_size = 0.05
+                    distance_cut = 3.0
+                    scale_steps = True
+                    expected_ligands = 2
+                elif C.topology_string == 'm8l6face':
+                    step_size = 0.05
+                    distance_cut = 2.5
+                    scale_steps = False
+                    expected_ligands = 1
+                else:
+                    step_size = 0.05
+                    distance_cut = 2.0
+                    scale_steps = True
+                    expected_ligands = 1
 
-            C.optimize(
-                free_e=default_free_e,
-                step_size=step_size,
-                distance_cut=distance_cut,
-                scale_steps=scale_steps
-            )
+                C.optimize(
+                    free_e=default_free_e,
+                    step_size=step_size,
+                    distance_cut=distance_cut,
+                    scale_steps=scale_steps
+                )
 
-            C.analyze_metal_strain()
-            C.analyze_porosity()
-            # C.analyze_formation_energy()
-            C.analyze_ligand_strain(
-                # Assumes only one type of metal atom.
-                metal_atom_no=[
-                    cage_set.complex_dicts[i]['metal_atom_no']
-                    for i in cage_set.complex_dicts
-                ][0],
-                expected_ligands=expected_ligands
-            )
-            cage_set.built_cage_properties[C.name] = {
-                'pw_prop': C.pw_data,
-                'op_prop': C.op_data,
-                # 'form_energy': C.FE,
-                'li_prop': C.ls_data,
-                'fa_prop': C.fa_data,
-            }
-            # Dump to JSON.
-            cage_set.dump_properties()
+                C.analyze_metal_strain()
+                C.analyze_porosity()
+                # C.analyze_formation_energy()
+                C.analyze_ligand_strain(
+                    # Assumes only one type of metal atom.
+                    metal_atom_no=[
+                        cage_set.complex_dicts[i]['metal_atom_no']
+                        for i in cage_set.complex_dicts
+                    ][0],
+                    expected_ligands=expected_ligands
+                )
+                cage_set.built_cage_properties[C.name] = {
+                    'pw_prop': C.pw_data,
+                    'op_prop': C.op_data,
+                    # 'form_energy': C.FE,
+                    'li_prop': C.ls_data,
+                    'fa_prop': C.fa_data,
+                }
+                # Dump to JSON.
+                cage_set.dump_properties()
 
         cage_sets.append(cage_set)
 
@@ -370,9 +374,9 @@ def build_cages(
 def main():
     first_line = (
         'Usage: build_cage_library.py lig_lib_file prism_lib_file '
-        'compl_lib_file lig_directory compl_directory'
+        'compl_lib_file lig_directory compl_directory read_data'
     )
-    if (not len(sys.argv) == 6):
+    if (not len(sys.argv) == 7):
         print(f"""
 {first_line}
 
@@ -391,6 +395,10 @@ def main():
     compl_directory : (str)
         Directory with required complex structures.
 
+    read_data : (str)
+        't' if cage analysis can be read from CageSet.properties_file.
+        All other strings gives False.
+
     """)
         sys.exit()
     else:
@@ -399,6 +407,7 @@ def main():
         cage_lib_file = sys.argv[3]
         ligand_directory = sys.argv[4]
         compl_directory = sys.argv[5]
+        read_data = True if sys.argv[6] == 't' else False
 
     cage_lib = read_lib(cage_lib_file)
     compls = read_lib(compl_lib_file)
@@ -410,7 +419,8 @@ def main():
         compls,
         cage_lib,
         ligand_directory,
-        compl_directory
+        compl_directory,
+        read_data,
     )
     analyse_cages(cage_sets)
 
