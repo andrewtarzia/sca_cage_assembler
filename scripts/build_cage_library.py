@@ -11,6 +11,7 @@ Date Created: 27 Jan 2020
 """
 
 import sys
+from itertools import combinations
 from os.path import exists
 import numpy as np
 import matplotlib.pyplot as plt
@@ -377,43 +378,87 @@ def homo_cube_analysis(cage_set):
     print('min imine torsion:', measures['min_imine_torsions'])
     print('max core planarities:', measures['max_ligand_distortion'])
     print('max diff in face aniso:', measures['max_diff_face_aniso'])
-    input('----------------------------------------------------')
-    # Plot all order parameter minimums.
-    cage_set.plot_Y(
-        data=measures['oct_op'],
-        ylabel=r'min. $q_{\mathrm{oct}}$',
-        ylim=(0, 1),
-        filename=f'{cage_set.name}_minOPs.pdf'
-    )
-    cage_set.plot_Y(
-        data={
-            i: measures['lse_max'][i]-min(measures['lse_max'].values())
-            for i in measures['lse_max']
+    print('----------------------------------------------------')
+
+    plottables = {
+        'oct_op': {
+            'data': measures['oct_op'],
+            'ylabel': r'min. $q_{\mathrm{oct}}$',
+            'ylim': (0, 1),
+            'filename': f'{cage_set.name}_minOPs.pdf'
         },
-        ylabel=r'rel. max. strain energy [kJ/mol]',
-        ylim=(-4, 50),
-        filename=f'{cage_set.name}_maxLSE.pdf'
-    )
-    cage_set.plot_Y(
-        data=measures['min_imine_torsions'],
-        ylabel=r'min. imine torsion [degrees]',
-        ylim=(0, 185),
-        filename=f'{cage_set.name}_mintors.pdf'
-    )
-    cage_set.plot_Y(
-        data=measures['max_ligand_distortion'],
-        ylabel=r'max. ligand distortion [$\mathrm{\AA}$]',
-        ylim=(0, 185),
-        filename=f'{cage_set.name}_maxdistortion.pdf'
-    )
-    cage_set.plot_Y(
-        data=measures['max_diff_face_aniso'],
-        ylabel=(
-            r'max. $\Delta$opposing face anisotropy [%]'
-        ),
-        ylim=(-0.1, 0.5),
-        filename=f'{cage_set.name}_maxfadiff.pdf'
-    )
+        'lse_max': {
+            'data': {
+                i: (
+                    measures['lse_max'][i]
+                    - min(measures['lse_max'].values())
+                )
+                for i in measures['lse_max']
+            },
+            'ylabel': r'rel. max. strain energy [kJ/mol]',
+            'ylim': (-4, 50),
+            'filename': f'{cage_set.name}_maxLSE.pdf'
+        },
+        'min_imine_torsions': {
+            'data': measures['min_imine_torsions'],
+            'ylabel': r'min. imine torsion [degrees]',
+            'ylim': (0, 185),
+            'filename': f'{cage_set.name}_mintors.pdf'
+        },
+        'max_ligand_distortion': {
+            'data': measures['max_ligand_distortion'],
+            'ylabel': r'max. ligand distortion [$\mathrm{\AA}$]',
+            'ylim': (0, 185),
+            'filename': f'{cage_set.name}_maxdistortion.pdf'
+        },
+        'max_diff_face_aniso': {
+            'data': measures['max_diff_face_aniso'],
+            'ylabel': r'max. $\Delta$opposing face anisotropy [%]',
+            'ylim': (-0.1, 0.5),
+            'filename': f'{cage_set.name}_maxfadiff.pdf'
+        },
+    }
+
+    for p1, p2 in combinations(plottables, 2):
+        p1_dict = plottables[p1]
+        if not exists(p1_dict['filename']):
+            cage_set.plot_Y(
+                data=p1_dict['data'],
+                ylabel=p1_dict['ylabel'],
+                ylim=p1_dict['ylim'],
+                filename=p1_dict['filename']
+            )
+        p2_dict = plottables[p2]
+        if not exists(p2_dict['filename']):
+            cage_set.plot_Y(
+                data=p2_dict['data'],
+                ylabel=p2_dict['ylabel'],
+                ylim=p2_dict['ylim'],
+                filename=p2_dict['filename']
+            )
+
+        p1_p2_filename = f'{cage_set.name}_{p1}_{p2}.pdf'
+        if not exists(p1_p2_filename):
+            cage_set.plot_Y_C(
+                data=p1_dict['data'],
+                ylabel=p1_dict['ylabel'],
+                ylim=p1_dict['ylim'],
+                data_C=p2_dict['data'],
+                clabel=p2_dict['ylabel'],
+                clim=p2_dict['ylim'],
+                filename=p1_p2_filename
+            )
+        p2_p1_filename = f'{cage_set.name}_{p2}_{p1}.pdf'
+        if not exists(p2_p1_filename):
+            cage_set.plot_Y_C(
+                data=p2_dict['data'],
+                ylabel=p2_dict['ylabel'],
+                ylim=p2_dict['ylim'],
+                data_C=p1_dict['data'],
+                clabel=p1_dict['ylabel'],
+                clim=p1_dict['ylim'],
+                filename=p2_p1_filename
+            )
 
     return measures
 
