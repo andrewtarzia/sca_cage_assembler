@@ -36,6 +36,8 @@ def calculate_binding_AR(mol):
     Calculate ligand aspect ratio based on binder positions.
 
     Defined as:
+        Average ratio of the two shortest binding atom-binding atom
+        distances eminating from each binding atom in the molecule.
 
     """
 
