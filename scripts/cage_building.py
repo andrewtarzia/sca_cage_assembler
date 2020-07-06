@@ -14,6 +14,7 @@ Date Created: 03 Mar 2020
 from itertools import product
 from os.path import exists, join
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import json
 import pywindow as pw
 import os
@@ -932,7 +933,83 @@ class HoCube(CageSet):
         ax.tick_params(axis='both', which='major', labelsize=16)
         # ax.set_xlabel(r'pore volume [$\mathrm{\AA}^3$]', fontsize=16)
         ax.set_ylabel(ylabel, fontsize=16)
-        ax.set_xlim(0, i+3)
+        ax.set_xlim(1, i+3)
+        ax.set_ylim(ylim)
+        ax.set_xticklabels(names_list)
+        ax.set_xticks(x_pos_list)
+
+        fig.tight_layout()
+        fig.savefig(
+            filename,
+            dpi=720,
+            bbox_inches='tight'
+        )
+        plt.close()
+
+    def plot_Y_C(
+        self,
+        data,
+        ylabel,
+        data_C,
+        clabel,
+        clim,
+        filename,
+        ylim=None,
+    ):
+
+        M = 'o'
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+        # Define cmap.
+        CMAP = {i: data_C[i]/clim[1] for i in data_C}
+        cmap = {
+            'mid_point': 0.5,
+            'cmap': cm.Purples_r,
+            'ticks': [0, .50, 1.00],
+            'labels': [
+                str(clim[0]),
+                str((clim[1]-clim[0])/2),
+                str(clim[1])
+            ],
+            'cmap_label': clabel,
+        }
+
+        cmp = atools.define_plot_cmap(
+            fig, ax,
+            mid_point=cmap['mid_point'],
+            cmap=cmap['cmap'],
+            ticks=cmap['ticks'],
+            labels=cmap['labels'],
+            cmap_label=cmap['cmap_label']
+        )
+
+        x_pos_list = []
+        names_list = []
+        xs = []
+        ys = []
+        cs = []
+        for i, name in enumerate(data):
+            X = i+2
+            names_list.append(name.split('_')[-1])
+            x_pos_list.append(X)
+            xs.append(X)
+            ys.append(data[name])
+            cs.append(cmp(CMAP[name]))
+        ax.scatter(
+            xs,
+            ys,
+            c=cs,
+            edgecolors='k',
+            marker=M,
+            alpha=1.0,
+            s=180
+        )
+
+        # Set number of ticks for x-axis
+        ax.tick_params(axis='both', which='major', labelsize=16)
+        # ax.set_xlabel(r'pore volume [$\mathrm{\AA}^3$]', fontsize=16)
+        ax.set_ylabel(ylabel, fontsize=16)
+        ax.set_xlim(1, i+3)
         ax.set_ylim(ylim)
         ax.set_xticklabels(names_list)
         ax.set_xticks(x_pos_list)
