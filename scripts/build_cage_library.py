@@ -142,10 +142,13 @@ def homo_cube_analysis(cage_set):
     built_prop = cage_set.built_cage_properties
 
     # Get measures of all cages.
-    oct_op = {}
-    lse_max = {}
-    min_imine_torsions = {}
-    max_ligand_distortion = {}
+    measures = {
+        'oct_op': {},
+        'lse_max': {},
+        'min_imine_torsions': {},
+        'max_ligand_distortion': {},
+        'max_diff_face_aniso': {},
+    }
     for C in cage_set.cages_to_build:
         C_data = built_prop[C.name]
         # Get minimium octahedral OP of the metal that is in the
@@ -163,55 +166,69 @@ def homo_cube_analysis(cage_set):
             for i in C_OP
             for j in i
         ]
-        oct_op[C.name] = min(target_OPs)
-        lse_max[C.name] = max([
+        measures['oct_op'][C.name] = min(target_OPs)
+        measures['lse_max'][C.name] = max([
             C_data['li_prop']['strain_energies'][i]
             for i in C_data['li_prop']['strain_energies']
         ])
-        min_imine_torsions[C.name] = min([
+        measures['min_imine_torsions'][C.name] = min([
             j
             for i in C_data['li_prop']['imine_torsions']
             for j in C_data['li_prop']['imine_torsions'][i]
         ])
-        max_ligand_distortion[C.name] = max([
+        measures['max_ligand_distortion'][C.name] = max([
             C_data['li_prop']['core_planarities'][i]
             for i in C_data['li_prop']['core_planarities']
         ])
+        measures['max_diff_face_aniso'][C.name] = max([
+            (i[2] - i[3]) / i[2]
+            for i in C_data['fa_prop']
+        ])
 
-    print('minimum OPs:', oct_op)
-    print('max LSE:', lse_max)
-    print('min imine torsion:', min_imine_torsions)
-    print('max core planarities:', max_ligand_distortion)
-    input()
+    print('minimum OPs:', measures['oct_op'])
+    print('max LSE:', measures['lse_max'])
+    print('min imine torsion:', measures['min_imine_torsions'])
+    print('max core planarities:', measures['max_ligand_distortion'])
+    print('max diff in face aniso:', measures['max_diff_face_aniso'])
+    input('----------------------------------------------------')
     # Plot all order parameter minimums.
     cage_set.plot_Y(
-        data=oct_op,
+        data=measures['oct_op'],
         ylabel=r'min. $q_{\mathrm{oct}}$',
         ylim=(0, 1),
         filename=f'{cage_set.name}_minOPs.pdf'
     )
     cage_set.plot_Y(
         data={
-            i: lse_max[i]-min(lse_max.values()) for i in lse_max
+            i: measures['lse_max'][i]-min(measures['lse_max'].values())
+            for i in measures['lse_max']
         },
         ylabel=r'rel. max. strain energy [kJ/mol]',
         ylim=(-4, 50),
         filename=f'{cage_set.name}_maxLSE.pdf'
     )
     cage_set.plot_Y(
-        data=min_imine_torsions,
+        data=measures['min_imine_torsions'],
         ylabel=r'min. imine torsion [degrees]',
         ylim=(0, 185),
         filename=f'{cage_set.name}_mintors.pdf'
     )
     cage_set.plot_Y(
-        data=max_ligand_distortion,
+        data=measures['max_ligand_distortion'],
         ylabel=r'max. ligand distortion [$\mathrm{\AA}$]',
         ylim=(0, 185),
         filename=f'{cage_set.name}_maxdistortion.pdf'
     )
+    cage_set.plot_Y(
+        data=measures['max_diff_face_aniso'],
+        ylabel=(
+            r'max. $\Delta$opposing face anisotropy [%]'
+        ),
+        ylim=(-0.1, 0.5),
+        filename=f'{cage_set.name}_maxfadiff.pdf'
+    )
 
-    return oct_op
+    return measures
 
 
 def analyse_cages(cage_sets):
@@ -221,19 +238,35 @@ def analyse_cages(cage_sets):
         if isinstance(cage_set, cage_building.HetPrism):
             het_prism_analysis(cage_set)
         if isinstance(cage_set, cage_building.HoCube):
-            oct_op = homo_cube_analysis(cage_set)
+            measures = homo_cube_analysis(cage_set)
             # For all HoCube sets, collect ligand aspect ratio data.
             AR_data[cage_set.name] = {
-                'min_OPs': oct_op,
-                'aspect_ratio': cage_set.ligand_aspect_ratio
+                'min_OPs': measures['oct_op'],
+                'lse_max': {
+                    i: (
+                        measures['lse_max'][i] -
+                        min(measures['lse_max'].values())
+                    )
+                    for i in measures['lse_max']
+                },
+                'min_tor': measures['min_imine_torsions'],
+                'max_dis': measures['max_ligand_distortion'],
+                'aspect_ratio': cage_set.ligand_aspect_ratio,
+                'max_rfa': measures['max_diff_face_aniso'],
             }
-
-    sys.exit('add the following tests')
 
     # Plot ligand aspect ratio data.
     tests = {
         # Test: (ylabel, ylim)
-        'min_OP': (r'min. $q_{\mathrm{oct}}$', (0, 1))
+        'min_OPs': (r'min. $q_{\mathrm{oct}}$', (0, 1)),
+        'lse_max': (r'rel. max. strain energy [kJ/mol]', (-4, 50)),
+        'min_tor': (r'min. imine torsion [degrees]', (0, 185)),
+        'max_dis': (
+            r'max. ligand distortion [$\mathrm{\AA}$]', (0, 185)
+        ),
+        'max_rfa': (
+            r'max. $\Delta$opposing face anisotropy [%]', (-0.1, 0.5)
+        ),
     }
     if len(AR_data) > 0:
         for t in tests:
@@ -292,7 +325,7 @@ def build_cages(
                 expected_ligands = 2
             elif C.topology_string == 'm8l6face':
                 step_size = 0.05
-                distance_cut = 2.0
+                distance_cut = 2.5
                 scale_steps = False
                 expected_ligands = 1
             else:
@@ -323,7 +356,8 @@ def build_cages(
                 'pw_prop': C.pw_data,
                 'op_prop': C.op_data,
                 # 'form_energy': C.FE,
-                'li_prop': C.ls_data
+                'li_prop': C.ls_data,
+                'fa_prop': C.fa_data,
             }
             # Dump to JSON.
             cage_set.dump_properties()
