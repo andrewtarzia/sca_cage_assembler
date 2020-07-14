@@ -96,10 +96,9 @@ def heatmap(
     # Turn spines off and create white grid.
     for edge, spine in ax.spines.items():
         spine.set_visible(False)
-
     ax.set_xticks(np.arange(data.shape[1]+1)-.5, minor=True)
     ax.set_yticks(np.arange(data.shape[0]+1)-.5, minor=True)
-    ax.grid(which="minor", color="w", linestyle='-', linewidth=3)
+    # ax.grid(which="minor", color="k", linestyle='-', linewidth=2)
     ax.tick_params(which="minor", bottom=False, left=False)
 
     return im, cbar
@@ -231,10 +230,10 @@ def plot_set_heatmap_vs_aniso(data, Y_name, ylabel, ylim, filename):
         row_labels=symmetries,
         col_labels=[f'{round(i, 2)}' for i in col_names.values()],
         ax=ax,
-        cmap='OrRd',
+        cmap='Blues',
         cbarlabel=ylabel
     )
-    texts = annotate_heatmap(im, valfmt="{x:.2f}")
+    texts = annotate_heatmap(im, valfmt="{x:.1f}", fontsize=8)
     ax.set_xlabel('ligand aspect ratio [1:X]')
     fig.tight_layout()
     fig.savefig(
@@ -332,7 +331,7 @@ def homo_cube_analysis(cage_set):
     # Get measures of all cages.
     measures = {
         'oct_op': {},
-        'lse_max': {},
+        'lse_sum': {},
         'min_imine_torsions': {},
         'max_ligand_distortion': {},
         'max_diff_face_aniso': {},
@@ -355,7 +354,7 @@ def homo_cube_analysis(cage_set):
             for j in i
         ]
         measures['oct_op'][C.name] = min(target_OPs)
-        measures['lse_max'][C.name] = max([
+        measures['lse_sum'][C.name] = sum([
             C_data['li_prop']['strain_energies'][i]
             for i in C_data['li_prop']['strain_energies']
         ])
@@ -369,12 +368,12 @@ def homo_cube_analysis(cage_set):
             for i in C_data['li_prop']['core_planarities']
         ])
         measures['max_diff_face_aniso'][C.name] = max([
-            (i[2] - i[3]) / i[2]
+            100*((i[2] - i[3]) / i[2])
             for i in C_data['fa_prop']
         ])
 
     print('minimum OPs:', measures['oct_op'])
-    print('max LSE:', measures['lse_max'])
+    print('sum LSE:', measures['lse_sum'])
     print('min imine torsion:', measures['min_imine_torsions'])
     print('max core planarities:', measures['max_ligand_distortion'])
     print('max diff in face aniso:', measures['max_diff_face_aniso'])
@@ -387,17 +386,17 @@ def homo_cube_analysis(cage_set):
             'ylim': (0, 1),
             'filename': f'{cage_set.name}_minOPs.pdf'
         },
-        'lse_max': {
+        'lse_sum': {
             'data': {
                 i: (
-                    measures['lse_max'][i]
-                    - min(measures['lse_max'].values())
+                    measures['lse_sum'][i]
+                    - min(measures['lse_sum'].values())
                 )
-                for i in measures['lse_max']
+                for i in measures['lse_sum']
             },
-            'ylabel': r'rel. max. strain energy [kJ/mol]',
-            'ylim': (-4, 50),
-            'filename': f'{cage_set.name}_maxLSE.pdf'
+            'ylabel': r'rel. sum strain energy [kJ/mol]',
+            'ylim': (-4, 500),
+            'filename': f'{cage_set.name}_sumLSE.pdf'
         },
         'min_imine_torsions': {
             'data': measures['min_imine_torsions'],
@@ -414,7 +413,7 @@ def homo_cube_analysis(cage_set):
         'max_diff_face_aniso': {
             'data': measures['max_diff_face_aniso'],
             'ylabel': r'max. $\Delta$opposing face anisotropy [%]',
-            'ylim': (-0.1, 0.5),
+            'ylim': (-10, 100),
             'filename': f'{cage_set.name}_maxfadiff.pdf'
         },
     }
@@ -474,12 +473,12 @@ def analyse_cages(cage_sets):
             # For all HoCube sets, collect ligand aspect ratio data.
             AR_data[cage_set.name] = {
                 'min_OPs': measures['oct_op'],
-                'lse_max': {
+                'lse_sum': {
                     i: (
-                        measures['lse_max'][i] -
-                        min(measures['lse_max'].values())
+                        measures['lse_sum'][i] -
+                        min(measures['lse_sum'].values())
                     )
-                    for i in measures['lse_max']
+                    for i in measures['lse_sum']
                 },
                 'min_tor': measures['min_imine_torsions'],
                 'max_dis': measures['max_ligand_distortion'],
@@ -491,13 +490,14 @@ def analyse_cages(cage_sets):
     tests = {
         # Test: (ylabel, ylim)
         'min_OPs': (r'min. $q_{\mathrm{oct}}$', (0, 1)),
-        'lse_max': (r'rel. max. strain energy [kJ/mol]', (-4, 50)),
+        'lse_sum': (r'rel. sum strain energy [kJ/mol]', (-4, 500)),
         'min_tor': (r'min. imine torsion [degrees]', (0, 185)),
         'max_dis': (
             r'max. ligand distortion [$\mathrm{\AA}$]', (0, 185)
         ),
         'max_rfa': (
-            r'max. $\Delta$opposing face anisotropy [%]', (-0.1, 0.5)
+            r'max. $\Delta$opposing face anisotropy [%]', (-10, 100)
+        ),
         ),
     }
     if len(AR_data) > 0:
