@@ -173,6 +173,74 @@ def defined_face_sets(string):
         raise KeyError(f'{string} not in {topologies.keys()}')
 
 
+def get_lowest_energy_conformer(
+    name,
+    mol,
+    settings,
+    gfn_exec,
+):
+    """
+    Get lowest energy conformer of molecule.
+
+    Method:
+        1) squick CREST conformer search
+        2) xTB `opt_level` optimisation of lowest energy conformer
+        3) save file
+
+    """
+
+    # Check for missing settings.
+    req_settings = [
+        'final_opt_level', 'conf_opt_level', 'charge', 'no_unpaired_e',
+        'max_runs', 'calc_hessian', 'solvent', 'nc', 'crest_exec',
+        'etemp', 'keepdir', 'cross', 'md_len', 'ewin', 'speed_setting'
+    ]
+    for i in req_settings:
+        if i not in settings:
+            raise MissingSettingError(
+                f'Settings missing {i}. Has {settings.keys()}.'
+            )
+
+    low_e_conf = atools.crest_conformer_search(
+        molecule=mol,
+        output_dir=f'{name}_confs/xtbcrest/',
+        gfn_exec=gfn_exec,
+        gfn_version=2,
+        crest_exec=settings['crest_exec'],
+        nc=settings['nc'],
+        opt_level=settings['conf_opt_level'],
+        charge=settings['charge'],
+        etemp=settings['etemp'],
+        no_unpaired_e=settings['no_unpaired_e'],
+        keepdir=settings['keepdir'],
+        cross=settings['cross'],
+        md_len=settings['md_len'],
+        ewin=settings['ewin'],
+        speed_setting=settings['speed_setting'],
+        solvent=settings['solvent'],
+    )
+
+    # Save lowest energy conformer.
+    low_e_conf.write(f'{name}_confs/low_e_unopt.mol')
+
+    # Optimize lowest energy conformer at opt_level.
+    low_e_conf = atools.optimize_conformer(
+        name=name+'low_e_opt',
+        mol=low_e_conf,
+        gfn_exec=gfn_exec,
+        opt_level=settings['final_opt_level'],
+        charge=settings['charge'],
+        no_unpaired_e=settings['no_unpaired_e'],
+        max_runs=settings['max_runs'],
+        calc_hessian=settings['calc_hessian'],
+        solvent=settings['solvent']
+    )
+    low_e_conf.write(f'{name}_confs/low_e_opt.mol')
+
+    # Return molecule.
+    return low_e_conf
+
+
 class Cage:
     """
     Generic class that builds and analyses stk.ConstructuedMolecules.
@@ -362,7 +430,7 @@ class Cage:
             charge=self.charge,
             opt_level='normal',
             etemp=300,
-            # solvent=('dmso', 'verytight')
+            solvent=(self.cage_set_dict.solvent, 'normal')
         )
         self.cage.write(f'{self.opt_file}.mol')
 
@@ -422,7 +490,12 @@ class Cage:
         FE = produ_eys - react_eys
         self.FE = FE
 
-    def analyze_ligand_strain(self, metal_atom_no, expected_ligands):
+    def analyze_ligand_strain(
+        self,
+        metal_atom_no,
+        expected_ligands,
+        free_e,
+    ):
         """
         Analyse cage ligand geometry for strain.
 
@@ -449,6 +522,26 @@ class Cage:
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
             file_prefix=f'{self.base_name}_sg',
+            gfn_exec='/home/atarzia/software/xtb-6.3.1/bin/xtb',
+            conformer_function=get_lowest_energy_conformer,
+            conformer_settings={
+                'conf_opt_level': 'crude',
+                'final_opt_level': 'extreme',
+                'charge': 0,
+                'no_unpaired_e': 0,
+                'max_runs': 1,
+                'calc_hessian': False,
+                'solvent': None,
+                'crest_exec': '/home/atarzia/software/crest/crest',
+                'nc': 4,
+                'etemp': 300,
+                'keepdir': False,
+                'cross': True,
+                'md_len': None,
+                'ewin': 5,
+                'speed_setting': 'squick',
+            },
+        )
         )
 
         lse_dict = atools.calculate_ligand_SE(
