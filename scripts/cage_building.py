@@ -11,6 +11,7 @@ Date Created: 03 Mar 2020
 
 """
 
+from copy import deepcopy
 from itertools import product
 from os.path import exists, join
 import matplotlib.pyplot as plt
@@ -22,7 +23,7 @@ import os
 import stk
 
 import atools
-from molecule_building import metal_FFs
+from molecule_building import metal_FFs, optimize_SCA_complex
 import symmetries
 from utilities import (
     calculate_binding_AR,
@@ -31,6 +32,14 @@ from utilities import (
 
 
 class UnexpectedNumLigands(Exception):
+    ...
+
+
+class CageNotOptimizedError(Exception):
+    ...
+
+
+class MissingSettingError(Exception):
     ...
 
 
@@ -438,7 +447,14 @@ class Cage:
         print(f'....comparing UHF of {self.name}')
         raise NotImplementedError()
 
-    def analyze_formation_energy(self):
+    def calculate_formation_energy(
+        self,
+        org_ligs,
+        smiles_keys,
+        file_prefix,
+        gfn_exec,
+        cage_free_e,
+    ):
         """
         Calculate cage formation energy.
 
@@ -459,36 +475,166 @@ class Cage:
         BBs used to build the cage.
 
         """
-        raise NotImplementedError()
 
-        # Define reactant list (all building blocks * count in cage)
-        reactant_ey_files = []
-        reactant_molecules = []
-        # Iterate over all BBs and add to product molecules.
-        # Define charge and no. unpaired e from lib file.
+        components = deepcopy(self.cage_set_dict['components'])
+        solvent = (self.cage_set_dict['solvent'], 'normal')
 
-        print(reactant_ey_files, reactant_molecules)
+        # Get lowest energy conformer filenames.
+        low_e_lig_filenames = []
+        for lig in org_ligs:
+            stk_lig = org_ligs[lig]
+            smiles_key = stk.Smiles().get_key(stk_lig)
+            idx = smiles_keys[smiles_key]
+            sgt = str(stk_lig.get_num_atoms())
+            # Get optimized ligand name that excludes any cage
+            # information.
+            if file_prefix is None:
+                filename_ = f'organic_linker_s{sgt}_{idx}_opt.mol'
+            else:
+                filename_ = f'{file_prefix}{sgt}_{idx}_opt.mol'
+            low_e_lig_filenames.append(filename_)
+        low_e_lig_filenames = set(low_e_lig_filenames)
+        print(low_e_lig_filenames)
 
-        # Define product list (cage + deleters).
-        cage = self.cage.update_from_file(f'{self.opt_file}.mol')
-        product_ey_files = []
-        product_molecules = [
-            (cage, cage_name, cage_ey_file, cage_charge, cage_no_e)
-        ]
+        # Load in each component.
+        for comp in components:
+            print(comp, components[comp])
+            if comp in ['mprec', 'mpreclig']:
+                if components[comp] is None:
+                    components[comp] = {}
+                    components[comp]['total_e'] = 0
+                    components[comp]['count'] = 0
+                    components[comp]['product'] = False
+                    continue
+                opt_file = f"{components[comp]['name']}_opt.mol"
+                low_e_file = f"{components[comp]['name']}_loweopt.mol"
+                charge = components[comp]['charge']
+                no_unpaired_e = components[comp]['unpaired_e']
+                ey_file = f"{components[comp]['name']}_opt.ey"
+                # Get lowest energy conformer of mprec or mpreclig.
+                temp_mol = stk.BuildingBlock(
+                    smiles=components[comp]['smiles'],
+                    position_matrix=[[0, 0, 0]],
+                )
+                print(temp_mol)
+                components[comp]['mol'] = temp_mol
+                temp_mol.write(opt_file)
+                temp_mol.write(low_e_file)
+                print('^ delete above lines to fix this.')
+                input(
+                    'currently assume single atom -- this needs fix '
+                    '-- because its Fake!'
+                )
+                # Optimisation and lowest energy conformer search.
+                if exists(opt_file):
+                    temp_mol = temp_mol.with_structure_from_file(
+                        opt_file
+                    )
+                else:
+                    temp_mol = optimize_SCA_complex(
+                        complex=temp_mol,
+                        name=components[comp]['name'],
+                        dict={
+                            'total_charge': charge,
+                            'unpaired_e': no_unpaired_e
+                        },
+                        metal_FFs=metal_FFs(CN=6)
+                    )
+                    temp_mol.write(opt_file)
 
-        # Iterate over deleters and add to product molecules.
-        # Define charge apriori, Br is -1.
+                if exists(low_e_file):
+                    temp_mol = temp_mol.with_structure_from_file(
+                        low_e_file
+                    )
+                else:
+                    settings = {
+                        'conf_opt_level': 'crude',
+                        'final_opt_level': 'extreme',
+                        'charge': charge,
+                        'no_unpaired_e': no_unpaired_e,
+                        'max_runs': 1,
+                        'calc_hessian': False,
+                        'solvent': solvent,
+                        'crest_exec': (
+                            '/home/atarzia/software/crest/crest'
+                        ),
+                        'nc': 4,
+                        'etemp': 300,
+                        'keepdir': False,
+                        'cross': True,
+                        'md_len': None,
+                        'ewin': 5,
+                        'speed_setting': 'squick',
+                    }
+                    temp_mol = get_lowest_energy_conformer(
+                        name=components[comp]['name'],
+                        mol=temp_mol,
+                        settings=settings,
+                        gfn_exec=(
+                            '/home/atarzia/software/xtb-6.3.1/bin/xtb'
+                        ),
+                    )
+                    temp_mol.write(low_e_file)
+                components[comp]['mol'] = temp_mol
 
-        print(product_molecules, product_ey_files)
+            elif comp in ['tritopic', 'tetratopic']:
+                charge = components[comp]['charge']
+                no_unpaired_e = components[comp]['unpaired_e']
+                lig_name = self.cage_set_dict[comp]
+                low_e_files = [
+                    i for i in low_e_lig_filenames if lig_name in i
+                ]
+                if len(low_e_files) > 1:
+                    raise UnexpectedNumLigands(
+                        f'Found {len(low_e_files)} low energy '
+                        f'conformers with name {lig_name}.'
+                    )
+                low_e_file = low_e_files[0]
+                ey_file = low_e_file.replace('.mol', '.ey')
+                temp_mol = stk.BuildingBlock.init_from_file(low_e_file)
+                components[comp]['mol'] = temp_mol
 
-        # Run calculations with xTB.
+            elif comp == 'cage':
+                charge = self.charge
+                no_unpaired_e = cage_free_e
+                ey_file = f'{self.opt_file}.ey'
+                if exists(f'{self.opt_file}.mol'):
+                    components[comp]['mol'] = self.cage
+                else:
+                    raise CageNotOptimizedError(
+                        'Expected cage to be optimized at this point: '
+                        f'{self.opt_file}.mol does not exist.'
+                    )
 
-        # Calculate FE in KJ/mol.
-        react_eys = [read_ey(f'{i}.ey') for i in reactant_ey_files]
-        produ_eys = [read_ey(f'{i}.ey') for i in product_ey_files]
-        #  kJ/mol
-        FE = produ_eys - react_eys
-        self.FE = FE
+            # Calculate all components energies.
+            if not exists(ey_file):
+                atools.calculate_energy(
+                    name=f'{self.name}_{comp}',
+                    mol=components[comp]['mol'],
+                    gfn_exec=(
+                        '/home/atarzia/software/xtb-6.3.1/bin/xtb'
+                    ),
+                    ey_file=ey_file,
+                    charge=charge,
+                    no_unpaired_e=no_unpaired_e,
+                    solvent=solvent
+                )
+            ey = atools.read_gfnx2xtb_eyfile(ey_file)
+            components[comp]['total_e'] = ey
+
+        # Calculate formation energy in kJ/mol.
+        prod_ey = sum([
+            components[i]['total_e']*components[i]['count']
+            for i in components if components[i]['product'] is True
+        ])
+        react_ey = sum([
+            components[i]['total_e']*components[i]['count']
+            for i in components if components[i]['product'] is False
+        ])
+        fe = prod_ey - react_ey
+        print(prod_ey, react_ey, fe)
+        self.fe_data = fe
+        print(self.name, self.fe_data)
 
     def analyze_ligand_strain(
         self,
@@ -542,6 +688,13 @@ class Cage:
                 'speed_setting': 'squick',
             },
         )
+
+        self.calculate_formation_energy(
+            org_ligs=org_ligs,
+            smiles_keys=smiles_keys,
+            file_prefix=f'{self.base_name}_sg',
+            gfn_exec='/home/atarzia/software/xtb-6.3.1/bin/xtb',
+            cage_free_e=free_e,
         )
 
         lse_dict = atools.calculate_ligand_SE(

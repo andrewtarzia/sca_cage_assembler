@@ -336,6 +336,7 @@ def homo_cube_analysis(cage_set):
         'max_ligand_distortion': {},
         'max_diff_face_aniso': {},
         'max_ML_length': {},
+        'formation_energies': {},
     }
     for C in cage_set.cages_to_build:
         C_data = built_prop[C.name]
@@ -375,6 +376,7 @@ def homo_cube_analysis(cage_set):
         measures['max_ML_length'][C.name] = max([
             i for i in C_data['bl_prop']
         ])
+        measures['formation_energies'][C.name] = C_data['fe_prop']
 
     print('minimum OPs:', measures['oct_op'])
     print('sum LSE:', measures['lse_sum'])
@@ -382,6 +384,7 @@ def homo_cube_analysis(cage_set):
     print('max core planarities:', measures['max_ligand_distortion'])
     print('max diff in face aniso:', measures['max_diff_face_aniso'])
     print('max metal-ligand distance:', measures['max_ML_length'])
+    print('formation energies:', measures['formation_energies'])
     print('----------------------------------------------------')
 
     plottables = {
@@ -426,6 +429,18 @@ def homo_cube_analysis(cage_set):
             'ylabel': r'max. N-Zn bond length [$\mathrm{\AA}$]',
             'ylim': (2, 4),
             'filename': f'{cage_set.name}_maxmld.pdf'
+        },
+        'relfe': {
+            'data': {
+                i: (
+                    measures['formation_energies'][i]
+                    - min(measures['formation_energies'].values())
+                )
+                for i in measures['formation_energies']
+            },
+            'ylabel': r'rel. formation energy [kJ/mol]',
+            'ylim': (-10, 10000),
+            'filename': f'{cage_set.name}_relfe.pdf'
         },
     }
 
@@ -496,6 +511,13 @@ def analyse_cages(cage_sets):
                 'aspect_ratio': cage_set.ligand_aspect_ratio,
                 'max_rfa': measures['max_diff_face_aniso'],
                 'max_mld': measures['max_ML_length'],
+                'rel_fe': {
+                    i: (
+                        measures['formation_energies'][i]
+                        - min(measures['formation_energies'].values())
+                    )
+                    for i in measures['formation_energies']
+                },
             }
 
     # Plot ligand aspect ratio data.
@@ -513,6 +535,7 @@ def analyse_cages(cage_sets):
         'max_mld': (
             r'max. N-Zn bond length [$\mathrm{\AA}$]', (2, 4)
         ),
+        'rel_fe': (r'rel. formation energy [kJ/mol]', (-10, 10000)),
     }
     if len(AR_data) > 0:
         for t in tests:
@@ -593,19 +616,19 @@ def build_cages(
 
                 C.analyze_metal_strain()
                 C.analyze_porosity()
-                # C.analyze_formation_energy()
                 C.analyze_ligand_strain(
                     # Assumes only one type of metal atom.
                     metal_atom_no=[
                         cage_set.complex_dicts[i]['metal_atom_no']
                         for i in cage_set.complex_dicts
                     ][0],
-                    expected_ligands=expected_ligands
+                    expected_ligands=expected_ligands,
+                    free_e=default_free_e,
                 )
                 cage_set.built_cage_properties[C.name] = {
                     'pw_prop': C.pw_data,
                     'op_prop': C.op_data,
-                    # 'form_energy': C.FE,
+                    'fe_prop': C.fe_data,
                     'li_prop': C.ls_data,
                     'fa_prop': C.fa_data,
                     'bl_data': C.bl_data
