@@ -523,6 +523,12 @@ class Cage:
             face_sets=face_sets,
         )
 
+        self.bl_data = atools.calculate_metal_ligand_distance(
+            mol=self.cage,
+            metal_atomic_number=30,
+            ligand_atomic_number=7,
+        )
+
     def analyze_porosity(self, dump_molecule=False):
         """
         Analyse cage porosity with pywindow.

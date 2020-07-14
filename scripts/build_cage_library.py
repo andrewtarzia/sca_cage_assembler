@@ -335,6 +335,7 @@ def homo_cube_analysis(cage_set):
         'min_imine_torsions': {},
         'max_ligand_distortion': {},
         'max_diff_face_aniso': {},
+        'max_ML_length': {},
     }
     for C in cage_set.cages_to_build:
         C_data = built_prop[C.name]
@@ -371,12 +372,16 @@ def homo_cube_analysis(cage_set):
             100*((i[2] - i[3]) / i[2])
             for i in C_data['fa_prop']
         ])
+        measures['max_ML_length'][C.name] = max([
+            i for i in C_data['bl_prop']
+        ])
 
     print('minimum OPs:', measures['oct_op'])
     print('sum LSE:', measures['lse_sum'])
     print('min imine torsion:', measures['min_imine_torsions'])
     print('max core planarities:', measures['max_ligand_distortion'])
     print('max diff in face aniso:', measures['max_diff_face_aniso'])
+    print('max metal-ligand distance:', measures['max_ML_length'])
     print('----------------------------------------------------')
 
     plottables = {
@@ -415,6 +420,12 @@ def homo_cube_analysis(cage_set):
             'ylabel': r'max. $\Delta$opposing face anisotropy [%]',
             'ylim': (-10, 100),
             'filename': f'{cage_set.name}_maxfadiff.pdf'
+        },
+        'max_ML_length': {
+            'data': measures['max_ML_length'],
+            'ylabel': r'max. N-Zn bond length [$\mathrm{\AA}$]',
+            'ylim': (2, 4),
+            'filename': f'{cage_set.name}_maxmld.pdf'
         },
     }
 
@@ -484,6 +495,7 @@ def analyse_cages(cage_sets):
                 'max_dis': measures['max_ligand_distortion'],
                 'aspect_ratio': cage_set.ligand_aspect_ratio,
                 'max_rfa': measures['max_diff_face_aniso'],
+                'max_mld': measures['max_ML_length'],
             }
 
     # Plot ligand aspect ratio data.
@@ -498,6 +510,8 @@ def analyse_cages(cage_sets):
         'max_rfa': (
             r'max. $\Delta$opposing face anisotropy [%]', (-10, 100)
         ),
+        'max_mld': (
+            r'max. N-Zn bond length [$\mathrm{\AA}$]', (2, 4)
         ),
     }
     if len(AR_data) > 0:
@@ -594,6 +608,7 @@ def build_cages(
                     # 'form_energy': C.FE,
                     'li_prop': C.ls_data,
                     'fa_prop': C.fa_data,
+                    'bl_data': C.bl_data
                 }
                 # Dump to JSON.
                 cage_set.dump_properties()
