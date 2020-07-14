@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import json
 import pywindow as pw
-import os
+from os import system, mkdir
 
 import stk
 
@@ -32,6 +32,10 @@ from utilities import (
 
 
 class UnexpectedNumLigands(Exception):
+    ...
+
+
+class PrecursorNotOptimizedError(Exception):
     ...
 
 
@@ -500,81 +504,80 @@ class Cage:
         for comp in components:
             print(comp, components[comp])
             if comp in ['mprec', 'mpreclig']:
-                if components[comp] is None:
-                    components[comp] = {}
-                    components[comp]['total_e'] = 0
-                    components[comp]['count'] = 0
-                    components[comp]['product'] = False
-                    continue
                 opt_file = f"{components[comp]['name']}_opt.mol"
                 low_e_file = f"{components[comp]['name']}_loweopt.mol"
                 charge = components[comp]['charge']
                 no_unpaired_e = components[comp]['unpaired_e']
                 ey_file = f"{components[comp]['name']}_opt.ey"
                 # Get lowest energy conformer of mprec or mpreclig.
-                temp_mol = stk.BuildingBlock(
-                    smiles=components[comp]['smiles'],
-                    position_matrix=[[0, 0, 0]],
-                )
-                print(temp_mol)
-                components[comp]['mol'] = temp_mol
-                temp_mol.write(opt_file)
-                temp_mol.write(low_e_file)
-                print('^ delete above lines to fix this.')
-                input(
-                    'currently assume single atom -- this needs fix '
-                    '-- because its Fake!'
-                )
-                # Optimisation and lowest energy conformer search.
-                if exists(opt_file):
-                    temp_mol = temp_mol.with_structure_from_file(
-                        opt_file
+                if components[comp]['smiles'] is not None:
+                    temp_mol = stk.BuildingBlock(
+                        smiles=components[comp]['smiles'],
                     )
-                else:
-                    temp_mol = optimize_SCA_complex(
-                        complex=temp_mol,
-                        name=components[comp]['name'],
-                        dict={
-                            'total_charge': charge,
-                            'unpaired_e': no_unpaired_e
-                        },
-                        metal_FFs=metal_FFs(CN=6)
-                    )
-                    temp_mol.write(opt_file)
+                    # Optimisation and lowest energy conformer search.
+                    if exists(opt_file):
+                        temp_mol = temp_mol.with_structure_from_file(
+                            opt_file
+                        )
+                    else:
+                        temp_mol = optimize_SCA_complex(
+                            complex=temp_mol,
+                            name=components[comp]['name'],
+                            dict={
+                                'total_charge': charge,
+                                'unpaired_e': no_unpaired_e
+                            },
+                            metal_FFs=metal_FFs(CN=6)
+                        )
+                        temp_mol.write(opt_file)
+                    if exists(low_e_file):
+                        temp_mol = temp_mol.with_structure_from_file(
+                            low_e_file
+                        )
+                    else:
+                        settings = {
+                            'conf_opt_level': 'crude',
+                            'final_opt_level': 'extreme',
+                            'charge': charge,
+                            'no_unpaired_e': no_unpaired_e,
+                            'max_runs': 1,
+                            'calc_hessian': False,
+                            'solvent': solvent,
+                            'crest_exec': (
+                                '/home/atarzia/software/crest/crest'
+                            ),
+                            'nc': 4,
+                            'etemp': 300,
+                            'keepdir': False,
+                            'cross': True,
+                            'md_len': None,
+                            'ewin': 5,
+                            'speed_setting': 'squick',
+                        }
+                        conf_folder = (
+                            f"{components[comp]['name']}_confs/"
+                        )
+                        if not exists(conf_folder):
+                            mkdir(conf_folder)
+                        temp_mol = get_lowest_energy_conformer(
+                            name=components[comp]['name'],
+                            mol=temp_mol,
+                            settings=settings,
+                            gfn_exec=(
+                                '/home/atarzia/software/xtb-6.3.1/bin/'
+                                'xtb'
+                            ),
+                        )
+                        temp_mol.write(low_e_file)
 
-                if exists(low_e_file):
-                    temp_mol = temp_mol.with_structure_from_file(
+                elif exists(low_e_file):
+                    temp_mol = stk.BuildingBlock.init_from_file(
                         low_e_file
                     )
                 else:
-                    settings = {
-                        'conf_opt_level': 'crude',
-                        'final_opt_level': 'extreme',
-                        'charge': charge,
-                        'no_unpaired_e': no_unpaired_e,
-                        'max_runs': 1,
-                        'calc_hessian': False,
-                        'solvent': solvent,
-                        'crest_exec': (
-                            '/home/atarzia/software/crest/crest'
-                        ),
-                        'nc': 4,
-                        'etemp': 300,
-                        'keepdir': False,
-                        'cross': True,
-                        'md_len': None,
-                        'ewin': 5,
-                        'speed_setting': 'squick',
-                    }
-                    temp_mol = get_lowest_energy_conformer(
-                        name=components[comp]['name'],
-                        mol=temp_mol,
-                        settings=settings,
-                        gfn_exec=(
-                            '/home/atarzia/software/xtb-6.3.1/bin/xtb'
-                        ),
+                    raise PrecursorNotOptimizedError(
+                        f'{low_e_file} not found!'
                     )
-                    temp_mol.write(low_e_file)
                 components[comp]['mol'] = temp_mol
 
             elif comp in ['tritopic', 'tetratopic']:
@@ -677,7 +680,7 @@ class Cage:
                 'no_unpaired_e': 0,
                 'max_runs': 1,
                 'calc_hessian': False,
-                'solvent': None,
+                'solvent': (self.cage_set_dict['solvent'], 'normal'),
                 'crest_exec': '/home/atarzia/software/crest/crest',
                 'nc': 4,
                 'etemp': 300,
@@ -790,7 +793,7 @@ class Cage:
                 'temp.xyz'
             )
             pw_cage_mol = pw_cage.system_to_molecule()
-            os.system('rm temp.xyz')
+            system('rm temp.xyz')
 
             # Calculate pore size.
             pw_cage_mol.calculate_pore_diameter_opt()
