@@ -514,22 +514,22 @@ def analyse_cages(cage_sets):
 def build_cages(
     ligands,
     complexes,
-    cage_lib,
+    cage_set_lib,
     ligand_directory,
     complex_directory,
     read_data,
 ):
 
     cage_sets = []
-    for name in cage_lib:
-        cage_c = cage_lib[name]
-        compl_names = cage_c['corners']
+    for name in cage_set_lib:
+        cage_set_c = cage_set_lib[name]
+        compl_names = cage_set_c['corners']
         comps = {i: complexes[i] for i in compl_names}
 
-        if cage_c['heteroleptic']:
+        if cage_set_c['heteroleptic']:
             cage_set = cage_building.HetPrism(
                 name=name,
-                cage_dict=cage_c,
+                cage_set_dict=cage_set_c,
                 complex_dicts=comps,
                 ligand_dicts=ligands,
                 ligand_dir=ligand_directory,
@@ -538,7 +538,7 @@ def build_cages(
         else:
             cage_set = cage_building.HoCube(
                 name=name,
-                cage_dict=cage_c,
+                cage_set_dict=cage_set_c,
                 complex_dicts=comps,
                 ligand_dicts=ligands,
                 ligand_dir=ligand_directory,
@@ -618,7 +618,7 @@ def main():
     compl_lib_file : (str)
         File containing complex information (XXXXX).
 
-    cage_lib_file : (str)
+    cage_set_lib_file : (str)
         File containing cage information (XXXXX).
 
     lig_directory : (str)
@@ -636,12 +636,12 @@ def main():
     else:
         lig_lib_file = sys.argv[1]
         compl_lib_file = sys.argv[2]
-        cage_lib_file = sys.argv[3]
+        cage_set_lib_file = sys.argv[3]
         ligand_directory = sys.argv[4]
         compl_directory = sys.argv[5]
         read_data = True if sys.argv[6] == 't' else False
 
-    cage_lib = read_lib(cage_lib_file)
+    cage_set_lib = read_lib(cage_set_lib_file)
     compls = read_lib(compl_lib_file)
     ligs = read_lib(lig_lib_file)
 
@@ -649,7 +649,7 @@ def main():
     cage_sets = build_cages(
         ligs,
         compls,
-        cage_lib,
+        cage_set_lib,
         ligand_directory,
         compl_directory,
         read_data,

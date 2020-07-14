@@ -188,7 +188,8 @@ class Cage:
         building_blocks,
         vertex_alignments,
         charge,
-        free_electron_options
+        free_electron_options,
+        cage_set_dict
     ):
 
         self.name = name
@@ -213,6 +214,7 @@ class Cage:
         self.ls_file = f'{self.name}_LSE'
         self.charge = charge
         self.free_electron_options = free_electron_options
+        self.cage_set_dict = cage_set_dict
 
     def build(self):
         print(f'....building {self.name}')
@@ -573,7 +575,7 @@ class CageSet:
     def __init__(
         self,
         name,
-        cage_dict,
+        cage_set_dict,
         complex_dicts,
         ligand_dicts,
         ligand_dir,
@@ -581,7 +583,7 @@ class CageSet:
     ):
         self.name = name
         self.properties_file = f'{self.name}_CS.json'
-        self.cage_dict = cage_dict
+        self.cage_set_dict = cage_set_dict
         self.complex_dicts = complex_dicts
         self.ligand_dicts = ligand_dicts
         self.cages_to_build = self.define_cages_to_build(
@@ -622,7 +624,7 @@ class CageSet:
         return (
             f'{self.__class__.__name__}'
             f'(name={self.name})\n'
-            f'{self.cage_dict}'
+            f'{self.cage_set_dict}'
         )
 
     def __repr__(self):
@@ -782,7 +784,7 @@ class HoCube(CageSet):
     def __init__(
         self,
         name,
-        cage_dict,
+        cage_set_dict,
         complex_dicts,
         ligand_dicts,
         ligand_dir,
@@ -791,7 +793,7 @@ class HoCube(CageSet):
 
         super().__init__(
             name,
-            cage_dict,
+            cage_set_dict,
             complex_dicts,
             ligand_dicts,
             ligand_dir,
@@ -808,7 +810,7 @@ class HoCube(CageSet):
         """
 
         tet_linker = self._load_ligand(
-            ligand_name=self.cage_dict['tetratopic'],
+            ligand_name=self.cage_set_dict['tetratopic'],
             ligand_dir=ligand_dir
         )
         ligand_AR = calculate_binding_AR(tet_linker)
@@ -845,9 +847,9 @@ class HoCube(CageSet):
         L_free_e = self.complex_dicts[L_complex_name]['unpaired_e']
 
         # Get all linkers and their face orientations.
-        tet_prop = self.ligand_dicts[self.cage_dict['tetratopic']]
+        tet_prop = self.ligand_dicts[self.cage_set_dict['tetratopic']]
         tet_linker = self._load_ligand(
-            ligand_name=self.cage_dict['tetratopic'],
+            ligand_name=self.cage_set_dict['tetratopic'],
             ligand_dir=ligand_dir
         )
 
@@ -867,8 +869,8 @@ class HoCube(CageSet):
 
         for name_string in symmetries_to_build:
             base_name = (
-                f"C_{self.cage_dict['corner_name']}_"
-                f"{self.cage_dict['tetratopic']}"
+                f"C_{self.cage_set_dict['corner_name']}_"
+                f"{self.cage_set_dict['tetratopic']}"
             )
             new_name = f"{base_name}_{name_string}"
             building_blocks = (
@@ -903,7 +905,8 @@ class HoCube(CageSet):
                 vertex_alignments=vertex_alignments,
                 topology_string=tet_topo_name,
                 charge=new_charge,
-                free_electron_options=new_free_electron_options
+                free_electron_options=new_free_electron_options,
+                cage_set_dict=self.cage_set_dict
             )
             cages_to_build.append(new_cage)
 
@@ -1035,7 +1038,7 @@ class HetPrism(CageSet):
     def __init__(
         self,
         name,
-        cage_dict,
+        cage_set_dict,
         complex_dicts,
         ligand_dicts,
         ligand_dir,
@@ -1044,7 +1047,7 @@ class HetPrism(CageSet):
 
         super().__init__(
             name,
-            cage_dict,
+            cage_set_dict,
             complex_dicts,
             ligand_dicts,
             ligand_dir,
@@ -1084,14 +1087,14 @@ class HetPrism(CageSet):
         print(D_charge, D_free_e, L_charge, L_free_e)
 
         # Get all linkers.
-        tet_prop = self.ligand_dicts[self.cage_dict['tetratopic']]
+        tet_prop = self.ligand_dicts[self.cage_set_dict['tetratopic']]
         tet_linker = self._load_ligand(
-            ligand_name=self.cage_dict['tetratopic'],
+            ligand_name=self.cage_set_dict['tetratopic'],
             ligand_dir=ligand_dir
         )
-        tri_prop = self.ligand_dicts[self.cage_dict['tritopic']]
+        tri_prop = self.ligand_dicts[self.cage_set_dict['tritopic']]
         tri_linker = self._load_ligand(
-            ligand_name=self.cage_dict['tritopic'],
+            ligand_name=self.cage_set_dict['tritopic'],
             ligand_dir=ligand_dir
         )
 
@@ -1109,8 +1112,8 @@ class HetPrism(CageSet):
         for rat in tet_ratios:
             print(rat)
             new_name = (
-                f"C_{self.cage_dict['corner_name']}_"
-                f"{self.cage_dict['tetratopic']}_"
+                f"C_{self.cage_set_dict['corner_name']}_"
+                f"{self.cage_set_dict['tetratopic']}_"
                 f"{tet_topo_name}_"
                 f"d{rat[0]}l{rat[1]}_"
                 f"SYMM"
@@ -1164,8 +1167,8 @@ class HetPrism(CageSet):
         for rat in tri_ratios:
             print(rat)
             new_name = (
-                f"C_{self.cage_dict['corner_name']}_"
-                f"{self.cage_dict['tritopic']}_"
+                f"C_{self.cage_set_dict['corner_name']}_"
+                f"{self.cage_set_dict['tritopic']}_"
                 f"{tri_topo_name}_"
                 f"d{rat[0]}l{rat[1]}_"
                 f"SYMM"
@@ -1220,9 +1223,9 @@ class HetPrism(CageSet):
         pri_ratios = self._get_ratios(pri_n_metals)
         for rat in pri_ratios:
             new_name = (
-                f"HeP_{self.cage_dict['corner_name']}_"
-                f"{self.cage_dict['tritopic']}_"
-                f"{self.cage_dict['tetratopic']}_"
+                f"HeP_{self.cage_set_dict['corner_name']}_"
+                f"{self.cage_set_dict['tritopic']}_"
+                f"{self.cage_set_dict['tetratopic']}_"
                 f"{pri_topo_name}_"
                 f"d{rat[0]}l{rat[1]}_"
                 f"SYMM"
