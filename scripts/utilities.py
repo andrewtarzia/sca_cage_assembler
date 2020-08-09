@@ -10,6 +10,7 @@ Author: Andrew Tarzia
 Date Created: 15 Mar 2020
 """
 
+import numpy as np
 import json
 from itertools import combinations
 import matplotlib.pyplot as plt
