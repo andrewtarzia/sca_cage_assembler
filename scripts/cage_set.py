@@ -197,21 +197,11 @@ class CageSet:
         D_complex,
         L_complex,
         linker,
-        check_orientation,
-        get_all=False
     ):
         """
         Returns cage symmetries for a given topology.
 
         """
-
-        no_vertices = self._get_no_vertices(string=string)
-        rotatable_vertices = self._get_rot_vertices(string=string)
-        # Assumes metal complex vertices is all non-rotatable_vertices.
-        complex_vertices = [
-            i for i in range(no_vertices)
-            if i not in rotatable_vertices
-        ]
 
         if string == 'm4l4spacer':
             symm_list = {}
@@ -221,38 +211,22 @@ class CageSet:
         elif string == 'm8l6face':
             symm_list = {}
 
-            if get_all:
-                raise NotImplementedError()
-                symm_list = symmetries.all_m8l6face_symmetries(
-                    D_complex=D_complex,
-                    L_complex=L_complex,
-                    linker=linker,
-                    check_orientation=check_orientation,
-                    no_vertices=no_vertices,
-                    rotatable_vertices=rotatable_vertices,
-                    complex_vertices=complex_vertices
-                )
-
-            else:
-                # Predefined list of symmetries.
-                n_metals = 8
-                m8l6_symm = symmetries.M8L6_Symmetry(
-                    D_complex=D_complex,
-                    L_complex=L_complex,
-                    linker=linker,
-                    n_metals=n_metals,
-                    no_vertices=no_vertices
-                )
-                symm_list['o1'] = m8l6_symm.o1()
-                symm_list['th1'] = m8l6_symm.th1()
-                symm_list['th2'] = m8l6_symm.th2()
-                symm_list['t1'] = m8l6_symm.t1()
-                symm_list['s61'] = m8l6_symm.s61()
-                symm_list['s62'] = m8l6_symm.s62()
-                symm_list['d31'] = m8l6_symm.d31()
-                symm_list['d32'] = m8l6_symm.d32()
-                symm_list['c2v'] = m8l6_symm.c2v()
-                symm_list['c2h'] = m8l6_symm.c2h()
+            # Predefined list of symmetries.
+            symm_c = symmetries.M8L6_Symmetry(
+                D_complex=D_complex,
+                L_complex=L_complex,
+                linker=linker,
+            )
+            symm_list['o1'] = symm_c.o1()
+            symm_list['th1'] = symm_c.th1()
+            symm_list['th2'] = symm_c.th2()
+            symm_list['t1'] = symm_c.t1()
+            symm_list['s61'] = symm_c.s61()
+            symm_list['s62'] = symm_c.s62()
+            symm_list['d31'] = symm_c.d31()
+            symm_list['d32'] = symm_c.d32()
+            symm_list['c2v'] = symm_c.c2v()
+            symm_list['c2h'] = symm_c.c2h()
 
         elif string == 'm6l2l3':
             symm_list = {}
@@ -345,8 +319,6 @@ class HoCube(CageSet):
             D_complex=D_complex,
             L_complex=L_complex,
             linker=tet_linker,
-            check_orientation=tet_prop['check_orientations'],
-            get_all=False
         )
 
         for name_string in symmetries_to_build:
