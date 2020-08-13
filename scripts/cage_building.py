@@ -14,23 +14,15 @@ Date Created: 03 Mar 2020
 import stk
 
 
-def m4l4spacer_graph(metal_corner, ligand, ligand2=None):
+def m4l4spacer_graph(building_blocks, vertex_alignments):
 
-    raise NotImplementedError('see m8l6 for example')
-
-    if ligand.get_num_functional_groups() != 3:
-        raise ValueError(f'{ligand} does not have 3 functional groups')
-
-    cage = stk.ConstructedMolecule(
-        topology_graph=stk.cage.M4L4Tetrahedron(
-            building_blocks={
-                metal_corner: range(4),
-                ligand: range(4, 8)
-            },
-        )
+    topology_graph = stk.cage.M4L4Tetrahedron(
+        building_blocks=building_blocks,
+        vertex_alignments=vertex_alignments,
+        num_processes=2,
     )
 
-    return cage
+    return topology_graph
 
 
 def m8l6_graph(building_blocks, vertex_alignments):
@@ -44,36 +36,15 @@ def m8l6_graph(building_blocks, vertex_alignments):
     return topology_graph
 
 
-def m6l2l3_graph(metal_corner, ligand, ligand2):
+def m6l2l3_graph(building_blocks, vertex_alignments):
 
-    raise NotImplementedError('see m8l6 for example')
-
-    lig_num_fgs = ligand.get_num_functional_groups()
-    lig2_num_fgs = ligand2.get_num_functional_groups()
-
-    if lig_num_fgs == 3 and lig2_num_fgs == 4:
-        tri_ligand = ligand
-        tet_ligand = ligand2
-    elif lig_num_fgs == 4 and lig2_num_fgs == 3:
-        tri_ligand = ligand2
-        tet_ligand = ligand
-    else:
-        raise ValueError(
-            f'{ligand} or {ligand2} does not have 3 or 4 functional '
-            'groups'
-        )
-
-    cage = stk.ConstructedMolecule(
-        topology_graph=stk.cage.M6L2L3Prism(
-            building_blocks={
-                metal_corner: range(6),
-                tri_ligand: range(6, 8),
-                tet_ligand: range(8, 11)
-            },
-        )
+    topology_graph = stk.cage.M6L2L3Prism(
+        building_blocks=building_blocks,
+        vertex_alignments=vertex_alignments,
+        num_processes=2,
     )
 
-    return cage
+    return topology_graph
 
 
 def available_topologies(string):
