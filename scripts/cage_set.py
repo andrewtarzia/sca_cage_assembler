@@ -627,181 +627,87 @@ class HetPrism(CageSet):
             L_complex=L_complex,
             linkers={4: tet_linker, 3: tri_linker},
         )
-        tet_topo = tet_topo()
 
-        tet_n_metals = 8
-        tet_ratios = self._get_ratios(tet_n_metals)
-        for rat in tet_ratios:
-            print(rat)
-            new_name = (
+        tet_cages = self.iterate_over_symmetries(
+            base_name=(
                 f"C_{self.cage_set_dict['corner_name']}_"
-                f"{self.cage_set_dict['tetratopic']}_"
-                f"{tet_topo_name}_"
-                f"d{rat[0]}l{rat[1]}_"
-                f"SYMM"
-            )
-            new_bbs = [D_complex, L_complex, tet_linker]
-            new_bb_vertices = {
-                D_complex: tet_topo.vertices[:rat[0]],
-                L_complex: tet_topo.vertices[rat[0]:rat[0]+rat[1]],
-                tet_linker: tet_topo.vertices[tet_n_metals:]
-            }
-            # Merge linker and complex charges.
-            complex_charge = rat[0]*int(D_charge)+rat[1]*int(L_charge)
-            new_charge = tet_prop['net_charge']*6 + complex_charge
-
-            print(tet_prop[1])
-            lig_free_e = [int(i)*6 for i in tet_prop[1]]
-            compl_free_e = [
-                int(i)*rat[0] + int(j)*rat[1]
-                for i, j in zip(D_free_e, L_free_e)
-            ]
-            print(lig_free_e, compl_free_e)
-
-            new_free_electron_options = []
-            for opt in product(lig_free_e, compl_free_e):
-                print(opt)
-                new_free_electron_options.append(opt[0]+opt[1])
-
-            print(new_charge, new_free_electron_options)
-            new_cage = Cage(
-                name=new_name,
-                bbs=new_bbs,
-                topology=tet_topo,
-                topology_string=tet_topo_name,
-                bb_vertices=new_bb_vertices,
-                charge=new_charge,
-                free_electron_options=new_free_electron_options
-            )
-            cages_to_build.append(new_cage)
-            print('NOT BUILDING ALL RATIOS CURRENTLY!!!!!!')
-            break
-
-        # Tritopic homoleptic cages of all symmetries.
-        # Get topology as object.
-        tri_topo_name, tri_topo = available_topologies(
-            string='m4l4spacer'
-        )
-        tri_topo = tri_topo()
-
-        tri_n_metals = 4
-        tri_ratios = self._get_ratios(tri_n_metals)
-        for rat in tri_ratios:
-            print(rat)
-            new_name = (
-                f"C_{self.cage_set_dict['corner_name']}_"
-                f"{self.cage_set_dict['tritopic']}_"
-                f"{tri_topo_name}_"
-                f"d{rat[0]}l{rat[1]}_"
-                f"SYMM"
-            )
-            new_bbs = [D_complex, L_complex, tri_linker]
-            new_bb_vertices = {
-                D_complex: tri_topo.vertices[:rat[0]],
-                L_complex: tri_topo.vertices[rat[0]:rat[0]+rat[1]],
-                tri_linker: tri_topo.vertices[tri_n_metals:]
-            }
-            # Merge linker and complex charges.
-            complex_charge = rat[0]*int(D_charge)+rat[1]*int(L_charge)
-            new_charge = tri_prop['net_charge']*4 + complex_charge
-
-            print(tri_prop['total_unpaired_e'])
-            lig_free_e = [
-                int(i)*4 for i in tri_prop['total_unpaired_e']
-            ]
-            compl_free_e = [
-                int(i)*rat[0] + int(j)*rat[1]
-                for i, j in zip(D_free_e, L_free_e)
-            ]
-            print(lig_free_e, compl_free_e)
-
-            new_free_electron_options = []
-            for opt in product(lig_free_e, compl_free_e):
-                print(opt)
-                new_free_electron_options.append(opt[0]+opt[1])
-
-            print(new_charge, new_free_electron_options)
-            new_cage = Cage(
-                name=new_name,
-                bbs=new_bbs,
-                topology=tri_topo,
-                topology_string=tri_topo_name,
-                bb_vertices=new_bb_vertices,
-                charge=new_charge,
-                free_electron_options=new_free_electron_options
-            )
-            cages_to_build.append(new_cage)
-            print('NOT BUILDING ALL RATIOS CURRENTLY!!!!!!')
-            break
-
-        # Prisms of all symmetries.
-        # Get topology as object.
-        pri_topo_name, pri_topo = available_topologies(
-            string='m6l2l3'
-        )
-        pri_topo = pri_topo()
-
-        pri_n_metals = 6
-        pri_ratios = self._get_ratios(pri_n_metals)
-        for rat in pri_ratios:
-            new_name = (
-                f"HeP_{self.cage_set_dict['corner_name']}_"
-                f"{self.cage_set_dict['tritopic']}_"
-                f"{self.cage_set_dict['tetratopic']}_"
-                f"{pri_topo_name}_"
-                f"d{rat[0]}l{rat[1]}_"
-                f"SYMM"
-            )
-            new_bbs = [D_complex, L_complex, tri_linker, tet_linker]
-            new_bb_vertices = {
-                D_complex: pri_topo.vertices[:rat[0]],
-                L_complex: pri_topo.vertices[rat[0]:rat[0]+rat[1]],
-                tri_linker: pri_topo.vertices[
-                    pri_n_metals:pri_n_metals+2
+                f"{self.cage_set_dict['tetratopic']}"
+            ),
+            topo_name=tet_topo_name,
+            topo_fn=tet_topo_fn,
+            symmetries_to_build=tet_symmetries_to_build,
+            # Set charge properties based on ligand occurances.
+            charge_prop={
+                'D': int(D_charge),
+                'L': int(L_charge),
+                '3': 0,
+                '4': tet_prop['net_charge']*6,
+            },
+            # Set free e properties based on ligand occurances.
+            mult_prop={
+                'D': D_free_e,
+                'L': L_free_e,
+                '3': [0],
+                '4': [
+                    int(i)*6 for i in tet_prop['total_unpaired_e']
                 ],
-                tet_linker: pri_topo.vertices[pri_n_metals+2:]
-            }
-            # Merge linker and complex charges.
-            complex_charge = rat[0]*int(D_charge)+rat[1]*int(L_charge)
-            new_charge = tri_prop['net_charge']*2
-            new_charge += tet_prop['net_charge']*3 + complex_charge
+            },
+        )
+        tri_cages = self.iterate_over_symmetries(
+            base_name=(
+                f"C_{self.cage_set_dict['corner_name']}_"
+                f"{self.cage_set_dict['tritopic']}"
+            ),
+            topo_name=tri_topo_name,
+            topo_fn=tri_topo_fn,
+            symmetries_to_build=tri_symmetries_to_build,
+            # Set charge properties based on ligand occurances.
+            charge_prop={
+                'D': int(D_charge),
+                'L': int(L_charge),
+                '3': tri_prop['net_charge']*4,
+                '4': 0,
+            },
+            # Set free e properties based on ligand occurances.
+            mult_prop={
+                'D': D_free_e,
+                'L': L_free_e,
+                '3': [
+                    int(i)*4 for i in tri_prop['total_unpaired_e']
+                ],
+                '4': [0],
+            },
+        )
+        pri_cages = self.iterate_over_symmetries(
+            base_name=(
+                f"CP_{self.cage_set_dict['corner_name']}_"
+                f"{self.cage_set_dict['tritopic']}_"
+                f"{self.cage_set_dict['tetratopic']}"
+            ),
+            topo_name=pri_topo_name,
+            topo_fn=pri_topo_fn,
+            symmetries_to_build=pri_symmetries_to_build,
+            # Set charge properties based on ligand occurances.
+            charge_prop={
+                'D': int(D_charge),
+                'L': int(L_charge),
+                '3': tri_prop['net_charge']*2,
+                '4': tet_prop['net_charge']*3,
+            },
+            # Set free e properties based on ligand occurances.
+            mult_prop={
+                'D': D_free_e,
+                'L': L_free_e,
+                '3': [
+                    int(i)*2 for i in tri_prop['total_unpaired_e']
+                ],
+                '4': [
+                    int(i)*3 for i in tet_prop['total_unpaired_e']
+                ],
+            },
+        )
 
-            print(
-                tri_prop['total_unpaired_e'],
-                tet_prop['total_unpaired_e']
-            )
-            tri_free_e = [
-                int(i)*2 for i in tri_prop['total_unpaired_e']
-            ]
-            tet_free_e = [
-                int(i)*3 for i in tet_prop['total_unpaired_e']
-            ]
-            compl_free_e = [
-                int(i)*rat[0] + int(j)*rat[1]
-                for i, j in zip(D_free_e, L_free_e)
-            ]
-            print(tri_free_e, tet_free_e, compl_free_e)
-
-            new_free_electron_options = []
-            for opt in product(tri_free_e, tet_free_e, compl_free_e):
-                print(opt)
-                new_free_electron_options.append(opt[0]+opt[1]+opt[2])
-
-            print(new_charge, new_free_electron_options)
-            new_cage = Cage(
-                name=new_name,
-                bbs=new_bbs,
-                topology=pri_topo,
-                topology_string=pri_topo_name,
-                bb_vertices=new_bb_vertices,
-                charge=new_charge,
-                free_electron_options=new_free_electron_options
-            )
-            cages_to_build.append(new_cage)
-            print('NOT BUILDING ALL RATIOS CURRENTLY!!!!!!')
-            break
-
-        return cages_to_build
+        return tet_cages + tri_cages + pri_cages
 
     def plot_min_OPs_avg_PV(self, X, Y, T):
         topo_c_m = {
