@@ -3,7 +3,7 @@
 # Distributed under the terms of the MIT License.
 
 """
-Script to build complex library.
+Script to build HoCube library.
 
 Author: Andrew Tarzia
 
@@ -68,77 +68,6 @@ def plot_set_heatmap_vs_aniso(data, Y_name, ylabel, ylim, filename):
         bbox_inches='tight'
     )
     plt.close()
-
-
-def het_prism_analysis(cage_set):
-    """
-    Analyse cage set.
-
-    Analysis performed:
-         -
-         -
-
-    """
-
-    cage_set.load_properties()
-    # Compare average pore volume of each of the three topologies.
-    three_top = {'m4l4spacer': [], 'm8l6face': [], 'm6l2l3': []}
-    built_prop = cage_set.built_cage_properties
-    all_pore_volumes = []
-    all_min_OPs = []
-    all_topo_strs = []
-    for C in cage_set.cages_to_build:
-        C_data = built_prop[C.name]
-        TOPO = C.topology_string
-        three_top[TOPO].append(
-            C_data['pw_prop']['pore_volume_opt']
-        )
-        all_pore_volumes.append(
-            C_data['pw_prop']['pore_volume_opt']
-        )
-        all_topo_strs.append(TOPO)
-    avg_pore_vol = {
-        i: np.mean(three_top[i]) for i in three_top
-    }
-    print('avg pore volumes:', avg_pore_vol)
-
-    # Ensure at least one prismatic cage is stable.
-    prism_oct_op = {}
-    for C in cage_set.cages_to_build:
-        C_data = built_prop[C.name]
-        TOPO = C.topology_string
-        # Get minimium octahedral OP of the metal that is in the
-        # complex building block.
-        print(cage_set.complex_dicts)
-        atom_no_of_interest = list(set([
-            int(cage_set.complex_dicts[i]['metal_atom_no'])
-            for i in cage_set.complex_dicts
-        ]))
-        print(atom_no_of_interest)
-        print('rrrr',)
-        C_OP = [
-            C_data['op_prop'][str(i)]
-            for i in atom_no_of_interest
-        ]
-        print(C_OP)
-        target_OPs = [
-            i[j]['oct']
-            for i in C_OP
-            for j in i
-        ]
-        print('t', target_OPs)
-        all_min_OPs.append(min(target_OPs))
-        if TOPO == 'm6l2l3':
-            prism_oct_op[C.name] = min(target_OPs)
-    print('minimum prism OPs:', prism_oct_op)
-
-    # Plot all order parameter minimums VS average pore volumes.
-    cage_set.plot_min_OPs_avg_PV(
-        X=all_pore_volumes,
-        Y=all_min_OPs,
-        T=all_topo_strs
-    )
-    sys.exit()
 
 
 def homo_cube_analysis(cage_set):
@@ -318,33 +247,30 @@ def analyse_cages(cage_sets):
 
     AR_data = {}
     for cage_set in cage_sets:
-        if isinstance(cage_set, HetPrism):
-            het_prism_analysis(cage_set)
-        if isinstance(cage_set, HoCube):
-            measures = homo_cube_analysis(cage_set)
-            # For all HoCube sets, collect ligand aspect ratio data.
-            AR_data[cage_set.name] = {
-                'min_OPs': measures['oct_op'],
-                'lse_sum': {
-                    i: (
-                        measures['lse_sum'][i] -
-                        min(measures['lse_sum'].values())
-                    )
-                    for i in measures['lse_sum']
-                },
-                'min_tor': measures['min_imine_torsions'],
-                'max_dis': measures['max_ligand_distortion'],
-                'aspect_ratio': cage_set.ligand_aspect_ratio,
-                'max_rfa': measures['max_diff_face_aniso'],
-                'max_mld': measures['max_ML_length'],
-                'rel_fe': {
-                    i: (
-                        measures['formation_energies'][i]
-                        - min(measures['formation_energies'].values())
-                    )
-                    for i in measures['formation_energies']
-                },
-            }
+        measures = homo_cube_analysis(cage_set)
+        # For all HoCube sets, collect ligand aspect ratio data.
+        AR_data[cage_set.name] = {
+            'min_OPs': measures['oct_op'],
+            'lse_sum': {
+                i: (
+                    measures['lse_sum'][i] -
+                    min(measures['lse_sum'].values())
+                )
+                for i in measures['lse_sum']
+            },
+            'min_tor': measures['min_imine_torsions'],
+            'max_dis': measures['max_ligand_distortion'],
+            'aspect_ratio': cage_set.ligand_aspect_ratio,
+            'max_rfa': measures['max_diff_face_aniso'],
+            'max_mld': measures['max_ML_length'],
+            'rel_fe': {
+                i: (
+                    measures['formation_energies'][i]
+                    - min(measures['formation_energies'].values())
+                )
+                for i in measures['formation_energies']
+            },
+        }
 
     # Plot ligand aspect ratio data.
     tests = {
@@ -389,24 +315,14 @@ def build_cages(
         compl_names = cage_set_c['corners']
         comps = {i: complexes[i] for i in compl_names}
 
-        if cage_set_c['heteroleptic']:
-            cage_set = HetPrism(
-                name=name,
-                cage_set_dict=cage_set_c,
-                complex_dicts=comps,
-                ligand_dicts=ligands,
-                ligand_dir=ligand_directory,
-                complex_dir=complex_directory
-            )
-        else:
-            cage_set = HoCube(
-                name=name,
-                cage_set_dict=cage_set_c,
-                complex_dicts=comps,
-                ligand_dicts=ligands,
-                ligand_dir=ligand_directory,
-                complex_dir=complex_directory
-            )
+        cage_set = HoCube(
+            name=name,
+            cage_set_dict=cage_set_c,
+            complex_dicts=comps,
+            ligand_dicts=ligands,
+            ligand_dir=ligand_directory,
+            complex_dir=complex_directory
+        )
 
         if read_data and exists(cage_set.properties_file):
             cage_set.load_properties()
@@ -417,20 +333,10 @@ def build_cages(
                 default_free_e = C.free_electron_options[0]
                 # Use a slightly different collapser threshold for
                 # different topologies.
-                if C.topology_string == 'm6l2l3':
-                    step_size = 0.05
-                    distance_cut = 3.0
-                    scale_steps = True
-                    expected_ligands = 2
-                elif C.topology_string == 'm8l6face':
+                if C.topology_string == 'm8l6face':
                     step_size = 0.05
                     distance_cut = 2.5
                     scale_steps = False
-                    expected_ligands = 1
-                else:
-                    step_size = 0.05
-                    distance_cut = 2.0
-                    scale_steps = True
                     expected_ligands = 1
 
                 C.optimize(
@@ -469,7 +375,7 @@ def build_cages(
 
 def main():
     first_line = (
-        'Usage: build_cage_library.py lig_lib_file prism_lib_file '
+        'Usage: build_cube_library.py lig_lib_file prism_lib_file '
         'compl_lib_file lig_directory compl_directory read_data'
     )
     if (not len(sys.argv) == 7):
