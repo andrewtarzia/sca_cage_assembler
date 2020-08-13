@@ -99,7 +99,7 @@ class CageSet:
         topologies = {
             'm4l4spacer': 8,
             'm8l6face': 14,
-            'm6l2l3': 10
+            'm6l2l3': 11,
         }
 
         try:
