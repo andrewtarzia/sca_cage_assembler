@@ -134,14 +134,12 @@ class M8L6_Symmetry(Symmetry):
         D_complex,
         L_complex,
         linker,
-        n_metals,
-        no_vertices
     ):
         self.D_complex = D_complex
         self.L_complex = L_complex
         self.linker = linker
-        self.n_metals = n_metals
-        self.no_vertices = no_vertices
+        self.n_metals = 8
+        self.no_vertices = 14
 
     def o1(self):
         """
@@ -439,4 +437,103 @@ class M8L6_Symmetry(Symmetry):
             'building_blocks': building_blocks,
             'vertex_alignments': vertex_alignments,
             'ratio': (4, 4)
+        }
+
+
+class M4L4_Symmetry(Symmetry):
+    """
+    Define a symmetry for a M4L4 cage topology_graph.
+
+    """
+
+    def __init__(
+        self,
+        D_complex,
+        L_complex,
+        linker,
+    ):
+        self.D_complex = D_complex
+        self.L_complex = L_complex
+        self.linker = linker
+        self.n_metals = 4
+        self.no_vertices = 8
+
+    def base(self):
+        """
+        Cage with default orientations and delta symmetry.
+
+        Only one distinct symmetry required.
+
+        Delta symmetry complexes at all nodes.
+
+        """
+
+        # All default orientation. All Delta.
+        vertex_alignments = {
+            i: 0 for i in range(self.no_vertices)
+        }
+        building_blocks = {
+            self.D_complex: range(self.n_metals),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
+
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (4, 0)
+        }
+
+
+class M6L2L3_Symmetry(Symmetry):
+    """
+    Define a symmetry for a M6L2L3Prism cage topology_graph.
+
+    """
+
+    def __init__(
+        self,
+        D_complex,
+        L_complex,
+        linker3,
+        linker4,
+    ):
+        self.D_complex = D_complex
+        self.L_complex = L_complex
+        self.linker3 = linker3
+        self.linker4 = linker4
+        self.n_metals = 6
+        self._tritopic_vertices = 2
+        self._tetratopic_vertices = 3
+        self.no_vertices = 11
+
+    def base(self):
+        """
+        Cage with default orientations and delta symmetry.
+
+        Only one distinct symmetry required.
+
+        Delta symmetry complexes at all nodes.
+
+        """
+
+        # All default orientation. All Delta.
+        vertex_alignments = {
+            i: 0 for i in range(self.no_vertices)
+        }
+        building_blocks = {
+            self.D_complex: range(self.n_metals),
+            self.linker3: range(
+                self.n_metals,
+                self.n_metals+self._tritopic_vertices,
+            ),
+            self.linker4: range(
+                self.n_metals+self._tritopic_vertices,
+                self.no_vertices,
+            ),
+        }
+
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (6, 0)
         }
