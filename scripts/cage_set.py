@@ -335,8 +335,8 @@ class HoCube(CageSet):
             ligand_dir=ligand_dir
         )
 
-        # Tetratopic homoleptic cages.
-        # Get topology as object to be used in following list.
+        # Get topology function as object to be used in following list.
+        # Homoleptic cage with tetratopic ligand.
         tet_topo_name = 'm8l6face'
         tet_topo_fn = available_topologies(string=tet_topo_name)
 
@@ -564,11 +564,16 @@ class HetPrism(CageSet):
             ligand_dir=ligand_dir
         )
 
-
-        # Tetratopic homoleptic cages of all symmetries.
-        # Get topology as object.
-        tet_topo_name, tet_topo = available_topologies(
-            string='m8l6face'
+        # Get topology function as object to be used in following list.
+        # Homoleptic cage with tetratopic ligand.
+        tet_topo_name = 'm8l6face'
+        tet_topo_fn = available_topologies(string=tet_topo_name)
+        # Homoleptic cage with tritopic ligand.
+        tri_topo_name = 'm4l4spacer'
+        tri_topo_fn = available_topologies(string=tri_topo_name)
+        # Heteroleptic cage with tetratopic + tritopic ligand.
+        pri_topo_name = 'm6l2l3'
+        pri_topo_fn = available_topologies(string=pri_topo_name)
         )
         tet_topo = tet_topo()
 
