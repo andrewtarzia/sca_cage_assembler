@@ -330,11 +330,11 @@ class HoCube(CageSet):
         tet_topo_name = 'm8l6face'
         tet_topo_fn = available_topologies(string=tet_topo_name)
 
-        symmetries_to_build = self.cage_symmetries(
-            string='m8l6face',
+        symmetries_to_build = self.get_cage_symmetries(
+            string=tet_topo_name,
             D_complex=D_complex,
             L_complex=L_complex,
-            linker=tet_linker,
+            linkers={4: tet_linker},
         )
 
         for name_string in symmetries_to_build:
@@ -562,6 +562,25 @@ class HetPrism(CageSet):
         # Heteroleptic cage with tetratopic + tritopic ligand.
         pri_topo_name = 'm6l2l3'
         pri_topo_fn = available_topologies(string=pri_topo_name)
+
+        # Define symmetries of each topology.
+        tet_symmetries_to_build = self.get_cage_symmetries(
+            string=tet_topo_name,
+            D_complex=D_complex,
+            L_complex=L_complex,
+            linkers={4: tet_linker},
+        )
+        tri_symmetries_to_build = self.get_cage_symmetries(
+            string=tri_topo_name,
+            D_complex=D_complex,
+            L_complex=L_complex,
+            linkers={3: tri_linker},
+        )
+        pri_symmetries_to_build = self.get_cage_symmetries(
+            string=pri_topo_name,
+            D_complex=D_complex,
+            L_complex=L_complex,
+            linkers={4: tet_linker, 3: tri_linker},
         )
         tet_topo = tet_topo()
 
