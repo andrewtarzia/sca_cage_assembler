@@ -107,6 +107,40 @@ class CageSet:
         except KeyError:
             raise KeyError(f'{string} not in {topologies.keys()}')
 
+    def _get_complex_info(self, complex_dir):
+
+        D_complex_name = [
+            i for i in self.complex_dicts if 'del' in i
+        ][0]
+        L_complex_name = [
+            i for i in self.complex_dicts if 'lam' in i
+        ][0]
+        L_complex = self._load_complex(
+            complex_name=L_complex_name,
+            complex_dir=complex_dir
+        )
+        D_complex = self._load_complex(
+            complex_name=D_complex_name,
+            complex_dir=complex_dir
+        )
+
+        return D_complex_name, D_complex, L_complex_name, L_complex
+
+    def _get_complex_properties(self, complex_name):
+        charge = self.complex_dicts[complex_name]['total_charge']
+        free_e = self.complex_dicts[complex_name]['unpaired_e']
+
+        return charge, free_e
+
+    def _get_ligand(self, type_name, ligand_dir):
+        prop = self.ligand_dicts[self.cage_set_dict[type_name]]
+        linker = self._load_ligand(
+            ligand_name=self.cage_set_dict[type_name],
+            ligand_dir=ligand_dir
+        )
+
+        return prop, linker
+
     def _get_rot_vertices(self, string):
         """
         Get the list of rotatable vertices for a given topology.
@@ -283,33 +317,21 @@ class HoCube(CageSet):
 
         """
 
-        cages_to_build = []
-
         # Get Delta and Lambda complexes.
-        D_complex_name = [
-            i for i in self.complex_dicts if 'del' in i
-        ][0]
-        L_complex_name = [
-            i for i in self.complex_dicts if 'lam' in i
-        ][0]
-        L_complex = self._load_complex(
-            complex_name=L_complex_name,
-            complex_dir=complex_dir
-        )
-        D_complex = self._load_complex(
-            complex_name=D_complex_name,
-            complex_dir=complex_dir
+        D_complex_name, D_complex, L_complex_name, L_complex = (
+            self._get_complex_info(complex_dir=complex_dir)
         )
 
-        D_charge = self.complex_dicts[D_complex_name]['total_charge']
-        L_charge = self.complex_dicts[L_complex_name]['total_charge']
-        D_free_e = self.complex_dicts[D_complex_name]['unpaired_e']
-        L_free_e = self.complex_dicts[L_complex_name]['unpaired_e']
+        D_charge, D_free_e = self._get_complex_properties(
+            complex_name=D_complex_name
+        )
+        L_charge, L_free_e = self._get_complex_properties(
+            complex_name=L_complex_name
+        )
 
-        # Get all linkers and their face orientations.
-        tet_prop = self.ligand_dicts[self.cage_set_dict['tetratopic']]
-        tet_linker = self._load_ligand(
-            ligand_name=self.cage_set_dict['tetratopic'],
+        # Get linker and dictionary.
+        tet_prop, tet_linker = self._get_ligand(
+            type_name='tetratopic',
             ligand_dir=ligand_dir
         )
 
@@ -520,45 +542,28 @@ class HetPrism(CageSet):
 
         """
 
-        cages_to_build = []
-
         # Get Delta and Lambda complex.
-        print(self.complex_dicts)
-        D_complex_name = [
-            i for i in self.complex_dicts if 'del' in i
-        ][0]
-        L_complex_name = [
-            i for i in self.complex_dicts if 'lam' in i
-        ][0]
-        print(D_complex_name, L_complex_name)
-        L_complex = self._load_complex(
-            complex_name=L_complex_name,
-            complex_dir=complex_dir
-        )
-        D_complex = self._load_complex(
-            complex_name=D_complex_name,
-            complex_dir=complex_dir
+        D_complex_name, D_complex, L_complex_name, L_complex = (
+            self._get_complex_info(complex_dir=complex_dir)
         )
 
-        D_charge = self.complex_dicts[D_complex_name]['total_charge']
-        L_charge = self.complex_dicts[L_complex_name]['total_charge']
-        D_free_e = self.complex_dicts[D_complex_name]['unpaired_e']
-        L_free_e = self.complex_dicts[L_complex_name]['unpaired_e']
-        print(D_charge, D_free_e, L_charge, L_free_e)
+        D_charge, D_free_e = self._get_complex_properties(
+            complex_name=D_complex_name
+        )
+        L_charge, L_free_e = self._get_complex_properties(
+            complex_name=L_complex_name
+        )
 
-        # Get all linkers.
-        tet_prop = self.ligand_dicts[self.cage_set_dict['tetratopic']]
-        tet_linker = self._load_ligand(
-            ligand_name=self.cage_set_dict['tetratopic'],
+        # Get linker and dictionary.
+        tet_prop, tet_linker = self._get_ligand(
+            type_name='tetratopic',
             ligand_dir=ligand_dir
         )
-        tri_prop = self.ligand_dicts[self.cage_set_dict['tritopic']]
-        tri_linker = self._load_ligand(
-            ligand_name=self.cage_set_dict['tritopic'],
+        tri_prop, tri_linker = self._get_ligand(
+            type_name='tritopic',
             ligand_dir=ligand_dir
         )
 
-        print(D_complex, L_complex, tet_linker, tri_linker)
 
         # Tetratopic homoleptic cages of all symmetries.
         # Get topology as object.
