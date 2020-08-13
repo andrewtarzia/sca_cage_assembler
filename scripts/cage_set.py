@@ -191,12 +191,12 @@ class CageSet:
 
         return ligand
 
-    def cage_symmetries(
+    def get_cage_symmetries(
         self,
         string,
         D_complex,
         L_complex,
-        linker,
+        linkers,
     ):
         """
         Returns cage symmetries for a given topology.
@@ -205,11 +205,19 @@ class CageSet:
 
         if string == 'm4l4spacer':
             symm_list = {}
-            raise NotImplementedError(
-                'symmetries not defined for m4l4'
+            linker = linkers[3]
+
+            # Predefined list of symmetries.
+            symm_c = symmetries.M4L4_Symmetry(
+                D_complex=D_complex,
+                L_complex=L_complex,
+                linker=linker,
             )
+            symm_list['base'] = symm_c.base()
+
         elif string == 'm8l6face':
             symm_list = {}
+            linker = linkers[4]
 
             # Predefined list of symmetries.
             symm_c = symmetries.M8L6_Symmetry(
@@ -230,9 +238,17 @@ class CageSet:
 
         elif string == 'm6l2l3':
             symm_list = {}
-            raise NotImplementedError(
-                'symmetries not defined for m6l2l3'
+            linker3 = linkers[3]
+            linker4 = linkers[4]
+
+            # Predefined list of symmetries.
+            symm_c = symmetries.M6L2L3_Symmetry(
+                D_complex=D_complex,
+                L_complex=L_complex,
+                linker3=linker3,
+                linker4=linker4,
             )
+            symm_list['base'] = symm_c.base()
         else:
             raise KeyError(f'{string} not in defined')
 
