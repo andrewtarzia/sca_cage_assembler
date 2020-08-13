@@ -255,6 +255,68 @@ class CageSet:
         print(f'{len(symm_list)} symmetries to build')
         return symm_list
 
+    def iterate_over_symmetries(
+        self,
+        base_name,
+        topo_name,
+        topo_fn,
+        symmetries_to_build,
+        charge_prop,
+        mult_prop,
+    ):
+        """
+        Iterates over symmetry options and defines .Cage.
+
+        """
+
+        cages_to_build = []
+
+        for name_string in symmetries_to_build:
+            new_name = f"{base_name}_{name_string}"
+            building_blocks = (
+                symmetries_to_build[name_string]['building_blocks']
+            )
+            vertex_alignments = (
+                symmetries_to_build[name_string]['vertex_alignments']
+            )
+            rat = symmetries_to_build[name_string]['ratio']
+
+            # Merge linker and complex charges.
+            complex_charge = rat[0]*charge_prop['D']
+            complex_charge += rat[1]*charge_prop['L']
+            new_charge = (
+                charge_prop['4'] + charge_prop['3'] + complex_charge
+            )
+
+            compl_free_e = [
+                int(i)*rat[0] + int(j)*rat[1]
+                for i, j in zip(mult_prop['D'], mult_prop['L'])
+            ]
+            new_free_electron_options = []
+            for opt in product(
+                mult_prop['3'],
+                mult_prop['4'],
+                compl_free_e,
+            ):
+                new_free_electron_options.append(opt[0]+opt[1]+opt[2])
+
+            print(base_name, 'q', new_charge, new_free_electron_options)
+
+            new_cage = Cage(
+                name=new_name,
+                base_name=base_name,
+                topology_fn=topo_fn,
+                building_blocks=building_blocks,
+                vertex_alignments=vertex_alignments,
+                topology_string=topo_name,
+                charge=new_charge,
+                free_electron_options=new_free_electron_options,
+                cage_set_dict=self.cage_set_dict
+            )
+            cages_to_build.append(new_cage)
+
+        return cages_to_build
+
 
 class HoCube(CageSet):
     """
@@ -337,48 +399,31 @@ class HoCube(CageSet):
             linkers={4: tet_linker},
         )
 
-        for name_string in symmetries_to_build:
-            base_name = (
+        cages_to_build = self.iterate_over_symmetries(
+            base_name=(
                 f"C_{self.cage_set_dict['corner_name']}_"
                 f"{self.cage_set_dict['tetratopic']}"
-            )
-            new_name = f"{base_name}_{name_string}"
-            building_blocks = (
-                symmetries_to_build[name_string]['building_blocks']
-            )
-            vertex_alignments = (
-                symmetries_to_build[name_string]['vertex_alignments']
-            )
-            rat = symmetries_to_build[name_string]['ratio']
-
-            # Merge linker and complex charges.
-            complex_charge = rat[0]*int(D_charge)
-            complex_charge += rat[1]*int(L_charge)
-            new_charge = tet_prop['net_charge']*6 + complex_charge
-
-            lig_free_e = [
-                int(i)*6 for i in tet_prop['total_unpaired_e']
-            ]
-            compl_free_e = [
-                int(i)*rat[0] + int(j)*rat[1]
-                for i, j in zip(D_free_e, L_free_e)
-            ]
-            new_free_electron_options = []
-            for opt in product(lig_free_e, compl_free_e):
-                new_free_electron_options.append(opt[0]+opt[1])
-
-            new_cage = Cage(
-                name=new_name,
-                base_name=base_name,
-                topology_fn=tet_topo_fn,
-                building_blocks=building_blocks,
-                vertex_alignments=vertex_alignments,
-                topology_string=tet_topo_name,
-                charge=new_charge,
-                free_electron_options=new_free_electron_options,
-                cage_set_dict=self.cage_set_dict
-            )
-            cages_to_build.append(new_cage)
+            ),
+            topo_name=tet_topo_name,
+            topo_fn=tet_topo_fn,
+            symmetries_to_build=symmetries_to_build,
+            # Set charge properties based on ligand occurances.
+            charge_prop={
+                'D': int(D_charge),
+                'L': int(L_charge),
+                '3': 0,
+                '4': tet_prop['net_charge']*6,
+            },
+            # Set free e properties based on ligand occurances.
+            mult_prop={
+                'D': D_free_e,
+                'L': L_free_e,
+                '3': 0,
+                '4': [
+                    int(i)*6 for i in tet_prop['total_unpaired_e']
+                ],
+            },
+        )
 
         return cages_to_build
 
