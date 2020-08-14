@@ -51,6 +51,24 @@ class CageSet:
             complex_dir
         )
         self.built_cage_properties = {}
+        # Get ligand aspect ratio.
+        self.ligand_aspect_ratio = self._get_ligand_AR(ligand_dir)
+
+    def _get_ligand_AR(self, ligand_dir):
+        """
+        Calculate ligand aspect ratio of tetratopic ligand.
+
+        Determined based on binder positions.
+
+        """
+
+        tet_linker = self._load_ligand(
+            ligand_name=self.cage_set_dict['tetratopic'],
+            ligand_dir=ligand_dir
+        )
+        ligand_AR = calculate_binding_AR(tet_linker)
+
+        return ligand_AR
 
     def define_cages_to_build(self):
         """
@@ -300,8 +318,6 @@ class CageSet:
             ):
                 new_free_electron_options.append(opt[0]+opt[1]+opt[2])
 
-            print(base_name, 'q', new_charge, new_free_electron_options)
-
             new_cage = Cage(
                 name=new_name,
                 base_name=base_name,
@@ -314,116 +330,6 @@ class CageSet:
                 cage_set_dict=self.cage_set_dict
             )
             cages_to_build.append(new_cage)
-
-        return cages_to_build
-
-
-class HoCube(CageSet):
-    """
-    Class that builds and analyses stk.ConstructuedMolecules.
-
-    Represents homoleptic cube cages with all necessary symmetries
-    and orientations.
-
-    """
-
-    def __init__(
-        self,
-        name,
-        cage_set_dict,
-        complex_dicts,
-        ligand_dicts,
-        ligand_dir,
-        complex_dir
-    ):
-
-        super().__init__(
-            name,
-            cage_set_dict,
-            complex_dicts,
-            ligand_dicts,
-            ligand_dir,
-            complex_dir
-        )
-
-        # Get ligand aspect ratio.
-        self.ligand_aspect_ratio = self._get_ligand_AR(ligand_dir)
-
-    def _get_ligand_AR(self, ligand_dir):
-        """
-        Calculate ligand aspect ratio based on binder positions.
-
-        """
-
-        tet_linker = self._load_ligand(
-            ligand_name=self.cage_set_dict['tetratopic'],
-            ligand_dir=ligand_dir
-        )
-        ligand_AR = calculate_binding_AR(tet_linker)
-
-        return ligand_AR
-
-    def define_cages_to_build(self, ligand_dir, complex_dir):
-        """
-        Defines the name and objects of all cages to build.
-
-        """
-
-        # Get Delta and Lambda complexes.
-        D_complex_name, D_complex, L_complex_name, L_complex = (
-            self._get_complex_info(complex_dir=complex_dir)
-        )
-
-        D_charge, D_free_e = self._get_complex_properties(
-            complex_name=D_complex_name
-        )
-        L_charge, L_free_e = self._get_complex_properties(
-            complex_name=L_complex_name
-        )
-
-        # Get linker and dictionary.
-        tet_prop, tet_linker = self._get_ligand(
-            type_name='tetratopic',
-            ligand_dir=ligand_dir
-        )
-
-        # Get topology function as object to be used in following list.
-        # Homoleptic cage with tetratopic ligand.
-        tet_topo_name = 'm8l6face'
-        tet_topo_fn = available_topologies(string=tet_topo_name)
-
-        symmetries_to_build = self.get_cage_symmetries(
-            string=tet_topo_name,
-            D_complex=D_complex,
-            L_complex=L_complex,
-            linkers={4: tet_linker},
-        )
-
-        cages_to_build = self.iterate_over_symmetries(
-            base_name=(
-                f"C_{self.cage_set_dict['corner_name']}_"
-                f"{self.cage_set_dict['tetratopic']}"
-            ),
-            topo_name=tet_topo_name,
-            topo_fn=tet_topo_fn,
-            symmetries_to_build=symmetries_to_build,
-            # Set charge properties based on ligand occurances.
-            charge_prop={
-                'D': int(D_charge),
-                'L': int(L_charge),
-                '3': 0,
-                '4': tet_prop['net_charge']*6,
-            },
-            # Set free e properties based on ligand occurances.
-            mult_prop={
-                'D': D_free_e,
-                'L': L_free_e,
-                '3': 0,
-                '4': [
-                    int(i)*6 for i in tet_prop['total_unpaired_e']
-                ],
-            },
-        )
 
         return cages_to_build
 
@@ -449,7 +355,6 @@ class HoCube(CageSet):
             )
         # Set number of ticks for x-axis
         ax.tick_params(axis='both', which='major', labelsize=16)
-        # ax.set_xlabel(r'pore volume [$\mathrm{\AA}^3$]', fontsize=16)
         ax.set_ylabel(ylabel, fontsize=16)
         ax.set_xlim(1, i+3)
         ax.set_ylim(ylim)
@@ -541,6 +446,80 @@ class HoCube(CageSet):
         plt.close()
 
 
+class HoCube(CageSet):
+    """
+    Class that builds and analyses stk.ConstructuedMolecules.
+
+    Represents homoleptic cube cages with all necessary symmetries
+    and orientations.
+
+    """
+
+    def define_cages_to_build(self, ligand_dir, complex_dir):
+        """
+        Defines the name and objects of all cages to build.
+
+        """
+
+        # Get Delta and Lambda complexes.
+        D_complex_name, D_complex, L_complex_name, L_complex = (
+            self._get_complex_info(complex_dir=complex_dir)
+        )
+
+        D_charge, D_free_e = self._get_complex_properties(
+            complex_name=D_complex_name
+        )
+        L_charge, L_free_e = self._get_complex_properties(
+            complex_name=L_complex_name
+        )
+
+        # Get linker and dictionary.
+        tet_prop, tet_linker = self._get_ligand(
+            type_name='tetratopic',
+            ligand_dir=ligand_dir
+        )
+
+        # Get topology function as object to be used in following list.
+        # Homoleptic cage with tetratopic ligand.
+        tet_topo_name = 'm8l6face'
+        tet_topo_fn = available_topologies(string=tet_topo_name)
+
+        symmetries_to_build = self.get_cage_symmetries(
+            string=tet_topo_name,
+            D_complex=D_complex,
+            L_complex=L_complex,
+            linkers={4: tet_linker},
+        )
+
+        cages_to_build = self.iterate_over_symmetries(
+            base_name=(
+                f"C_{self.cage_set_dict['corner_name']}_"
+                f"{self.cage_set_dict['tetratopic']}"
+            ),
+            topo_name=tet_topo_name,
+            topo_fn=tet_topo_fn,
+            symmetries_to_build=symmetries_to_build,
+            # Set charge properties based on ligand occurances.
+            charge_prop={
+                'D': int(D_charge),
+                'L': int(L_charge),
+                '3': 0,
+                '4': tet_prop['net_charge']*6,
+            },
+            # Set free e properties based on ligand occurances.
+            mult_prop={
+                'D': D_free_e,
+                'L': L_free_e,
+                '3': [0],
+                '4': [
+                    int(i)*6 for i in tet_prop['total_unpaired_e']
+                ],
+            },
+        )
+
+        return cages_to_build
+
+
 class HetPrism(CageSet):
     """
     Class that builds and analyses stk.ConstructuedMolecules.
@@ -549,25 +528,6 @@ class HetPrism(CageSet):
     cages.
 
     """
-
-    def __init__(
-        self,
-        name,
-        cage_set_dict,
-        complex_dicts,
-        ligand_dicts,
-        ligand_dir,
-        complex_dir
-    ):
-
-        super().__init__(
-            name,
-            cage_set_dict,
-            complex_dicts,
-            ligand_dicts,
-            ligand_dir,
-            complex_dir
-        )
 
     def define_cages_to_build(self, ligand_dir, complex_dir):
         """
@@ -655,7 +615,7 @@ class HetPrism(CageSet):
         )
         tri_cages = self.iterate_over_symmetries(
             base_name=(
-                f"C_{self.cage_set_dict['corner_name']}_"
+                f"T_{self.cage_set_dict['corner_name']}_"
                 f"{self.cage_set_dict['tritopic']}"
             ),
             topo_name=tri_topo_name,
@@ -680,7 +640,7 @@ class HetPrism(CageSet):
         )
         pri_cages = self.iterate_over_symmetries(
             base_name=(
-                f"CP_{self.cage_set_dict['corner_name']}_"
+                f"P_{self.cage_set_dict['corner_name']}_"
                 f"{self.cage_set_dict['tritopic']}_"
                 f"{self.cage_set_dict['tetratopic']}"
             ),
