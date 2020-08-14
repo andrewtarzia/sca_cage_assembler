@@ -273,6 +273,9 @@ class Cage:
 
         """
 
+        if self.topology_string != 'm8l6face':
+            self.fe_data = None
+
         components = deepcopy(self.cage_set_dict['components'])
         solvent = (self.cage_set_dict['solvent'], 'normal')
 
@@ -557,13 +560,16 @@ class Cage:
             if i.get_atomic_number() in metal_FFs(CN=4).keys()
         ]
 
-        face_sets = defined_face_sets(self.topology_string)
-
-        self.fa_data = calculate_paired_face_anisotropies(
-            mol=self.cage,
-            metal_atom_ids=metal_atom_ids,
-            face_sets=face_sets,
-        )
+        try:
+            # Only relevent for m6l8 topology.
+            face_sets = defined_face_sets(self.topology_string)
+            self.fa_data = calculate_paired_face_anisotropies(
+                mol=self.cage,
+                metal_atom_ids=metal_atom_ids,
+                face_sets=face_sets,
+            )
+        except KeyError:
+            self.fa_data = None
 
         self.bl_data = atools.calculate_metal_ligand_distance(
             mol=self.cage,
