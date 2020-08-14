@@ -274,7 +274,7 @@ class Cage:
         """
 
         if self.topology_string != 'm8l6face':
-            self.fe_data = None
+            raise NotImplementedError('need to handle het cages.')
 
         components = deepcopy(self.cage_set_dict['components'])
         solvent = (self.cage_set_dict['solvent'], 'normal')
