@@ -470,7 +470,10 @@ class M4L4_Symmetry(Symmetry):
 
         # All default orientation. All Delta.
         vertex_alignments = {
-            i: 0 for i in range(self.no_vertices)
+            # Metals.
+            0: 0, 1: 0, 2: 0, 3: 0,
+            # Linkers.
+            4: 0, 5: 0, 6: 0, 7: 0,
         }
         building_blocks = {
             self.D_complex: range(self.n_metals),
