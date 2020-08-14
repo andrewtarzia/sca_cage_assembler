@@ -143,7 +143,13 @@ class Cage:
             for line in new_lines:
                 f.write(line+'\n')
 
-    def optimize(self, free_e, step_size, distance_cut, scale_steps):
+    def optimize(
+        self,
+        free_e,
+        step_size,
+        target_bond_length,
+        num_steps
+    ):
         custom_metal_FFs = metal_FFs(CN=6)
 
         # Skip if _opt.mol exists.
@@ -156,12 +162,12 @@ class Cage:
 
         # Run if crush output does not exist.
         if not exists(f'{self.crush_file}.mol'):
-            self.cage = atools.MOC_collapse(
-                self.cage,
-                self.name,
+            self.cage = atools.MOC_collapse_v2(
+                cage=self.cage,
+                cage_name=self.name,
                 step_size=step_size,
-                distance_cut=distance_cut,
-                scale_steps=scale_steps
+                target_bond_length=target_bond_length,
+                num_steps=num_steps,
             )
             self.cage.write(f'{self.crush_file}.mol')
         else:
@@ -230,7 +236,7 @@ class Cage:
             charge=self.charge,
             opt_level='normal',
             etemp=300,
-            solvent=(self.cage_set_dict.solvent, 'normal')
+            solvent=(self.cage_set_dict['solvent'], 'normal')
         )
         self.cage.write(f'{self.opt_file}.mol')
 

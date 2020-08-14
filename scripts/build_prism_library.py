@@ -198,26 +198,26 @@ def build_cages(
                 # Use a slightly different collapser threshold for
                 # different topologies.
                 if C.topology_string == 'm6l2l3':
-                    step_size = 0.05
                     distance_cut = 3.0
                     scale_steps = True
                     expected_ligands = 2
                 elif C.topology_string == 'm8l6face':
-                    step_size = 0.05
                     distance_cut = 2.5
                     scale_steps = False
                     expected_ligands = 1
                 else:
-                    step_size = 0.05
                     distance_cut = 2.0
                     scale_steps = True
                     expected_ligands = 1
+                target_bond_length = 1.2
+                num_steps = 2000
+                step_size = 0.25
 
                 C.optimize(
                     free_e=default_free_e,
                     step_size=step_size,
-                    distance_cut=distance_cut,
-                    scale_steps=scale_steps
+                    target_bond_length=target_bond_length,
+                    num_steps=num_steps
                 )
 
                 C.analyze_metal_strain()
