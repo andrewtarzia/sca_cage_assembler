@@ -162,7 +162,7 @@ class Cage:
 
         # Run if crush output does not exist.
         if not exists(f'{self.crush_file}.mol'):
-            self.cage = atools.MOC_collapse_v2(
+            self.cage = atools.MOC_collapse_mc(
                 cage=self.cage,
                 cage_name=self.name,
                 step_size=step_size,
