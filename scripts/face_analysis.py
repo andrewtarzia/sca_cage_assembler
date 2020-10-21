@@ -606,76 +606,6 @@ def planarfy(ligands):
     return new_ligands
 
 
-def check_ligand_orientation(mol):
-    """
-    Check the ligand orientation assuming four functional groups.
-
-    The orientation here assumes the ligand makes a pseudo rectangle
-    with its FGs, and that we want the ``short axis'' to be defined by
-    FG(0)-FG(1) vector.
-
-    This requires each FG to only have one bonder atom.
-
-    """
-
-    if mol.get_num_functional_groups() != 4:
-        raise ValueError(
-            f'{mol} has {mol.get_num_functional_groups()}, '
-            'but needs 4'
-        )
-
-    print(mol)
-    mol.write('temp.xyz')
-    needs_rotation = False
-
-    for fg in mol.get_functional_groups():
-        if len(list(fg.get_bonder_ids())) > 1:
-            raise ValueError(
-                f'{mol} has functional groups with more than 1 binder.'
-            )
-
-    binder_atom_ids = [
-        list(fg.get_bonder_ids())
-        for fg in mol.get_functional_groups()
-    ]
-    binder_atom_dists = sorted(
-        [
-            (idx1, idx2, get_atom_distance(mol, idx1, idx2))
-            for idx1, idx2 in combinations(binder_atom_ids, r=2)
-        ],
-        key=lambda a: a[2]
-    )
-    print(binder_atom_ids)
-    print(binder_atom_dists)
-
-    # Can assume the ordering of the binder atom distances:
-    # 0, 1: short vectors
-    # 2, 3: long vectors
-    # 4, 5: diagonal vectors
-    # This fails when the molecule is not sufficiently anisotropic, at
-    # which point it will not matter.
-    short_vector_fgs = [
-        (binder_atom_dists[0][0], binder_atom_dists[0][1]),
-        (binder_atom_dists[1][0], binder_atom_dists[1][1]),
-    ]
-    long_vector_fgs = [
-        (binder_atom_dists[2][0], binder_atom_dists[2][1]),
-        (binder_atom_dists[3][0], binder_atom_dists[3][1]),
-    ]
-    print(short_vector_fgs, long_vector_fgs)
-
-    chk1 = binder_atom_ids[0] in short_vector_fgs[0]
-    chk2 = binder_atom_ids[1] in short_vector_fgs[0]
-    if (chk1 and chk2):
-        print('short is right')
-        needs_rotation = False
-    else:
-        input('wrong?')
-        needs_rotation = True
-
-    return needs_rotation
-
-
 def main():
     first_line = (
         'Usage: face_analysis.py '
@@ -745,30 +675,17 @@ def main():
     for lig in sorted(ligands):
         print(f'doing {lig}...')
         lig_structure = ligands[lig]
-        # Check if ligand needs rotation.
-        # needs_rotation = check_ligand_orientation(lig_structure)
-        # print(needs_rotation)
-        # continue
-        # needs_rotation = False
         face_properties[lig] = {}
         # Build each face topology.
         for face_t in face_topologies:
             final_topology_dict = face_topologies[face_t]
-            # print(face_topologies[face_t], needs_rotation)
-            # if needs_rotation:
-            #     final_topology_dict = face_topologies[face_t]
-            #     final_topology_dict['va'][4: 1]
-            # else:
-            #     final_topology_dict = face_topologies[face_t]
-            # print(final_topology_dict)
-            # sys.exit()
             face_name = f'{lig}_{face_t}'
             build_face(
                 face_name=face_name,
                 lig_structure=lig_structure,
                 del_complex=del_complex,
                 lam_complex=lam_complex,
-                face_topo=face_topologies[face_t],
+                face_topo=final_topology_dict,
             )
             continue
             optimize_face(face_name)
