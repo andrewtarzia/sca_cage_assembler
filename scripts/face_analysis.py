@@ -330,22 +330,22 @@ class CubeFace(stk.cage.Cage):
     _vertex_prototypes = (
         _MetalVertex(
             id=0,
-            position=[1, 1, 1],
+            position=[1, 1, 0],
             use_neighbor_placement=False,
         ),
         _MetalVertex(
             id=1,
-            position=[1, -1, 1],
+            position=[1, -1, 0],
             use_neighbor_placement=False,
         ),
         _MetalVertex(
             id=2,
-            position=[-1, -1, 1],
+            position=[-1, -1, 0],
             use_neighbor_placement=False,
         ),
         _MetalVertex(
             id=3,
-            position=[-1, 1, 1],
+            position=[-1, 1, 0],
             use_neighbor_placement=False,
         ),
     )
@@ -355,16 +355,36 @@ class CubeFace(stk.cage.Cage):
 
         _LinkerVertex(
             id=4,
-            position=[0, 0, 1],
+            position=[0, 0, 0],
             use_neighbor_placement=False,
         ),
     )
 
     _edge_prototypes = (
-        stk.Edge(0, _vertex_prototypes[0], _vertex_prototypes[4]),
-        stk.Edge(1, _vertex_prototypes[1], _vertex_prototypes[4]),
-        stk.Edge(2, _vertex_prototypes[2], _vertex_prototypes[4]),
-        stk.Edge(3, _vertex_prototypes[3], _vertex_prototypes[4]),
+        stk.Edge(
+            id=0,
+            vertex1=_vertex_prototypes[0],
+            vertex2=_vertex_prototypes[4],
+            position=[0.5, 0.5, 0],
+        ),
+        stk.Edge(
+            id=1,
+            vertex1=_vertex_prototypes[1],
+            vertex2=_vertex_prototypes[4],
+            position=[0.5, -0.5, 0],
+        ),
+        stk.Edge(
+            id=2,
+            vertex1=_vertex_prototypes[2],
+            vertex2=_vertex_prototypes[4],
+            position=[-0.5, -0.5, 0],
+        ),
+        stk.Edge(
+            id=3,
+            vertex1=_vertex_prototypes[3],
+            vertex2=_vertex_prototypes[4],
+            position=[-0.5, 0.5, 0],
+        ),
     )
 
 
