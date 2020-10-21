@@ -13,12 +13,12 @@ Date Created: 19 Oct 2020
 
 import sys
 from os.path import exists, join
+from itertools import combinations
 from glob import glob
+from scipy.spatial.distance import euclidean
 import numpy as np
 
 import stk
-from scipy.spatial.distance import euclidean
-
 from stk.molecular.topology_graphs.utilities import (
     _FunctionalGroupSorter,
     _EdgeSorter,
@@ -26,11 +26,17 @@ from stk.molecular.topology_graphs.utilities import (
 from stk.utilities import (
     get_acute_vector,
     get_plane_normal,
-    normalize_vector,
 )
 import stko
 
 from molecule_building import metal_FFs
+
+from atools import (
+    build_conformers,
+    calculate_molecule_planarity,
+    update_from_rdkit_conf,
+    get_atom_distance,
+)
 
 
 class _FaceVertex(stk.Vertex):
