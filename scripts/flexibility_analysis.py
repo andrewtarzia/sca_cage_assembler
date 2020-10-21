@@ -130,7 +130,6 @@ def main():
     for lig in sorted(ligands):
         lig_structure = ligands[lig]
         json_file = f'{lig}_planedev_dist.json'
-        print(f'doing {lig}...')
         if exists(json_file):
             with open(json_file, 'r') as f:
                 binder_plane_deviations = json.load(f)
@@ -141,6 +140,7 @@ def main():
         print(
             lig,
             max(binder_plane_deviations),
+            np.average(binder_plane_deviations),
             np.std(binder_plane_deviations)
         )
         plot_bpd(binder_plane_deviations, lig)
