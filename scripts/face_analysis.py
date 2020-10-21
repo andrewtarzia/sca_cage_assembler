@@ -229,11 +229,65 @@ class _MetalVertex(_FaceVertex):
 
 
 class _LinkerVertex(_FaceVertex):
+
+    def _get_building_block_long_axis(self, building_block):
+
+        for fg in building_block.get_functional_groups():
+            if len(list(fg.get_bonder_ids())) > 1:
+                raise ValueError(
+                    f'{building_block} has functional groups with more'
+                    ' than 1 binder.'
+                )
+
+        binder_atom_ids = [
+            list(fg.get_bonder_ids())
+            for fg in building_block.get_functional_groups()
+        ]
+        binder_atom_dists = sorted(
+            [
+                (idx1, idx2, get_atom_distance(
+                    building_block,
+                    idx1,
+                    idx2
+                ))
+                for idx1, idx2 in combinations(binder_atom_ids, r=2)
+            ],
+            key=lambda a: a[2]
+        )
+
+        # Can assume the ordering of the binder atom distances:
+        # 0, 1: short vectors
+        # 2, 3: long vectors
+        # 4, 5: diagonal vectors
+        # This fails when the molecule is not sufficiently anisotropic,
+        # at which point it will not matter.
+        short_vector_fg_1 = (
+            binder_atom_dists[0][0], binder_atom_dists[0][1]
+        )
+        short_vector_fg_2 = (
+            (binder_atom_dists[1][0], binder_atom_dists[1][1])
+            if (
+                binder_atom_dists[1][0] not in short_vector_fg_1 and
+                binder_atom_dists[1][1] not in short_vector_fg_1
+            ) else
+            (binder_atom_dists[2][0], binder_atom_dists[2][1])
+        )
+
+        short_pair_1_centroid = building_block.get_centroid(
+            atom_ids=(i[0] for i in short_vector_fg_1),
+        )
+        short_pair_2_centroid = building_block.get_centroid(
+            atom_ids=(i[0] for i in short_vector_fg_2),
+        )
+
+        long_axis = short_pair_2_centroid - short_pair_1_centroid
+        return long_axis
+
     def place_building_block(self, building_block, edges):
         assert (
-            building_block.get_num_functional_groups() > 2
+            building_block.get_num_functional_groups() == 4
         ), (
-            f'{building_block} needs to have more than 2 functional '
+            f'{building_block} needs to have 4 functional '
             'groups but has '
             f'{building_block.get_num_functional_groups()}.'
         )
@@ -241,6 +295,7 @@ class _LinkerVertex(_FaceVertex):
             position=self._position,
             atom_ids=building_block.get_placer_ids(),
         )
+
         edge_centroid = (
             sum(edge.get_position() for edge in edges) / len(edges)
         )
@@ -252,58 +307,71 @@ class _LinkerVertex(_FaceVertex):
                 ]),
             ),
         )
-        core_centroid = building_block.get_centroid(
-            atom_ids=building_block.get_core_atom_ids(),
-        )
-        placer_centroid = building_block.get_centroid(
-            atom_ids=building_block.get_placer_ids(),
-        )
-        building_block = building_block.with_rotation_between_vectors(
-            start=get_acute_vector(
-                reference=core_centroid - placer_centroid,
-                vector=building_block.get_plane_normal(
-                    atom_ids=building_block.get_placer_ids(),
-                ),
-            ),
-            target=edge_normal,
-            origin=self._position,
-        )
+
         fg_bonder_centroid = building_block.get_centroid(
             atom_ids=next(
                 building_block.get_functional_groups()
             ).get_placer_ids(),
         )
         edge_position = edges[self._aligner_edge].get_position()
-        return building_block.with_rotation_to_minimize_angle(
-            start=fg_bonder_centroid - self._position,
-            target=edge_position - edge_centroid,
-            axis=edge_normal,
+        building_block = (
+            building_block.with_rotation_to_minimize_angle(
+                start=fg_bonder_centroid - self._position,
+                target=edge_position - edge_centroid,
+                axis=edge_normal,
+                origin=self._position,
+            )
+        )
+
+        # Flatten wrt to xy plane.
+        core_centroid = building_block.get_centroid(
+            atom_ids=building_block.get_core_atom_ids(),
+        )
+        normal = building_block.get_plane_normal(
+            atom_ids=building_block.get_placer_ids(),
+        )
+        normal = get_acute_vector(
+            reference=core_centroid - self._position,
+            vector=normal,
+        )
+        building_block = building_block.with_rotation_between_vectors(
+            start=normal,
+            target=[0, 0, 1],
             origin=self._position,
-        ).get_position_matrix()
+        )
+
+        # Align long axis of molecule (defined by FG centroid) with
+        # X axis.
+        long_axis_vector = self._get_building_block_long_axis(
+            building_block
+        )
+        building_block = (
+            building_block.with_rotation_to_minimize_angle(
+                start=long_axis_vector,
+                target=[1, 0, 0],
+                axis=edge_normal,
+                origin=self._position,
+            )
+        )
+        return building_block.get_position_matrix()
 
     def map_functional_groups_to_edges(self, building_block, edges):
-        # The idea is to order the functional groups in building_block
-        # by their angle with the vector running from the placer
-        # centroid to fg0, going in the clockwise direction.
-        # The edges are also ordered by their angle with the vector
-        # running from the edge centroid to the aligner_edge,
-        # going in the clockwise direction.
-        #
-        # Once the fgs and edges are ordered, zip and assign them.
 
-        fg_sorter = _FunctionalGroupSorter(building_block)
-        edge_sorter = _EdgeSorter(
-            edges=edges,
-            aligner_edge=edges[self._aligner_edge],
-            axis=fg_sorter.get_axis(),
-        )
-        return {
-            fg_id: edge.get_id()
-            for fg_id, edge in zip(
-                fg_sorter.get_items(),
-                edge_sorter.get_items(),
+        def fg_distance(edge):
+            return euclidean(edge.get_position(), fg_position)
+
+        # For each FG, get the closest edge.
+        mapping = {}
+        for fg_id, fg in enumerate(
+            building_block.get_functional_groups()
+        ):
+            fg_position = building_block.get_centroid(
+                fg.get_placer_ids()
             )
-        }
+            edges = sorted(edges, key=fg_distance)
+            mapping[fg_id] = edges[0].get_id()
+
+        return mapping
 
 
 class CubeFace(stk.cage.Cage):
