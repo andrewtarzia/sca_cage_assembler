@@ -11,22 +11,20 @@ Date Created: 21 Oct 2020
 
 """
 
+import numpy as np
 import sys
-from os.path import exists, join
+from os.path import join, exists
 from glob import glob
+import json
 
 import stk
-import stko
-
-from molecule_building import metal_FFs
 
 from atools import (
     build_conformers,
-    MOC_collapse_mc,
-    MOC_uff_opt,
     calculate_molecule_planarity,
+    colors_i_like,
+    histogram_plot_N,
     update_from_rdkit_conf,
-    get_atom_distance,
 )
 
 
@@ -41,6 +39,72 @@ def load_ligands(directory):
         )
 
     return ligands
+
+
+def calculate_flex(molecule):
+    """
+    Calculate flexibility as plane deviation of binder groups.
+
+    Assumes molecule has N functional groups with only 1 binder atom
+    each.
+
+    """
+
+    for fg in molecule.get_functional_groups():
+        if len(list(fg.get_bonder_ids())) > 1:
+            raise ValueError(
+                f'{molecule} has functional groups with more'
+                ' than 1 binder.'
+            )
+
+    bromo_ids = [
+        fg.get_bromine().get_id()
+        for fg in molecule.get_functional_groups()
+    ]
+
+    binder_plane_deviations = []
+    cids, confs = build_conformers(
+        mol=molecule,
+        N=200,
+        ETKDG_version='v3'
+    )
+    new_molecule = molecule.clone()
+    for cid in cids:
+        # Update stk_mol to conformer geometry.
+        new_molecule = update_from_rdkit_conf(
+            stk_mol=new_molecule,
+            rdk_mol=confs,
+            conf_id=cid
+        )
+
+        binder_plane_deviations.append(
+            calculate_molecule_planarity(
+                mol=new_molecule,
+                atom_ids=bromo_ids,
+            )
+        )
+
+    return binder_plane_deviations
+
+
+def plot_bpd(measures, name):
+
+    fig, ax = histogram_plot_N(
+        Y=measures,
+        X_range=(0, 30),
+        width=0.2,
+        alpha=1.0,
+        color=colors_i_like()[1],
+        edgecolor=colors_i_like()[1],
+        xtitle=r'binder atom plane deviation [$\mathrm{\AA}$]',
+        N=1
+    )
+    fig.tight_layout()
+    fig.savefig(
+        f'{name}_planedev_dist.pdf',
+        dpi=720,
+        bbox_inches='tight'
+    )
 
 
 def main():
@@ -64,9 +128,21 @@ def main():
     ligands = load_ligands(ligand_directory)
 
     for lig in sorted(ligands):
-        print(f'doing {lig}...')
         lig_structure = ligands[lig]
-        binder_plane_deviations = calculate_flex(lig_structure)
+        json_file = f'{lig}_planedev_dist.json'
+        print(f'doing {lig}...')
+        if exists(json_file):
+            with open(json_file, 'r') as f:
+                binder_plane_deviations = json.load(f)
+        else:
+            binder_plane_deviations = calculate_flex(lig_structure)
+            with open(json_file, 'w') as f:
+                json.dump(binder_plane_deviations, f)
+        print(
+            lig,
+            max(binder_plane_deviations),
+            np.std(binder_plane_deviations)
+        )
         plot_bpd(binder_plane_deviations, lig)
 
     sys.exit()
