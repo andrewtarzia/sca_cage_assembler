@@ -12,6 +12,7 @@ Date Created: 19 Oct 2020
 """
 
 import sys
+import json
 from os.path import exists, join
 from itertools import combinations
 from glob import glob
@@ -591,6 +592,61 @@ def optimize_face(face, face_name):
     return opt_face
 
 
+def calculate_face_properties(face, metal_atomic_number=30):
+    """
+    Calculate geoemtrical properties of a face.
+
+    """
+
+    # Get metal atom ids.
+    metal_atom_ids = []
+    for atom in face.get_atoms():
+        if atom.get_atomic_number() == metal_atomic_number:
+            metal_atom_ids.append(atom.get_id())
+
+    # Get metal-metal distances - as neighbours.
+    metal_metal_distances = sorted(
+        [(
+            i,
+            j,
+            get_atom_distance(
+                molecule=face,
+                atom1_id=i,
+                atom2_id=j
+            ),
+        ) for i, j in combinations(metal_atom_ids, r=2)
+        ],
+        key=lambda a: a[2]
+    )
+    properties = {'mismatches': []}
+    for metal_atom_id in metal_atom_ids:
+        # Assume neighbour is two shortest distances.
+        # Save to dictionary -- atom_id: [dist1, dist2]
+        neigh_dists = [
+            i[2]
+            for i in metal_metal_distances if metal_atom_id in i[:2]
+        ][:2]
+        properties[metal_atom_id] = neigh_dists
+        mismatch = (neigh_dists[1] - neigh_dists[0]) / neigh_dists[0]
+        properties['mismatches'].append(mismatch)
+
+    return properties
+
+
+def get_face_properties(face, face_name):
+
+    json_file = f'{face_name}_properties.json'
+    if exists(json_file):
+        with open(json_file, 'r') as f:
+            data = json.load(f)
+    else:
+        data = calculate_face_properties(face)
+        with open(json_file, 'w') as f:
+            json.dump(data, f)
+
+    return data
+
+
 def get_planar_conformer(molecule):
     cids, confs = build_conformers(
         mol=molecule,
@@ -735,8 +791,10 @@ def main():
             opt_face = optimize_face(face, face_name)
 
             # Measure properties.
-            get_face_properties(face_name)
-            face_properties[lig][face_name] = []
+            face_properties = get_face_properties(opt_face, face_name)
+            print(
+                f":: {face_name}: {sum(face_properties['mismatches'])}"
+            )
 
     sys.exit()
 
