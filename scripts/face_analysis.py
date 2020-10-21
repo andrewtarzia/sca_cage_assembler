@@ -19,10 +19,6 @@ from scipy.spatial.distance import euclidean
 import numpy as np
 
 import stk
-from stk.molecular.topology_graphs.utilities import (
-    _FunctionalGroupSorter,
-    _EdgeSorter,
-)
 from stk.utilities import (
     get_acute_vector,
     get_plane_normal,
@@ -33,6 +29,8 @@ from molecule_building import metal_FFs
 
 from atools import (
     build_conformers,
+    MOC_collapse_mc,
+    MOC_uff_opt,
     calculate_molecule_planarity,
     update_from_rdkit_conf,
     get_atom_distance,
@@ -551,6 +549,47 @@ def build_face(
     )
 
     face.write(face_file)
+    return face
+
+
+def optimize_face(face, face_name):
+
+    coll_file = f'{face_name}_coll.mol'
+    opt_file = f'{face_name}_opt.mol'
+
+    if exists(opt_file):
+        return face.with_structure_from_file(opt_file)
+
+    # Collapser MC algorithm.
+    if exists(coll_file):
+        opt_face = face.with_structure_from_file(coll_file)
+    else:
+        target_bond_length = 1.2
+        num_steps = 2000
+        step_size = 0.25
+        opt_face = MOC_collapse_mc(
+            cage=face,
+            cage_name=face_name,
+            step_size=step_size,
+            target_bond_length=target_bond_length,
+            num_steps=num_steps,
+        )
+        opt_face.write(coll_file)
+
+    # Short restrained UFF opt.
+    custom_metal_FFs = metal_FFs(CN=6)
+    opt_face = MOC_uff_opt(
+        opt_face,
+        face_name,
+        metal_FFs=custom_metal_FFs,
+        CG=True,
+        maxcyc=50,
+        metal_ligand_bond_order='',
+    )
+    opt_face.write(opt_file)
+
+    return opt_face
+
 
 def get_planar_conformer(molecule):
     cids, confs = build_conformers(
@@ -686,15 +725,14 @@ def main():
         for face_t in face_topologies:
             final_topology_dict = face_topologies[face_t]
             face_name = f'{lig}_{face_t}'
-            build_face(
+            face = build_face(
                 face_name=face_name,
                 lig_structure=lig_structure,
                 del_complex=del_complex,
                 lam_complex=lam_complex,
                 face_topo=final_topology_dict,
             )
-            continue
-            optimize_face(face_name)
+            opt_face = optimize_face(face, face_name)
 
             # Measure properties.
             get_face_properties(face_name)
