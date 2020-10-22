@@ -11,12 +11,18 @@ Date Created: 15 Mar 2020
 """
 
 import numpy as np
+from os.path import exists
 import json
 from itertools import combinations
 import matplotlib.pyplot as plt
 import matplotlib
 
-from atools import get_atom_distance
+from atools import (
+    get_atom_distance,
+    build_conformers,
+    calculate_molecule_planarity,
+    update_from_rdkit_conf,
+)
 
 
 def read_lib(lib_file):
@@ -312,3 +318,63 @@ def annotate_heatmap(
             texts.append(text)
 
     return texts
+
+
+def get_planar_conformer(molecule):
+    cids, confs = build_conformers(
+        mol=molecule,
+        N=100,
+        ETKDG_version='v3'
+    )
+    print(f'getting optimal conformer...')
+    min_plane_dev = 100000000
+    min_cid = -10
+
+    new_molecule = molecule.clone()
+
+    for cid in cids:
+
+        # Update stk_mol to conformer geometry.
+        new_molecule = update_from_rdkit_conf(
+            stk_mol=new_molecule,
+            rdk_mol=confs,
+            conf_id=cid
+        )
+
+        plane_dev = calculate_molecule_planarity(new_molecule)
+        if plane_dev < min_plane_dev:
+            min_cid = cid
+            min_plane_dev = plane_dev
+            molecule = update_from_rdkit_conf(
+                stk_mol=molecule,
+                rdk_mol=confs,
+                conf_id=min_cid
+            )
+
+    return molecule
+
+
+def planarfy(ligands):
+    """
+    Get the most planar conformer of each ligand.
+
+    This is done by determining the ETKDG conformer with the smallest
+    plane deviation from its plane of best fit.
+
+    """
+
+    new_ligands = {}
+
+    for ligand in ligands:
+        planar_file = f'{ligand}_planar.mol'
+        if exists(planar_file):
+            opt_lig = ligands[ligand].with_structure_from_file(
+                planar_file
+            )
+        else:
+            print(f'doing {ligand}...')
+            opt_lig = get_planar_conformer(ligands[ligand])
+            opt_lig.write(planar_file)
+        new_ligands[ligand] = opt_lig
+
+    return new_ligands

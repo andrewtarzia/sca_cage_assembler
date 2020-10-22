@@ -27,13 +27,11 @@ from stk.utilities import (
 import stko
 
 from molecule_building import metal_FFs
+from utilities import planarfy
 
 from atools import (
-    build_conformers,
     MOC_collapse_mc,
     MOC_uff_opt,
-    calculate_molecule_planarity,
-    update_from_rdkit_conf,
     get_atom_distance,
 )
 
@@ -647,86 +645,35 @@ def get_face_properties(face, face_name):
     return data
 
 
-def get_planar_conformer(molecule):
-    cids, confs = build_conformers(
-        mol=molecule,
-        N=100,
-        ETKDG_version='v3'
-    )
-    print(f'getting optimal conformer...')
-    min_plane_dev = 100000000
-    min_cid = -10
-
-    new_molecule = molecule.clone()
-
-    for cid in cids:
-
-        # Update stk_mol to conformer geometry.
-        new_molecule = update_from_rdkit_conf(
-            stk_mol=new_molecule,
-            rdk_mol=confs,
-            conf_id=cid
-        )
-
-        plane_dev = calculate_molecule_planarity(new_molecule)
-        if plane_dev < min_plane_dev:
-            min_cid = cid
-            min_plane_dev = plane_dev
-            molecule = update_from_rdkit_conf(
-                stk_mol=molecule,
-                rdk_mol=confs,
-                conf_id=min_cid
-            )
-
-    return molecule
-
-
-def planarfy(ligands):
-    """
-    Get the most planar conformer of each ligand.
-
-    This is done by determining the ETKDG conformer with the smallest
-    plane deviation from its plane of best fit.
-
-    """
-
-    new_ligands = {}
-
-    for ligand in ligands:
-        planar_file = f'{ligand}_planar.mol'
-        if exists(planar_file):
-            opt_lig = ligands[ligand].with_structure_from_file(
-                planar_file
-            )
-        else:
-            print(f'doing {ligand}...')
-            opt_lig = get_planar_conformer(ligands[ligand])
-            opt_lig.write(planar_file)
-        new_ligands[ligand] = opt_lig
-
-    return new_ligands
-
-
 def main():
     first_line = (
         'Usage: face_analysis.py '
-        'lig_directory'
+        'lig_directory complex_name'
     )
-    if (not len(sys.argv) == 2):
+    if (not len(sys.argv) == 3):
         print(f"""
 {first_line}
 
     ligand_directory : (str)
         Directory with required ligand structures.
 
+    complex_name : (str)
+        Prefix of complex used in this run - defines face file names.
+
     """)
         sys.exit()
     else:
         ligand_directory = sys.argv[1]
+        complex_name = sys.argv[2]
 
     # Define two metal building blocks (lambda, delta).
-    del_name, del_complex = load_complex('cl1_zn_oct_del_face.mol')
-    lam_name, lam_complex = load_complex('cl1_zn_oct_lam_face.mol')
+    complex_name = 'cl1'
+    del_name, del_complex = load_complex(
+        f'{complex_name}_zn_oct_del_face.mol'
+    )
+    lam_name, lam_complex = load_complex(
+        f'{complex_name}_zn_oct_lam_face.mol'
+    )
 
     # Optimise both complexes.
     del_complex = optimize_complex(del_complex, del_name)
@@ -772,15 +719,13 @@ def main():
     }
 
     # Build and optimise five face options per ligand.
-    face_properties = {}
     for lig in sorted(ligands):
         print(f'doing {lig}...')
         lig_structure = ligands[lig]
-        face_properties[lig] = {}
         # Build each face topology.
         for face_t in face_topologies:
             final_topology_dict = face_topologies[face_t]
-            face_name = f'{lig}_{face_t}'
+            face_name = f'F_{complex_name}_{lig}_{face_t}'
             face = build_face(
                 face_name=face_name,
                 lig_structure=lig_structure,
@@ -793,7 +738,8 @@ def main():
             # Measure properties.
             face_properties = get_face_properties(opt_face, face_name)
             print(
-                f":: {face_name}: {sum(face_properties['mismatches'])}"
+                f":: {face_name}: "
+                f"{np.average(face_properties['mismatches'])}"
             )
 
     sys.exit()
