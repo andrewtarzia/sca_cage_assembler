@@ -16,6 +16,8 @@ from os.path import exists, join
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import json
+import numpy as np
+from glob import glob
 
 import stk
 
@@ -53,6 +55,8 @@ class CageSet:
         self.built_cage_properties = {}
         # Get ligand aspect ratio.
         self.ligand_aspect_ratio = self._get_ligand_AR(ligand_dir)
+        # Get ligand:face properties.
+        self.face_properties = self._get_face_properties(ligand_dir)
 
     def _get_ligand_AR(self, ligand_dir):
         """
@@ -69,6 +73,37 @@ class CageSet:
         ligand_AR = calculate_binding_AR(tet_linker)
 
         return ligand_AR
+
+    def _get_face_properties(self, ligand_dir):
+        """
+        Load hypothetical face mismatches of tetratopic ligand.
+
+        Determined based on 5 models of possible face symmetries.
+
+        """
+
+        face_dir = join(ligand_dir, 'face_analysis')
+        face_prop_files = glob(
+            join(face_dir, f'F_{self.name}*properties.json')
+        )
+
+        properties = {}
+        for face_prop_file in face_prop_files:
+            if not exists(face_prop_file):
+                raise FileNotFoundError(
+                    f'{face_prop_file} does not exist. Make sure face '
+                    'analysis has been run.'
+                )
+
+            # Get average of all mismatches for face.
+            face_type = (
+                face_prop_file.replace(face_dir, '').split('_')[4]
+            )
+            with open(face_prop_file, 'r') as f:
+                data = json.load(f)
+            properties[face_type] = np.average(data['mismatches'])
+
+        return properties
 
     def define_cages_to_build(self):
         """
