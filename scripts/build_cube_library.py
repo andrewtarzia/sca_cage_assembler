@@ -29,6 +29,7 @@ def build_cages(
 
     cage_sets = []
     for name in cage_set_lib:
+        print(f'------------- doing {name}:')
         cage_set_c = cage_set_lib[name]
         compl_names = cage_set_c['corners']
         comps = {i: complexes[i] for i in compl_names}

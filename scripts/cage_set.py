@@ -49,8 +49,8 @@ class CageSet:
         self.complex_dicts = complex_dicts
         self.ligand_dicts = ligand_dicts
         self.cages_to_build = self.define_cages_to_build(
-            ligand_dir,
-            complex_dir
+            ligand_dir=ligand_dir,
+            complex_dir=complex_dir,
         )
         self.built_cage_properties = {}
         # Get ligand aspect ratio.
@@ -113,10 +113,7 @@ class CageSet:
 
         """
 
-        ligand_name = 'a'
-        print(ligand_name, self.name, self.ligand_dicts)
-        import sys
-        sys.exit()
+        ligand_name = self.cage_set_dict['tetratopic']
 
         flex_dir = join(ligand_dir, 'flex_analysis')
         bpd_file = join(flex_dir, f'{ligand_name}_planedev_dist.json')
@@ -146,9 +143,6 @@ class CageSet:
         with open(cr_file, 'r') as f:
             cr_data = json.load(f)
 
-        print(bpd_data, pd_data, cr_data)
-        input()
-
         properties = {}
         properties['bpd_dist'] = bpd_data
         properties['pd_dist'] = pd_data
@@ -156,8 +150,6 @@ class CageSet:
         properties['pd_std'] = np.std(pd_data)
         properties['crest_conformers'] = cr_data['no_conformers']
         properties['crest_rotamers'] = cr_data['no_rotamers']
-        print(properties)
-        input()
         return properties
 
     def define_cages_to_build(self):
