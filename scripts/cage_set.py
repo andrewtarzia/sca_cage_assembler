@@ -152,6 +152,56 @@ class CageSet:
         properties['crest_rotamers'] = cr_data['no_rotamers']
         return properties
 
+    def get_min_oct_op(self, cage_name):
+        C_data = self.built_cage_properties[cage_name]
+        atom_no_of_interest = list(set([
+            int(self.complex_dicts[i]['metal_atom_no'])
+            for i in self.complex_dicts
+        ]))
+        C_OP = [C_data['op_prop'][str(i)] for i in atom_no_of_interest]
+        target_OPs = [i[j]['oct'] for i in C_OP for j in i]
+
+        return min(target_OPs)
+
+    def get_sum_lig_strain_energy(self, cage_name):
+        C_data = self.built_cage_properties[cage_name]
+        return sum([
+            C_data['li_prop']['strain_energies'][i]
+            for i in C_data['li_prop']['strain_energies']
+        ])
+
+    def get_min_imine_torision(self, cage_name):
+        C_data = self.built_cage_properties[cage_name]
+        return min([
+            j
+            for i in C_data['li_prop']['imine_torsions']
+            for j in C_data['li_prop']['imine_torsions'][i]
+        ])
+
+    def get_max_core_planarity(self, cage_name):
+        C_data = self.built_cage_properties[cage_name]
+        return max([
+            C_data['li_prop']['core_planarities'][i]
+            for i in C_data['li_prop']['core_planarities']
+        ])
+
+    def get_max_face_anisotropy(self, cage_name):
+        C_data = self.built_cage_properties[cage_name]
+        return max([
+            100*((i[2] - i[3]) / i[2])
+            for i in C_data['fa_prop']
+        ])
+
+    def get_max_ML_distance(self, cage_name):
+        C_data = self.built_cage_properties[cage_name]
+        return max([
+            i for i in C_data['bl_prop']
+        ])
+
+    def get_formation_energy(self, cage_name):
+        C_data = self.built_cage_properties[cage_name]
+        return C_data['fe_prop']
+
     def define_cages_to_build(self):
         """
         Defines the name and objects of all cages to build.
