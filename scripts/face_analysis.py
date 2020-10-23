@@ -15,6 +15,7 @@ import sys
 import json
 from os.path import exists, join
 from itertools import combinations
+import matplotlib.pyplot as plt
 from glob import glob
 from scipy.spatial.distance import euclidean
 import numpy as np
@@ -33,6 +34,7 @@ from atools import (
     MOC_collapse_mc,
     MOC_uff_opt,
     get_atom_distance,
+    colors_i_like,
 )
 
 
@@ -647,6 +649,46 @@ def get_face_properties(face, face_name):
     return data
 
 
+def plot_face_mismatches(data, name):
+
+    avg_mismatches = {}
+
+    for face in data:
+        avg_mismatch = np.average(data[face]['mismatches'])
+        avg_mismatches[face] = avg_mismatch
+
+    x_ticks = [int(i) for i in data]
+    x_ticklabels = [i for i in data]
+
+    width = 0.9
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    ax.bar(
+        x=[int(i) for i in avg_mismatches],
+        height=[avg_mismatches[i] for i in avg_mismatches],
+        width=width,
+        facecolor=colors_i_like()[4],
+        edgecolor='none',
+        alpha=1,
+    )
+
+    # Set number of ticks for x-axis
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.set_ylabel('face-side mismatch [%]', fontsize=16)
+    ax.set_ylim(0, 200)
+    # Set number of ticks for x-axis
+    ax.set_xticks(x_ticks)
+    ax.set_xticklabels(x_ticklabels)
+
+    fig.tight_layout()
+    fig.savefig(
+        f'f_mismatch_{name}.pdf',
+        dpi=720,
+        bbox_inches='tight'
+    )
+    plt.close()
+
+
 def main():
     first_line = (
         'Usage: face_analysis.py '
@@ -725,6 +767,7 @@ def main():
         print(f'doing {lig}...')
         lig_structure = ligands[lig]
         # Build each face topology.
+        lig_faces = {}
         for face_t in face_topologies:
             final_topology_dict = face_topologies[face_t]
             face_name = f'F_{complex_name}_{lig}_{face_t}'
@@ -743,6 +786,8 @@ def main():
                 f":: {face_name}: "
                 f"{np.average(face_properties['mismatches'])}"
             )
+            lig_faces[face_t] = face_properties
+        plot_face_mismatches(data=lig_faces, name=lig)
 
     sys.exit()
 
