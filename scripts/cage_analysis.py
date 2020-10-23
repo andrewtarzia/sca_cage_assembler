@@ -21,6 +21,7 @@ from utilities import heatmap, annotate_heatmap
 
 def plot_heatmap_X_vs_Y(
     data,
+    xname,
     xlabel,
     symmetries,
     Y_name,
@@ -29,7 +30,7 @@ def plot_heatmap_X_vs_Y(
     filename
 ):
 
-    col_names = {i: j['aspect_ratio'] for i, j in data.items()}
+    col_names = {i: j[xname] for i, j in data.items()}
     col_names = {
         i: j for i, j in sorted(
             col_names.items(), key=lambda item: item[1]
@@ -56,7 +57,7 @@ def plot_heatmap_X_vs_Y(
 
     im, cbar = heatmap(
         data=out_values,
-        row_labels=symmetries,
+        row_labels=[i.upper() for i in symmetries],
         col_labels=[f'{round(i, 2)}' for i in col_names.values()],
         ax=ax,
         cmap='Blues',
@@ -235,59 +236,72 @@ def analyse_cages(cage_sets):
 
     AR_data = {}
     for cage_set in cage_sets:
-        measures = cage_set_analysis(cage_set)
-        # For all HoCube sets, collect ligand aspect ratio data.
+        measures = cage_set_properties(cage_set)
+        # For all HoCube sets, collect ligand data and
+        # each cages measures.
         AR_data[cage_set.name] = {
-            'min_OPs': measures['oct_op'],
-            'lse_sum': {
+            'AR': cage_set.ligand_aspect_ratio,
+            'FAMM': cage_set.face_properties,
+            'LPDS': cage_set.flex_properties['pd_std'],
+            'octop': measures['octop'],
+            'rellsesum': {
                 i: (
-                    measures['lse_sum'][i] -
-                    min(measures['lse_sum'].values())
+                    measures['lsesum'][i]
+                    - min(measures['lsesum'].values())
                 )
-                for i in measures['lse_sum']
+                for i in measures['lsesum']
             },
-            'min_tor': measures['min_imine_torsions'],
-            'max_dis': measures['max_ligand_distortion'],
-            'aspect_ratio': cage_set.ligand_aspect_ratio,
-            'max_rfa': measures['max_diff_face_aniso'],
-            'max_mld': measures['max_ML_length'],
-            'rel_fe': {
+            'minitors': measures['minitors'],
+            'maxcrplan': measures['maxcrplan'],
+            'maxdifffaceaniso': measures['maxdifffaceaniso'],
+            'maxMLlength': measures['maxMLlength'],
+            'relformatione': {
                 i: (
-                    measures['formation_energies'][i]
-                    - min(measures['formation_energies'].values())
+                    measures['formatione'][i]
+                    - min(measures['formatione'].values())
                 )
-                for i in measures['formation_energies']
+                for i in measures['formatione']
             },
         }
 
-    # Plot ligand aspect ratio data.
+    # Plot cage data as function of ligand data.
     tests = {
         # Test: (ylabel, ylim)
-        'min_OPs': (r'min. $q_{\mathrm{oct}}$', (0, 1)),
-        'lse_sum': (r'rel. sum strain energy [kJ/mol]', (-4, 500)),
-        'min_tor': (r'min. imine torsion [degrees]', (0, 185)),
-        'max_dis': (
+        'octop': (r'min. $q_{\mathrm{oct}}$', (0, 1)),
+        'rellsesum': (r'rel. sum strain energy [kJ/mol]', (-4, 500)),
+        'minitors': (r'min. imine torsion [degrees]', (0, 185)),
+        'maxcrplan': (
             r'max. ligand distortion [$\mathrm{\AA}$]', (0, 185)
         ),
-        'max_rfa': (
+        'faceavgmismatches': (
             r'max. $\Delta$opposing face anisotropy [%]', (-10, 100)
         ),
-        'max_mld': (
+        'maxMLlength': (
             r'max. N-Zn bond length [$\mathrm{\AA}$]', (2, 3)
         ),
-        'rel_fe': (r'rel. formation energy [kJ/mol]', (-10, 1000)),
+        'relformatione': (
+            r'rel. formation energy [kJ/mol]', (-10, 1000)
+        ),
+    }
+    cs_tests = {
+        # xlabel
+        'AR': 'aspect ratio [1:X]',
+        'LPDS': r'$\sigma$(plane deviation)',
+        'FAMM': 'avg. side mismatch [%]',
     }
     if len(AR_data) > 0:
-        for t in tests:
-            plot_heatmap_X_vs_Y(
-                data=AR_data,
-                xlabel='ligand aspect ratio [1:X]',
-                symmetries=[
-                    'o1', 'th1', 'th2', 't1', 's61', 's62', 'd31',
-                    'd32', 'c2v', 'c2h',
-                ],
-                Y_name=t,
-                ylabel=tests[t][0],
-                ylim=tests[t][1],
-                filename=f'plotset_{t}_VA.pdf'
-            )
+        for cs_test in cs_tests:
+            for t in tests:
+                plot_heatmap_X_vs_Y(
+                    data=AR_data,
+                    xname=cs_test,
+                    xlabel=cs_tests[cs_test],
+                    symmetries=[
+                        'o1', 'th1', 'th2', 't1', 's61', 's62', 'd31',
+                        'd32', 'c2v', 'c2h',
+                    ],
+                    Y_name=t,
+                    ylabel=tests[t][0],
+                    ylim=tests[t][1],
+                    filename=f'plotset_{t}_V{cs_test}.pdf'
+                )
