@@ -57,6 +57,8 @@ class CageSet:
         self.ligand_aspect_ratio = self._get_ligand_AR(ligand_dir)
         # Get ligand:face properties.
         self.face_properties = self._get_face_properties(ligand_dir)
+        # Get ligand flexibility.
+        self.flex_properties = self._get_flex_properties(ligand_dir)
 
     def _get_ligand_AR(self, ligand_dir):
         """
@@ -103,6 +105,59 @@ class CageSet:
                 data = json.load(f)
             properties[face_type] = np.average(data['mismatches'])
 
+        return properties
+
+    def _get_flex_properties(self, ligand_dir):
+        """
+        Load flexibility measures for ligand.
+
+        """
+
+        ligand_name = 'a'
+        print(ligand_name, self.name, self.ligand_dicts)
+        import sys
+        sys.exit()
+
+        flex_dir = join(ligand_dir, 'flex_analysis')
+        bpd_file = join(flex_dir, f'{ligand_name}_planedev_dist.json')
+        pd_file = join(flex_dir, f'{ligand_name}_AAplanedev_dist.json')
+        cr_file = join(flex_dir, f'{ligand_name}_flex_measure.json')
+
+        if not exists(bpd_file):
+            raise FileNotFoundError(
+                f'{bpd_file} does not exist. Make sure flex '
+                'analysis has been run.'
+            )
+        if not exists(pd_file):
+            raise FileNotFoundError(
+                f'{pd_file} does not exist. Make sure flex '
+                'analysis has been run.'
+            )
+        if not exists(cr_file):
+            raise FileNotFoundError(
+                f'{cr_file} does not exist. Make sure flex '
+                'analysis has been run.'
+            )
+
+        with open(bpd_file, 'r') as f:
+            bpd_data = json.load(f)
+        with open(pd_file, 'r') as f:
+            pd_data = json.load(f)
+        with open(cr_file, 'r') as f:
+            cr_data = json.load(f)
+
+        print(bpd_data, pd_data, cr_data)
+        input()
+
+        properties = {}
+        properties['bpd_dist'] = bpd_data
+        properties['pd_dist'] = pd_data
+        properties['bpd_std'] = np.std(bpd_data)
+        properties['pd_std'] = np.std(pd_data)
+        properties['crest_conformers'] = cr_data['no_conformers']
+        properties['crest_rotamers'] = cr_data['no_rotamers']
+        print(properties)
+        input()
         return properties
 
     def define_cages_to_build(self):
