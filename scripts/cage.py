@@ -595,8 +595,11 @@ class Cage:
             system('rm temp.xyz')
 
             # Calculate pore size.
-            pw_cage_mol.calculate_pore_diameter_opt()
-            pw_cage_mol.calculate_pore_volume_opt()
+            try:
+                pw_cage_mol.calculate_pore_diameter_opt()
+                pw_cage_mol.calculate_pore_volume_opt()
+            except ValueError:
+                pass
 
             # Save files.
             pw_cage_mol.dump_properties_json(f'{self.pw_file}.json')
