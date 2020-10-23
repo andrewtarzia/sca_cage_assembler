@@ -625,7 +625,9 @@ def calculate_face_properties(face, metal_atomic_number=30):
             for i in metal_metal_distances if metal_atom_id in i[:2]
         ][:2]
         properties[metal_atom_id] = neigh_dists
-        mismatch = (neigh_dists[1] - neigh_dists[0]) / neigh_dists[0]
+        mismatch = (
+            100 * ((neigh_dists[1] - neigh_dists[0]) / neigh_dists[0])
+        )
         properties['mismatches'].append(mismatch)
 
     return properties
