@@ -236,7 +236,7 @@ class Cage:
             charge=self.charge,
             opt_level='normal',
             etemp=300,
-            solvent=(self.cage_set_dict['solvent'], 'normal')
+            solvent=(self.cage_set_dict['solvent'], 'normal'),
         )
         self.cage.write(f'{self.opt_file}.mol')
 
