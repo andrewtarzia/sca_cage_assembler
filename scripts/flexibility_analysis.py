@@ -28,6 +28,9 @@ from atools import (
     histogram_plot_N,
     scatter_plot,
     update_from_rdkit_conf,
+    calculate_energy,
+    read_gfnx2xtb_eyfile,
+    crest_conformer_search,
 )
 
 
@@ -70,21 +73,28 @@ def calculate_flex(molecule, name):
     # Crest part.
     if not exists(f'crst_{name}/crest_rotamers.xyz'):
         print(f'running XTBFF-Crest on {name}')
-        conf_search = stko.XTBFFCREST(
-            crest_path='/home/atarzia/software/crest/crest',
-            xtb_path='/home/atarzia/software/xtb-6.3.1/bin/xtb',
+        new_molecule = crest_conformer_search(
+            molecule=molecule,
             output_dir=f'crst_{name}',
-            unlimited_memory=True,
-            num_cores=3,
+            gfn_exec='/home/atarzia/software/xtb-6.3.1/bin/xtb',
+            crest_exec='/home/atarzia/software/crest/crest',
+            gfn_version=2,
+            nc=3,
+            opt_level='crude',
+            charge=0,
+            keepdir=False,
             cross=False,
+            etemp=300,
+            no_unpaired_e=0,
+            speed_setting='squick',
+            solvent=('acetonitrile', 'normal'),
         )
-        new_molecule = conf_search.optimize(molecule)
         new_molecule.write(f'{name}_loweconf.mol')
 
     # Extract some measure of conformer ensemble size.
     crest_output_file = f'{name}_flex_measure.json'
     crest_data = {}
-    with open(f'crst_{name}/crest_ff.output', 'r') as f:
+    with open(f'crst_{name}/crest.output', 'r') as f:
         for line in f.readlines():
             # Get number of conformers.
             if ' number of unique conformers for further calc' in line:
@@ -104,11 +114,18 @@ def calculate_flex(molecule, name):
     # Plane dev part.
     bpd_json_file = f'{name}_planedev_dist.json'
     pd_json_file = f'{name}_AAplanedev_dist.json'
-    if exists(pd_json_file) and exists(bpd_json_file):
+    ey_json_file = f'{name}_energy_dist.json'
+    if (
+        exists(pd_json_file) and
+        exists(bpd_json_file) and
+        exists(ey_json_file)
+    ):
         with open(bpd_json_file, 'r') as f:
             binder_plane_deviations = json.load(f)
         with open(pd_json_file, 'r') as f:
             plane_deviations = json.load(f)
+        with open(ey_json_file, 'r') as f:
+            xtb_energies = json.load(f)
     else:
         bromo_ids = [
             fg.get_bromine().get_id()
@@ -117,6 +134,7 @@ def calculate_flex(molecule, name):
 
         plane_deviations = []
         binder_plane_deviations = []
+        xtb_energies = []
         cids, confs = build_conformers(
             mol=molecule,
             N=200,
@@ -138,17 +156,38 @@ def calculate_flex(molecule, name):
                     atom_ids=bromo_ids,
                 )
             )
-            if name == 'quad2_9':
-                new_molecule.write(f'quad29_{cid}.mol')
+            new_molecule.write(f'c_{name}_{cid}_ey.mol')
             plane_deviations.append(
                 calculate_molecule_planarity(new_molecule)
+            )
+            # Calculate conformer energy.
+            calculate_energy(
+                name=f'{name}_{cid}',
+                mol=new_molecule,
+                gfn_exec=(
+                    '/home/atarzia/software/xtb-6.3.1/bin/xtb'
+                ),
+                ey_file=f'{name}_{cid}_ey.ey',
+                charge=0,
+                no_unpaired_e=0,
+                solvent=None
+            )
+            xtb_energies.append(
+                read_gfnx2xtb_eyfile(f'{name}_{cid}_ey.ey')
             )
         with open(bpd_json_file, 'w') as f:
             json.dump(binder_plane_deviations, f)
         with open(pd_json_file, 'w') as f:
             json.dump(plane_deviations, f)
+        with open(ey_json_file, 'w') as f:
+            json.dump(xtb_energies, f)
 
-    return binder_plane_deviations, plane_deviations, crest_data
+    return (
+        binder_plane_deviations,
+        plane_deviations,
+        crest_data,
+        xtb_energies,
+    )
 
 
 def plot_pd(measures, name):
@@ -189,6 +228,44 @@ def plot_bpd(measures, name):
         dpi=720,
         bbox_inches='tight'
     )
+    plt.close()
+
+
+def plot_pd_v_ey(energies, measures, name):
+
+    fig, ax = scatter_plot(
+        X=measures,
+        Y=[i-min(energies) for i in energies],
+        alpha=1.0,
+        xlim=None,
+        ylim=None,
+        c=colors_i_like()[1],
+        s=60,
+        edgecolors='k',
+        xtitle=r'all atom plane deviation [$\mathrm{\AA}$]',
+        ytitle='rel. xtb energy [kJ/mol]',
+    )
+    fig.tight_layout()
+    fig.savefig(f'{name}_AAPDvE.pdf', dpi=720, bbox_inches='tight')
+    plt.close()
+
+
+def plot_bpd_v_ey(energies, measures, name):
+
+    fig, ax = scatter_plot(
+        X=measures,
+        Y=[i-min(energies) for i in energies],
+        alpha=1.0,
+        xlim=None,
+        ylim=None,
+        c=colors_i_like()[1],
+        s=60,
+        edgecolors='k',
+        xtitle=r'binder atom plane deviation [$\mathrm{\AA}$]',
+        ytitle='rel. xtb energy [kJ/mol]',
+    )
+    fig.tight_layout()
+    fig.savefig(f'{name}_plPDvE.pdf', dpi=720, bbox_inches='tight')
     plt.close()
 
 
@@ -260,7 +337,7 @@ def main():
     pd_simplified = []
     for lig in sorted(ligands):
         lig_structure = ligands[lig]
-        binder_plane_deviations, plane_deviations, crest_data = (
+        bplane_devs, plane_devs, crest_data, xtb_eys = (
             calculate_flex(
                 molecule=lig_structure,
                 name=lig,
@@ -268,22 +345,24 @@ def main():
         )
         print(
             lig,
-            max(binder_plane_deviations),
-            np.average(binder_plane_deviations),
-            np.std(binder_plane_deviations)
+            max(bplane_devs),
+            np.average(bplane_devs),
+            np.std(bplane_devs)
         )
         print(
             lig,
-            max(plane_deviations),
-            np.average(plane_deviations),
-            np.std(plane_deviations)
+            max(plane_devs),
+            np.average(plane_devs),
+            np.std(plane_devs)
         )
-        plot_bpd(binder_plane_deviations, lig)
-        plot_pd(plane_deviations, lig)
+        plot_bpd(bplane_devs, lig)
+        plot_pd(plane_devs, lig)
+        plot_bpd_v_ey(xtb_eys, bplane_devs, lig)
+        plot_pd_v_ey(xtb_eys, plane_devs, lig)
         print(lig, crest_data)
         print('---')
-        pd_simplified.append(np.std(plane_deviations))
-        bpd_simplified.append(np.std(binder_plane_deviations))
+        pd_simplified.append(np.std(plane_devs))
+        bpd_simplified.append(np.std(bplane_devs))
         crest_simplified.append(crest_data['no_rotamers'])
 
     plot_bpd_vs_crest(crest=crest_simplified, bpd=bpd_simplified)
