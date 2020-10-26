@@ -19,27 +19,21 @@ import stko
 
 import atools
 import molecule_building
-from utilities import read_lib, calculate_binding_AR
+from utilities import (
+    read_lib,
+    calculate_binding_AR,
+    get_planar_conformer,
+)
 
 
 def build_organics(ligs):
-
-    optimizer = stko.XTB(
-        xtb_path='/home/atarzia/software/xtb-6.3.1/bin/xtb',
-        output_dir='lig_opt_',
-        gfn_version=2,
-        num_cores=6,
-        opt_level='extreme',
-        max_runs=1,
-        calculate_hessian=False,
-        unlimited_memory=True
-    )
 
     for name in ligs:
         if ligs[name]['no_metals'] > 0:
             continue
         input_file = f"{ligs[name]['file_loc']}{name}.mol"
         output_file = f'{name}_opt.mol'
+        planar_file = f'{name}_planar.mol'
         if exists(output_file):
             continue
         print(f'...building {name}')
@@ -49,7 +43,12 @@ def build_organics(ligs):
         else:
             smi = ligs[name]['smiles']
             mol = stk.BuildingBlock(smiles=smi)
-        optimizer.optimize(mol)
+            # Get a planar conformer and optimize crudely.
+            if exists(planar_file):
+                mol = mol.with_structure_from_file(planar_file)
+            else:
+                mol = get_planar_conformer(mol)
+                mol.write(planar_file)
         mol.write(output_file)
 
 
