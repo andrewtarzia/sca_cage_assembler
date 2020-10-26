@@ -74,6 +74,8 @@ def build_cages(
                     num_steps=num_steps
                 )
 
+                continue
+
                 C.analyze_metal_strain()
                 C.analyze_porosity()
                 C.analyze_ligand_strain(
