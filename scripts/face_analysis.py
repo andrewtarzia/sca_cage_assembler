@@ -726,9 +726,6 @@ def main():
     # Load in each ligand structure.
     ligands = load_ligands(ligand_directory)
 
-    # Get most planar conformer of ligand.
-    ligands = planarfy(ligands)
-
     face_topologies = {
         '1': {
             'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
