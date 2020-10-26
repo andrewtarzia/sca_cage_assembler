@@ -23,7 +23,7 @@ import stk
 
 import atools
 import symmetries
-from utilities import calculate_binding_AR
+from utilities import calculate_binding_AR, get_planar_conformer
 from cage_building import available_topologies
 from cage import Cage
 
@@ -72,9 +72,20 @@ class CageSet:
             ligand_name=self.cage_set_dict['tetratopic'],
             ligand_dir=ligand_dir
         )
-        ligand_AR = calculate_binding_AR(tet_linker)
 
-        return ligand_AR
+        planar_file = join(
+            ligand_dir,
+            f"{self.cage_set_dict['tetratopic']}_planar.mol"
+        )
+        if exists(planar_file):
+            planar_tet_linker = tet_linker.with_structure_from_file(
+                planar_file
+            )
+        else:
+            planar_tet_linker = get_planar_conformer(tet_linker)
+            planar_tet_linker.write(planar_file)
+
+        return calculate_binding_AR(planar_tet_linker)
 
     def _get_face_properties(self, ligand_dir):
         """
