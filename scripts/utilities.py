@@ -378,3 +378,38 @@ def planarfy(ligands):
         new_ligands[ligand] = opt_lig
 
     return new_ligands
+
+
+def split_xyz_file(num_atoms, xyz_file):
+    """
+    Splits xyz trajectory file into xyz files.
+
+    """
+
+    with open(xyz_file, 'r') as f:
+        lines = f.readlines()
+
+    file_strings = []
+    string = []
+    for line in lines:
+        if f' {num_atoms} ' in f' {line.strip()} ':
+            if len(string) == 0:
+                string.append(line)
+            else:
+                # New block.
+                file_strings.append(string)
+                string = [line]
+        else:
+            string.append(line)
+    # Add last set.
+    file_strings.append(string)
+
+    out_files = []
+    for i, fs in enumerate(file_strings):
+        file_name = xyz_file.replace('.xyz', f'_s{i}.xyz')
+        with open(file_name, 'w') as f:
+            for line in fs:
+                f.write(line)
+        out_files.append(file_name)
+
+    return out_files
