@@ -108,6 +108,49 @@ def calculate_flex(molecule, name):
                     int(line.rstrip().split(' ')[-1])
                 )
 
+    # Analyse all rotamers from CREST.
+    crest_conformer_files = split_xyz_file(
+        num_atoms=molecule.get_num_atoms(),
+        xyz_file=f'crst_{name}/crest_conformers.xyz',
+    )
+    bromo_ids = [
+        fg.get_bromine().get_id()
+        for fg in molecule.get_functional_groups()
+    ]
+    crest_data['binder_plane_deviations'] = [
+        calculate_molecule_planarity(
+            mol=molecule.with_structure_from_file(i),
+            atom_ids=bromo_ids,
+        )
+        for i in crest_conformer_files
+    ]
+    crest_data['plane_deviations'] = [
+        calculate_molecule_planarity(
+            mol=molecule.with_structure_from_file(i),
+        )
+        for i in crest_conformer_files
+    ]
+    print(f'{name} has {len(crest_conformer_files)} conformers')
+
+    pair1_cents = [
+        molecule.with_structure_from_file(i).get_centroid(
+            atom_ids=tuple(la_pairs[0])
+        )
+        for i in crest_conformer_files
+    ]
+    pair2_cents = [
+        molecule.with_structure_from_file(i).get_centroid(
+            atom_ids=tuple(la_pairs[1])
+        )
+        for i in crest_conformer_files
+    ]
+
+    la_dist = [
+        np.linalg.norm(i-j)
+        for i, j in zip(pair1_cents, pair2_cents)
+    ]
+    crest_data['lap_dist'] = la_dist
+
     with open(crest_output_file, 'w') as f:
         json.dump(crest_data, f)
 
@@ -115,10 +158,12 @@ def calculate_flex(molecule, name):
     bpd_json_file = f'{name}_planedev_dist.json'
     pd_json_file = f'{name}_AAplanedev_dist.json'
     ey_json_file = f'{name}_energy_dist.json'
+    ela_json_file = f'{name}_ela_dist.json'
     if (
         exists(pd_json_file) and
         exists(bpd_json_file) and
-        exists(ey_json_file)
+        exists(ey_json_file) and
+        exists(ela_json_file)
     ):
         with open(bpd_json_file, 'r') as f:
             binder_plane_deviations = json.load(f)
@@ -126,15 +171,14 @@ def calculate_flex(molecule, name):
             plane_deviations = json.load(f)
         with open(ey_json_file, 'r') as f:
             xtb_energies = json.load(f)
+        with open(ela_json_file, 'r') as f:
+            ela_dist = json.load(f)
     else:
-        bromo_ids = [
-            fg.get_bromine().get_id()
-            for fg in molecule.get_functional_groups()
-        ]
 
         plane_deviations = []
         binder_plane_deviations = []
         xtb_energies = []
+        ela_dist = []
         cids, confs = build_conformers(
             mol=molecule,
             N=200,
@@ -171,26 +215,65 @@ def calculate_flex(molecule, name):
                 charge=0,
                 no_unpaired_e=0,
                 solvent=None
+
+            pair1_cents = new_molecule.get_centroid(
+                atom_ids=tuple(la_pairs[0])
             )
             xtb_energies.append(
                 read_gfnx2xtb_eyfile(f'{name}_{cid}_ey.ey')
+            pair2_cents = new_molecule.get_centroid(
+                atom_ids=tuple(la_pairs[1])
             )
+            ela_dist.append(np.linalg.norm(pair1_cents-pair2_cents))
+
         with open(bpd_json_file, 'w') as f:
             json.dump(binder_plane_deviations, f)
         with open(pd_json_file, 'w') as f:
             json.dump(plane_deviations, f)
         with open(ey_json_file, 'w') as f:
             json.dump(xtb_energies, f)
+        with open(ela_json_file, 'w') as f:
+            json.dump(ela_dist, f)
 
     return (
         binder_plane_deviations,
         plane_deviations,
         crest_data,
         xtb_energies,
+        la_dist,
+        ela_dist,
     )
 
 
-def plot_pd(measures, name):
+def plot_lap(measures, name, crest=False):
+    # Can assume the first one in the list of measures is the lowest
+    # energy conformer.
+    fig, ax = histogram_plot_N(
+        Y=[i-measures[0] for i in measures],
+        X_range=(-1.5, 1.5),
+        width=0.05,
+        alpha=1.0,
+        color=colors_i_like()[1],
+        edgecolor=colors_i_like()[1],
+        xtitle=r'long axis deviation [$\mathrm{\AA}$]',
+        N=1
+    )
+    range = abs(max(measures) - min(measures))
+    ax.set_title(f'range = {round(range, 2)}', fontsize=16)
+    fig.tight_layout()
+    if crest:
+        filename = f'{name}_lapC_dist.pdf'
+    else:
+        filename = f'{name}_lap_dist.pdf'
+    fig.savefig(
+        filename,
+        dpi=720,
+        bbox_inches='tight'
+    )
+    plt.close()
+
+
+def plot_pd(measures, name, crest=False):
 
     fig, ax = histogram_plot_N(
         Y=measures,
@@ -202,15 +285,22 @@ def plot_pd(measures, name):
         xtitle=r'plane deviation [$\mathrm{\AA}$]',
         N=1
     )
+    range = abs(max(measures) - min(measures))
+    ax.set_title(f'range = {round(range, 2)}', fontsize=16)
     fig.tight_layout()
+    if crest:
+        filename = f'{name}_AAplanedevC_dist.pdf'
+    else:
+        filename = f'{name}_AAplanedev_dist.pdf'
     fig.savefig(
-        f'{name}_AAplanedev_dist.pdf',
+        filename,
         dpi=720,
         bbox_inches='tight'
     )
+    plt.close()
 
 
-def plot_bpd(measures, name):
+def plot_bpd(measures, name, crest=False):
 
     fig, ax = histogram_plot_N(
         Y=measures,
@@ -222,9 +312,15 @@ def plot_bpd(measures, name):
         xtitle=r'all atom plane deviation [$\mathrm{\AA}$]',
         N=1
     )
+    range = abs(max(measures) - min(measures))
+    ax.set_title(f'range = {round(range, 2)}', fontsize=16)
     fig.tight_layout()
+    if crest:
+        filename = f'{name}_planedevC_dist.pdf'
+    else:
+        filename = f'{name}_planedev_dist.pdf'
     fig.savefig(
-        f'{name}_planedev_dist.pdf',
+        filename,
         dpi=720,
         bbox_inches='tight'
     )
@@ -276,8 +372,8 @@ def plot_pd_vs_crest(pd, crest):
         Y=crest,
         xtitle=r'std.dev. all atom PD [$\mathrm{\AA}$]',
         ytitle=r'num. crest rotamers',
-        xlim=(0, 50),
-        ylim=(0, 4000),
+        xlim=(0, None),
+        ylim=(0, None),
         c=colors_i_like()[1],
         edgecolors='k',
     )
@@ -298,8 +394,8 @@ def plot_bpd_vs_crest(bpd, crest):
         Y=crest,
         xtitle=r'std.dev. binder atom PD [$\mathrm{\AA}$]',
         ytitle=r'num. crest rotamers',
-        xlim=(0, 30),
-        ylim=(0, 4000),
+        xlim=(0, None),
+        ylim=(0, None),
         c=colors_i_like()[1],
         edgecolors='k',
     )
@@ -311,6 +407,53 @@ def plot_bpd_vs_crest(bpd, crest):
         bbox_inches='tight'
     )
     plt.close()
+
+
+def get_long_axis_atoms(ligands):
+
+    long_axis_atom_pairs = {}
+    for ligand in ligands:
+        molecule = ligands[ligand]
+        binder_atom_ids = [
+            list(fg.get_bonder_ids())
+            for fg in molecule.get_functional_groups()
+        ]
+        binder_atom_dists = sorted(
+            [
+                (idx1, idx2, get_atom_distance(
+                    molecule,
+                    idx1,
+                    idx2
+                ))
+                for idx1, idx2 in combinations(binder_atom_ids, r=2)
+            ],
+            key=lambda a: a[2]
+        )
+        # Can assume the ordering of the binder atom distances:
+        # 0, 1: short vectors
+        # 2, 3: long vectors
+        # 4, 5: diagonal vectors
+        # This fails when the molecule is not sufficiently anisotropic,
+        # at which point it will not matter.
+        short_vector_fg_1 = (
+            binder_atom_dists[0][0], binder_atom_dists[0][1]
+        )
+        short_vector_fg_2 = (
+            (binder_atom_dists[1][0], binder_atom_dists[1][1])
+            if (
+                binder_atom_dists[1][0] not in short_vector_fg_1 and
+                binder_atom_dists[1][1] not in short_vector_fg_1
+            ) else
+            (binder_atom_dists[2][0], binder_atom_dists[2][1])
+        )
+
+        pairs = (
+            [i[0] for i in short_vector_fg_1],
+            [i[0] for i in short_vector_fg_2]
+        )
+        long_axis_atom_pairs[ligand] = pairs
+
+    return long_axis_atom_pairs
 
 
 def main():
@@ -332,37 +475,85 @@ def main():
 
     # Load in each ligand structure.
     ligands = load_ligands(ligand_directory)
+    long_axis_atom_pairs = get_long_axis_atoms(ligands)
+    print(long_axis_atom_pairs)
+
     crest_simplified = []
     bpd_simplified = []
     pd_simplified = []
     for lig in sorted(ligands):
         lig_structure = ligands[lig]
-        bplane_devs, plane_devs, crest_data, xtb_eys = (
+        bplane_devs, plane_devs, crest_data, xtb_eys, la_dist, ela_dist = (
             calculate_flex(
                 molecule=lig_structure,
                 name=lig,
+                la_pairs=long_axis_atom_pairs[lig],
             )
         )
+
         print(
             lig,
             max(bplane_devs),
             np.average(bplane_devs),
-            np.std(bplane_devs)
+            np.std(bplane_devs),
+            abs(max(bplane_devs)-min(bplane_devs)),
+            sum([
+                abs(i-np.mean(bplane_devs)) for i in bplane_devs
+            ])/len(bplane_devs)
+        )
+        print('>', abs(
+            max(crest_data['binder_plane_deviations'])-min(
+                crest_data['binder_plane_deviations']
+            ))
         )
         print(
             lig,
             max(plane_devs),
             np.average(plane_devs),
-            np.std(plane_devs)
+            np.std(plane_devs),
+            abs(max(plane_devs)-min(plane_devs)),
+            sum([
+                abs(i-np.mean(plane_devs)) for i in plane_devs
+            ])/len(plane_devs)
         )
+        print('>', abs(
+            max(crest_data['plane_deviations'])-min(
+                crest_data['plane_deviations']
+            ))
+        )
+        print(
+            ':::',
+            abs(
+                max([i-la_dist[0] for i in la_dist])
+                - min([i-la_dist[0] for i in la_dist])
+            )
+        )
+        print(
+            ':::',
+            abs(
+                max([i-ela_dist[0] for i in ela_dist])
+                - min([i-ela_dist[0] for i in ela_dist])
+            )
+        )
+        plot_lap(la_dist, lig, crest=True)
         plot_bpd(bplane_devs, lig)
         plot_pd(plane_devs, lig)
+        plot_bpd(
+            crest_data['binder_plane_deviations'],
+            lig,
+            crest=True
+        )
+        plot_pd(crest_data['plane_deviations'], lig, crest=True)
         plot_bpd_v_ey(xtb_eys, bplane_devs, lig)
         plot_pd_v_ey(xtb_eys, plane_devs, lig)
-        print(lig, crest_data)
+        print(
+            lig,
+            crest_data['no_rotamers'],
+            crest_data['no_conformers']
+        )
         print('---')
-        pd_simplified.append(np.std(plane_devs))
-        bpd_simplified.append(np.std(bplane_devs))
+        pd_simplified.append(abs(max(plane_devs)-min(plane_devs)))
+        bpd_simplified.append(abs(max(bplane_devs)-min(bplane_devs)))
         crest_simplified.append(crest_data['no_rotamers'])
 
     plot_bpd_vs_crest(crest=crest_simplified, bpd=bpd_simplified)
