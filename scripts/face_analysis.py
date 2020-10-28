@@ -28,7 +28,6 @@ from stk.utilities import (
 import stko
 
 from molecule_building import metal_FFs
-from utilities import planarfy
 
 from atools import (
     MOC_collapse_mc,
