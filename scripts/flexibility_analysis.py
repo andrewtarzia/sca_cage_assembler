@@ -12,6 +12,7 @@ Date Created: 21 Oct 2020
 """
 
 import numpy as np
+from itertools import combinations
 import sys
 from os.path import join, exists
 from glob import glob
@@ -19,19 +20,16 @@ import matplotlib.pyplot as plt
 import json
 
 import stk
-import stko
 
 from atools import (
-    build_conformers,
     calculate_molecule_planarity,
     colors_i_like,
     histogram_plot_N,
-    scatter_plot,
-    update_from_rdkit_conf,
-    calculate_energy,
-    read_gfnx2xtb_eyfile,
     crest_conformer_search,
+    get_atom_distance,
 )
+
+from utilities import split_xyz_file
 
 
 def load_ligands(directory):
@@ -47,19 +45,18 @@ def load_ligands(directory):
     return ligands
 
 
-def calculate_flex(molecule, name):
+def calculate_flex(molecule, name, la_pairs):
     """
-    Calculate flexibility of molecule.
+    Calculate flexibility of molecule from CREST conformer ensemble.
 
     Three approaches:
         1) Based on plane deviation of Bromine atoms in molecule.
         Assumes molecule has N functional groups with only 1 binder
         atom each.
 
-        2) Based on properties of Crest-XTBFF generated conformer
-        ensemble.
+        2) Based on plane deviation of all atoms in molecule.
 
-        3) Based on plane deviation of all atoms in molecule.
+        3) Long-axis distance.
 
     """
 
@@ -149,100 +146,12 @@ def calculate_flex(molecule, name):
         np.linalg.norm(i-j)
         for i, j in zip(pair1_cents, pair2_cents)
     ]
-    crest_data['lap_dist'] = la_dist
+    crest_data['la_dist'] = la_dist
 
     with open(crest_output_file, 'w') as f:
         json.dump(crest_data, f)
 
-    # Plane dev part.
-    bpd_json_file = f'{name}_planedev_dist.json'
-    pd_json_file = f'{name}_AAplanedev_dist.json'
-    ey_json_file = f'{name}_energy_dist.json'
-    ela_json_file = f'{name}_ela_dist.json'
-    if (
-        exists(pd_json_file) and
-        exists(bpd_json_file) and
-        exists(ey_json_file) and
-        exists(ela_json_file)
-    ):
-        with open(bpd_json_file, 'r') as f:
-            binder_plane_deviations = json.load(f)
-        with open(pd_json_file, 'r') as f:
-            plane_deviations = json.load(f)
-        with open(ey_json_file, 'r') as f:
-            xtb_energies = json.load(f)
-        with open(ela_json_file, 'r') as f:
-            ela_dist = json.load(f)
-    else:
-
-        plane_deviations = []
-        binder_plane_deviations = []
-        xtb_energies = []
-        ela_dist = []
-        cids, confs = build_conformers(
-            mol=molecule,
-            N=200,
-            ETKDG_version='v3'
-        )
-
-        new_molecule = molecule.clone()
-        for cid in cids:
-            # Update stk_mol to conformer geometry.
-            new_molecule = update_from_rdkit_conf(
-                stk_mol=new_molecule,
-                rdk_mol=confs,
-                conf_id=cid
-            )
-
-            binder_plane_deviations.append(
-                calculate_molecule_planarity(
-                    mol=new_molecule,
-                    atom_ids=bromo_ids,
-                )
-            )
-            new_molecule.write(f'c_{name}_{cid}_ey.mol')
-            plane_deviations.append(
-                calculate_molecule_planarity(new_molecule)
-            )
-            # Calculate conformer energy.
-            calculate_energy(
-                name=f'{name}_{cid}',
-                mol=new_molecule,
-                gfn_exec=(
-                    '/home/atarzia/software/xtb-6.3.1/bin/xtb'
-                ),
-                ey_file=f'{name}_{cid}_ey.ey',
-                charge=0,
-                no_unpaired_e=0,
-                solvent=None
-
-            pair1_cents = new_molecule.get_centroid(
-                atom_ids=tuple(la_pairs[0])
-            )
-            xtb_energies.append(
-                read_gfnx2xtb_eyfile(f'{name}_{cid}_ey.ey')
-            pair2_cents = new_molecule.get_centroid(
-                atom_ids=tuple(la_pairs[1])
-            )
-            ela_dist.append(np.linalg.norm(pair1_cents-pair2_cents))
-
-        with open(bpd_json_file, 'w') as f:
-            json.dump(binder_plane_deviations, f)
-        with open(pd_json_file, 'w') as f:
-            json.dump(plane_deviations, f)
-        with open(ey_json_file, 'w') as f:
-            json.dump(xtb_energies, f)
-        with open(ela_json_file, 'w') as f:
-            json.dump(ela_dist, f)
-
-    return (
-        binder_plane_deviations,
-        plane_deviations,
-        crest_data,
-        xtb_energies,
-        la_dist,
-        ela_dist,
-    )
+    return crest_data
 
 
 def plot_lap(measures, name, crest=False):
@@ -327,88 +236,6 @@ def plot_bpd(measures, name, crest=False):
     plt.close()
 
 
-def plot_pd_v_ey(energies, measures, name):
-
-    fig, ax = scatter_plot(
-        X=measures,
-        Y=[i-min(energies) for i in energies],
-        alpha=1.0,
-        xlim=None,
-        ylim=None,
-        c=colors_i_like()[1],
-        s=60,
-        edgecolors='k',
-        xtitle=r'all atom plane deviation [$\mathrm{\AA}$]',
-        ytitle='rel. xtb energy [kJ/mol]',
-    )
-    fig.tight_layout()
-    fig.savefig(f'{name}_AAPDvE.pdf', dpi=720, bbox_inches='tight')
-    plt.close()
-
-
-def plot_bpd_v_ey(energies, measures, name):
-
-    fig, ax = scatter_plot(
-        X=measures,
-        Y=[i-min(energies) for i in energies],
-        alpha=1.0,
-        xlim=None,
-        ylim=None,
-        c=colors_i_like()[1],
-        s=60,
-        edgecolors='k',
-        xtitle=r'binder atom plane deviation [$\mathrm{\AA}$]',
-        ytitle='rel. xtb energy [kJ/mol]',
-    )
-    fig.tight_layout()
-    fig.savefig(f'{name}_plPDvE.pdf', dpi=720, bbox_inches='tight')
-    plt.close()
-
-
-def plot_pd_vs_crest(pd, crest):
-
-    fig, ax = scatter_plot(
-        X=pd,
-        Y=crest,
-        xtitle=r'std.dev. all atom PD [$\mathrm{\AA}$]',
-        ytitle=r'num. crest rotamers',
-        xlim=(0, None),
-        ylim=(0, None),
-        c=colors_i_like()[1],
-        edgecolors='k',
-    )
-
-    fig.tight_layout()
-    fig.savefig(
-        f'pd_vs_rotamers.pdf',
-        dpi=720,
-        bbox_inches='tight'
-    )
-    plt.close()
-
-
-def plot_bpd_vs_crest(bpd, crest):
-
-    fig, ax = scatter_plot(
-        X=bpd,
-        Y=crest,
-        xtitle=r'std.dev. binder atom PD [$\mathrm{\AA}$]',
-        ytitle=r'num. crest rotamers',
-        xlim=(0, None),
-        ylim=(0, None),
-        c=colors_i_like()[1],
-        edgecolors='k',
-    )
-
-    fig.tight_layout()
-    fig.savefig(
-        f'bpd_vs_rotamers.pdf',
-        dpi=720,
-        bbox_inches='tight'
-    )
-    plt.close()
-
-
 def get_long_axis_atoms(ligands):
 
     long_axis_atom_pairs = {}
@@ -476,89 +303,32 @@ def main():
     # Load in each ligand structure.
     ligands = load_ligands(ligand_directory)
     long_axis_atom_pairs = get_long_axis_atoms(ligands)
-    print(long_axis_atom_pairs)
 
-    crest_simplified = []
-    bpd_simplified = []
-    pd_simplified = []
     for lig in sorted(ligands):
         lig_structure = ligands[lig]
-        bplane_devs, plane_devs, crest_data, xtb_eys, la_dist, ela_dist = (
-            calculate_flex(
-                molecule=lig_structure,
-                name=lig,
-                la_pairs=long_axis_atom_pairs[lig],
-            )
+        crest_data = calculate_flex(
+            molecule=lig_structure,
+            name=lig,
+            la_pairs=long_axis_atom_pairs[lig],
         )
 
         print(
-            lig,
-            max(bplane_devs),
-            np.average(bplane_devs),
-            np.std(bplane_devs),
-            abs(max(bplane_devs)-min(bplane_devs)),
-            sum([
-                abs(i-np.mean(bplane_devs)) for i in bplane_devs
-            ])/len(bplane_devs)
+            '::',
+            abs(max(crest_data['la_dist'])-min(crest_data['la_dist']))
         )
-        print('>', abs(
-            max(crest_data['binder_plane_deviations'])-min(
-                crest_data['binder_plane_deviations']
-            ))
-        )
-        print(
-            lig,
-            max(plane_devs),
-            np.average(plane_devs),
-            np.std(plane_devs),
-            abs(max(plane_devs)-min(plane_devs)),
-            sum([
-                abs(i-np.mean(plane_devs)) for i in plane_devs
-            ])/len(plane_devs)
-        )
-        print('>', abs(
-            max(crest_data['plane_deviations'])-min(
-                crest_data['plane_deviations']
-            ))
-        )
-        print(
-            ':::',
-            abs(
-                max([i-la_dist[0] for i in la_dist])
-                - min([i-la_dist[0] for i in la_dist])
-            )
-        )
-        print(
-            ':::',
-            abs(
-                max([i-ela_dist[0] for i in ela_dist])
-                - min([i-ela_dist[0] for i in ela_dist])
-            )
-        )
-        plot_lap(la_dist, lig, crest=True)
-        plot_bpd(bplane_devs, lig)
-        plot_pd(plane_devs, lig)
+        plot_lap(crest_data['la_dist'], lig, crest=True)
         plot_bpd(
             crest_data['binder_plane_deviations'],
             lig,
             crest=True
         )
         plot_pd(crest_data['plane_deviations'], lig, crest=True)
-        plot_bpd_v_ey(xtb_eys, bplane_devs, lig)
-        plot_pd_v_ey(xtb_eys, plane_devs, lig)
         print(
             lig,
             crest_data['no_rotamers'],
             crest_data['no_conformers']
         )
         print('---')
-        pd_simplified.append(abs(max(plane_devs)-min(plane_devs)))
-        bpd_simplified.append(abs(max(bplane_devs)-min(bplane_devs)))
-        crest_simplified.append(crest_data['no_rotamers'])
-
-    plot_bpd_vs_crest(crest=crest_simplified, bpd=bpd_simplified)
-    plot_pd_vs_crest(crest=crest_simplified, pd=pd_simplified)
-    sys.exit()
 
 
 if __name__ == '__main__':
