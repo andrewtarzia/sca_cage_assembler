@@ -18,6 +18,8 @@ import numpy as np
 
 from utilities import heatmap, annotate_heatmap
 
+from atools import colors_i_like
+
 
 def plot_heatmap_X_vs_Y(
     data,
@@ -122,6 +124,7 @@ def cage_set_properties(cage_set):
             for i in cage_set.cages_to_build
         },
     }
+    print(f'properties of: {cage_set.name}')
     print('minimum OPs:', measures['octop'])
     print('sum LSE:', measures['lsesum'])
     print('min imine torsion:', measures['minitors'])
@@ -242,7 +245,7 @@ def analyse_cages(cage_sets):
         AR_data[cage_set.name] = {
             'AR': cage_set.ligand_aspect_ratio,
             'FAMM': cage_set.face_properties,
-            'LPDS': cage_set.flex_properties['pd_std'],
+            'LAR': cage_set.flex_properties['la_range'],
             'octop': measures['octop'],
             'rellsesum': {
                 i: (
@@ -286,11 +289,12 @@ def analyse_cages(cage_sets):
     cs_tests = {
         # xlabel
         'AR': 'aspect ratio [1:X]',
-        'LPDS': r'$\sigma$(plane deviation)',
+        'LAR': r'long axis deviation [$\mathrm{\AA}$]',
         'FAMM': 'avg. side mismatch [%]',
     }
     if len(AR_data) > 0:
         for cs_test in cs_tests:
+            # Plot vs cage properties.
             for t in tests:
                 plot_heatmap_X_vs_Y(
                     data=AR_data,
@@ -305,3 +309,61 @@ def analyse_cages(cage_sets):
                     ylim=tests[t][1],
                     filename=f'plotset_{t}_V{cs_test}.pdf'
                 )
+
+
+def flat_line(ax, x, y, w=0, C='k', m='x', lw=2, label=None):
+    ax.plot([x - w, x, x + w], [y, y, y], c=C, lw=lw)
+
+
+def analyse_cage_sets(cage_sets):
+
+    to_plot = {
+        'AR': {
+            'label': 'aspect ratio [1:X]',
+        },
+        'FAMM': {
+            'label': 'avg. side mismatch [%]',
+        },
+        'LAR': {
+            'label': r'long axis deviation [$\mathrm{\AA}$]',
+        },
+    }
+
+    Cs = {
+        '1': colors_i_like()[0],
+        '2': colors_i_like()[1],
+        '3': colors_i_like()[6],
+        '4': colors_i_like()[3],
+        '5': colors_i_like()[4],
+    }
+    M = 's'
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for cs in cage_sets:
+        ax.scatter(
+            cs.ligand_aspect_ratio,
+            cs.flex_properties['la_range'],
+            c='none',
+            edgecolors='k',
+            marker=M,
+            alpha=1.0,
+            s=180
+        )
+        max_width = max(cs.face_properties.values())
+        for fp in cs.face_properties:
+            X = cs.ligand_aspect_ratio
+            Y = cs.flex_properties['la_range']+(int(fp)-3)*0.02
+            width = (cs.face_properties[fp]/max_width)*0.05
+            flat_line(ax, x=X, y=Y, w=width, C=Cs[fp], lw=4)
+
+    # Set number of ticks for x-axis
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.set_xlabel(to_plot['AR']['label'], fontsize=16)
+    ax.set_ylabel(to_plot['LAR']['label'], fontsize=16)
+
+    fig.tight_layout()
+    fig.savefig(
+        'cage_set_plot.pdf',
+        dpi=720,
+        bbox_inches='tight'
+    )
+    plt.close()

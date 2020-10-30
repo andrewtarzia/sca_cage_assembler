@@ -127,40 +127,23 @@ class CageSet:
         ligand_name = self.cage_set_dict['tetratopic']
 
         flex_dir = join(ligand_dir, 'flex_analysis')
-        bpd_file = join(flex_dir, f'{ligand_name}_planedev_dist.json')
-        pd_file = join(flex_dir, f'{ligand_name}_AAplanedev_dist.json')
         cr_file = join(flex_dir, f'{ligand_name}_flex_measure.json')
 
-        if not exists(bpd_file):
-            raise FileNotFoundError(
-                f'{bpd_file} does not exist. Make sure flex '
-                'analysis has been run.'
-            )
-        if not exists(pd_file):
-            raise FileNotFoundError(
-                f'{pd_file} does not exist. Make sure flex '
-                'analysis has been run.'
-            )
         if not exists(cr_file):
             raise FileNotFoundError(
                 f'{cr_file} does not exist. Make sure flex '
                 'analysis has been run.'
             )
 
-        with open(bpd_file, 'r') as f:
-            bpd_data = json.load(f)
-        with open(pd_file, 'r') as f:
-            pd_data = json.load(f)
         with open(cr_file, 'r') as f:
             cr_data = json.load(f)
 
         properties = {}
-        properties['bpd_dist'] = bpd_data
-        properties['pd_dist'] = pd_data
-        properties['bpd_std'] = np.std(bpd_data)
-        properties['pd_std'] = np.std(pd_data)
-        properties['crest_conformers'] = cr_data['no_conformers']
-        properties['crest_rotamers'] = cr_data['no_rotamers']
+        properties['c_conformers'] = cr_data['no_conformers']
+        properties['c_rotamers'] = cr_data['no_rotamers']
+        properties['la_range'] = abs(
+            max(cr_data['la_dist'])-min(cr_data['la_dist'])
+        )
         return properties
 
     def get_min_oct_op(self, cage_name):
