@@ -13,7 +13,7 @@ Date Created: 15 Mar 2020
 import numpy as np
 from os.path import exists
 import json
-from itertools import combinations
+from itertools import combinations, permutations
 import matplotlib.pyplot as plt
 import matplotlib
 
@@ -22,6 +22,7 @@ from atools import (
     build_conformers,
     calculate_molecule_planarity,
     update_from_rdkit_conf,
+    angle_between,
 )
 
 
@@ -147,6 +148,64 @@ def calculate_paired_face_anisotropies(mol, metal_atom_ids, face_sets):
     return paired_face_anisotropies
 
 
+def calculate_cube_likeness(mol, metal_atom_ids, face_sets):
+    """
+    Calculate cube likeness a prism.
+
+    Defined as:
+        XXXXXXX
+
+    """
+
+    pos_mat = mol.get_position_matrix()
+
+    metal_metal_vectors = {
+        (idx1, idx2): pos_mat[idx2]-pos_mat[idx1]
+        for idx1, idx2 in permutations(metal_atom_ids, r=2)
+    }
+
+    cube_likeness = {fs: {} for fs in face_sets.sets}
+    for fs in face_sets.sets:
+        print(fs)
+        fsv = face_sets.vertices[fs]
+        fsc = face_sets.connected[fs]
+        fs_atom_ids = tuple(metal_atom_ids[i] for i in fsv)
+        print(fs_atom_ids)
+
+        # Calculate the interior angles based on connected metals.
+        interior_angles = {}
+        for idx in fsv:
+            conn = [
+                j
+                for i in fsc if idx in i
+                for j in i if j != idx
+            ]
+            fs_idx = metal_atom_ids[idx]
+            fs_conn = [metal_atom_ids[i] for i in conn]
+
+            # Define angle based on the two connections.
+            pair1 = (fs_idx, fs_conn[0])
+            pair2 = (fs_idx, fs_conn[1])
+            # print(idx, pair1, pair2)
+            vector1 = metal_metal_vectors[(pair1)]
+            vector2 = metal_metal_vectors[(pair2)]
+            interior_angle = np.degrees(
+                angle_between(vector1, vector2)
+            )
+            print(vector1, vector2, interior_angle)
+            interior_angles[idx] = interior_angle
+        print(interior_angles, sum(interior_angles.values()))
+
+        metal_plane_deviation = calculate_molecule_planarity(
+            mol=mol,
+            plane_ids=fs_atom_ids,
+            atom_ids=fs_atom_ids,
+        )
+        print('>>>>', fs, metal_plane_deviation)
+        cube_likeness[fs]['interior_angles'] = interior_angles
+        cube_likeness[fs]['metal_PD'] = metal_plane_deviation
+
+    return cube_likeness
 
 
 def convert_symm_names(symm_name):
