@@ -25,8 +25,11 @@ from molecule_building import (
     optimize_SCA_complex,
     get_lowest_energy_conformer,
 )
-from utilities import calculate_paired_face_anisotropies
 from face_sets import M8L6_FaceSets
+from utilities import (
+    calculate_paired_face_anisotropies,
+    calculate_cube_likeness,
+)
 
 
 class UnexpectedNumLigands(Exception):
@@ -81,6 +84,7 @@ class Cage:
         self.opt_file = f'{self.name}_optc'
         self.pw_file = f'{self.name}_pw'
         self.op_file = f'{self.name}_OP'
+        self.cl_file = f'{self.name}_cl'
         self.ls_file = f'{self.name}_LSE'
         self.charge = charge
         self.free_electron_options = free_electron_options
@@ -525,15 +529,56 @@ class Cage:
         else:
             return None
 
+    def analyze_cube_likeness(self):
+        """
+        Analyse cage geometry based on its `cube-likeness`.
+
+        Cube likeness is defined by the metal positions.
+
+        """
+
+        if self.topology_string != 'm8l6face':
+            raise NotImplementedError(
+                f'Cube-likeness is not defined for '
+                f'{self.topology_string} topology.'
+            )
+
+        # Check if output file exists.
+        if not exists(f'{self.cl_file}.json'):
+            print(f'....analyzing cube likeness of {self.name}')
+
+            # Get metal-metal distances and face anisotropies.
+            # Assumes that atom ordering of metals follows vertex
+            # ordering in topology definition.
+
+            # Get metal atom ids.
+            metal_atom_ids = [
+                i.get_id() for i in self.cage.get_atoms()
+                if i.get_atomic_number() in metal_FFs(CN=4).keys()
+            ]
+
+            face_sets = self.get_cage_face_sets()
+            self.fa_data = calculate_paired_face_anisotropies(
+                mol=self.cage,
+                metal_atom_ids=metal_atom_ids,
+                face_sets=face_sets,
+            )
+
+            self.cl_data = calculate_cube_likeness(
+                mol=self.cage,
+                metal_atom_ids=metal_atom_ids,
+                face_sets=face_sets,
+            )
+
     def analyze_metal_strain(self):
         """
         Analyse cage geometry using order parameters.
 
         """
 
-        print(f'....analyzing metal geometry of {self.name}')
         # Check if output file exists.
         if not exists(f'{self.op_file}.json'):
+            print(f'....analyzing metal geometry of {self.name}')
 
             # Get atomic numbers of all present metals.
             pres_atm_no = list(set([
@@ -560,27 +605,7 @@ class Cage:
         with open(f'{self.op_file}.json', 'r') as f:
             self.op_data = json.load(f)
 
-        # Get metal-metal distances and face anisotropies.
-        # Assumes that atom ordering of metals follows vertex ordering
-        # in topology definition.
-
-        # Get metal atom ids.
-        metal_atom_ids = [
-            i.get_id() for i in self.cage.get_atoms()
-            if i.get_atomic_number() in metal_FFs(CN=4).keys()
-        ]
-
-        try:
-            # Only relevent for m6l8 topology.
-            face_sets = defined_face_sets(self.topology_string)
-            self.fa_data = calculate_paired_face_anisotropies(
-                mol=self.cage,
-                metal_atom_ids=metal_atom_ids,
-                face_sets=face_sets,
-            )
-        except KeyError:
-            self.fa_data = None
-
+        # Get metal-ligand binder atom bond length.
         self.bl_data = atools.calculate_metal_ligand_distance(
             mol=self.cage,
             metal_atomic_number=30,
