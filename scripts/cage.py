@@ -25,8 +25,8 @@ from molecule_building import (
     optimize_SCA_complex,
     get_lowest_energy_conformer,
 )
-from cage_building import defined_face_sets
 from utilities import calculate_paired_face_anisotropies
+from face_sets import M8L6_FaceSets
 
 
 class UnexpectedNumLigands(Exception):
@@ -53,6 +53,7 @@ class Cage:
         base_name,
         topology_fn,
         topology_string,
+        symmetry_string,
         building_blocks,
         vertex_alignments,
         charge,
@@ -64,6 +65,7 @@ class Cage:
         self.base_name = base_name
         self.topology_fn = topology_fn
         self.topology_string = topology_string
+        self.symmetry_string = symmetry_string
         self.building_blocks = building_blocks
         self.vertex_alignments = vertex_alignments
         self.topology_graph = self.topology_fn(
@@ -87,7 +89,8 @@ class Cage:
     def build(self):
         print(f'....building {self.name}')
         cage = stk.ConstructedMolecule(self.topology_graph)
-        cage.write(f'{self.unopt_file}.mol')
+        if not exists(f'{self.unopt_file}.mol'):
+            cage.write(f'{self.unopt_file}.mol')
         self.cage = cage
 
     def save_bb_xyz(self):
@@ -514,6 +517,13 @@ class Cage:
             'imine_torsions': imine_torsion_dict,
             'core_planarities': planarity_dict
         }
+
+    def get_cage_face_sets(self):
+
+        if self.topology_string == 'm8l6face':
+            return M8L6_FaceSets(self.symmetry_string)
+        else:
+            return None
 
     def analyze_metal_strain(self):
         """

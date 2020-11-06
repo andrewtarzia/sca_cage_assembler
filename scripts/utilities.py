@@ -102,9 +102,9 @@ def calculate_paired_face_anisotropies(mol, metal_atom_ids, face_sets):
     )
 
     face_anisotropies = {}
-    for fs in face_sets:
-        fsv = face_sets[fs]['vertices']
-        fsc = face_sets[fs]['connected']
+    for fs in face_sets.sets:
+        fsv = face_sets.vertices[fs]
+        fsc = face_sets.connected[fs]
         fs_atom_ids = tuple(metal_atom_ids[i] for i in fsv)
         fs_distances = tuple(
             i for i in metal_atom_dists
@@ -141,7 +141,7 @@ def calculate_paired_face_anisotropies(mol, metal_atom_ids, face_sets):
     paired_face_anisotropies = [
         (i, j, face_anisotropies[i], face_anisotropies[j])
         for i, j in combinations(face_anisotropies, r=2)
-        if face_sets[i]['opposite'] == j
+        if face_sets.opposite[i] == j
     ]
 
     return paired_face_anisotropies

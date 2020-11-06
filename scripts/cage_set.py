@@ -451,6 +451,7 @@ class CageSet:
                 building_blocks=building_blocks,
                 vertex_alignments=vertex_alignments,
                 topology_string=topo_name,
+                symmetry_string=name_string,
                 charge=new_charge,
                 free_electron_options=new_free_electron_options,
                 cage_set_dict=self.cage_set_dict
