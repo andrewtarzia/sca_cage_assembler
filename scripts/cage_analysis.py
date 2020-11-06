@@ -16,7 +16,7 @@ from itertools import combinations
 import matplotlib.pyplot as plt
 import numpy as np
 
-from utilities import heatmap, annotate_heatmap
+from utilities import heatmap, annotate_heatmap, convert_symm_names
 
 from atools import colors_i_like
 
@@ -29,7 +29,8 @@ def plot_heatmap_X_vs_Y(
     Y_name,
     ylabel,
     ylim,
-    filename
+    filename,
+    experimentals,
 ):
 
     col_names = {i: j[xname] for i, j in data.items()}
@@ -57,9 +58,19 @@ def plot_heatmap_X_vs_Y(
 
             out_values[row][col] = Y
 
+            # If experimental, add a star!
+            if cage in experimentals:
+                ax.scatter(
+                    col-0.35,
+                    row-0.4,
+                    marker='*',
+                    c='orange',
+                    s=120,
+                )
+
     im, cbar = heatmap(
         data=out_values,
-        row_labels=[i.upper() for i in symmetries],
+        row_labels=[convert_symm_names(i) for i in symmetries],
         col_labels=[f'{round(i, 2)}' for i in col_names.values()],
         ax=ax,
         cmap='Blues',
@@ -235,7 +246,7 @@ def cage_set_properties(cage_set):
     return measures
 
 
-def analyse_cages(cage_sets):
+def analyse_cages(cage_sets, experimentals):
 
     AR_data = {}
     for cage_set in cage_sets:
@@ -290,7 +301,7 @@ def analyse_cages(cage_sets):
         # xlabel
         'AR': 'aspect ratio [1:X]',
         'LAR': r'long axis deviation [$\mathrm{\AA}$]',
-        'FAMM': 'avg. side mismatch [%]',
+        # 'FAMM': 'avg. side mismatch [%]',
     }
     if len(AR_data) > 0:
         for cs_test in cs_tests:
@@ -301,13 +312,14 @@ def analyse_cages(cage_sets):
                     xname=cs_test,
                     xlabel=cs_tests[cs_test],
                     symmetries=[
-                        'o1', 'th1', 'th2', 't1', 's61', 's62', 'd31',
-                        'd32', 'c2v', 'c2h',
+                        'o1', 'th1', 'th2', 't1', 's61',
+                        's62', 'd31', 'd32', 'c2v', 'c2h',
                     ],
                     Y_name=t,
                     ylabel=tests[t][0],
                     ylim=tests[t][1],
-                    filename=f'plotset_{t}_V{cs_test}.pdf'
+                    filename=f'plotset_{t}_V{cs_test}.pdf',
+                    experimentals=experimentals,
                 )
 
 

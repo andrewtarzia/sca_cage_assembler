@@ -138,6 +138,18 @@ def main():
     complexes = read_lib(complex_lib_file)
     ligands = read_lib(ligand_lib_file)
 
+    # List of the cages that are known to form, including symmetry.
+    experimentals = [
+        'C_cl1_quad2_12_th1',
+        'C_cl1_quad2_12_th2',
+        'C_cl1_quad2_16_th1',
+        'C_cl1_quad2_16_th2',
+        'C_cl1_quad2_3_th1',
+        'C_cl1_quad2_3_th2',
+        'C_cl1_quad2_8_s61',
+        'C_cl1_quad2_8_s62',
+    ]
+
     # Build and optimise all organic molecules in lib.
     cage_sets = build_cages(
         ligands=ligands,
@@ -148,7 +160,7 @@ def main():
         read_data=read_data,
     )
     analyse_cage_sets(cage_sets)
-    analyse_cages(cage_sets)
+    analyse_cages(cage_sets, experimentals)
 
 
 if __name__ == "__main__":
