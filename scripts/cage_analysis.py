@@ -99,6 +99,10 @@ def cage_set_properties(cage_set):
          - maxdifffaceaniso: max percent face anisotropy of cage
          - maxMLlength: max Zn-N bond length in cage
          - formatione: xtb formation energy of cage
+         - maxfacemetalpd:
+         - maxintangledev: maximum deviation from 360 degrees
+            (in degrees) of the interior angles of metal atoms in a
+            face
 
     """
 
@@ -134,6 +138,14 @@ def cage_set_properties(cage_set):
             i.name: cage_set.get_formation_energy(i.name)
             for i in cage_set.cages_to_build
         },
+        'maxfacemetalpd': {
+            i.name: cage_set.get_max_face_metal_PD(i.name)
+            for i in cage_set.cages_to_build
+        },
+        'maxintangledev': {
+            i.name: cage_set.get_max_face_interior_angle_dev(i.name)
+            for i in cage_set.cages_to_build
+        },
     }
     print(f'properties of: {cage_set.name}')
     print('minimum OPs:', measures['octop'])
@@ -142,6 +154,8 @@ def cage_set_properties(cage_set):
     print('max core planarities:', measures['maxcrplan'])
     print('max diff in face aniso:', measures['maxdifffaceaniso'])
     print('max metal-ligand distance:', measures['maxMLlength'])
+    print('max face metal PD:', measures['maxfacemetalpd'])
+    print('max face interior angle dev:', measures['maxintangledev'])
     print('formation energies:', measures['formatione'])
     print('----------------------------------------------------')
 
@@ -181,6 +195,21 @@ def cage_set_properties(cage_set):
             'ylabel': r'max. $\Delta$opposing face anisotropy [%]',
             'ylim': (-10, 100),
             'filename': f'{cage_set.name}_maxfadiff.pdf'
+        },
+        'maxfacemetalpd': {
+            'data': measures['maxfacemetalpd'],
+            'ylabel': (
+                r'max. face metal planarity deviation '
+                r'[$\mathrm{\AA}$]'
+            ),
+            'ylim': (0, 400),
+            'filename': f'{cage_set.name}_maxfacemetalpd.pdf'
+        },
+        'maxintangledev': {
+            'data': measures['maxintangledev'],
+            'ylabel': r'max. interior angle deviation [degrees]',
+            'ylim': (-180, 180),
+            'filename': f'{cage_set.name}_maxintangledev.pdf'
         },
         'maxMLlength': {
             'data': measures['maxMLlength'],
@@ -276,6 +305,8 @@ def analyse_cages(cage_sets, experimentals):
                 )
                 for i in measures['formatione']
             },
+            'maxfacemetalpd': measures['maxfacemetalpd'],
+            'maxintangledev': measures['maxintangledev'],
         }
 
     # Plot cage data as function of ligand data.
@@ -287,8 +318,15 @@ def analyse_cages(cage_sets, experimentals):
         'maxcrplan': (
             r'max. ligand distortion [$\mathrm{\AA}$]', (0, 185)
         ),
-        'faceavgmismatches': (
+        'maxdifffaceaniso': (
             r'max. $\Delta$opposing face anisotropy [%]', (-10, 100)
+        ),
+        'maxfacemetalpd': (
+            r'max. face metal planarity deviation [$\mathrm{\AA}$]',
+            (-180, 180),
+        ),
+        'maxintangledev': (
+            r'max. interior angle deviation [degrees]', (0, 200)
         ),
         'maxMLlength': (
             r'max. N-Zn bond length [$\mathrm{\AA}$]', (2, 3)

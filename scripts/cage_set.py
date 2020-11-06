@@ -192,6 +192,19 @@ class CageSet:
             i for i in C_data['bl_prop']
         ])
 
+    def get_max_face_metal_PD(self, cage_name):
+        C_data = self.built_cage_properties[cage_name]
+        return max([
+            C_data['cl_prop'][i]['metal_PD'] for i in C_data['cl_prop']
+        ])
+
+    def get_max_face_interior_angle_dev(self, cage_name):
+        C_data = self.built_cage_properties[cage_name]
+        return max([
+            360-sum(C_data['cl_prop'][i]['interior_angles'].values())
+            for i in C_data['cl_prop']
+        ])
+
     def get_formation_energy(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
         return C_data['fe_prop']
@@ -215,6 +228,10 @@ class CageSet:
         if exists(self.properties_file):
             with open(self.properties_file, 'r') as f:
                 self.built_cage_properties = json.load(f)
+        else:
+            raise FileNotFoundError(
+                f'{self.properties_file} does not exist'
+            )
 
     def dump_properties(self):
         """

@@ -61,14 +61,13 @@ def build_cages(
                     target_bond_length = 1.2
                     num_steps = 2000
                     step_size = 0.25
-
                 C.optimize(
                     free_e=default_free_e,
                     step_size=step_size,
                     target_bond_length=target_bond_length,
                     num_steps=num_steps
                 )
-
+                C.analyze_cube_likeness()
                 C.analyze_metal_strain()
                 C.analyze_porosity()
                 C.analyze_ligand_strain(
@@ -86,7 +85,8 @@ def build_cages(
                     'fe_prop': C.fe_data,
                     'li_prop': C.ls_data,
                     'fa_prop': C.fa_data,
-                    'bl_prop': C.bl_data
+                    'bl_prop': C.bl_data,
+                    'cl_prop': C.cl_data,
                 }
                 # Dump to JSON.
                 cage_set.dump_properties()
