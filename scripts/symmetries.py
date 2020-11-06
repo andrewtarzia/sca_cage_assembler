@@ -3,7 +3,7 @@
 # Distributed under the terms of the MIT License.
 
 """
-Modules defining and building the Cage class and subclasses.
+Classes of symmetries of cages.
 
 Author: Andrew Tarzia
 
