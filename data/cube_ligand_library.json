@@ -26,44 +26,8 @@
         "net_charge": 0,
         "total_unpaired_e": [0]
     },
-    "quad2_11": {
-        "smiles": "CCC(CC)n1c(=O)c2c(-c3ccc(Br)cc3)cc3c4cc(-c5ccc(Br)cc5)c5c(=O)n(C(CC)CC)c(=O)c6c(-c7ccc(Br)cc7)cc(c7cc(-c8ccc(Br)cc8)c(c1=O)c2c37)c4c56",
-        "file_loc": "manual/",
-        "experimental": true,
-        "check_orientations": true,
-        "no_metals": 0,
-        "net_charge": 0,
-        "total_unpaired_e": [0]
-    },
     "quad2_12": {
         "smiles": "Brc1ccc(-c2cc3cc(-c4ccc(Br)cc4)cc4c5cc(-c6ccc(Br)cc6)cc6cc(-c7ccc(Br)cc7)cc(c(c2)c34)c65)cc1",
-        "file_loc": "manual/",
-        "experimental": true,
-        "check_orientations": true,
-        "no_metals": 0,
-        "net_charge": 0,
-        "total_unpaired_e": [0]
-    },
-    "quad2_13": {
-        "smiles": "Brc1cc(Br)cc(-c2ccc(-c3cc(Br)cc(Br)c3)cc2)c1",
-        "file_loc": "manual/",
-        "experimental": true,
-        "check_orientations": true,
-        "no_metals": 0,
-        "net_charge": 0,
-        "total_unpaired_e": [0]
-    },
-    "quad2_14": {
-        "smiles": "Brc1cc(Br)cc(-c2ccc(-c3ccc(-c4cc(Br)cc(Br)c4)cc3)cc2)c1",
-        "file_loc": "manual/",
-        "experimental": true,
-        "check_orientations": true,
-        "no_metals": 0,
-        "net_charge": 0,
-        "total_unpaired_e": [0]
-    },
-    "quad2_15": {
-        "smiles": "Brc1cc(Br)cc(-c2ccc3cc(-c4cc(Br)cc(Br)c4)ccc3c2)c1",
         "file_loc": "manual/",
         "experimental": true,
         "check_orientations": true,
@@ -100,15 +64,6 @@
     },
     "quad2_3": {
         "smiles": "Brc1ccc(-c2cc(-c3ccc(Br)cc3)cc(-c3cc(-c4ccc(Br)cc4)cc(-c4ccc(Br)cc4)c3)c2)cc1",
-        "file_loc": "manual/",
-        "experimental": true,
-        "check_orientations": true,
-        "no_metals": 0,
-        "net_charge": 0,
-        "total_unpaired_e": [0]
-    },
-    "quad2_4": {
-        "smiles": "Brc1ccc(C(=C(c2ccc(Br)cc2)c2ccc(Br)cc2)c2ccc(Br)cc2)cc1",
         "file_loc": "manual/",
         "experimental": true,
         "check_orientations": true,

@@ -76,7 +76,7 @@
         "file_loc": "manual/",
         "experimental": true,
         "check_orientations": true,
-"no_metals": 0,
+        "no_metals": 0,
         "net_charge": 0,
         "total_unpaired_e": [0]
     },
