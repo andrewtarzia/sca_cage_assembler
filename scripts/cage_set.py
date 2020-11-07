@@ -23,7 +23,11 @@ import stk
 
 import atools
 import symmetries
-from utilities import calculate_binding_AR, get_planar_conformer
+from utilities import (
+    calculate_binding_AR,
+    get_planar_conformer,
+    calculate_ideal_pore_size,
+)
 from cage_building import available_topologies
 from cage import Cage
 
@@ -59,6 +63,8 @@ class CageSet:
         self.face_properties = self._get_face_properties(ligand_dir)
         # Get ligand flexibility.
         self.flex_properties = self._get_flex_properties(ligand_dir)
+        # Get ideal pore size based on short axis of ligand.
+        self.ideal_pore_size = self._get_ideal_pore_size(ligand_dir)
 
     def _get_ligand_AR(self, ligand_dir):
         """
@@ -86,6 +92,33 @@ class CageSet:
             planar_tet_linker.write(planar_file)
 
         return calculate_binding_AR(planar_tet_linker)
+
+    def _get_ideal_pore_size(self, ligand_dir):
+        """
+        Calculate ligand aspect ratio of tetratopic ligand.
+
+        Determined based on binder positions.
+
+        """
+
+        tet_linker = self._load_ligand(
+            ligand_name=self.cage_set_dict['tetratopic'],
+            ligand_dir=ligand_dir
+        )
+
+        planar_file = join(
+            ligand_dir,
+            f"{self.cage_set_dict['tetratopic']}_planar.mol"
+        )
+        if exists(planar_file):
+            planar_tet_linker = tet_linker.with_structure_from_file(
+                planar_file
+            )
+        else:
+            planar_tet_linker = get_planar_conformer(tet_linker)
+            planar_tet_linker.write(planar_file)
+
+        return calculate_ideal_pore_size(planar_tet_linker)
 
     def _get_face_properties(self, ligand_dir):
         """
@@ -178,6 +211,10 @@ class CageSet:
             C_data['li_prop']['core_planarities'][i]
             for i in C_data['li_prop']['core_planarities']
         ])
+
+    def get_pore_diameter(self, cage_name):
+        C_data = self.built_cage_properties[cage_name]
+        return C_data['pw_prop']['pore_diameter_opt']['diameter']
 
     def get_max_face_anisotropy(self, cage_name):
         C_data = self.built_cage_properties[cage_name]

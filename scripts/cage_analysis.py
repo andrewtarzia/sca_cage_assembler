@@ -132,6 +132,10 @@ def cage_set_properties(cage_set):
             i.name: cage_set.get_max_core_planarity(i.name)
             for i in cage_set.cages_to_build
         },
+        'porediam': {
+            i.name: cage_set.get_pore_diameter(i.name)
+            for i in cage_set.cages_to_build
+        },
         'maxdifffaceaniso': {
             i.name: cage_set.get_max_face_anisotropy(i.name)
             for i in cage_set.cages_to_build
@@ -162,6 +166,7 @@ def cage_set_properties(cage_set):
     print('max metal-ligand distance:', measures['maxMLlength'])
     print('max face metal PD:', measures['maxfacemetalpd'])
     print('max face interior angle dev:', measures['maxintangledev'])
+    print('pore diameters:', measures['porediam'])
     print('formation energies:', measures['formatione'])
     print('----------------------------------------------------')
 
@@ -208,20 +213,26 @@ def cage_set_properties(cage_set):
                 r'max. face metal planarity deviation '
                 r'[$\mathrm{\AA}$]'
             ),
-            'ylim': (0, 400),
+            'ylim': (0, 10),
             'filename': f'{cage_set.name}_maxfacemetalpd.pdf'
         },
         'maxintangledev': {
             'data': measures['maxintangledev'],
-            'ylabel': r'max. interior angle deviation [degrees]',
-            'ylim': (-180, 180),
+            'ylabel': r'max. interior angle deviation [$^{\circ}$]',
+            'ylim': (-8, 8),
             'filename': f'{cage_set.name}_maxintangledev.pdf'
         },
         'maxMLlength': {
             'data': measures['maxMLlength'],
             'ylabel': r'max. N-Zn bond length [$\mathrm{\AA}$]',
-            'ylim': (2, 3),
+            'ylim': (2, 2.5),
             'filename': f'{cage_set.name}_maxmld.pdf'
+        },
+        'porediam': {
+            'data': measures['porediam'],
+            'ylabel': r'pore diamater [$\mathrm{\AA}$]',
+            'ylim': (0, 20),
+            'filename': f'{cage_set.name}_porediam.pdf'
         },
         'formatione': {
             'data': {
@@ -291,6 +302,7 @@ def analyse_cages(cage_sets, experimentals):
         AR_data[cage_set.name] = {
             'AR': cage_set.ligand_aspect_ratio,
             'FAMM': cage_set.face_properties,
+            'PPD': cage_set.ideal_pore_size,
             'LAR': cage_set.flex_properties['la_range'],
             'octop': measures['octop'],
             'rellsesum': {
@@ -304,6 +316,7 @@ def analyse_cages(cage_sets, experimentals):
             'maxcrplan': measures['maxcrplan'],
             'maxdifffaceaniso': measures['maxdifffaceaniso'],
             'maxMLlength': measures['maxMLlength'],
+            'porediam': measures['porediam'],
             'relformatione': {
                 i: (
                     measures['formatione'][i]
@@ -337,6 +350,7 @@ def analyse_cages(cage_sets, experimentals):
         # xlabel
         'AR': 'aspect ratio [1:X]',
         'LAR': r'long axis deviation [$\mathrm{\AA}$]',
+        'PPD': r'ideal pore size [$\mathrm{\AA}$]',
         # 'FAMM': 'avg. side mismatch [%]',
     }
     if len(AR_data) > 0:

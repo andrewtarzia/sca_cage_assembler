@@ -83,6 +83,46 @@ def calculate_binding_AR(mol):
     return ligand_AR
 
 
+def calculate_ideal_pore_size(mol):
+    """
+    Calculate ideal pore size based on ligand deleter positions.
+
+    Defined as:
+        Avaerage distance between deleter atoms along short axis.
+
+    """
+
+    if mol.get_num_functional_groups() != 4:
+        return None
+
+    deleter_atom_ids = [
+        list(fg.get_deleter_ids())
+        for fg in mol.get_functional_groups()
+    ]
+    deleter_atom_dists = sorted(
+        [
+            (idx1, idx2, get_atom_distance(mol, idx1, idx2))
+            for idx1, idx2 in combinations(deleter_atom_ids, r=2)
+        ],
+        key=lambda a: a[2]
+    )
+
+    far_binder_pair = (
+        deleter_atom_dists[-1][0],
+        deleter_atom_dists[-1][1]
+    )
+    short_distances = []
+    for fg_id in far_binder_pair:
+        ds = sorted([
+            i[2] for i in deleter_atom_dists
+            if fg_id in (i[0], i[1])
+        ])
+        short_distance = min(ds)
+        short_distances.append(short_distance)
+
+    return sum(short_distances)/len(short_distances)
+
+
 def calculate_paired_face_anisotropies(mol, metal_atom_ids, face_sets):
     """
     Calculate face anisotropy of opposing sides of a prism.
