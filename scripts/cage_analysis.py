@@ -16,7 +16,12 @@ from itertools import combinations
 import matplotlib.pyplot as plt
 import numpy as np
 
-from utilities import heatmap, annotate_heatmap, convert_symm_names
+from utilities import (
+    heatmap,
+    annotate_heatmap,
+    convert_symm_names,
+    convert_lig_names_from_cage,
+)
 
 from atools import colors_i_like
 

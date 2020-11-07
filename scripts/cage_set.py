@@ -26,6 +26,7 @@ import symmetries
 from utilities import (
     calculate_binding_AR,
     get_planar_conformer,
+    convert_symm_names,
     calculate_ideal_pore_size,
 )
 from cage_building import available_topologies
@@ -238,7 +239,11 @@ class CageSet:
     def get_max_face_interior_angle_dev(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
         return max([
-            360-sum(C_data['cl_prop'][i]['interior_angles'].values())
+            abs(
+                360-sum(
+                    C_data['cl_prop'][i]['interior_angles'].values()
+                )
+            )
             for i in C_data['cl_prop']
         ])
 
@@ -523,7 +528,7 @@ class CageSet:
         names_list = []
         for i, name in enumerate(data):
             X = i+2
-            names_list.append(name.split('_')[-1])
+            names_list.append(convert_symm_names(name.split('_')[-1]))
             x_pos_list.append(X)
             ax.scatter(
                 X,
@@ -594,7 +599,7 @@ class CageSet:
         cs = []
         for i, name in enumerate(data):
             X = i+2
-            names_list.append(name.split('_')[-1])
+            names_list.append(convert_symm_names(name.split('_')[-1]))
             x_pos_list.append(X)
             xs.append(X)
             ys.append(data[name])
