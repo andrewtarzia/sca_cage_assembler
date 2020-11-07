@@ -28,19 +28,23 @@ def plot_heatmap_X_vs_Y(
     symmetries,
     Y_name,
     ylabel,
-    ylim,
     filename,
     experimentals,
 ):
 
-    col_names = {i: j[xname] for i, j in data.items()}
+    col_names = {
+        i: (
+            j[xname],
+            convert_lig_names_from_cage('_'.join(i.split('_')[1:]))
+        )
+        for i, j in data.items()
+    }
     col_names = {
         i: j for i, j in sorted(
-            col_names.items(), key=lambda item: item[1]
+            col_names.items(), key=lambda item: item[1][0]
         )
     }
-    X_ = sorted(col_names.values())
-    out_values = np.zeros((len(symmetries), len(X_)))
+    out_values = np.zeros((len(symmetries), len(col_names.values())))
 
     fig, ax = plt.subplots()
 
@@ -71,7 +75,9 @@ def plot_heatmap_X_vs_Y(
     im, cbar = heatmap(
         data=out_values,
         row_labels=[convert_symm_names(i) for i in symmetries],
-        col_labels=[f'{round(i, 2)}' for i in col_names.values()],
+        col_labels=[
+            f'{i[1]}: {round(i[0], 2)}' for i in col_names.values()
+        ],
         ax=ax,
         cmap='Blues',
         cbarlabel=ylabel
@@ -311,29 +317,21 @@ def analyse_cages(cage_sets, experimentals):
 
     # Plot cage data as function of ligand data.
     tests = {
-        # Test: (ylabel, ylim)
-        'octop': (r'min. $q_{\mathrm{oct}}$', (0, 1)),
-        'rellsesum': (r'rel. sum strain energy [kJ/mol]', (-4, 500)),
-        'minitors': (r'min. imine torsion [degrees]', (0, 185)),
-        'maxcrplan': (
-            r'max. ligand distortion [$\mathrm{\AA}$]', (0, 185)
-        ),
+        # Test: ylabel
+        'octop': r'min. $q_{\mathrm{oct}}$',
+        'rellsesum': r'rel. sum strain energy [kJ/mol]',
+        'minitors': r'min. imine torsion [degrees]',
+        'maxcrplan': r'max. ligand distortion [$\mathrm{\AA}$]',
+        'porediam': r'pore diameter [$\mathrm{\AA}$]',
         'maxdifffaceaniso': (
-            r'max. $\Delta$opposing face anisotropy [%]', (-10, 100)
+            r'max. $\Delta$opposing face anisotropy [%]'
         ),
         'maxfacemetalpd': (
-            r'max. face metal planarity deviation [$\mathrm{\AA}$]',
-            (-180, 180),
+            r'max. face metal planarity deviation [$\mathrm{\AA}$]'
         ),
-        'maxintangledev': (
-            r'max. interior angle deviation [degrees]', (0, 200)
-        ),
-        'maxMLlength': (
-            r'max. N-Zn bond length [$\mathrm{\AA}$]', (2, 3)
-        ),
-        'relformatione': (
-            r'rel. formation energy [kJ/mol]', (-10, 1000)
-        ),
+        'maxintangledev': r'max. interior angle deviation [degrees]',
+        'maxMLlength': r'max. N-Zn bond length [$\mathrm{\AA}$]',
+        'relformatione': r'rel. formation energy [kJ/mol]',
     }
     cs_tests = {
         # xlabel
@@ -354,8 +352,7 @@ def analyse_cages(cage_sets, experimentals):
                         's62', 'd31', 'd32', 'c2v', 'c2h',
                     ],
                     Y_name=t,
-                    ylabel=tests[t][0],
-                    ylim=tests[t][1],
+                    ylabel=tests[t],
                     filename=f'plotset_{t}_V{cs_test}.pdf',
                     experimentals=experimentals,
                 )
