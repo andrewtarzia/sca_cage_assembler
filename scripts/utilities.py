@@ -266,6 +266,24 @@ def convert_symm_names(symm_name):
     return new_names[symm_name]
 
 
+def convert_lig_names_from_cage(lig_name):
+
+    new_names = {
+        'quad2_1': '1-1',
+        'quad2_12': '1-2',
+        'quad2_2': '1-3',
+        'quad2_5': '3-1',
+        'quad2_16': '3-2',
+        'quad2_17': '3-3',
+        'quad2_3': '2-1',
+        'quad2_8': '2-2',
+        'quad2_9': '2-3',
+        'quad2_10': '2-4',
+    }
+
+    return new_names[lig_name]
+
+
 def heatmap(
     data,
     row_labels,
