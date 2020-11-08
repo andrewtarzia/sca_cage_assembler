@@ -98,6 +98,51 @@ def plot_heatmap_X_vs_Y(
     plt.close()
 
 
+def plot_X_vs_lse(
+    xdata,
+    ydata,
+    xlabel,
+    ylabel,
+    filename,
+    xlim=None,
+    ylim=None,
+):
+
+    M = 'o'
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    xs = []
+    ys = []
+    for i, name in enumerate(xdata):
+        xs.append(xdata[name])
+        ys.append(ydata[name])
+    ax.scatter(
+        xs,
+        ys,
+        c=colors_i_like()[2],
+        edgecolors='k',
+        marker=M,
+        alpha=1.0,
+        s=180
+    )
+
+    # Set number of ticks for x-axis
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.set_xlabel(xlabel, fontsize=16)
+    ax.set_ylabel(ylabel, fontsize=16)
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+
+    fig.tight_layout()
+    fig.savefig(
+        filename,
+        dpi=720,
+        bbox_inches='tight'
+    )
+    plt.close()
+
+
 def cage_set_properties(cage_set):
     """
     Collate cage-requiring properties of cage set.
@@ -293,6 +338,22 @@ def cage_set_properties(cage_set):
                 clim=p1_dict['ylim'],
                 filename=p2_p1_filename
             )
+
+        if 'lsesum' in (p1, p2):
+            pN1 = p1 if p2 == 'lsesum' else p2
+            pN1_dict = p1_dict if pN1 == p1 else p2_dict
+            pN2_dict = p1_dict if pN1 != p1 else p2_dict
+            lse_filename = f'{cage_set.name}_{pN1}_LSE.pdf'
+            if not exists(lse_filename):
+                plot_X_vs_lse(
+                    xdata=pN1_dict['data'],
+                    ydata=pN2_dict['data'],
+                    xlabel=pN1_dict['ylabel'],
+                    ylabel=pN2_dict['ylabel'],
+                    xlim=None,
+                    ylim=None,
+                    filename=lse_filename
+                )
 
     return measures
 
