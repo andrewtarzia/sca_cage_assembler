@@ -154,8 +154,8 @@ class Cage:
         self,
         free_e,
         step_size,
-        target_bond_length,
-        num_steps
+        distance_cut,
+        scale_steps
     ):
         custom_metal_FFs = metal_FFs(CN=6)
 
@@ -169,12 +169,12 @@ class Cage:
 
         # Run if crush output does not exist.
         if not exists(f'{self.crush_file}.mol'):
-            self.cage = atools.MOC_collapse_mc(
+            self.cage = atools.MOC_collapse(
                 cage=self.cage,
                 cage_name=self.name,
                 step_size=step_size,
-                target_bond_length=target_bond_length,
-                num_steps=num_steps,
+                distance_cut=distance_cut,
+                scale_steps=scale_steps,
             )
             self.cage.write(f'{self.crush_file}.mol')
         else:
@@ -189,7 +189,7 @@ class Cage:
                 self.name,
                 metal_FFs=custom_metal_FFs,
                 CG=True,
-                maxcyc=100,
+                maxcyc=1000,
                 metal_ligand_bond_order='',
             )
             self.cage.write(f'{self.uff4mof_CG_file}.mol')
@@ -218,7 +218,7 @@ class Cage:
                 self.cage,
                 self.name,
                 integrator='leapfrog verlet',
-                temperature=700,
+                temperature=400,
                 N=10,
                 timestep=0.5,
                 equib=0.1,
