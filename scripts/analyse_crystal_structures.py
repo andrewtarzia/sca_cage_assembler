@@ -102,6 +102,88 @@ class XtalCage:
 
 
 
+    def define_faces(self):
+
+        def update_connections(connections, id1, id2, distance):
+
+            if len(connections[id1]) < 3:
+                connections[id1].append((id2, distance))
+                connections[id1].sort(key=lambda x: x[1])
+            else:
+                old_list = connections[id1]
+                if distance < max([i[1] for i in old_list]):
+                    old_list.pop(-1)
+                    new_list = old_list+[(id2, distance)]
+                    new_list.sort(key=lambda x: x[1])
+                else:
+                    new_list = old_list.copy()
+
+                connections[id1] = new_list
+
+            return connections
+
+        def get_connections(structure):
+
+            connections = {
+                i.get_id(): [] for i in structure.get_atoms()
+            }
+            for m_pair in combinations(structure.get_atoms(), 2):
+                m1_id = m_pair[0].get_id()
+                m2_id = m_pair[1].get_id()
+                distance = get_atom_distance(structure, m1_id, m2_id)
+
+                # Add to connections.
+                # If length of connections is < 3, add.
+                # Else, only update and sort if distance is shorter
+                # than an existing one.
+                update_connections(connections, m1_id, m2_id, distance)
+                update_connections(connections, m2_id, m1_id, distance)
+
+            return connections
+
+        m_structure = stk.BuildingBlock.init_from_file(
+            f'{self.name}_M.mol'
+        )
+        m_structure.write('temp.xyz')
+
+        # Find distinct faces by determining which metals are close.
+        m_connections = get_connections(m_structure)
+
+        # Use graph cycles to find faces.
+        atoms = [i for i in m_structure.get_atoms()]
+        metal_graph = nx.Graph()
+        in_graph = set()
+        for metal in m_connections:
+            if metal not in in_graph:
+                metal_graph.add_node(atoms[metal])
+                in_graph.add(metal)
+            for m2, distance in m_connections[metal]:
+                if m2 not in in_graph:
+                    metal_graph.add_node(atoms[m2])
+                    in_graph.add(m2)
+                metal_graph.add_edge(atoms[metal], atoms[m2])
+
+        cycles = nx.simple_cycles(metal_graph.to_directed())
+        face_atoms = [i for i in cycles if len(i) == 4]
+        filtered_face_atoms = []
+        face_atom_set = set()
+        for fa in face_atoms:
+            ordered_fa = tuple(sorted([i.get_id() for i in fa]))
+            if ordered_fa not in face_atom_set:
+                filtered_face_atoms.append(fa)
+                face_atom_set.add(ordered_fa)
+        if len(filtered_face_atoms) != 6:
+            raise ValueError(
+                f'{len(filtered_face_atoms)} faces found, expected 6!'
+            )
+
+        self.faces = {}
+        for i, fa in enumerate(filtered_face_atoms):
+            for j, fa2 in enumerate(filtered_face_atoms):
+                not_in_fa = [i for i in fa2 if i not in fa]
+                if len(not_in_fa) == 4:
+                    opposite_id = j
+            self.faces[i] = (fa, opposite_id)
 
 
     def write_metal_atom_structure(self):
@@ -224,6 +306,9 @@ def main():
         #     cage_set=xtals[xtal]['cage_set'],
         # )
 
+        # Face-based analysis.
+        xtal_cage.define_faces()
+        print(xtal_cage.faces)
         sys.exit()
         )
 
