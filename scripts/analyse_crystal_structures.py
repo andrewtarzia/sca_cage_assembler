@@ -12,15 +12,25 @@ Date Created: 11 Nov 2020
 """
 
 import sys
-from os.path import exists
+from os.path import join
+from itertools import combinations
+from os import system
+import networkx as nx
 
 import stk
+import pywindow as pw
 
-from atools import get_organic_linkers
+from atools import (
+    get_organic_linkers,
+    get_atom_distance,
+    calculate_ligand_SE,
+    calculate_ligand_planarities,
+    calculate_abs_imine_torsions,
+    calculate_metal_ligand_distance,
+    get_order_values,
+)
 
 from cage import UnexpectedNumLigands
-from cage_set import HoCube
-from cage_analysis import analyse_cages, analyse_cage_sets
 from utilities import read_lib
 
 
@@ -80,6 +90,11 @@ class XtalCage:
 
         return org_ligs, smiles_keys
 
+    def calculate_abs_imine_torsions(self, org_ligs):
+        return calculate_abs_imine_torsions(
+            org_ligs=org_ligs,
+            smarts='[#6]-[#7X2]-[#6X3H1]-[#6X3!H1]',
+        )
 
     def get_lowest_energy_conformer_file(
         self,
@@ -100,7 +115,19 @@ class XtalCage:
         sys.exit()
         mol.write(new_filename)
 
+    def get_min_order_value(self):
 
+        op_set = get_order_values(
+            mol=self.stk_mol,
+            metal=self.get_metal_atom_nos()[0],
+            per_site=True
+        )
+        print(op_set)
+        print(op_set.keys())
+        target_OPs = [op_set[i]['oct'] for i in op_set]
+        print(target_OPs)
+
+        return min(target_OPs)
 
     def define_faces(self):
 
@@ -314,6 +341,13 @@ def main():
 
         # Full cage analysis.
         cage_data['porediam'] = xtal_cage.get_pore_size()
+        cage_data['ML_lengths'] = calculate_metal_ligand_distance(
+            mol=xtal_cage.stk_mol,
+            metal_atomic_number=30,
+            ligand_atomic_number=7,
+        )
+        cage_data['maxMLlength'] = max(cage_data['ML_lengths'])
+        cage_data['octop'] = xtal_cage.get_min_order_value()
 
         # Ligand analysis.
         cage_data['core_planarities'] = calculate_ligand_planarities(
