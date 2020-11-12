@@ -50,6 +50,72 @@ class XtalCage:
         self.stk_mol = self.stk_mol.with_centroid([0, 0, 0])
         self.stk_mol.write(f'{name}_stkin.mol')
 
+    def get_metal_atom_nos(self):
+        return [i['metal_atom_no'] for i in self.complex_dicts]
+
+    def get_pore_size(self):
+        print(f'....analyzing porosity of {self.name}')
+        # Load cage into pywindow.
+        self.stk_mol.write('temp.xyz')
+        pw_cage = pw.MolecularSystem.load_file('temp.xyz')
+        pw_cage_mol = pw_cage.system_to_molecule()
+        system('rm temp.xyz')
+        # Calculate pore size.
+        return pw_cage_mol.calculate_pore_diameter_opt()
+
+    def get_organic_linkers(self):
+        org_ligs, smiles_keys = get_organic_linkers(
+            cage=self.stk_mol,
+            metal_atom_nos=(self.get_metal_atom_nos()[0], ),
+            file_prefix=f'{self.name}_sg'
+        )
+        expected_ligands = 1
+        num_unique_ligands = len(set(smiles_keys.values()))
+        if num_unique_ligands != expected_ligands:
+            raise UnexpectedNumLigands(
+                f'{self.name} had {num_unique_ligands} unique ligands'
+                f', {expected_ligands} were expected. Suggests bad '
+                'optimization.'
+            )
+
+        return org_ligs, smiles_keys
+
+
+    def get_lowest_energy_conformer_file(
+        self,
+        cage_directory,
+        n_atoms,
+        cage_set
+    ):
+
+        already_run_lowest_energy_filename = (
+            f'C_{cage_set}_sg{n_atoms}_1_opt.mol'
+        )
+        print(already_run_lowest_energy_filename)
+        mol = stk.BuildingBlock.init_from_file(
+            join(cage_directory, already_run_lowest_energy_filename)
+        )
+        new_filename = f'{self.name}_sg{n_atoms}_1_opt.mol'
+        print(new_filename)
+        sys.exit()
+        mol.write(new_filename)
+
+
+
+
+
+    def write_metal_atom_structure(self):
+
+        metal_atom_ids = [
+            i.get_id() for i in self.stk_mol.get_atoms()
+            if i.get_atomic_number() in self.get_metal_atom_nos()
+        ]
+
+        # Write to mol file.
+        self.stk_mol.write(
+            f'{self.name}_M.mol',
+            atom_ids=metal_atom_ids,
+        )
 
     def __str__(self):
         return (
@@ -59,45 +125,6 @@ class XtalCage:
 
     def __repr__(self):
         return str(self)
-
-
-def get_metal_atom_structure(cage, metal_atom_nos, file_prefix=None):
-    """
-    Extract a list of organic linker .Molecules from a cage.
-
-    Parameters
-    ----------
-    cage : :class:`stk.Molecule`
-        Molecule to get the organic linkers from.
-
-    metal_atom_nos : :class:`iterable` of :class:`int`
-        The atomic number of metal atoms to remove from structure.
-
-    file_prefix : :class:`str`, optional
-        Prefix to file name of each output ligand structure.
-        Eventual file name is:
-        "file_prefix"{number of atoms}_{idx}_{i}.mol
-        Where `idx` determines if a molecule is unique by smiles.
-
-    Returns
-    -------
-    org_lig : :class:`dict` of :class:`stk.BuildingBlock`
-        Dictionary of building blocks where the key is the file name,
-        and the value is the stk building block.
-
-    smiles_keys : :class:`dict` of :class:`int`
-        Key is the linker smiles, value is the idx of that smiles.
-
-    """
-
-    metal_atom_ids = [
-        i.get_id() for i in cage.get_atoms()
-        if i.get_atomic_number() in metal_atom_nos
-    ]
-    print(metal_atom_ids)
-
-    # Write to mol file.
-    cage.write(f'{file_prefix}.mol', atom_ids=metal_atom_ids)
 
 
 def main():
@@ -174,9 +201,11 @@ def main():
         },
     }
 
+    xtal_cage_data = {}
     for xtal in xtals:
         print(f'---- doing: {xtal}')
         pdb_file = f'{xtal}.pdb'
+        cage_data = {}
         xtal_cage = XtalCage(
             name=xtal,
             pdb_file=pdb_file,
@@ -187,35 +216,47 @@ def main():
             cage_set_dict=cage_set_lib[xtals[xtal]['cage_set']]
         )
         print(xtal_cage)
-        xtal_cage.get_metal_atom_no
-        xtal_cage.get_organic_linkers
-        xtal_cage.get_pore_size
-        xtal_cage.get_metal_atom_structure
+        org_ligs, smiles_keys = xtal_cage.get_organic_linkers()
+        xtal_cage.write_metal_atom_structure()
+        # xtal_cage.get_lowest_energy_conformer_file(
+        #     cage_directory=cage_directory,
+        #     n_atoms=[org_ligs[i].get_num_atoms() for i in org_ligs][0],
+        #     cage_set=xtals[xtal]['cage_set'],
+        # )
+
         sys.exit()
-        # Ligand strain.
-        metal_atom_no = [i['metal_atom_no'] for i in complex_dicts][0]
-        org_ligs, smiles_keys = get_organic_linkers(
-            cage=stk_mol,
-            metal_atom_nos=(metal_atom_no, ),
-            file_prefix=f'{xtal}_sg'
         )
-        expected_ligands = 6
-        num_unique_ligands = len(set(smiles_keys.values()))
-        if num_unique_ligands != expected_ligands:
-            raise UnexpectedNumLigands(
-                f'{xtal} had {num_unique_ligands} unique ligands'
-                f', {expected_ligands} were expected. Suggests bad '
-                'optimization.'
-            )
 
-        # Porosity analysis.
+        # Full cage analysis.
+        cage_data['porediam'] = xtal_cage.get_pore_size()
 
-        # Metal-based analysis.
-        get_metal_atom_structure(
-            cage=stk_mol,
-            metal_atom_nos=(metal_atom_no, ),
-            file_prefix=f'{xtal}_M'
+        # Ligand analysis.
+        cage_data['core_planarities'] = calculate_ligand_planarities(
+            org_ligs=org_ligs
         )
+        cage_data['imine_torsions'] = (
+            xtal_cage.calculate_abs_imine_torsions(org_ligs)
+        )
+        cage_data['strain_energies'] = calculate_ligand_SE(
+            org_ligs=org_ligs,
+            smiles_keys=smiles_keys,
+            output_json=f'{xtal_cage.name}_lse.json',
+            file_prefix=f'{xtal_cage.name}_sg'
+        )
+        cage_data['lsesum'] = sum([
+            cage_data['strain_energies'][i]
+            for i in cage_data['strain_energies']
+        ])
+        cage_data['minitors'] = min([
+            j for i in cage_data['imine_torsions']
+            for j in cage_data['imine_torsions'][i]
+        ])
+        cage_data['maxcrplan'] = max([
+            cage_data['core_planarities'][i]
+            for i in cage_data['core_planarities']
+        ])
+
+        xtal_cage_data[xtal] = cage_data
 
     sys.exit()
 
