@@ -13,7 +13,9 @@ Date Created: 03 Mar 2020
 
 from copy import deepcopy
 from os.path import exists
+import numpy as np
 import json
+from itertools import combinations
 import pywindow as pw
 from os import system, mkdir
 
@@ -76,7 +78,6 @@ class Cage:
             vertex_alignments=self.vertex_alignments,
         )
         self.unopt_file = f'{self.name}_unopt'
-        self.bb_file = f'{self.name}_BBs'
         self.crush_file = f'{self.name}_cru'
         self.uff4mof_file = f'{self.name}_uff'
         self.uff4mof_CG_file = f'{self.name}_uffCG'
@@ -97,56 +98,148 @@ class Cage:
             cage.write(f'{self.unopt_file}.mol')
         self.cage = cage
 
-    def save_bb_xyz(self):
+    def save_bb_vector_xyzs(self, structure_file):
+        """
+        Save an XYZ for visualisation of the cage at an opt stage.
 
-        raise NotImplementedError('Currently broken.')
+        """
 
-        if exists(f'{self.opt_file}.mol'):
-            self.cage = self.cage.with_structure_from_file(
-                f'{self.opt_file}.mol'
-            )
-        self.cage.write(f'{self.bb_file}.xyz')
+        def get_ligand_vectors(mol, metal_atom_nos):
+            """
+            Define ligand vectors based on bonder positions.
 
-        bb_pos = {
-            stk.Smiles().get_key(i): j
-            for i, j in self.building_blocks.items()
-        }
-        bb_data = {}
-        for bb in self.cage.get_building_blocks():
-            smiles = stk.Smiles().get_key(bb)
-            if smiles not in bb_data:
-                bb_data[smiles] = {
-                    'no': len(bb_data),
-                    'pos': bb_pos[smiles]
-                }
+            """
 
-        # Add column to XYZ file.
-        with open(f'{self.bb_file}.xyz', 'r') as f:
+            l_vectors = []
+
+            # Get building block ids that do not have metal atoms.
+            bb_atom_ids = {}
+            metal_bbs = []
+            for ainfo in mol.get_atom_infos():
+                bbid = ainfo.get_building_block_id()
+                if bbid not in bb_atom_ids:
+                    bb_atom_ids[bbid] = []
+                bb_atom_ids[bbid].append(ainfo.get_atom().get_id())
+                a_atom_nu = ainfo.get_atom().get_atomic_number()
+                if a_atom_nu in metal_atom_nos:
+                    metal_bbs.append(bbid)
+
+            ligand_bb_atom_ids = {
+                i: bb_atom_ids[i]
+                for i in bb_atom_ids if i not in metal_bbs
+            }
+
+            # Add centroid to l_vectors.
+            for bb in ligand_bb_atom_ids:
+                x, y, z = mol.get_centroid(ligand_bb_atom_ids[bb])
+                l_vectors.append([[x, y, z, 'He']])
+
+            # Get axis vectors.
+            # Use Smarts to find connections between building blocks.
+            # Which is used to find bonder atoms on ligands.
+            # NX3 - CX3, where X != H.
+            all_lig_ids = set([
+                j for i in ligand_bb_atom_ids.values() for j in i
+            ])
+            smarts = '[#7X3]~[#6X3]'
+            rdkit_mol = mol.to_rdkit_mol()
+            query_ids = atools.get_query_atom_ids(smarts, rdkit_mol)
+            bonder_atom_ids = []
+            for atom_ids in query_ids:
+                n_id = atom_ids[0]
+                c_id = atom_ids[1]
+                if n_id not in all_lig_ids and c_id in all_lig_ids:
+                    bonder_atom_ids.append(c_id)
+
+            for bb in ligand_bb_atom_ids:
+                bb_bonders = [
+                    i for i in bonder_atom_ids
+                    if i in ligand_bb_atom_ids[bb]
+                ]
+                for atom_ids in combinations(bb_bonders, r=2):
+                    c1_pos = tuple(
+                        mol.get_atomic_positions(atom_ids[0])
+                    )[0]
+                    c2_pos = tuple(
+                        mol.get_atomic_positions(atom_ids[1])
+                    )[0]
+                    vector = c2_pos - c1_pos
+                    pts = [
+                        np.linspace(c2_pos[i], c1_pos[i], 10)
+                        for i in np.arange(len(c2_pos))
+                    ]
+                    vector = [[i, j, k, 'Kr'] for i, j, k in zip(*pts)]
+                    l_vectors.append(vector)
+
+            return l_vectors
+
+        def get_metal_vectors(mol, metal_atom_nos):
+            """
+            Define metal vectors based on N-N vectors in each complex.
+
+            """
+
+            m_vectors = []
+            pos_mat = mol.get_position_matrix()
+
+            # Add a single point vector for each metal atom.
+            for atom in mol.get_atoms():
+                if atom.get_atomic_number() in metal_atom_nos:
+                    x, y, z = pos_mat[atom.get_id()]
+                    m_vectors.append([[x, y, z, 'Ar']])
+
+            # Add vectors for all shortest N-N lengths.
+            # Use Smarts to find pairs of N atoms.
+            # N(X3)-CX2H1-CX3-NX3, where X != H.
+            smarts = '[#7X3]~[#6X3H1]~[#6X3!H1]~[#7X3]'
+            rdkit_mol = mol.to_rdkit_mol()
+            query_ids = atools.get_query_atom_ids(smarts, rdkit_mol)
+            for atom_ids in query_ids:
+                n1_pos = tuple(
+                    mol.get_atomic_positions(atom_ids[0])
+                )[0]
+                n2_pos = tuple(
+                    mol.get_atomic_positions(atom_ids[3])
+                )[0]
+                pts = [
+                    np.linspace(n2_pos[i], n1_pos[i], 5)
+                    for i in np.arange(len(n2_pos))
+                ]
+                vector = [[i, j, k, 'Xe'] for i, j, k in zip(*pts)]
+                m_vectors.append(vector)
+
+            return m_vectors
+
+        ve_output_file = structure_file.replace('.mol', '_VECTs.xyz')
+
+        temp_mol = self.cage.with_structure_from_file(structure_file)
+
+        # Write vectors out to xyz file.
+        temp_mol.write(ve_output_file)
+        # Do so by adding rows to XYZ file.
+        # Define the sets of vectors.
+        metal_atom_nos = list(set([
+            i.get_atomic_number() for i in self.cage.get_atoms()
+            if i.get_atomic_number() in metal_FFs(CN=4).keys()
+        ]))
+        ligand_vectors = get_ligand_vectors(temp_mol, metal_atom_nos)
+        metal_vectors = get_metal_vectors(temp_mol, metal_atom_nos)
+        with open(ve_output_file, 'r') as f:
             lines = f.readlines()
-
         new_lines = [i.rstrip() for i in lines]
-        unique_ids = {}
-        for i, nl in enumerate(new_lines):
-            if i < 2:
-                continue
-            atom_id = i-2
-            atom_info, = self.cage.get_atom_infos(atom_id)
-            building_block = atom_info.get_building_block()
-            building_block_id = atom_info.get_building_block_id()
-            smi = stk.Smiles().get_key(building_block)
-            bb_d = bb_data[smi]
-            va = self.vertex_alignments[
-                building_block_id
-            ]
-            bb_type = f"{bb_d['no']+1}{va+1}"
-            if bb_type not in unique_ids:
-                unique_ids[bb_type] = str(len(unique_ids)+1)
+        for lv in ligand_vectors:
+            for point in lv:
+                new_lines.append(
+                    f'{point[3]} {point[0]} {point[1]} {point[2]}'
+                )
+        for mv in metal_vectors:
+            for point in mv:
+                new_lines.append(
+                    f'{point[3]} {point[0]} {point[1]} {point[2]}'
+                )
 
-            bb_ids = unique_ids[bb_type]
-            new_line = nl+' '+bb_ids
-            new_lines[i] = new_line
-
-        with open(f'{self.bb_file}.xyz', 'w') as f:
+        new_lines[0] = str(len(new_lines)-2)
+        with open(ve_output_file, 'w') as f:
             for line in new_lines:
                 f.write(line+'\n')
 
@@ -606,6 +699,10 @@ class Cage:
             self.op_data = json.load(f)
 
         # Get metal-ligand binder atom bond length.
+        print(
+            'Warning! Calculate metal-ligand distance is hard-coded '
+            'for Zn-N'
+        )
         self.bl_data = atools.calculate_metal_ligand_distance(
             mol=self.cage,
             metal_atomic_number=30,

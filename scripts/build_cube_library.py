@@ -61,6 +61,7 @@ def build_cages(
                     # target_bond_length = 1.2
                     # num_steps = 2000
                     # step_size = 0.25
+                C.save_bb_vector_xyzs(f'{C.unopt_file}.mol')
                 C.optimize(
                     free_e=default_free_e,
                     step_size=step_size,
@@ -70,6 +71,7 @@ def build_cages(
                 C.analyze_cube_likeness()
                 C.analyze_metal_strain()
                 C.analyze_porosity()
+                C.save_bb_vector_xyzs(f'{C.opt_file}.mol')
                 C.analyze_ligand_strain(
                     # Assumes only one type of metal atom.
                     metal_atom_no=[
