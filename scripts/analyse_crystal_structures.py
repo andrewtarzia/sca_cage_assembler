@@ -12,6 +12,7 @@ Date Created: 11 Nov 2020
 """
 
 import sys
+import numpy as np
 from os.path import join
 from itertools import combinations
 from os import system
@@ -21,12 +22,14 @@ import stk
 import pywindow as pw
 
 from atools import (
+    angle_between,
     get_organic_linkers,
     get_atom_distance,
     calculate_ligand_SE,
     calculate_ligand_planarities,
     calculate_abs_imine_torsions,
     calculate_metal_ligand_distance,
+    calculate_molecule_planarity,
     get_order_values,
 )
 
@@ -129,7 +132,7 @@ class XtalCage:
 
         return min(target_OPs)
 
-    def define_faces(self):
+    def define_faces(self, m_structure):
 
         def update_connections(connections, id1, id2, distance):
 
@@ -167,11 +170,6 @@ class XtalCage:
                 update_connections(connections, m2_id, m1_id, distance)
 
             return connections
-
-        m_structure = stk.BuildingBlock.init_from_file(
-            f'{self.name}_M.mol'
-        )
-        m_structure.write('temp.xyz')
 
         # Find distinct faces by determining which metals are close.
         m_connections = get_connections(m_structure)
@@ -212,6 +210,69 @@ class XtalCage:
                     opposite_id = j
             self.faces[i] = (fa, opposite_id)
 
+    def get_max_face_metal_PD(self, mol):
+
+        plane_devs = []
+        for face in self.faces:
+            atom_ids = [i.get_id() for i in self.faces[face][0]]
+            plane_devs.append(calculate_molecule_planarity(
+                mol=mol,
+                plane_ids=atom_ids,
+                atom_ids=atom_ids,
+            ))
+        max_face_metal_PD = max(plane_devs)
+        return max_face_metal_PD
+
+    def get_max_face_interior_angle_dev(self, mol):
+
+        pos_mat = mol.get_position_matrix()
+        sum_interior_angles = []
+        for face in self.faces:
+            interior_angles = []
+            atom_ids = [i.get_id() for i in self.faces[face][0]]*2
+            angles = [
+                atom_ids[i: i + 3]
+                for i in range(0, len(atom_ids))
+            ][: 4]
+            for trio in angles:
+                vector1 = pos_mat[trio[1]]-pos_mat[trio[0]]
+                vector2 = pos_mat[trio[1]]-pos_mat[trio[2]]
+                interior_angles.append(np.degrees(
+                    angle_between(vector1, vector2)
+                ))
+            sum_interior_angles.append(sum(interior_angles))
+        max_face_interior_angle_dev = max(
+            [abs(360-i) for i in sum_interior_angles]
+        )
+        return max_face_interior_angle_dev
+
+    def get_max_face_anisotropy(self, mol):
+
+        face_anisos = {}
+        for face in self.faces:
+            atom_ids = [i.get_id() for i in self.faces[face][0]]
+
+            # Pick one metal - use index 1 as central atom.
+            d1 = get_atom_distance(
+                molecule=mol,
+                atom1_id=atom_ids[0],
+                atom2_id=atom_ids[1],
+            )
+            d2 = get_atom_distance(
+                molecule=mol,
+                atom1_id=atom_ids[1],
+                atom2_id=atom_ids[2],
+            )
+            face_anisos[face] = d2 / d1 if d2 > d1 else d1 / d2
+        paired_face_anisos = [
+            (i, j, face_anisos[i], face_anisos[j])
+            for i, j in combinations(face_anisos, r=2)
+            if self.faces[i][1] == j
+        ]
+        max_face_aniso_diff = max([
+            100*((i[2] - i[3]) / i[2]) for i in paired_face_anisos
+        ])
+        return max_face_aniso_diff
 
     def write_metal_atom_structure(self):
 
@@ -334,9 +395,18 @@ def main():
         # )
 
         # Face-based analysis.
-        xtal_cage.define_faces()
-        print(xtal_cage.faces)
-        sys.exit()
+        m_structure = stk.BuildingBlock.init_from_file(
+            f'{xtal_cage.name}_M.mol'
+        )
+        xtal_cage.define_faces(m_structure)
+        cage_data['maxfacemetalpd'] = xtal_cage.get_max_face_metal_PD(
+            m_structure
+        )
+        cage_data['maxintangledev'] = (
+            xtal_cage.get_max_face_interior_angle_dev(m_structure)
+        )
+        cage_data['maxdifffaceaniso'] = (
+            xtal_cage.get_max_face_anisotropy(m_structure)
         )
 
         # Full cage analysis.
