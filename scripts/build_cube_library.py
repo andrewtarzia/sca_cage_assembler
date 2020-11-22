@@ -68,9 +68,6 @@ def build_cages(
                     distance_cut=distance_cut,
                     scale_steps=scale_steps,
                 )
-                C.analyze_cube_likeness()
-                C.analyze_metal_strain()
-                C.analyze_porosity()
                 C.save_bb_vector_xyzs(f'{C.opt_file}.mol')
                 C.analyze_ligand_strain(
                     # Assumes only one type of metal atom.
@@ -81,6 +78,9 @@ def build_cages(
                     expected_ligands=expected_ligands,
                     free_e=default_free_e,
                 )
+                C.analyze_cube_likeness()
+                C.analyze_metal_strain()
+                C.analyze_porosity()
                 cage_set.built_cage_properties[C.name] = {
                     'pw_prop': C.pw_data,
                     'op_prop': C.op_data,

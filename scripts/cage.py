@@ -560,7 +560,7 @@ class Cage:
             raise UnexpectedNumLigands(
                 f'{self.name} had {num_unique_ligands} unique ligands'
                 f', {expected_ligands} were expected. Suggests bad '
-                'optimization.'
+                'optimization. Recommend reoptimising structure.'
             )
 
         atools.get_lowest_energy_conformers(
@@ -731,7 +731,13 @@ class Cage:
                 pw_cage_mol.calculate_pore_diameter_opt()
                 pw_cage_mol.calculate_pore_volume_opt()
             except ValueError:
-                pass
+                # Handle failure.
+                pw_cage_mol.properties['pore_volume_opt'] = 0
+                pw_cage_mol.properties['pore_diameter_opt'] = {
+                    'diameter': 0,
+                    'atom_1': 0,
+                    'centre_of_mass': [0, 0, 0],
+                }
 
             # Save files.
             pw_cage_mol.dump_properties_json(f'{self.pw_file}.json')
