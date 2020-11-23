@@ -13,6 +13,7 @@ Date Created: 11 Nov 2020
 
 import sys
 import numpy as np
+import json
 from os.path import join
 from itertools import combinations
 from os import system
@@ -34,7 +35,7 @@ from atools import (
 )
 
 from cage import UnexpectedNumLigands
-from utilities import read_lib
+from utilities import read_lib, convert_symm_names, get_plottables
 
 
 class XtalCage:
@@ -118,6 +119,12 @@ class XtalCage:
         sys.exit()
         mol.write(new_filename)
 
+    def get_cage_set_measures(self, cage_directory, cage_set):
+        measures_file = join(
+            cage_directory, f'{cage_set}_measures.json'
+        )
+        with open(measures_file, 'r') as f:
+            return json.load(f)
     def get_min_order_value(self):
 
         op_set = get_order_values(
@@ -388,11 +395,11 @@ def main():
         print(xtal_cage)
         org_ligs, smiles_keys = xtal_cage.get_organic_linkers()
         xtal_cage.write_metal_atom_structure()
-        # xtal_cage.get_lowest_energy_conformer_file(
-        #     cage_directory=cage_directory,
-        #     n_atoms=[org_ligs[i].get_num_atoms() for i in org_ligs][0],
-        #     cage_set=xtals[xtal]['cage_set'],
-        # )
+        xtal_cage.get_lowest_energy_conformer_file(
+            cage_directory=cage_directory,
+            n_atoms=[org_ligs[i].get_num_atoms() for i in org_ligs][0],
+            cage_set=xtals[xtal]['cage_set'],
+        )
 
         # Face-based analysis.
         m_structure = stk.BuildingBlock.init_from_file(
@@ -444,8 +451,17 @@ def main():
             cage_data['core_planarities'][i]
             for i in cage_data['core_planarities']
         ])
-
         xtal_cage_data[xtal] = cage_data
+        comp_cage_data[xtal] = xtal_cage.get_cage_set_measures(
+            cage_directory=cage_directory,
+            cage_set=xtals[xtal]['cage_set'],
+        )
+
+        plottables = get_plottables(
+            measures=comp_cage_data[xtal],
+            name=xtal_cage.name
+        )
+
 
     sys.exit()
 

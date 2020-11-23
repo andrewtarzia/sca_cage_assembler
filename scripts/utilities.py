@@ -550,3 +550,85 @@ def split_xyz_file(num_atoms, xyz_file):
         out_files.append(file_name)
 
     return out_files
+
+
+def get_plottables(measures, name):
+    plottables = {
+        'octop': {
+            'data': measures['octop'],
+            'ylabel': r'min. $q_{\mathrm{oct}}$',
+            'ylim': (0, 1),
+            'filename': f'{name}_minOPs.pdf'
+        },
+        'lsesum': {
+            'data': {
+                i: (
+                    measures['lsesum'][i]
+                    - min(measures['lsesum'].values())
+                )
+                for i in measures['lsesum']
+            },
+            'ylabel': r'rel. sum strain energy [kJ/mol]',
+            'ylim': (-4, 500),
+            'filename': f'{name}_sumLSE.pdf'
+        },
+        'minitors': {
+            'data': measures['minitors'],
+            'ylabel': r'min. imine torsion [degrees]',
+            'ylim': (0, 185),
+            'filename': f'{name}_mintors.pdf'
+        },
+        'maxcrplan': {
+            'data': measures['maxcrplan'],
+            'ylabel': r'max. core planarity [$\mathrm{\AA}$]',
+            'ylim': (0, 185),
+            'filename': f'{name}_maxcrplane.pdf'
+        },
+        'maxdifffaceaniso': {
+            'data': measures['maxdifffaceaniso'],
+            'ylabel': r'max. $\Delta$opposing face anisotropy [%]',
+            'ylim': (-10, 100),
+            'filename': f'{name}_maxfadiff.pdf'
+        },
+        'maxfacemetalpd': {
+            'data': measures['maxfacemetalpd'],
+            'ylabel': (
+                r'max. face metal planarity deviation '
+                r'[$\mathrm{\AA}$]'
+            ),
+            'ylim': (0, 10),
+            'filename': f'{name}_maxfacemetalpd.pdf'
+        },
+        'maxintangledev': {
+            'data': measures['maxintangledev'],
+            'ylabel': r'max. interior angle deviation [$^{\circ}$]',
+            'ylim': (-8, 8),
+            'filename': f'{name}_maxintangledev.pdf'
+        },
+        'maxMLlength': {
+            'data': measures['maxMLlength'],
+            'ylabel': r'max. N-Zn bond length [$\mathrm{\AA}$]',
+            'ylim': (2, 2.5),
+            'filename': f'{name}_maxmld.pdf'
+        },
+        'porediam': {
+            'data': measures['porediam'],
+            'ylabel': r'pore diamater [$\mathrm{\AA}$]',
+            'ylim': (0, 20),
+            'filename': f'{name}_porediam.pdf'
+        },
+        'formatione': {
+            'data': {
+                i: (
+                    measures['formatione'][i]
+                    - min(measures['formatione'].values())
+                )
+                for i in measures['formatione']
+            },
+            'ylabel': r'rel. formation energy [kJ/mol]',
+            'ylim': (-10, 1000),
+            'filename': f'{name}_relfe.pdf'
+        },
+    }
+
+    return plottables

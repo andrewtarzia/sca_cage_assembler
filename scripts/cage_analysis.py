@@ -15,12 +15,14 @@ from os.path import exists
 from itertools import combinations
 import matplotlib.pyplot as plt
 import numpy as np
+import json
 
 from utilities import (
     heatmap,
     annotate_heatmap,
     convert_symm_names,
     convert_lig_names_from_cage,
+    get_plottables,
 )
 
 from atools import colors_i_like
@@ -165,48 +167,57 @@ def cage_set_properties(cage_set):
     cage_set.load_properties()
 
     # Get measures of all cages.
-    measures = {
-        'octop': {
-            i.name: cage_set.get_min_oct_op(i.name)
-            for i in cage_set.cages_to_build
-        },
-        'lsesum': {
-            i.name: cage_set.get_sum_lig_strain_energy(i.name)
-            for i in cage_set.cages_to_build
-        },
-        'minitors': {
-            i.name: cage_set.get_min_imine_torision(i.name)
-            for i in cage_set.cages_to_build
-        },
-        'maxcrplan': {
-            i.name: cage_set.get_max_core_planarity(i.name)
-            for i in cage_set.cages_to_build
-        },
-        'porediam': {
-            i.name: cage_set.get_pore_diameter(i.name)
-            for i in cage_set.cages_to_build
-        },
-        'maxdifffaceaniso': {
-            i.name: cage_set.get_max_face_anisotropy(i.name)
-            for i in cage_set.cages_to_build
-        },
-        'maxMLlength': {
-            i.name: cage_set.get_max_ML_distance(i.name)
-            for i in cage_set.cages_to_build
-        },
-        'formatione': {
-            i.name: cage_set.get_formation_energy(i.name)
-            for i in cage_set.cages_to_build
-        },
-        'maxfacemetalpd': {
-            i.name: cage_set.get_max_face_metal_PD(i.name)
-            for i in cage_set.cages_to_build
-        },
-        'maxintangledev': {
-            i.name: cage_set.get_max_face_interior_angle_dev(i.name)
-            for i in cage_set.cages_to_build
-        },
-    }
+    if exists(cage_set.measures_file):
+        with open(cage_set.measures_file, 'r') as f:
+            measures = json.load(f)
+    else:
+        measures = {
+            'octop': {
+                i.name: cage_set.get_min_oct_op(i.name)
+                for i in cage_set.cages_to_build
+            },
+            'lsesum': {
+                i.name: cage_set.get_sum_lig_strain_energy(i.name)
+                for i in cage_set.cages_to_build
+            },
+            'minitors': {
+                i.name: cage_set.get_min_imine_torision(i.name)
+                for i in cage_set.cages_to_build
+            },
+            'maxcrplan': {
+                i.name: cage_set.get_max_core_planarity(i.name)
+                for i in cage_set.cages_to_build
+            },
+            'porediam': {
+                i.name: cage_set.get_pore_diameter(i.name)
+                for i in cage_set.cages_to_build
+            },
+            'maxdifffaceaniso': {
+                i.name: cage_set.get_max_face_anisotropy(i.name)
+                for i in cage_set.cages_to_build
+            },
+            'maxMLlength': {
+                i.name: cage_set.get_max_ML_distance(i.name)
+                for i in cage_set.cages_to_build
+            },
+            'formatione': {
+                i.name: cage_set.get_formation_energy(i.name)
+                for i in cage_set.cages_to_build
+            },
+            'maxfacemetalpd': {
+                i.name: cage_set.get_max_face_metal_PD(i.name)
+                for i in cage_set.cages_to_build
+            },
+            'maxintangledev': {
+                i.name: cage_set.get_max_face_interior_angle_dev(
+                    i.name
+                )
+                for i in cage_set.cages_to_build
+            },
+        }
+        with open(cage_set.measures_file, 'w') as f:
+            json.dump(measures, f)
+
     print(f'properties of: {cage_set.name}')
     print('minimum OPs:', measures['octop'])
     print('sum LSE:', measures['lsesum'])
@@ -220,83 +231,7 @@ def cage_set_properties(cage_set):
     print('formation energies:', measures['formatione'])
     print('----------------------------------------------------')
 
-    plottables = {
-        'octop': {
-            'data': measures['octop'],
-            'ylabel': r'min. $q_{\mathrm{oct}}$',
-            'ylim': (0, 1),
-            'filename': f'{cage_set.name}_minOPs.pdf'
-        },
-        'lsesum': {
-            'data': {
-                i: (
-                    measures['lsesum'][i]
-                    - min(measures['lsesum'].values())
-                )
-                for i in measures['lsesum']
-            },
-            'ylabel': r'rel. sum strain energy [kJ/mol]',
-            'ylim': (-4, 500),
-            'filename': f'{cage_set.name}_sumLSE.pdf'
-        },
-        'minitors': {
-            'data': measures['minitors'],
-            'ylabel': r'min. imine torsion [degrees]',
-            'ylim': (0, 185),
-            'filename': f'{cage_set.name}_mintors.pdf'
-        },
-        'maxcrplan': {
-            'data': measures['maxcrplan'],
-            'ylabel': r'max. core planarity [$\mathrm{\AA}$]',
-            'ylim': (0, 185),
-            'filename': f'{cage_set.name}_maxcrplane.pdf'
-        },
-        'maxdifffaceaniso': {
-            'data': measures['maxdifffaceaniso'],
-            'ylabel': r'max. $\Delta$opposing face anisotropy [%]',
-            'ylim': (-10, 100),
-            'filename': f'{cage_set.name}_maxfadiff.pdf'
-        },
-        'maxfacemetalpd': {
-            'data': measures['maxfacemetalpd'],
-            'ylabel': (
-                r'max. face metal planarity deviation '
-                r'[$\mathrm{\AA}$]'
-            ),
-            'ylim': (0, 10),
-            'filename': f'{cage_set.name}_maxfacemetalpd.pdf'
-        },
-        'maxintangledev': {
-            'data': measures['maxintangledev'],
-            'ylabel': r'max. interior angle deviation [$^{\circ}$]',
-            'ylim': (-8, 8),
-            'filename': f'{cage_set.name}_maxintangledev.pdf'
-        },
-        'maxMLlength': {
-            'data': measures['maxMLlength'],
-            'ylabel': r'max. N-Zn bond length [$\mathrm{\AA}$]',
-            'ylim': (2, 2.5),
-            'filename': f'{cage_set.name}_maxmld.pdf'
-        },
-        'porediam': {
-            'data': measures['porediam'],
-            'ylabel': r'pore diamater [$\mathrm{\AA}$]',
-            'ylim': (0, 20),
-            'filename': f'{cage_set.name}_porediam.pdf'
-        },
-        'formatione': {
-            'data': {
-                i: (
-                    measures['formatione'][i]
-                    - min(measures['formatione'].values())
-                )
-                for i in measures['formatione']
-            },
-            'ylabel': r'rel. formation energy [kJ/mol]',
-            'ylim': (-10, 1000),
-            'filename': f'{cage_set.name}_relfe.pdf'
-        },
-    }
+    plottables = get_plottables(measures=measures, name=cage_set.name)
 
     for p1, p2 in combinations(plottables, 2):
         p1_dict = plottables[p1]
