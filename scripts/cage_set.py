@@ -50,6 +50,7 @@ class CageSet:
     ):
         self.name = name
         self.properties_file = f'{self.name}_CS.json'
+        self.measures_file = f'{self.name}_measures.json'
         self.cage_set_dict = cage_set_dict
         self.complex_dicts = complex_dicts
         self.ligand_dicts = ligand_dicts

@@ -12,7 +12,7 @@ Date Created: 03 Mar 2020
 """
 
 from copy import deepcopy
-from os.path import exists
+from os.path import exists, join
 import numpy as np
 import json
 from itertools import combinations
@@ -20,6 +20,7 @@ import pywindow as pw
 from os import system, mkdir
 
 import stk
+from stko import XTBOptimizerError, XTBConvergenceError
 
 import atools
 from molecule_building import (
@@ -90,6 +91,7 @@ class Cage:
         self.charge = charge
         self.free_electron_options = free_electron_options
         self.cage_set_dict = cage_set_dict
+        self.optimized = None
 
     def build(self):
         print(f'....building {self.name}')
@@ -257,8 +259,10 @@ class Cage:
             self.cage = self.cage.with_structure_from_file(
                 f'{self.opt_file}.mol'
             )
+            self.optimized = True
             return
         print(f'....optimizing {self.name}')
+        self.optimized = None
 
         # Run if crush output does not exist.
         if not exists(f'{self.crush_file}.mol'):
@@ -327,18 +331,54 @@ class Cage:
                 f'{self.uffMD_file}.mol'
             )
 
-        self.cage = atools.MOC_xtb_opt(
-            self.cage,
-            self.name,
-            gfn_exec='/home/atarzia/software/xtb-6.3.1/bin/xtb',
-            nc=6,
-            free_e=free_e,
-            charge=self.charge,
-            opt_level='normal',
-            etemp=300,
-            solvent=(self.cage_set_dict['solvent'], 'normal'),
-        )
-        self.cage.write(f'{self.opt_file}.mol')
+        try:
+            self.cage = atools.MOC_xtb_opt(
+                cage=self.cage,
+                cage_name=self.name,
+                gfn_exec='/home/atarzia/software/xtb-6.3.1/bin/xtb',
+                nc=6,
+                free_e=free_e,
+                charge=self.charge,
+                opt_level='normal',
+                etemp=300,
+                solvent=(self.cage_set_dict['solvent'], 'normal'),
+            )
+            self.cage.write(f'{self.opt_file}.mol')
+            self.optimized = True
+        except (XTBConvergenceError, XTBOptimizerError):
+            # Check if the optimisation was even attempted.
+            opt_output_file = join(
+                f'cage_opt_{self.name}_xtb',
+                'optimization_1.output'
+            )
+            if not exists(opt_output_file):
+                # If not, raise error and exit.
+                raise CageNotOptimizedError(
+                    'xTB optimisation of cage not even attempted for'
+                    f'{self.name}. Try rerunning and check xTB is '
+                    'installed.'
+                )
+
+            # Check if that output file actually contains some
+            # steps because xtb may fail on initialisation.
+            steps_lines = []
+            has_steps = False
+            with open(opt_output_file, 'r') as f:
+                for line in f.readlines():
+                    if ' CYCLE ' in line:
+                        steps_lines.append(line)
+            if len(steps_lines) > 0:
+                has_steps = True
+            if has_steps:
+                # Set optimized to False, this avoids all analysis.
+                self.optimized = False
+            else:
+                # If not, raise error and exit.
+                raise CageNotOptimizedError(
+                    'xTB optimisation of cage not even attempted '
+                    f'for {self.name}. Try rerunning and check xTB'
+                    ' is installed.'
+                )
 
     def compare_UHF_values(self):
         print(f'....comparing UHF of {self.name}')

@@ -44,9 +44,10 @@ def build_cages(
             complex_dir=complex_directory
         )
 
-        if read_data and exists(cage_set.properties_file):
+        if exists(cage_set.properties_file):
             cage_set.load_properties()
-        else:
+
+        if not read_data:
             for C in cage_set.cages_to_build:
                 C.build()
 
@@ -62,34 +63,62 @@ def build_cages(
                     # num_steps = 2000
                     # step_size = 0.25
                 C.save_bb_vector_xyzs(f'{C.unopt_file}.mol')
-                C.optimize(
-                    free_e=default_free_e,
-                    step_size=step_size,
-                    distance_cut=distance_cut,
-                    scale_steps=scale_steps,
-                )
-                C.save_bb_vector_xyzs(f'{C.opt_file}.mol')
-                C.analyze_ligand_strain(
-                    # Assumes only one type of metal atom.
-                    metal_atom_no=[
-                        cage_set.complex_dicts[i]['metal_atom_no']
-                        for i in cage_set.complex_dicts
-                    ][0],
-                    expected_ligands=expected_ligands,
-                    free_e=default_free_e,
-                )
-                C.analyze_cube_likeness()
-                C.analyze_metal_strain()
-                C.analyze_porosity()
-                cage_set.built_cage_properties[C.name] = {
-                    'pw_prop': C.pw_data,
-                    'op_prop': C.op_data,
-                    'fe_prop': C.fe_data,
-                    'li_prop': C.ls_data,
-                    'fa_prop': C.fa_data,
-                    'bl_prop': C.bl_data,
-                    'cl_prop': C.cl_data,
-                }
+
+                # Check if structure has previously had optimisation
+                # attempted with failure.
+                try:
+                    if (
+                        cage_set.built_cage_properties[C.name][
+                            'optimized'
+                        ]
+                        is False
+                    ):
+                        C.optimized = False
+                        print(
+                            'Warning!: xTB optimisation of '
+                            f'{C.name} did not converge and structure '
+                            'is being kept unoptimized.'
+                        )
+                except KeyError:
+                    pass
+
+                if C.optimized is None:
+                    # Run optimisation - which handles successfully
+                    # completed molecules.
+                    C.optimize(
+                        free_e=default_free_e,
+                        step_size=step_size,
+                        distance_cut=distance_cut,
+                        scale_steps=scale_steps,
+                    )
+                if C.optimized is False:
+                    cage_set.built_cage_properties[C.name] = {
+                        'optimized': C.optimized,
+                    }
+                else:
+                    C.save_bb_vector_xyzs(f'{C.opt_file}.mol')
+                    C.analyze_ligand_strain(
+                        # Assumes only one type of metal atom.
+                        metal_atom_no=[
+                            cage_set.complex_dicts[i]['metal_atom_no']
+                            for i in cage_set.complex_dicts
+                        ][0],
+                        expected_ligands=expected_ligands,
+                        free_e=default_free_e,
+                    )
+                    C.analyze_cube_likeness()
+                    C.analyze_metal_strain()
+                    C.analyze_porosity()
+                    cage_set.built_cage_properties[C.name] = {
+                        'optimized': C.optimized,
+                        'pw_prop': C.pw_data,
+                        'op_prop': C.op_data,
+                        'fe_prop': C.fe_data,
+                        'li_prop': C.ls_data,
+                        'fa_prop': C.fa_data,
+                        'bl_prop': C.bl_data,
+                        'cl_prop': C.cl_data,
+                    }
                 # Dump to JSON.
                 cage_set.dump_properties()
 
