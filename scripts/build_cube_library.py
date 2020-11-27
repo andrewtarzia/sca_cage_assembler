@@ -142,14 +142,8 @@ def main():
 
     # List of the cages that are known to form, including symmetry.
     experimentals = [
-        'C_cl1_quad2_12_th1',
-        'C_cl1_quad2_12_th2',
-        'C_cl1_quad2_16_th1',
-        'C_cl1_quad2_16_th2',
-        'C_cl1_quad2_3_th1',
-        'C_cl1_quad2_3_th2',
-        'C_cl1_quad2_8_s61',
-        'C_cl1_quad2_8_s62',
+        'C_cl1_quad2_12_th1', 'C_cl1_quad2_16_th2',
+        'C_cl1_quad2_3_th1', 'C_cl1_quad2_8_s62',
     ]
 
     # Build and optimise all organic molecules in lib.
