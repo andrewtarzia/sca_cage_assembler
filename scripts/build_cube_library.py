@@ -173,6 +173,7 @@ def main():
     experimentals = [
         'C_cl1_quad2_12_th1', 'C_cl1_quad2_16_th2',
         'C_cl1_quad2_3_th1', 'C_cl1_quad2_8_s62',
+        'C_cl1_quad2_2_d31',
     ]
 
     # Build and optimise all organic molecules in lib.
