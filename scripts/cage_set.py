@@ -183,6 +183,9 @@ class CageSet:
 
     def get_min_oct_op(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
+        if C_data['optimized'] is False:
+            return None
+
         atom_no_of_interest = list(set([
             int(self.complex_dicts[i]['metal_atom_no'])
             for i in self.complex_dicts
@@ -194,6 +197,9 @@ class CageSet:
 
     def get_sum_lig_strain_energy(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
+        if C_data['optimized'] is False:
+            return None
+
         return sum([
             C_data['li_prop']['strain_energies'][i]
             for i in C_data['li_prop']['strain_energies']
@@ -201,6 +207,9 @@ class CageSet:
 
     def get_min_imine_torision(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
+        if C_data['optimized'] is False:
+            return None
+
         return min([
             j
             for i in C_data['li_prop']['imine_torsions']
@@ -209,6 +218,9 @@ class CageSet:
 
     def get_max_core_planarity(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
+        if C_data['optimized'] is False:
+            return None
+
         return max([
             C_data['li_prop']['core_planarities'][i]
             for i in C_data['li_prop']['core_planarities']
@@ -216,10 +228,16 @@ class CageSet:
 
     def get_pore_diameter(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
+        if C_data['optimized'] is False:
+            return None
+
         return C_data['pw_prop']['pore_diameter_opt']['diameter']
 
     def get_max_face_anisotropy(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
+        if C_data['optimized'] is False:
+            return None
+
         return max([
             100*((i[2] - i[3]) / i[2])
             for i in C_data['fa_prop']
@@ -227,18 +245,27 @@ class CageSet:
 
     def get_max_ML_distance(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
+        if C_data['optimized'] is False:
+            return None
+
         return max([
             i for i in C_data['bl_prop']
         ])
 
     def get_max_face_metal_PD(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
+        if C_data['optimized'] is False:
+            return None
+
         return max([
             C_data['cl_prop'][i]['metal_PD'] for i in C_data['cl_prop']
         ])
 
     def get_max_face_interior_angle_dev(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
+        if C_data['optimized'] is False:
+            return None
+
         return max([
             abs(
                 360-sum(
@@ -250,6 +277,9 @@ class CageSet:
 
     def get_formation_energy(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
+        if C_data['optimized'] is False:
+            return None
+
         return C_data['fe_prop']
 
     def define_cages_to_build(self):
@@ -571,7 +601,13 @@ class CageSet:
 
         fig, ax = plt.subplots(figsize=(8, 5))
         # Define cmap.
-        CMAP = {i: data_C[i]/clim[1] for i in data_C}
+        CMAP = {}
+        for i in data_C:
+            if data_C[i] is None:
+                CMAP[i] = None
+            else:
+                CMAP[i] = data_C[i]/clim[1]
+
         cmap = {
             'mid_point': 0.5,
             'cmap': cm.Purples_r,
@@ -604,7 +640,10 @@ class CageSet:
             x_pos_list.append(X)
             xs.append(X)
             ys.append(data[name])
-            cs.append(cmp(CMAP[name]))
+            if CMAP[name] is None:
+                cs.append((0, 0, 0, 0))
+            else:
+                cs.append(cmp(CMAP[name]))
         ax.scatter(
             xs,
             ys,

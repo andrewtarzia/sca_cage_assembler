@@ -552,7 +552,24 @@ def split_xyz_file(num_atoms, xyz_file):
     return out_files
 
 
+def start_at_0(data_dict):
+
+    new_dict = {}
+    min_val = min([i for i in data_dict.values() if i is not None])
+    for i in data_dict:
+        if data_dict[i] is None:
+            new_dict[i] = None
+        else:
+            new_dict[i] = data_dict[i] - min_val
+    print(data_dict)
+    print(new_dict)
+    print(min_val)
+    input()
+    return new_dict
+
+
 def get_plottables(measures, name):
+
     plottables = {
         'octop': {
             'data': measures['octop'],
@@ -561,15 +578,9 @@ def get_plottables(measures, name):
             'filename': f'{name}_minOPs.pdf'
         },
         'lsesum': {
-            'data': {
-                i: (
-                    measures['lsesum'][i]
-                    - min(measures['lsesum'].values())
-                )
-                for i in measures['lsesum']
-            },
+            'data': start_at_0(data_dict=measures['lsesum']),
             'ylabel': r'rel. sum strain energy [kJ/mol]',
-            'ylim': (-4, 500),
+            'ylim': (0, 500),
             'filename': f'{name}_sumLSE.pdf'
         },
         'minitors': {
@@ -618,13 +629,7 @@ def get_plottables(measures, name):
             'filename': f'{name}_porediam.pdf'
         },
         'formatione': {
-            'data': {
-                i: (
-                    measures['formatione'][i]
-                    - min(measures['formatione'].values())
-                )
-                for i in measures['formatione']
-            },
+            'data': start_at_0(data_dict=measures['formatione']),
             'ylabel': r'rel. formation energy [kJ/mol]',
             'ylim': (-10, 1000),
             'filename': f'{name}_relfe.pdf'

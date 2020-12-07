@@ -23,6 +23,7 @@ from utilities import (
     convert_symm_names,
     convert_lig_names_from_cage,
     get_plottables,
+    start_at_0,
 )
 
 from atools import colors_i_like
@@ -55,6 +56,7 @@ def plot_heatmap_X_vs_Y(
 
     fig, ax = plt.subplots()
 
+    na_points = []
     for name in data:
         col = list(col_names.keys()).index(name)
         # Iterate over all cages in set.
@@ -64,10 +66,16 @@ def plot_heatmap_X_vs_Y(
             row = symmetries.index(symm)
 
             # Assign to zeros matrix.
+            # Check if already assigned.
             if out_values[row][col] != 0:
                 raise ValueError()
 
-            out_values[row][col] = Y
+            if Y is None:
+                na_points.append((row, col))
+                # Set to zero and show marker.
+                out_values[row][col] = np.nan
+            else:
+                out_values[row][col] = Y
 
             # If experimental, add a star!
             if cage in experimentals:
@@ -89,7 +97,22 @@ def plot_heatmap_X_vs_Y(
         cmap='Blues',
         cbarlabel=ylabel
     )
-    annotate_heatmap(im, valfmt="{x:.1f}", fontsize=8)
+    annotate_heatmap(
+        im=im,
+        valfmt="{x:.1f}",
+        fontsize=8,
+        na_points=tuple(na_points)
+    )
+
+    ax.set_xlabel(xlabel)
+    fig.tight_layout()
+    fig.savefig(
+        filename,
+        dpi=720,
+        bbox_inches='tight'
+    )
+    plt.close()
+
     ax.set_xlabel(xlabel)
     fig.tight_layout()
     fig.savefig(
@@ -306,25 +329,15 @@ def analyse_cages(cage_sets, experimentals):
             'PPD': cage_set.ideal_pore_size,
             'LAR': cage_set.flex_properties['la_range'],
             'octop': measures['octop'],
-            'rellsesum': {
-                i: (
-                    measures['lsesum'][i]
-                    - min(measures['lsesum'].values())
-                )
-                for i in measures['lsesum']
-            },
+            'rellsesum': start_at_0(data_dict=measures['lsesum']),
             'minitors': measures['minitors'],
             'maxcrplan': measures['maxcrplan'],
             'maxdifffaceaniso': measures['maxdifffaceaniso'],
             'maxMLlength': measures['maxMLlength'],
             'porediam': measures['porediam'],
-            'relformatione': {
-                i: (
-                    measures['formatione'][i]
-                    - min(measures['formatione'].values())
-                )
-                for i in measures['formatione']
-            },
+            'relformatione': start_at_0(
+                data_dict=measures['formatione']
+            ),
             'maxfacemetalpd': measures['maxfacemetalpd'],
             'maxintangledev': measures['maxintangledev'],
         }
