@@ -14,6 +14,7 @@ Date Created: 11 Nov 2020
 import sys
 import numpy as np
 import json
+import matplotlib.pyplot as plt
 from os.path import join
 from itertools import combinations
 from os import system
@@ -104,19 +105,16 @@ class XtalCage:
         self,
         cage_directory,
         n_atoms,
-        cage_set
+        cage_set,
     ):
 
         already_run_lowest_energy_filename = (
             f'C_{cage_set}_sg{n_atoms}_1_opt.mol'
         )
-        print(already_run_lowest_energy_filename)
         mol = stk.BuildingBlock.init_from_file(
             join(cage_directory, already_run_lowest_energy_filename)
         )
         new_filename = f'{self.name}_sg{n_atoms}_1_opt.mol'
-        print(new_filename)
-        sys.exit()
         mol.write(new_filename)
 
     def get_cage_set_measures(self, cage_directory, cage_set):
@@ -125,6 +123,57 @@ class XtalCage:
         )
         with open(measures_file, 'r') as f:
             return json.load(f)
+
+    def plot_Y(self, data, xtal_data, ylabel, filename, ylim=None):
+        C = '#AFE074'
+        M = 'o'
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+        x_pos_list = []
+        names_list = []
+        for i, name in enumerate(data):
+            X = i+2
+            names_list.append(convert_symm_names(name.split('_')[-1]))
+            x_pos_list.append(X)
+            ax.scatter(
+                X,
+                data[name],
+                c=C,
+                edgecolors='k',
+                marker=M,
+                alpha=1.0,
+                s=180
+            )
+
+        # Add xtal data.
+        X = i+1+2
+        names_list.append('xtal')
+        x_pos_list.append(X)
+        ax.scatter(
+            X,
+            xtal_data,
+            c=C,
+            edgecolors='k',
+            marker='X',
+            alpha=1.0,
+            s=180
+        )
+        # Set number of ticks for x-axis
+        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.set_ylabel(ylabel, fontsize=16)
+        ax.set_xlim(1, i+5)
+        ax.set_ylim(ylim)
+        ax.set_xticklabels(names_list)
+        ax.set_xticks(x_pos_list)
+
+        fig.tight_layout()
+        fig.savefig(
+            filename,
+            dpi=720,
+            bbox_inches='tight'
+        )
+        plt.close()
+
     def get_min_order_value(self):
 
         op_set = get_order_values(
@@ -338,8 +387,6 @@ def main():
         ligand_lib_file = sys.argv[1]
         complex_lib_file = sys.argv[2]
         cage_set_lib_file = sys.argv[3]
-        ligand_directory = sys.argv[4]
-        complex_directory = sys.argv[5]
         cage_directory = sys.argv[6]
 
     cage_set_lib = read_lib(cage_set_lib_file)
@@ -376,9 +423,17 @@ def main():
             'ligand_name': 'quad2_16',
             'complexes': ('cl1_zn_oct_lam', 'cl1_zn_oct_del'),
         },
+        'jd354': {
+            'cage_set': 'cl1_quad2_2',
+            'cage_name': 'C_cl1_quad2_2_d31',
+            'symmetry_name': 'd31',
+            'ligand_name': 'quad2_2',
+            'complexes': ('cl1_zn_oct_lam', 'cl1_zn_oct_del'),
+        },
     }
 
     xtal_cage_data = {}
+    comp_cage_data = {}
     for xtal in xtals:
         print(f'---- doing: {xtal}')
         pdb_file = f'{xtal}.pdb'
@@ -462,6 +517,29 @@ def main():
             name=xtal_cage.name
         )
 
+        for p in plottables:
+            p_dict = plottables[p]
+            if p in ['formatione']:
+                continue
+            if p in ['lsesum']:
+                xtal_data = (
+                    cage_data[p]
+                    - min(comp_cage_data[xtal][p].values())
+                )
+            else:
+                xtal_data = cage_data[p]
+            print(p, cage_data[p], xtal_data, p_dict['data'])
+            input()
+            xtal_cage.plot_Y(
+                data=p_dict['data'],
+                xtal_data=xtal_data,
+                ylabel=p_dict['ylabel'],
+                ylim=(None, None),
+                filename=p_dict['filename']
+            )
+
+    print(xtal_cage_data['jd301'])
+    print(comp_cage_data['jd301'])
 
     sys.exit()
 
