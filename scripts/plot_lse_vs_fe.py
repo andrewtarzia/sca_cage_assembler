@@ -11,6 +11,7 @@ Date Created: 08 Nov 2020
 
 """
 
+import numpy as np
 from glob import glob
 import json
 import sys
@@ -35,19 +36,27 @@ def main():
     lses = []
     form_eys = []
     for i in json_files:
-        print(i)
+        print(f'doing {i}')
         with open(i, 'r') as f:
-            cage_data = json.load(f)
-        print(cage_data.keys())
-        for cage in cage_data:
-            print(cage)
-            fe = cage_data[cage]['fe_prop']
-            li_data = cage_data[cage]['li_prop']
+            cage_set_data = json.load(f)
+
+        print(
+            f'there are {len(cage_set_data.keys())} cages in this set.'
+        )
+        for cage in cage_set_data:
+            cage_data = cage_set_data[cage]
+            print(
+                f"doing cage: {cage}, optimized: "
+                f"{cage_data['optimized']}."
+            )
+            if not cage_data['optimized']:
+                continue
+            fe = cage_data['fe_prop']
+            li_data = cage_data['li_prop']
             lse_sum = sum([
                 li_data['strain_energies'][i]
                 for i in li_data['strain_energies']
             ])
-            print(fe, li_data['strain_energies'], lse_sum)
             lses.append(lse_sum)
             form_eys.append(fe)
 
@@ -55,21 +64,29 @@ def main():
     ax.scatter(
         lses,
         form_eys,
-        c='k',
+        c='gold',
         edgecolors='k',
         marker='o',
         alpha=1.0,
-        s=120
+        s=80
+    )
+    ax.plot(
+        lses,
+        np.poly1d(np.polyfit(lses, form_eys, 1))(lses),
+        c='k', lw=2
     )
     # Set number of ticks for x-axis
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_xlabel(r'sum strain energy [kJ/mol]', fontsize=16)
     ax.set_ylabel(r'formation energy [kJ/mol]', fontsize=16)
-    # ax.set_xlim(1, i+3)
-    # ax.set_ylim(ylim)
 
     fig.tight_layout()
     fig.savefig('lse_sum_vs_fe.pdf', dpi=720, bbox_inches='tight')
+
+    ax.set_xlim(1550, 2500)
+    ax.set_ylim(-2300, -1400)
+    fig.savefig('lse_sum_vs_fe_z.pdf', dpi=720, bbox_inches='tight')
+
     plt.close()
 
 
