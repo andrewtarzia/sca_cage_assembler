@@ -239,7 +239,7 @@ def cage_set_properties(cage_set):
             },
         }
         with open(cage_set.measures_file, 'w') as f:
-            json.dump(measures, f)
+            json.dump(measures, f, indent=4)
 
     print(f'properties of: {cage_set.name}')
     print('minimum OPs:', measures['octop'])

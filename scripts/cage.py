@@ -643,8 +643,14 @@ class Cage:
             file_prefix=f'{self.base_name}_sg'
         )
         imine_torsion_dict = atools.calculate_abs_imine_torsions(
-            org_ligs=org_ligs
+            org_ligs=org_ligs,
         )
+        for ol in imine_torsion_dict:
+            if len(imine_torsion_dict[ol]) != 4:
+                raise ValueError(
+                  f'{len(imine_torsion_dict[ol])} minies found, '
+                  'but 4 expected.'
+                )
         planarity_dict = atools.calculate_ligand_planarities(
             org_ligs=org_ligs
         )
