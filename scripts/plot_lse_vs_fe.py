@@ -77,8 +77,8 @@ def main():
     )
     # Set number of ticks for x-axis
     ax.tick_params(axis='both', which='major', labelsize=16)
-    ax.set_xlabel(r'sum strain energy [kJ/mol]', fontsize=16)
-    ax.set_ylabel(r'formation energy [kJ/mol]', fontsize=16)
+    ax.set_xlabel(r'sum strain energy [kJmol$^{-1}$]', fontsize=16)
+    ax.set_ylabel(r'formation energy [kJmol$^{-1}$]', fontsize=16)
 
     fig.tight_layout()
     fig.savefig('lse_sum_vs_fe.pdf', dpi=720, bbox_inches='tight')

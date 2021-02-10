@@ -579,7 +579,7 @@ def get_plottables(measures, name):
         },
         'lsesum': {
             'data': start_at_0(data_dict=measures['lsesum']),
-            'ylabel': r'rel. sum strain energy [kJ/mol]',
+            'ylabel': r'rel. sum strain energy [kJmol$^{-1}$]',
             'ylim': (0, 500),
             'filename': f'{name}_sumLSE.pdf'
         },
@@ -630,7 +630,7 @@ def get_plottables(measures, name):
         },
         'formatione': {
             'data': start_at_0(data_dict=measures['formatione']),
-            'ylabel': r'rel. formation energy [kJ/mol]',
+            'ylabel': r'rel. formation energy [kJmol$^{-1}$]',
             'ylim': (-10, 1000),
             'filename': f'{name}_relfe.pdf'
         },
