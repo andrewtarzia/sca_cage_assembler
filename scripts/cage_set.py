@@ -51,6 +51,9 @@ class CageSet:
         self.name = name
         self.properties_file = f'{self.name}_CS.json'
         self.measures_file = f'{self.name}_measures.json'
+        self.ligand_measures_file = (
+            f'{self.name}_ligand_measures.json'
+        )
         self.cage_set_dict = cage_set_dict
         self.complex_dicts = complex_dicts
         self.ligand_dicts = ligand_dicts
@@ -67,6 +70,17 @@ class CageSet:
         self.flex_properties = self._get_flex_properties(ligand_dir)
         # Get ideal pore size based on short axis of ligand.
         self.ideal_pore_size = self._get_ideal_pore_size(ligand_dir)
+        with open(self.ligand_measures_file, 'w') as f:
+            json.dump(
+                {
+                    'ligand_aspect_ratio': self.ligand_aspect_ratio,
+                    'face_properties': self.face_properties,
+                    'flex_properties': self.flex_properties,
+                    'ideal_pore_size': self.ideal_pore_size,
+                },
+                f,
+                indent=4,
+            )
 
     def _get_ligand_AR(self, ligand_dir):
         """
