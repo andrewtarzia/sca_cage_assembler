@@ -114,7 +114,140 @@ def plot_heatmap_X_vs_Y(
     )
     plt.close()
 
-    ax.set_xlabel(xlabel)
+
+def plot_4Dheatmap_X_vs_Y(
+    ydata,
+    yname,
+    ylabel,
+    xname,
+    xlabel,
+    x2name,
+    x2label,
+    symmetries,
+    filename,
+    experimentals,
+    ylim=None,
+):
+
+    def size_scaling(x, x_ranges):
+        max_size = 200
+        val = (x/x_ranges[1]) * max_size
+        return val
+
+    # Define range for size scaling.
+    allx2s = set([ydata[cageset][x2name] for cageset in ydata])
+    x2range = (0, np.ceil(max(allx2s)))
+    if ylim is None:
+        allys = [
+            ydata[cageset][yname][cage]
+            for cageset in ydata
+            for cage in ydata[cageset][yname]
+            if ydata[cageset][yname][cage] is not None
+        ]
+        yrange = (min(allys), max(allys))
+    else:
+        yrange = ylim
+
+    fig, ax = plt.subplots()
+    x_range = np.arange(len(ydata.keys()))
+    y_range = np.arange(len(symmetries))
+    X, Y = np.meshgrid(x_range, y_range)
+    X = X.flatten()
+    Y = Y.flatten()
+    Xnames = [list(ydata.keys())[i] for i in X]
+    Ynames = [symmetries[i] for i in Y]
+    Cs = [0 for i in range(len(Xnames))]
+    X2s = [0 for i in range(len(Xnames))]
+    for cagesetname in ydata:
+        _ids = [
+            i for i in range(len(Xnames))
+            if Xnames[i] == cagesetname
+        ]
+        for _id in _ids:
+            # Other cage set property.
+            X2s[_id] = size_scaling(
+                ydata[cagesetname][x2name],
+                x_ranges=x2range,
+            )
+
+        # Iterate over all cages in set.
+        for cage in ydata[cagesetname][yname]:
+            symm = cage.split('_')[-1]
+            _id = [
+                i for i in range(len(Xnames))
+                if (Xnames[i] == cagesetname and Ynames[i] == symm)
+            ][0]
+            Cs[_id] = ydata[cagesetname][yname][cage]
+
+            # If experimental, add a star!
+            if cage in experimentals:
+                ax.scatter(
+                    X[_id]+0.25,
+                    Y[_id]+0.25,
+                    marker='*',
+                    c='orange',
+                    s=120,
+                )
+
+    p = ax.scatter(
+        X,
+        Y,
+        c=Cs,
+        s=X2s,
+        # edgecolor='k',
+        cmap='viridis',
+        vmin=yrange[0],
+        vmax=yrange[1],
+    )
+
+    # Add a colorbar
+    cbar = fig.colorbar(p)
+    cbar.ax.set_ylabel(ylabel, rotation=-90, va="bottom")
+
+    # We want to show all ticks...
+    ax.set_xticks(np.arange(len(ydata.keys())))
+    ax.set_yticks(np.arange(len(symmetries)))
+    # ... and label them with the respective list entries.
+    ax.set_xticklabels([
+        f"{convert_lig_names_from_cage('_'.join(i.split('_')[1:]))}: "
+        f"{round(ydata[i][xname], 2)}"
+        for i in ydata
+    ])
+    ax.set_yticklabels([convert_symm_names(i) for i in symmetries])
+
+    # Let the horizontal axes labeling appear on top.
+    ax.tick_params(
+        top=True,
+        bottom=False,
+        labeltop=True,
+        labelbottom=False
+    )
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(
+        ax.get_xticklabels(),
+        rotation=-30,
+        ha="right",
+        rotation_mode="anchor"
+    )
+    ax.tick_params(which="minor", bottom=False, left=False)
+
+    # Fake legend.
+    for i in np.arange(x2range[0], x2range[1], step=0.5):
+        if i == 0:
+            continue
+        ax.scatter(
+            -100,
+            -100,
+            c='white',
+            s=size_scaling(i, x2range),
+            edgecolor='k',
+            label=f'{i}'
+        )
+    ax.legend(fontsize=16)
+    ax.set_xlim(min(X)-1, max(X)+1)
+    ax.set_ylim(min(Y)-1, max(Y)+1)
+
     fig.tight_layout()
     fig.savefig(
         filename,
@@ -371,6 +504,24 @@ def analyse_cages(cage_sets, experimentals):
         # 'FAMM': 'avg. side mismatch [%]',
     }
     if len(AR_data) > 0:
+        # Plot vs cage properties.
+        for t in tests:
+            plot_4Dheatmap_X_vs_Y(
+                ydata=AR_data,
+                yname=t,
+                ylabel=tests[t][0],
+                ylim=tests[t][1],
+                xname='AR',
+                xlabel=cs_tests['AR'],
+                x2name='LAR',
+                x2label=cs_tests['LAR'],
+                symmetries=[
+                    'o1', 'th1', 'th2', 't1', 's61',
+                    's62', 'd31', 'd32', 'c2v', 'c2h',
+                ],
+                filename=f'plotset4D_{t}_VARvLAR.pdf',
+                experimentals=experimentals,
+            )
         for cs_test in cs_tests:
             # Plot vs cage properties.
             for t in tests:
