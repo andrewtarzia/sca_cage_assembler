@@ -197,6 +197,8 @@ def main():
     analyse_cage_sets(cage_sets)
     analyse_cages(cage_sets, experimentals)
 
+    write_csv(cage_sets, experimentals)
+
 
 if __name__ == "__main__":
     main()

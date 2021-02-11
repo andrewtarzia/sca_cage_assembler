@@ -14,6 +14,7 @@ Date Created: 27 Jan 2020
 from os.path import exists
 from itertools import combinations
 import matplotlib.pyplot as plt
+import pandas as pd
 import numpy as np
 import json
 
@@ -597,3 +598,91 @@ def analyse_cage_sets(cage_sets):
         bbox_inches='tight'
     )
     plt.close()
+
+
+def write_csv(cage_sets, experimentals):
+    """
+    Write a .csv file with all numerical values for cage library.
+
+    """
+
+    cage_set_data = {}
+    for cage_set in cage_sets:
+        measures = cage_set_properties(cage_set)
+        # For all HoCube sets, collect ligand data and
+        # each cages measures.
+        cage_set_data[cage_set.name] = {
+            'AR': cage_set.ligand_aspect_ratio,
+            'FAMM': cage_set.face_properties,
+            'PPD': cage_set.ideal_pore_size,
+            'LAR': cage_set.flex_properties['la_range'],
+            'octop': measures['octop'],
+            'rellsesum': start_at_0(data_dict=measures['lsesum']),
+            'minitors': measures['minitors'],
+            'maxcrplan': measures['maxcrplan'],
+            'maxdifffaceaniso': measures['maxdifffaceaniso'],
+            'maxMLlength': measures['maxMLlength'],
+            'porediam': measures['porediam'],
+            'relformatione': start_at_0(
+                data_dict=measures['formatione']
+            ),
+            'maxfacemetalpd': measures['maxfacemetalpd'],
+            'maxintangledev': measures['maxintangledev'],
+        }
+
+    print(experimentals)
+    tested_cage_sets = [
+        key for key in cage_set_data
+        if f'_{key}_' in '__'.join(experimentals)
+    ]
+    set_columns = [
+        'cageset', 'symmetry', 'AR', 'FAMM1', 'FAMM2', 'FAMM3', 'FAMM4',
+        'FAMM5', 'PPD', 'LAR', 'octop',
+        'rellsesum', 'minitors', 'maxcrplan', 'maxdifffaceaniso',
+        'maxMLlength', 'porediam', 'relformatione', 'maxfacemetalpd',
+        'maxintangledev', 'outcome', 'tested'
+    ]
+    symmetries = [
+        'o1', 'th1', 'th2', 't1', 's61', 's62', 'd31', 'd32',
+        'c2v', 'c2h'
+    ]
+    dataframe = pd.DataFrame(columns=set_columns)
+
+    for cagesetname in cage_set_data:
+        csd = cage_set_data[cagesetname]
+        for symm in symmetries:
+            rowinfo = {i: None for i in set_columns}
+            rowinfo['cageset'] = cagesetname
+            rowinfo['symmetry'] = symm
+            rowinfo['AR'] = csd['AR']
+            rowinfo['FAMM1'] = csd['FAMM']['1']
+            rowinfo['FAMM2'] = csd['FAMM']['2']
+            rowinfo['FAMM3'] = csd['FAMM']['3']
+            rowinfo['FAMM4'] = csd['FAMM']['4']
+            rowinfo['FAMM5'] = csd['FAMM']['5']
+            rowinfo['PPD'] = csd['PPD']
+            rowinfo['LAR'] = csd['LAR']
+            cage_name = f'C_{cagesetname}_{symm}'
+            if cage_name in experimentals:
+                rowinfo['outcome'] = 1
+            else:
+                rowinfo['outcome'] = 0
+            if cagesetname in tested_cage_sets:
+                rowinfo['tested'] = 1
+            else:
+                rowinfo['tested'] = 0
+            rowinfo['octop'] = csd['octop'][cage_name]
+            rowinfo['rellsesum'] = csd['rellsesum'][cage_name]
+            rowinfo['minitors'] = csd['minitors'][cage_name]
+            rowinfo['maxcrplan'] = csd['maxcrplan'][cage_name]
+            rowinfo['maxdifffaceaniso'] = (
+                csd['maxdifffaceaniso'][cage_name]
+            )
+            rowinfo['maxMLlength'] = csd['maxMLlength'][cage_name]
+            rowinfo['porediam'] = csd['porediam'][cage_name]
+            rowinfo['relformatione'] = csd['relformatione'][cage_name]
+            rowinfo['maxfacemetalpd'] = csd['maxfacemetalpd'][cage_name]
+            rowinfo['maxintangledev'] = csd['maxintangledev'][cage_name]
+            dataframe = dataframe.append(rowinfo, ignore_index=True)
+
+    dataframe.to_csv('all_cage_csv_data.csv')
