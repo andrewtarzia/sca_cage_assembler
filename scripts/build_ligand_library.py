@@ -18,7 +18,12 @@ import stk
 import stko
 
 import atools
-import molecule_building
+
+from molecule_building import (
+    metal_FFs,
+    custom_fg_factories,
+    available_topologies,
+)
 from utilities import (
     read_lib,
     calculate_binding_AR,
@@ -85,8 +90,8 @@ def optimise_metal_centre(name, charge, complex, metal_FF):
 
 def build_metal_organics(ligs):
 
-    m4_FFs = molecule_building.metal_FFs(CN=4)
-    m6_FFs = molecule_building.metal_FFs(CN=6)
+    m4_FFs = metal_FFs(CN=4)
+    m6_FFs = metal_FFs(CN=6)
 
     # Iterate over required library.
     for name in ligs:
@@ -112,13 +117,13 @@ def build_metal_organics(ligs):
             position_matrix=[[0, 0, 0]],
         )
 
-        mc_topo_fn = molecule_building.available_topologies(
+        mc_topo_fn = available_topologies(
             comp['ctopo']
         )
 
         # Load in organic BB.
         ligand_fg_factories = [
-            molecule_building.custom_fg_factories(i)
+            custom_fg_factories(i)
             for i in comp['organic_FG']
         ]
         organic_BB = stk.BuildingBlock.init_from_file(

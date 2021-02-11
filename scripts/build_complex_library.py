@@ -17,8 +17,13 @@ import json
 import stk
 import stko
 
-import molecule_building
-from utilities import read_lib
+from molecule_building import (
+    custom_fg_factories,
+    available_topologies,
+    metal_FFs,
+    optimize_SCA_complex,
+)
+from .utilities import read_lib
 
 
 def get_spin_state_energies(complex, name, dict):
@@ -73,7 +78,7 @@ def build_complexes(complexes, ligand_directory):
         )
 
         ligand_fg_factories = [
-            molecule_building.custom_fg_factories(i)
+            custom_fg_factories(i)
             for i in ['CNBr_metal', 'CNC_metal']
         ]
         coord_species = stk.BuildingBlock.init_from_file(
@@ -81,7 +86,7 @@ def build_complexes(complexes, ligand_directory):
             functional_groups=ligand_fg_factories
         )
 
-        topology_builder = molecule_building.available_topologies(
+        topology_builder = available_topologies(
             comp['topology']
         )
 
@@ -94,8 +99,8 @@ def build_complexes(complexes, ligand_directory):
         comp['unpaired_e'] = comp['unpaired_e'][0]
 
         # Define metal_FFs to use in optimisation.
-        custom_metal_FFs = molecule_building.metal_FFs(CN=6)
-        complex = molecule_building.optimize_SCA_complex(
+        custom_metal_FFs = metal_FFs(CN=6)
+        complex = optimize_SCA_complex(
             complex=complex,
             name=name,
             dict=comp,

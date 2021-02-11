@@ -561,10 +561,6 @@ def start_at_0(data_dict):
             new_dict[i] = None
         else:
             new_dict[i] = data_dict[i] - min_val
-    print(data_dict)
-    print(new_dict)
-    print(min_val)
-    input()
     return new_dict
 
 
