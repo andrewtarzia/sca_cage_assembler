@@ -15,7 +15,11 @@ import sys
 from os.path import exists
 
 from cage_set import HoCube
-from cage_analysis import analyse_cages, analyse_cage_sets
+from cage_analysis import (
+    analyse_cages,
+    analyse_cage_sets,
+    write_csv,
+)
 from utilities import read_lib
 
 
@@ -62,6 +66,11 @@ def build_cages(
                     # target_bond_length = 1.2
                     # num_steps = 2000
                     # step_size = 0.25
+                else:
+                    step_size = 0.05
+                    distance_cut = 2.5
+                    scale_steps = False
+                    expected_ligands = 1
                 C.save_bb_vector_xyzs(f'{C.unopt_file}.mol')
 
                 # Check if structure has previously had optimisation
