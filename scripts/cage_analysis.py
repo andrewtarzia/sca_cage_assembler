@@ -451,6 +451,7 @@ def analyse_cages(cage_sets, experimentals):
             'PPD': cage_set.ideal_pore_size,
             'LAR': cage_set.flex_properties['la_range'],
             'octop': measures['octop'],
+            'lsesum': measures['lsesum'],
             'rellsesum': start_at_0(data_dict=measures['lsesum']),
             'minitors': measures['minitors'],
             'maxcrplan': measures['maxcrplan'],
@@ -618,6 +619,7 @@ def write_csv(cage_sets, experimentals):
             'LAR': cage_set.flex_properties['la_range'],
             'octop': measures['octop'],
             'rellsesum': start_at_0(data_dict=measures['lsesum']),
+            'lsesum': measures['lsesum'],
             'minitors': measures['minitors'],
             'maxcrplan': measures['maxcrplan'],
             'maxdifffaceaniso': measures['maxdifffaceaniso'],
@@ -638,7 +640,8 @@ def write_csv(cage_sets, experimentals):
     set_columns = [
         'cageset', 'symmetry', 'AR', 'FAMM1', 'FAMM2', 'FAMM3', 'FAMM4',
         'FAMM5', 'PPD', 'LAR', 'octop',
-        'rellsesum', 'minitors', 'maxcrplan', 'maxdifffaceaniso',
+        'lsesum', 'rellsesum', 'minitors', 'maxcrplan',
+        'maxdifffaceaniso',
         'maxMLlength', 'porediam', 'relformatione', 'maxfacemetalpd',
         'maxintangledev', 'outcome', 'tested'
     ]
@@ -672,6 +675,7 @@ def write_csv(cage_sets, experimentals):
             else:
                 rowinfo['tested'] = 0
             rowinfo['octop'] = csd['octop'][cage_name]
+            rowinfo['lsesum'] = csd['lsesum'][cage_name]
             rowinfo['rellsesum'] = csd['rellsesum'][cage_name]
             rowinfo['minitors'] = csd['minitors'][cage_name]
             rowinfo['maxcrplan'] = csd['maxcrplan'][cage_name]
@@ -686,3 +690,51 @@ def write_csv(cage_sets, experimentals):
             dataframe = dataframe.append(rowinfo, ignore_index=True)
 
     dataframe.to_csv('all_cage_csv_data.csv')
+
+
+def write_xray_csv(xtal_cage_data):
+    """
+    Write a .csv file with all numerical values for cage library.
+
+    """
+
+    set_columns = [
+        'cageset', 'symmetry', 'AR', 'FAMM1', 'FAMM2', 'FAMM3', 'FAMM4',
+        'FAMM5', 'PPD', 'LAR', 'octop',
+        'lsesum', 'rellsesum', 'minitors', 'maxcrplan',
+        'maxdifffaceaniso',
+        'maxMLlength', 'porediam', 'relformatione', 'maxfacemetalpd',
+        'maxintangledev', 'outcome', 'tested'
+    ]
+    dataframe = pd.DataFrame(columns=set_columns)
+
+    for xtal in xtal_cage_data:
+        csd = xtal_cage_data[xtal]
+
+        rowinfo = {i: None for i in set_columns}
+        rowinfo['cageset'] = xtal
+        rowinfo['symmetry'] = None
+        rowinfo['AR'] = None
+        rowinfo['FAMM1'] = None
+        rowinfo['FAMM2'] = None
+        rowinfo['FAMM3'] = None
+        rowinfo['FAMM4'] = None
+        rowinfo['FAMM5'] = None
+        rowinfo['PPD'] = None
+        rowinfo['LAR'] = None
+        rowinfo['outcome'] = 1
+        rowinfo['tested'] = 1
+        rowinfo['octop'] = csd['octop']
+        rowinfo['lsesum'] = csd['lsesum']
+        rowinfo['rellsesum'] = None
+        rowinfo['minitors'] = csd['minitors']
+        rowinfo['maxcrplan'] = csd['maxcrplan']
+        rowinfo['maxdifffaceaniso'] = csd['maxdifffaceaniso']
+        rowinfo['maxMLlength'] = csd['maxMLlength']
+        rowinfo['porediam'] = csd['porediam']
+        rowinfo['relformatione'] = None
+        rowinfo['maxfacemetalpd'] = csd['maxfacemetalpd']
+        rowinfo['maxintangledev'] = csd['maxintangledev']
+        dataframe = dataframe.append(rowinfo, ignore_index=True)
+
+    dataframe.to_csv('all_xray_csv_data.csv')
