@@ -463,7 +463,7 @@ def get_planar_conformer(molecule):
         N=100,
         ETKDG_version='v3'
     )
-    print(f'getting optimal conformer...')
+    print('getting optimal conformer...')
     min_plane_dev = 100000000
     min_cid = -10
 
