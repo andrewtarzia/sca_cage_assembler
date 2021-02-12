@@ -27,12 +27,10 @@ def plot_all_ligand_properties(json_files, candms):
         with open(i, 'r') as f:
             cage_set_data = json.load(f)
 
-        print(cage_set_data)
         preferred_face = min(
             cage_set_data['face_properties'],
             key=cage_set_data['face_properties'].get
         )
-        print(preferred_face)
         x = cage_set_data['ligand_aspect_ratio']
         y = cage_set_data['flex_properties']['la_range']
         c, m = candms[preferred_face]
@@ -110,6 +108,8 @@ def plot_MM_vs_AR(json_files, candms):
                 key=lambda pair: pair[0]
             )
         ]
+        print(XY)
+        input()
         X = [i[0] for i in XY]
         Y = [i[1] for i in XY]
         ax.plot(

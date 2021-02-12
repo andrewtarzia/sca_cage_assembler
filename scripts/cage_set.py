@@ -146,7 +146,7 @@ class CageSet:
 
         face_dir = join(ligand_dir, 'face_analysis')
         face_prop_files = glob(
-            join(face_dir, f'F_{self.name}*properties.json')
+            join(face_dir, f'F_{self.name}_*properties.json')
         )
 
         properties = {}

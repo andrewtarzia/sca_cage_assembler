@@ -90,7 +90,7 @@ def optimize_complex(complex, name):
 def load_ligands(directory):
 
     ligands = {}
-    for lig in glob(join(directory, f'quad2*_opt.mol')):
+    for lig in glob(join(directory, 'quad2*_opt.mol')):
         l_name = lig.replace(directory, '').replace('_opt.mol', '')
         ligands[l_name] = stk.BuildingBlock.init_from_file(
             lig,
