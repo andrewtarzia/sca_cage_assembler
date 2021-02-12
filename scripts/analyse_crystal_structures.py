@@ -37,6 +37,7 @@ from atools import (
 
 from cage import UnexpectedNumLigands
 from utilities import read_lib, convert_symm_names, get_plottables
+from cage_analysis import write_xray_csv
 
 
 class XtalCage:
@@ -435,6 +436,8 @@ def main():
     xtal_cage_data = {}
     comp_cage_data = {}
     for xtal in xtals:
+        if xtal == 'jd354':
+            raise NotImplementedError()
         print(f'---- doing: {xtal}')
         pdb_file = f'{xtal}.pdb'
         cage_data = {}
@@ -522,9 +525,8 @@ def main():
             if p in ['formatione']:
                 continue
             if p in ['lsesum']:
-                xtal_data = (
-                    cage_data[p]
-                    - min(comp_cage_data[xtal][p].values())
+                xtal_data = cage_data[p] - min(
+                    comp_cage_data[xtal][p].values()
                 )
             else:
                 xtal_data = cage_data[p]
@@ -538,6 +540,7 @@ def main():
                 filename=p_dict['filename']
             )
 
+    write_xray_csv(xtal_cage_data)
     print(xtal_cage_data['jd301'])
     print(comp_cage_data['jd301'])
 
