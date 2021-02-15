@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Distributed under the terms of the MIT License.
+
+"""
+Script to plot results of DFT calculations of ligand strain.
+
+Author: Andrew Tarzia
+
+Date Created: 15 Feb 2021
+
+
+"""
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from atools import colors_i_like
+
+
+def main():
+
+    csv_file = 'strain_energy_comparison.csv'
+    data = pd.read_csv(csv_file)
+    print(data.head())
+    data['xtb_kjpermol'] = data['xtb'] * 2625.5
+    data['dft_kjpermol'] = data['dft'] * 2625.5
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    xray_data = data[data['from'] == 'crystal']
+    calc_data = data[data['from'] == 'computation']
+    print(xray_data)
+    print(calc_data)
+
+    ax.scatter(
+        calc_data['xtb_kjpermol'],
+        calc_data['dft_kjpermol'],
+        c=colors_i_like()[10],
+        edgecolors='k',
+        marker='o',
+        alpha=1.0,
+        s=80,
+        label='xray',
+    )
+
+    ax.scatter(
+        xray_data['xtb_kjpermol'],
+        xray_data['dft_kjpermol'],
+        c=colors_i_like()[11],
+        edgecolors='k',
+        marker='X',
+        alpha=1.0,
+        s=80,
+        label='xray',
+    )
+    # Set number of ticks for x-axis
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.set_xlabel(r'xTB strain energy [kJmol$^{-1}$]', fontsize=16)
+    ax.set_ylabel(r'DFT strain energy [kJmol$^{-1}$]', fontsize=16)
+    ax.legend(fontsize=16)
+    fig.tight_layout()
+    fig.savefig(
+        'strain_energy_comparison.pdf', dpi=720, bbox_inches='tight'
+    )
+
+    plt.close()
+
+
+if __name__ == "__main__":
+    main()
