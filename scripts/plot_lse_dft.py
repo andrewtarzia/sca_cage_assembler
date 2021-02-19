@@ -12,6 +12,7 @@ Date Created: 15 Feb 2021
 
 """
 
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -22,8 +23,7 @@ def main():
 
     csv_file = 'strain_energy_comparison.csv'
     data = pd.read_csv(csv_file)
-    print(data.head())
-    data['xtb_kjpermol'] = data['xtb'] * 2625.5
+
     data['dft_kjpermol'] = data['dft'] * 2625.5
 
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -40,8 +40,8 @@ def main():
         edgecolors='k',
         marker='o',
         alpha=1.0,
-        s=80,
-        label='xray',
+        s=120,
+        label='calculated',
     )
 
     ax.scatter(
@@ -51,17 +51,32 @@ def main():
         edgecolors='k',
         marker='X',
         alpha=1.0,
-        s=80,
+        s=120,
         label='xray',
+    )
+    ax.plot(
+        np.linspace(-10, 3000, 100), np.linspace(-10, 3000, 100),
+        c='k'
     )
     # Set number of ticks for x-axis
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_xlabel(r'xTB strain energy [kJmol$^{-1}$]', fontsize=16)
     ax.set_ylabel(r'DFT strain energy [kJmol$^{-1}$]', fontsize=16)
+    ax.set_xlim(0, 2500)
+    ax.set_ylim(0, 2500)
     ax.legend(fontsize=16)
     fig.tight_layout()
     fig.savefig(
         'strain_energy_comparison.pdf', dpi=720, bbox_inches='tight'
+    )
+
+    ax.set_xlim(0, 600)
+    ax.set_ylim(0, 600)
+    ax.legend(fontsize=16)
+    fig.tight_layout()
+    fig.savefig(
+        'strain_energy_comparison_zoomed.pdf',
+        dpi=720, bbox_inches='tight'
     )
 
     plt.close()

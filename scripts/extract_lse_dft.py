@@ -32,27 +32,23 @@ def read_orca_output(output_path):
 
 def collect_all_energies(ey_files, dft_directory):
 
-    TEST_FILES = [
-        'C_cl1_quad2_16_th2_sg114_1_1.ey',
-        'jd235_sg120_1_0.ey',
-        'jd235_sg120_1_5.ey'
+    ignore = [
+        './triflimide_opt.ey', './znII_opt.ey', './znII_loweopt.ey',
+        './zinc_triflimide_opt.ey'
     ]
 
     energies = {}
     for xtb_ey_file in ey_files:
-        test = xtb_ey_file.split('/')[-1]
-        if test not in TEST_FILES:
+        if xtb_ey_file in ignore:
             continue
         xtb_ey = read_gfnx2xtb_eyfile(xtb_ey_file)
         output_file = xtb_ey_file.replace('.ey', '.out').split('/')[-1]
-        print(xtb_ey_file, xtb_ey, output_file)
         output_path = os.path.join(dft_directory, output_file)
         if not os.path.exists(output_path):
             raise FileNotFoundError(xtb_ey_file)
         dft_ey = read_orca_output(output_path)
         if dft_ey is None:
             raise ValueError(output_path)
-        print(xtb_ey, dft_ey)
         energies[xtb_ey_file] = (output_file, xtb_ey, dft_ey)
 
     return energies
@@ -67,8 +63,19 @@ def calculate_all_strain_energies(all_energies):
             continue
         extr_xtb_energy = all_energies[file][1]
         extr_dft_energy = all_energies[file][2]
+        print(file)
 
-        opt_file = 'something'
+        if 'C_' in file:
+            opt_file = '_'.join(
+                file.split('_')[:4] + file.split('_')[5:-1] +
+                ['opt.' + file.split('_')[-1].split('.')[-1]]
+            )
+        elif 'jd' in file:
+            opt_file = '_'.join(
+                file.split('_')[:-1] + [
+                    'opt.' + file.split('_')[-1].split('.')[-1]
+                ]
+            )
         free_xtb_energy = all_energies[opt_file][1]
         free_dft_energy = all_energies[opt_file][2]
 
@@ -124,7 +131,10 @@ def main():
 
     df = pd.DataFrame.from_dict({
         'file': [i for i in strain_energies],
-        'xtb': [strain_energies[i][0] for i in strain_energies],
+        # Already in kJ/mol.
+        'xtb_kjpermol': [
+            strain_energies[i][0] for i in strain_energies
+        ],
         'dft': [strain_energies[i][1] for i in strain_energies],
         'from': [strain_energies[i][2] for i in strain_energies],
     })
