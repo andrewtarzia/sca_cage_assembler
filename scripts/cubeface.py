@@ -376,13 +376,6 @@ class CubeFace(stk.cage.Cage):
     Ligand building blocks with four functional groups are required for
     this topology.
 
-    When using a :class:`dict` for initialization, a
-    :class:`.BuildingBlock` needs to be assigned to each of the
-    following numbers:
-
-        | metals (3 functional groups): 0 to 3
-        | ligands (4 functional groups): 4
-
     See :class:`.Cage` for more details and examples.
 
     """
