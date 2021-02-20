@@ -164,7 +164,20 @@ def optimize_face(face, face_name):
     return opt_face
 
 
-def calculate_face_properties(face, metal_atomic_number=30):
+def get_all_bond_lengths(face):
+
+    all_bls = []
+    for bond in face.get_bonds():
+        a1 = bond.get_atom1().get_id()
+        a2 = bond.get_atom2().get_id()
+        all_bls.append(get_atom_distance(
+            molecule=face,
+            atom1_id=a1,
+            atom2_id=a2,
+        ))
+
+    return all_bls
+
     """
     Calculate geoemtrical properties of a face.
 
@@ -331,8 +344,16 @@ def main():
         },
     }
 
+    # Skip ligands not in database of 10.
+    dataset_of_10 = [
+        'quad2_1', 'quad2_12', 'quad2_2', 'quad2_3', 'quad2_8',
+        'quad2_9', 'quad2_10', 'quad2_5', 'quad2_16', 'quad2_17',
+    ]
+
     # Build and optimise five face options per ligand.
     for lig in sorted(ligands):
+        if lig not in dataset_of_10:
+            continue
         print(f'doing {lig}...')
         lig_structure = ligands[lig]
         # Build each face topology.
@@ -348,6 +369,12 @@ def main():
                 face_topo=final_topology_dict,
             )
             opt_face = optimize_face(face, face_name)
+            all_bls = get_all_bond_lengths(opt_face)
+            if max(all_bls) > 3:
+                raise ValueError(
+                    f'max bond length of {face_name} is {max(all_bls)}'
+                )
+
 
             # Measure properties.
             face_properties = get_face_properties(opt_face, face_name)
