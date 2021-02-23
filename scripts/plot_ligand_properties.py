@@ -19,7 +19,8 @@ import matplotlib.pyplot as plt
 from atools import colors_i_like
 
 
-def plot_all_ligand_properties(json_files, candms):
+def plot_all_ligand_properties(json_files, candms, expts):
+    print(expts)
     fig, ax = plt.subplots(figsize=(8, 5))
     for i in json_files:
         cage_set = i.replace('_ligand_measures.json', '')
@@ -34,6 +35,13 @@ def plot_all_ligand_properties(json_files, candms):
         x = cage_set_data['ligand_aspect_ratio']
         y = cage_set_data['flex_properties']['la_range']
         c, m = candms[preferred_face]
+        if cage_set in expts:
+            exptl = expts[cage_set]
+            if exptl == preferred_face:
+                tc = 'k'
+            else:
+                tc = 'r'
+            ax.text(x+0.03, y, exptl, c=tc, fontsize=16)
         print(x, y, c, m)
         ax.scatter(
             x,
@@ -54,7 +62,7 @@ def plot_all_ligand_properties(json_files, candms):
             marker=m,
             alpha=1.0,
             s=120,
-            label=f'face: {cm}'
+            label=f'{cm}'
         )
 
     ax.tick_params(axis='both', which='major', labelsize=16)
@@ -63,19 +71,18 @@ def plot_all_ligand_properties(json_files, candms):
         r'long axis deviation [$\mathrm{\AA}$]',
         fontsize=16
     )
-    ax.set_xlim(1.0, 3)
+    ax.set_xlim(1.0, 2.6)
     ax.set_ylim(0.4, 2)
-    ax.legend(fontsize=16)
+    ax.legend(fontsize=16, ncol=2)
     fig.savefig(
         'all_ligand_properties.pdf',
         dpi=720,
         bbox_inches='tight'
     )
-
     plt.close()
 
 
-def plot_MM_vs_AR(json_files, candms):
+def plot_MM_vs_AR(json_files, candms, expts):
     fig, ax = plt.subplots(figsize=(8, 5))
     stabs = {
         '1': {'ar': [], 'stab': []},
@@ -98,7 +105,7 @@ def plot_MM_vs_AR(json_files, candms):
             )
 
     for face in stabs:
-        if face in ['1', '4', '5']:
+        if face in ['1', '4']:
             continue
         c, m = candms[face]
         XY = [
@@ -109,7 +116,7 @@ def plot_MM_vs_AR(json_files, candms):
             )
         ]
         print(XY)
-        input()
+        # input()
         X = [i[0] for i in XY]
         Y = [i[1] for i in XY]
         ax.plot(
@@ -121,15 +128,15 @@ def plot_MM_vs_AR(json_files, candms):
             alpha=1.0,
             markersize=10,
             linestyle='dashed',
-            label=f'face: {face}'
+            label=f'{face}'
         )
 
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_xlabel('aspect ratio [1:X]', fontsize=16)
     ax.set_ylabel('avg. side mismatch [%]', fontsize=16)
     ax.set_xlim(1.0, 2.6)
-    ax.set_ylim(0, 110)
-    ax.legend(fontsize=16, ncol=2)
+    ax.set_ylim(0, None)
+    ax.legend(fontsize=16, ncol=3)
     fig.savefig(
         'all_ligand_MM_vs_AR.pdf',
         dpi=720,
@@ -152,6 +159,14 @@ def main():
 
     json_files = glob('*_ligand_measures.json')
 
+    experimental_results = {
+        # cage set: face in XRD
+        'cl1_quad2_2': '5',
+        'cl1_quad2_3': '2',
+        'cl1_quad2_8': '5',
+        'cl1_quad2_12': '2',
+        'cl1_quad2_16': '2',
+    }
     candms = {
         '1': (colors_i_like()[9], 'o'),
         '2': (colors_i_like()[4], 'X'),
@@ -159,8 +174,8 @@ def main():
         '4': (colors_i_like()[10], 'D'),
         '5': (colors_i_like()[3], 'P'),
     }
-    plot_all_ligand_properties(json_files, candms)
-    plot_MM_vs_AR(json_files, candms)
+    plot_all_ligand_properties(json_files, candms, experimental_results)
+    plot_MM_vs_AR(json_files, candms, experimental_results)
 
 
 if __name__ == "__main__":
