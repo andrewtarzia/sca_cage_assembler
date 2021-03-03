@@ -23,6 +23,10 @@ from atools import (
     calculate_molecule_planarity,
     update_from_rdkit_conf,
     angle_between,
+    write_shape_input_file,
+    run_shape,
+    ref_shape_dict,
+    collect_all_shape_values,
 )
 
 
@@ -581,6 +585,12 @@ def get_plottables(measures, name):
             'ylim': (0, 1),
             'filename': f'{name}_minOPs.pdf'
         },
+        'm_cube_shape': {
+            'data': measures['m_cube_shape'],
+            'ylabel': 'CU-8 shape measure',
+            'ylim': (0, 1),
+            'filename': f'{name}_cubeshape.pdf'
+        },
         'lsesum': {
             'data': start_at_0(data_dict=measures['lsesum']),
             'ylabel': r'rel. sum strain energy [kJmol$^{-1}$]',
@@ -641,3 +651,43 @@ def get_plottables(measures, name):
     }
 
     return plottables
+
+
+def calculate_cube_shape_measure(name, molecule):
+    """
+    Calculate the shape of an 8 atom molecule.
+
+    """
+
+    if molecule.get_num_atoms() != 8:
+        raise ValueError('Molecule does not have 8 atoms.')
+
+    shape_path = (
+        '/home/atarzia/software/shape_2.1_linux_64/'
+        'SHAPE_2.1_linux_64/shape_2.1_linux64'
+    )
+
+    shape_dicts = (
+        ref_shape_dict()['cube'],
+        ref_shape_dict()['octagon']
+    )
+    n_verts = list(set([i['vertices'] for i in shape_dicts]))
+    if len(n_verts) != 1:
+        raise ValueError('Different vertex shapes selected.')
+
+    input_file = f'{name}_shp.dat'
+    std_out = f'{name}_shp.out'
+    output_file = f'{name}_shp.tab'
+    write_shape_input_file(
+        input_file=input_file,
+        name=name,
+        structure=molecule,
+        num_vertices=n_verts[0],
+        central_atom_id=0,
+        ref_shapes=[i['code'] for i in shape_dicts],
+    )
+
+    run_shape(input_file, shape_path, std_out)
+    shapes = collect_all_shape_values(output_file)
+    print(shapes)
+    return shapes

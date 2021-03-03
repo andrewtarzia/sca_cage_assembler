@@ -32,6 +32,7 @@ from face_sets import M8L6_FaceSets
 from utilities import (
     calculate_paired_face_anisotropies,
     calculate_cube_likeness,
+    calculate_cube_shape_measure,
 )
 
 
@@ -87,6 +88,7 @@ class Cage:
         self.pw_file = f'{self.name}_pw'
         self.op_file = f'{self.name}_OP'
         self.cl_file = f'{self.name}_cl'
+        self.sh_file = f'{self.name}_sh'
         self.ls_file = f'{self.name}_LSE'
         self.charge = charge
         self.free_electron_options = free_electron_options
@@ -667,6 +669,37 @@ class Cage:
             return M8L6_FaceSets(self.symmetry_string)
         else:
             return None
+
+    def analyze_cube_shape(self):
+        """
+        Analyse cage geometry based on its `cube-likeness`.
+
+        Cube likeness is defined by the metal positions.
+
+        """
+
+        if self.topology_string != 'm8l6face':
+            raise NotImplementedError(
+                f'Cube-likeness is not defined for '
+                f'{self.topology_string} topology.'
+            )
+
+        print(f'....analyzing cube shape of {self.name}')
+
+        # Calculate cube shape measure.
+        # Metal atom structure.
+        # Get metal atom ids.
+        metal_atom_ids = [
+            i.get_id() for i in self.cage.get_atoms()
+            if i.get_atomic_number() in metal_FFs(CN=4).keys()
+        ]
+        # Write to mol file.
+        self.cage.write(f'{self.name}_M.mol', atom_ids=metal_atom_ids)
+        m_structure = stk.BuildingBlock.init_from_file(
+            f'{self.name}_M.mol'
+        )
+        shapes = calculate_cube_shape_measure(self.name, m_structure)
+        return shapes['CU-8']
 
     def analyze_cube_likeness(self):
         """

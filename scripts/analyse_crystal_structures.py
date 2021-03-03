@@ -11,6 +11,7 @@ Date Created: 11 Nov 2020
 
 """
 
+
 import sys
 import numpy as np
 import json
@@ -33,14 +34,15 @@ from atools import (
     calculate_metal_ligand_distance,
     calculate_molecule_planarity,
     get_order_values,
-    write_shape_input_file,
-    run_shape,
-    ref_shape_dict,
-    collect_all_shape_values,
 )
 
 from cage import UnexpectedNumLigands
-from utilities import read_lib, convert_symm_names, get_plottables
+from utilities import (
+    read_lib,
+    convert_symm_names,
+    get_plottables,
+    calculate_cube_shape_measure,
+)
 from cage_analysis import write_xray_csv
 
 
@@ -273,34 +275,7 @@ class XtalCage:
 
     def get_m_shape(self, mol):
 
-        shape_path = (
-            '/home/atarzia/software/shape_2.1_linux_64/'
-            'SHAPE_2.1_linux_64/shape_2.1_linux64'
-        )
-
-        shape_dicts = (
-            ref_shape_dict()['cube'],
-            ref_shape_dict()['octagon']
-        )
-        n_verts = list(set([i['vertices'] for i in shape_dicts]))
-        if len(n_verts) != 1:
-            raise ValueError('Different vertex shapes selected.')
-
-        input_file = f'{self.name}_shp.dat'
-        std_out = f'{self.name}_shp.out'
-        output_file = f'{self.name}_shp.tab'
-        write_shape_input_file(
-            input_file=input_file,
-            name=self.name,
-            structure=mol,
-            num_vertices=n_verts[0],
-            central_atom_id=0,
-            ref_shapes=[i['code'] for i in shape_dicts],
-        )
-
-        run_shape(input_file, shape_path, std_out)
-        shapes = collect_all_shape_values(output_file)
-        print(shapes)
+        shapes = calculate_cube_shape_measure(self.name, mol)
         return shapes['CU-8']
 
     def get_max_face_metal_PD(self, mol):

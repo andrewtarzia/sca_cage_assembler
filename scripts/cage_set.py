@@ -24,7 +24,6 @@ import stk
 import atools
 import symmetries
 from utilities import (
-    calculate_binding_AR,
     get_planar_conformer,
     convert_symm_names,
     calculate_ideal_pore_size,
@@ -90,24 +89,18 @@ class CageSet:
 
         """
 
-        tet_linker = self._load_ligand(
-            ligand_name=self.cage_set_dict['tetratopic'],
-            ligand_dir=ligand_dir
-        )
+        AR_file = join(ligand_dir, 'ligand_ARs.json')
 
-        planar_file = join(
-            ligand_dir,
-            f"{self.cage_set_dict['tetratopic']}_planar.mol"
-        )
-        if exists(planar_file):
-            planar_tet_linker = tet_linker.with_structure_from_file(
-                planar_file
+        if not exists(AR_file):
+            raise FileNotFoundError(
+                f'{AR_file} not found. Run calculate_ligand_ARs.py'
+                f' in {ligand_dir}'
             )
-        else:
-            planar_tet_linker = get_planar_conformer(tet_linker)
-            planar_tet_linker.write(planar_file)
 
-        return calculate_binding_AR(planar_tet_linker)
+        with open(AR_file, 'r') as f:
+            AR_dict = json.load(f)
+
+        return AR_dict[self.cage_set_dict['tetratopic']]['N']
 
     def _get_ideal_pore_size(self, ligand_dir):
         """
@@ -163,7 +156,7 @@ class CageSet:
             )
             with open(face_prop_file, 'r') as f:
                 data = json.load(f)
-            properties[face_type] = np.average(data['mismatches'])
+            properties[face_type] = np.average(data['metals'])
 
         return properties
 
@@ -274,6 +267,13 @@ class CageSet:
         return max([
             C_data['cl_prop'][i]['metal_PD'] for i in C_data['cl_prop']
         ])
+
+    def get_m_cube_shape(self, cage_name):
+        C_data = self.built_cage_properties[cage_name]
+        if C_data['optimized'] is False:
+            return None
+
+        return C_data['c8_prop']
 
     def get_max_face_interior_angle_dev(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
@@ -613,6 +613,7 @@ class CageSet:
 
         M = 'o'
 
+        print(data_C)
         fig, ax = plt.subplots(figsize=(8, 5))
         # Define cmap.
         CMAP = {}

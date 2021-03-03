@@ -23,6 +23,7 @@ def categorisation_plot(df, xray_df, col_name):
         'octop': (
             r'min. $q_{\mathrm{oct}}$', (None, None), 'min'
         ),
+        'm_cube_shape': ('CU-8 cube measure', (None, None), 'min'),
         'rellsesum': (
             r'rel. sum strain energy [kJmol$^{-1}$]',
             (-10, 1000),

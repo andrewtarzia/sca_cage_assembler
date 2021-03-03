@@ -334,6 +334,10 @@ def cage_set_properties(cage_set):
                 i.name: cage_set.get_min_oct_op(i.name)
                 for i in cage_set.cages_to_build
             },
+            'm_cube_shape': {
+                i.name: cage_set.get_m_cube_shape(i.name)
+                for i in cage_set.cages_to_build
+            },
             'lsesum': {
                 i.name: cage_set.get_sum_lig_strain_energy(i.name)
                 for i in cage_set.cages_to_build
@@ -455,6 +459,7 @@ def analyse_cages(cage_sets, experimentals):
             'rellsesum': start_at_0(data_dict=measures['lsesum']),
             'minitors': measures['minitors'],
             'maxcrplan': measures['maxcrplan'],
+            'm_cube_shape': measures['m_cube_shape'],
             'maxdifffaceaniso': measures['maxdifffaceaniso'],
             'maxMLlength': measures['maxMLlength'],
             'porediam': measures['porediam'],
@@ -472,6 +477,7 @@ def analyse_cages(cage_sets, experimentals):
             r'rel. sum strain energy [kJmol$^{-1}$]', (0, 1000)
         ),
         'octop': (r'min. $q_{\mathrm{oct}}$', None),
+        'm_cube_shape': ('CU-8 cube measure', None),
         'minitors': (r'min. imine torsion [degrees]', None),
         'maxcrplan': (
             r'max. ligand distortion [$\mathrm{\AA}$]', None
@@ -621,6 +627,7 @@ def write_csv(cage_sets, experimentals):
             'rellsesum': start_at_0(data_dict=measures['lsesum']),
             'lsesum': measures['lsesum'],
             'minitors': measures['minitors'],
+            'm_cube_shape': measures['m_cube_shape'],
             'maxcrplan': measures['maxcrplan'],
             'maxdifffaceaniso': measures['maxdifffaceaniso'],
             'maxMLlength': measures['maxMLlength'],
@@ -643,7 +650,7 @@ def write_csv(cage_sets, experimentals):
         'lsesum', 'rellsesum', 'minitors', 'maxcrplan',
         'maxdifffaceaniso',
         'maxMLlength', 'porediam', 'relformatione', 'maxfacemetalpd',
-        'maxintangledev', 'outcome', 'tested'
+        'maxintangledev', 'm_cube_shape', 'outcome', 'tested'
     ]
     symmetries = [
         'o1', 'th1', 'th2', 't1', 's61', 's62', 'd31', 'd32',
@@ -678,6 +685,7 @@ def write_csv(cage_sets, experimentals):
             rowinfo['lsesum'] = csd['lsesum'][cage_name]
             rowinfo['rellsesum'] = csd['rellsesum'][cage_name]
             rowinfo['minitors'] = csd['minitors'][cage_name]
+            rowinfo['m_cube_shape'] = csd['m_cube_shape'][cage_name]
             rowinfo['maxcrplan'] = csd['maxcrplan'][cage_name]
             rowinfo['maxdifffaceaniso'] = (
                 csd['maxdifffaceaniso'][cage_name]
@@ -704,7 +712,7 @@ def write_xray_csv(xtal_cage_data):
         'lsesum', 'rellsesum', 'minitors', 'maxcrplan',
         'maxdifffaceaniso',
         'maxMLlength', 'porediam', 'relformatione', 'maxfacemetalpd',
-        'maxintangledev', 'outcome', 'tested'
+        'maxintangledev', 'm_cube_shape', 'outcome', 'tested'
     ]
     dataframe = pd.DataFrame(columns=set_columns)
 
@@ -728,6 +736,7 @@ def write_xray_csv(xtal_cage_data):
         rowinfo['lsesum'] = csd['lsesum']
         rowinfo['rellsesum'] = None
         rowinfo['minitors'] = csd['minitors']
+        rowinfo['m_cube_shape'] = csd['m_cube_shape']
         rowinfo['maxcrplan'] = csd['maxcrplan']
         rowinfo['maxdifffaceaniso'] = csd['maxdifffaceaniso']
         rowinfo['maxMLlength'] = csd['maxMLlength']

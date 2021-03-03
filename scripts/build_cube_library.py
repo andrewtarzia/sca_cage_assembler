@@ -115,6 +115,7 @@ def build_cages(
                         expected_ligands=expected_ligands,
                         free_e=default_free_e,
                     )
+
                     C.analyze_cube_likeness()
                     C.analyze_metal_strain()
                     C.analyze_porosity()
@@ -127,6 +128,7 @@ def build_cages(
                         'fa_prop': C.fa_data,
                         'bl_prop': C.bl_data,
                         'cl_prop': C.cl_data,
+                        'c8_prop': C.analyze_cube_shape(),
                     }
                 # Dump to JSON.
                 cage_set.dump_properties()
