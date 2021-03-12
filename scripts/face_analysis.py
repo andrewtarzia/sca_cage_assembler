@@ -24,7 +24,7 @@ import stko
 from atools import get_query_atom_ids
 
 from molecule_building import metal_FFs
-from cubeface import CubeFace
+from cubeface import CubeFace, FaceBuildingBlock
 
 from atools import (
     MOC_collapse_mc,
@@ -92,7 +92,7 @@ def load_ligands(directory):
     ligands = {}
     for lig in glob(join(directory, 'quad2*_opt.mol')):
         l_name = lig.replace(directory, '').replace('_opt.mol', '')
-        ligands[l_name] = stk.BuildingBlock.init_from_file(
+        ligands[l_name] = FaceBuildingBlock.init_from_file(
             lig,
             functional_groups=[stk.BromoFactory()],
         )
@@ -207,6 +207,25 @@ def calculate_face_properties(face, paths, metal_atomic_number=30):
         properties[path] = (mismatch1, mismatch2)
 
     return properties
+
+
+def show_long_axis(face, face_name):
+
+    out_file = f'{face_name}_lashown.xyz'
+    string = stk.XyzWriter().to_string(face)
+
+    x_pos = np.linspace(-10, 10, 100)
+    y_pos = [0 for i in x_pos]
+
+    for x, y in zip(x_pos, y_pos):
+        string += f'Ar {x} {y} 0\n'
+
+    string = string.split('\n')
+    string[0] = str(int(string[0]) + len(x_pos))
+    string = '\n'.join(string)
+
+    with open(out_file, 'w') as f:
+        f.write(string)
 
 
 def visualise_face(face, face_name, paths):
@@ -493,33 +512,38 @@ def main():
     face_topologies = {
         '1': {
             'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
-            'ratio': (2, 2),
             'd_pos': (1, 3),
             'l_pos': (0, 2),
         },
         '2': {
             'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
-            'ratio': (2, 2),
             'd_pos': (0, 2),
             'l_pos': (1, 3),
         },
         '3': {
             'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
-            'ratio': (4, 0),
             'd_pos': (),
             'l_pos': (0, 1, 2, 3),
         },
         '4': {
             'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
-            'ratio': (3, 1),
             'd_pos': (3, ),
             'l_pos': (0, 1, 2),
         },
         '5': {
             'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
-            'ratio': (3, 1),
             'd_pos': (2, ),
             'l_pos': (0, 1, 3, ),
+        },
+        '6': {
+            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
+            'd_pos': (0, 3),
+            'l_pos': (1, 2),
+        },
+        '7': {
+            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
+            'd_pos': (0, 1),
+            'l_pos': (2, 3),
         },
     }
 
@@ -535,6 +559,10 @@ def main():
             continue
         print(f'doing {lig}...')
         lig_structure = ligands[lig]
+        lig_structure.show_long_axis(
+            long_axis=lig_structure.get_long_axis(),
+            path=f'{lig}_lashown.xyz'
+        )
         # Build each face topology.
         lig_faces = {}
         for face_t in face_topologies:
@@ -547,6 +575,7 @@ def main():
                 lam_complex=lam_complex,
                 face_topo=final_topology_dict,
             )
+            show_long_axis(face, face_name)
             opt_face = optimize_face(face, face_name)
             all_bls = get_all_bond_lengths(opt_face)
             if max(all_bls) > 3:
@@ -572,8 +601,6 @@ def main():
             )
             lig_faces[face_t] = face_properties
         plot_face_mismatches(data=lig_faces, name=lig)
-
-    sys.exit()
 
 
 if __name__ == '__main__':

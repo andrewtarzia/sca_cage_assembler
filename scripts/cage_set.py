@@ -100,7 +100,7 @@ class CageSet:
         with open(AR_file, 'r') as f:
             AR_dict = json.load(f)
 
-        return AR_dict[self.cage_set_dict['tetratopic']]['N']
+        return AR_dict[self.cage_set_dict['tetratopic']]['Br']
 
     def _get_ideal_pore_size(self, ligand_dir):
         """

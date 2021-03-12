@@ -220,29 +220,51 @@ class _MetalVertex(_FaceVertex):
         }
 
 
-class _LinkerVertex(_FaceVertex):
+class FaceBuildingBlock(stk.BuildingBlock):
 
-    def _get_building_block_long_axis(self, building_block):
+    def get_bromines(self):
 
-        for fg in building_block.get_functional_groups():
-            if len(list(fg.get_bonder_ids())) > 1:
-                raise ValueError(
-                    f'{building_block} has functional groups with more'
-                    ' than 1 binder.'
-                )
-
-        binder_atom_ids = [
-            list(fg.get_bonder_ids())
-            for fg in building_block.get_functional_groups()
+        bromine_atom_ids = [
+            list(fg.get_deleter_ids())
+            for fg in self.get_functional_groups()
         ]
-        binder_atom_dists = sorted(
+
+        return bromine_atom_ids
+
+    def show_long_axis(self, long_axis, path):
+        string = stk.XyzWriter().to_string(self)
+
+        # Long axis is along y direction.
+        x_pos = [0, long_axis[0]]
+        y_pos = [0, long_axis[1]]
+        z_pos = [0, long_axis[2]]
+
+        for x, y, z in zip(x_pos, y_pos, z_pos):
+            string += f'Ar {x} {y} {z}\n'
+
+        string = string.split('\n')
+        string[0] = str(int(string[0]) + len(x_pos))
+        string = '\n'.join(string)
+
+        with open(path, 'w') as f:
+            f.write(string)
+
+    def get_long_axis(self):
+
+        atom_ids = self.get_bromines()
+        if len(atom_ids) != 4:
+            raise ValueError(
+                f'{self} has too many deleter bromines.'
+            )
+
+        atom_dists = sorted(
             [
                 (idx1, idx2, get_atom_distance(
-                    building_block,
+                    self,
                     idx1,
                     idx2
                 ))
-                for idx1, idx2 in combinations(binder_atom_ids, r=2)
+                for idx1, idx2 in combinations(atom_ids, r=2)
             ],
             key=lambda a: a[2]
         )
@@ -254,26 +276,30 @@ class _LinkerVertex(_FaceVertex):
         # This fails when the molecule is not sufficiently anisotropic,
         # at which point it will not matter.
         short_vector_fg_1 = (
-            binder_atom_dists[0][0], binder_atom_dists[0][1]
+            atom_dists[0][0], atom_dists[0][1]
         )
         short_vector_fg_2 = (
-            (binder_atom_dists[1][0], binder_atom_dists[1][1])
+            (atom_dists[1][0], atom_dists[1][1])
             if (
-                binder_atom_dists[1][0] not in short_vector_fg_1 and
-                binder_atom_dists[1][1] not in short_vector_fg_1
+                atom_dists[1][0] not in short_vector_fg_1 and
+                atom_dists[1][1] not in short_vector_fg_1
             ) else
-            (binder_atom_dists[2][0], binder_atom_dists[2][1])
+            (atom_dists[2][0], atom_dists[2][1])
         )
 
-        short_pair_1_centroid = building_block.get_centroid(
+        short_pair_1_centroid = self.get_centroid(
             atom_ids=(i[0] for i in short_vector_fg_1),
         )
-        short_pair_2_centroid = building_block.get_centroid(
+        short_pair_2_centroid = self.get_centroid(
             atom_ids=(i[0] for i in short_vector_fg_2),
         )
 
         long_axis = short_pair_2_centroid - short_pair_1_centroid
+
         return long_axis
+
+
+class _LinkerVertex(_FaceVertex):
 
     def place_building_block(self, building_block, edges):
         assert (
@@ -332,10 +358,20 @@ class _LinkerVertex(_FaceVertex):
             origin=self._position,
         )
 
-        # Align long axis of molecule (defined by FG centroid) with
-        # X axis.
-        long_axis_vector = self._get_building_block_long_axis(
-            building_block
+        # Align long axis of molecule (defined by deleter atoms) with
+        # y axis.
+        long_axis_vector = building_block.get_long_axis()
+        building_block.show_long_axis(long_axis_vector, 'temp.xyz')
+        edge_centroid = (
+            sum(edge.get_position() for edge in edges) / len(edges)
+        )
+        edge_normal = get_acute_vector(
+            reference=edge_centroid,
+            vector=get_plane_normal(
+                points=np.array([
+                    edge.get_position() for edge in edges
+                ]),
+            ),
         )
         building_block = (
             building_block.with_rotation_to_minimize_angle(
