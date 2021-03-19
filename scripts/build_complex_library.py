@@ -23,7 +23,7 @@ from molecule_building import (
     metal_FFs,
     optimize_SCA_complex,
 )
-from .utilities import read_lib
+from utilities import read_lib
 
 
 def get_spin_state_energies(complex, name, dict):
