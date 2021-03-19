@@ -1,0 +1,65 @@
+{
+    "SCA_cap_1": {
+        "smiles": "Br/N=C/c1ccccn1",
+        "file_loc": "manual/",
+        "experimental": true,
+        "check_orientations": false,
+        "no_metals": 0,
+        "net_charge": 0,
+        "total_unpaired_e": [0]
+    },
+    "l1": {
+        "smiles": "Brc1ccc(cc1)c2cc(cc(c2)c3ccc4cc(ccc4c3)c5cc(cc(c5)c6ccc(Br)cc6)c7ccc(Br)cc7)c8ccc(Br)cc8",
+        "file_loc": "",
+        "experimental": true,
+        "check_orientations": true,
+        "no_metals": 0,
+        "net_charge": 0,
+        "total_unpaired_e": [0]
+    },
+    "l2": {
+        "smiles": "Brc1ccc(cc1)c2cc(cc(c2)c3ccc4cc5cc(ccc5cc4c3)c6cc(cc(c6)c7ccc(Br)cc7)c8ccc(Br)cc8)c9ccc(Br)cc9",
+        "file_loc": "",
+        "experimental": true,
+        "check_orientations": true,
+        "no_metals": 0,
+        "net_charge": 0,
+        "total_unpaired_e": [0]
+    },
+    "l3": {
+        "smiles": "Brc1ccc(cc1)c2cc(cc(c2)c3cc4c5ccccc5c(cc4c6ccccc36)c7cc(cc(c7)c8ccc(Br)cc8)c9ccc(Br)cc9)c%10ccc(Br)cc%10",
+        "file_loc": "",
+        "experimental": true,
+        "check_orientations": true,
+        "no_metals": 0,
+        "net_charge": 0,
+        "total_unpaired_e": [0]
+    },
+    "l4": {
+        "smiles": "Brc1ccc(cc1)c2cc(cc(c2)c3cccc4c(cccc34)c5cc(cc(c5)c6ccc(Br)cc6)c7ccc(Br)cc7)c8ccc(Br)cc8",
+        "file_loc": "",
+        "experimental": true,
+        "check_orientations": true,
+        "no_metals": 0,
+        "net_charge": 0,
+        "total_unpaired_e": [0]
+    },
+    "l5": {
+        "smiles": "Brc1ccc(cc1)c2cc(cc(c2)c3cccc4cc5c(cccc5c6cc(cc(c6)c7ccc(Br)cc7)c8ccc(Br)cc8)cc34)c9ccc(Br)cc9",
+        "file_loc": "",
+        "experimental": true,
+        "check_orientations": true,
+        "no_metals": 0,
+        "net_charge": 0,
+        "total_unpaired_e": [0]
+    },
+    "l6": {
+        "smiles": "Brc1ccc(cc1)c2cc(cc(c2)c3ccc4ccc5c(ccc6ccc3c4c56)c7cc(cc(c7)c8ccc(Br)cc8)c9ccc(Br)cc9)c%10ccc(Br)cc%10",
+        "file_loc": "",
+        "experimental": true,
+        "check_orientations": true,
+        "no_metals": 0,
+        "net_charge": 0,
+        "total_unpaired_e": [0]
+    }
+}
