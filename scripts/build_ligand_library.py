@@ -11,13 +11,9 @@ Date Created: 13 Jan 2020
 """
 
 import sys
-from os import mkdir
 from os.path import exists
-from rdkit.Chem import AllChem as rdkit
 import stk
 import stko
-
-import atools
 
 from molecule_building import (
     metal_FFs,
@@ -144,60 +140,6 @@ def build_metal_organics(ligs):
         )
         # Output.
         complex.write(opt_name)
-
-
-def output_2d_images(ligs):
-
-    if not exists('built_ligands/'):
-        mkdir('built_ligands')
-
-    # Draw 2D representation of all built molecules.
-    mols = []
-    names = []
-    for name in ligs:
-        comp = ligs[name]
-        opt_name = f'{name}_opt.mol'
-        if ligs[name]['no_metals'] == 0:
-            MOL = rdkit.MolFromMolFile(opt_name)
-            MOL.RemoveAllConformers()
-            mols.append(MOL)
-            AR = calculate_binding_AR(
-                stk.BuildingBlock.init_from_file(
-                    opt_name,
-                    functional_groups=[stk.BromoFactory()]
-                )
-            )
-            label = f'{name}'
-            if AR is not None:
-                label = f'{label}: {round(AR,2)}'
-            names.append(label)
-        else:
-            MOL = rdkit.MolFromMolFile(opt_name)
-            MOL.RemoveAllConformers()
-            mols.append(MOL)
-            top_str = comp['ctopo']
-            label = f'{name}\n{top_str}'
-            AR = calculate_binding_AR(
-                stk.BuildingBlock.init_from_file(
-                    opt_name,
-                    functional_groups=[stk.BromoFactory()]
-                )
-            )
-            if AR is not None:
-                label = f'{label}: {round(AR,2)}'
-            names.append(label)
-
-    # Draw 2D representation of all built molecules.
-    atools.mol_list2grid(
-        molecules=mols,
-        names=names,
-        filename='built_ligands/built_ligands',
-        mol_per_row=3,
-        maxrows=3,
-        subImgSize=(250, 200)
-    )
-
-    return
 
 
 def main():

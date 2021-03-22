@@ -15,9 +15,14 @@ import sys
 import numpy as np
 from os.path import exists
 import matplotlib.pyplot as plt
+import os
+import shutil
+from rdkit.Chem import AllChem as rdkit
 import json
 
 import stk
+
+from atools import mol_list2grid
 
 from utilities import calculate_binding_AR, get_planar_conformer
 from cubeface import CubeFace
@@ -174,6 +179,64 @@ def plot_ARs(C_ars, Br_ars, N_ars):
     plt.close()
 
 
+def output_2d_images(C_ars, Br_ars, N_ars):
+
+    if os.path.exists('built_ligands'):
+        shutil.rmtree('built_ligands')
+
+    os.mkdir('built_ligands')
+
+    # Draw 2D representation of all built molecules.
+    mols = []
+    cnames = []
+    bnames = []
+    nnames = []
+    for name in C_ars:
+        car = C_ars[name]
+        brar = Br_ars[name]
+        nar = N_ars[name]
+        opt_name = f'{name}_opt.mol'
+        mol = stk.BuildingBlock.init_from_file(opt_name).to_rdkit_mol()
+        mol.RemoveAllConformers()
+        mol = rdkit.RemoveHs(mol)
+        rdkit.SanitizeMol(mol)
+        mols.append(mol)
+        label = f'{name}: {round(car, 2)}'
+        cnames.append(label)
+        label = f'{name}: {round(brar, 2)}'
+        bnames.append(label)
+        label = f'{name}: {round(nar, 2)}'
+        nnames.append(label)
+
+    # Draw 2D representation of all built molecules.
+    mol_list2grid(
+        molecules=mols,
+        names=cnames,
+        filename='built_ligands/cbuilt_ligands',
+        mol_per_row=3,
+        maxrows=3,
+        subImgSize=(250, 200)
+    )
+    mol_list2grid(
+        molecules=mols,
+        names=bnames,
+        filename='built_ligands/bbuilt_ligands',
+        mol_per_row=3,
+        maxrows=3,
+        subImgSize=(250, 200)
+    )
+    mol_list2grid(
+        molecules=mols,
+        names=nnames,
+        filename='built_ligands/nbuilt_ligands',
+        mol_per_row=3,
+        maxrows=3,
+        subImgSize=(250, 200)
+    )
+
+    return
+
+
 def main():
     first_line = (
         'Usage: plot_AR_comparisons.py'
@@ -250,6 +313,7 @@ def main():
     plot_AR_parities(C_ars, Br_ars, N_ars)
     plot_ARs(C_ars, Br_ars, N_ars)
     write_ARs(C_ars, Br_ars, N_ars)
+    output_2d_images(C_ars, Br_ars, N_ars)
 
 
 if __name__ == "__main__":
