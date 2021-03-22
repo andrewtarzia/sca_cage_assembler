@@ -24,7 +24,8 @@ import stko
 from atools import get_query_atom_ids
 
 from molecule_building import metal_FFs
-from cubeface import CubeFace, FaceBuildingBlock
+from cubeface import CubeFace
+from facebuildingblock import FaceBuildingBlock
 
 from atools import (
     MOC_collapse_mc,
