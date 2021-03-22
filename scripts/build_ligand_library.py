@@ -22,7 +22,6 @@ from molecule_building import (
 )
 from utilities import (
     read_lib,
-    calculate_binding_AR,
     get_planar_conformer,
 )
 
@@ -162,9 +161,6 @@ Usage: build_ligand_library.py lib_file
 
     # Build and optimise all metal containing ligands.
     build_metal_organics(ligs)
-
-    # Produce image of all built molecules.
-    output_2d_images(ligs)
 
 
 if __name__ == "__main__":
