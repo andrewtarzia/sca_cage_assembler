@@ -442,12 +442,20 @@ def main():
             'ligand_name': 'quad2_2',
             'complexes': ('cl1_zn_oct_lam', 'cl1_zn_oct_del'),
         },
+        'jd370': {
+            'cage_set': 'cl1_quad2_5',
+            'cage_name': None,  # 'C_cl1_quad2_2_d31',
+            'symmetry_name': None,  # 'd31',
+            'ligand_name': 'quad2_5',
+            'complexes': ('cl1_zn_oct_lam', 'cl1_zn_oct_del'),
+        },
     }
 
     xtal_cage_data = {}
     comp_cage_data = {}
     for xtal in xtals:
-        if xtal == 'jd354':
+        if xtal == 'jd370':
+            continue
             raise NotImplementedError()
         print(f'---- doing: {xtal}')
         pdb_file = f'{xtal}.pdb'
