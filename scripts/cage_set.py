@@ -478,10 +478,10 @@ class CageSet:
                 L_complex=L_complex,
                 linker=linker,
             )
-            symm_list['o1'] = symm_c.o1()
+            symm_list['d2'] = symm_c.d2()
             symm_list['th1'] = symm_c.th1()
             symm_list['th2'] = symm_c.th2()
-            symm_list['t1'] = symm_c.t1()
+            symm_list['t'] = symm_c.t()
             symm_list['s61'] = symm_c.s61()
             symm_list['s62'] = symm_c.s62()
             symm_list['d31'] = symm_c.d31()

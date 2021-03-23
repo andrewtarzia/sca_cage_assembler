@@ -49,7 +49,7 @@ class M8L6_FaceSets(FaceSets):
         }
 
     def _define_vertices(self, symmetry_string):
-        if symmetry_string in ['o1', 't1']:
+        if symmetry_string in ['d2', 't']:
             return {
                 '001': (0, 1, 2, 3),
                 '100': (0, 1, 4, 5),
@@ -105,7 +105,7 @@ class M8L6_FaceSets(FaceSets):
             }
 
     def _define_connected(self, symmetry_string):
-        if symmetry_string in ['o1', 't1']:
+        if symmetry_string in ['d2', 't']:
             return {
                 '001': ((0, 1), (1, 2), (2, 3), (3, 0)),
                 '100': ((0, 1), (1, 5), (5, 4), (4, 0)),

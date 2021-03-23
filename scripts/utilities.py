@@ -263,10 +263,10 @@ def calculate_cube_likeness(mol, metal_atom_ids, face_sets):
 def convert_symm_names(symm_name):
 
     new_names = {
-        'o1': r'O',
+        'd2': r'D$_2$',
         'th1': r'T$_{h, 1}$',
         'th2': r'T$_{h, 2}$',
-        't1': r'T',
+        't': r'T',
         's61': r'S$_{6, 1}$',
         's62': r'S$_{6, 2}$',
         'd31': r'D$_{3, 1}$',

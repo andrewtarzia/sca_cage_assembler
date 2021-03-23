@@ -524,7 +524,7 @@ def analyse_cages(cage_sets, experimentals):
                 x2name='LAR',
                 x2label=cs_tests['LAR'],
                 symmetries=[
-                    'o1', 'th1', 'th2', 't1', 's61',
+                    'd2', 'th1', 'th2', 't', 's61',
                     's62', 'd31', 'd32', 'c2v', 'c2h',
                 ],
                 filename=f'plotset4D_{t}_VARvLAR.pdf',
@@ -538,7 +538,7 @@ def analyse_cages(cage_sets, experimentals):
                     xname=cs_test,
                     xlabel=cs_tests[cs_test],
                     symmetries=[
-                        'o1', 'th1', 'th2', 't1', 's61',
+                        'd2', 'th1', 'th2', 't', 's61',
                         's62', 'd31', 'd32', 'c2v', 'c2h',
                     ],
                     Y_name=t,
@@ -653,7 +653,7 @@ def write_csv(cage_sets, experimentals):
         'maxintangledev', 'm_cube_shape', 'outcome', 'tested'
     ]
     symmetries = [
-        'o1', 'th1', 'th2', 't1', 's61', 's62', 'd31', 'd32',
+        'd2', 'th1', 'th2', 't', 's61', 's62', 'd31', 'd32',
         'c2v', 'c2h'
     ]
     dataframe = pd.DataFrame(columns=set_columns)

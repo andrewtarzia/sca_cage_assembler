@@ -141,9 +141,9 @@ class M8L6_Symmetry(Symmetry):
         self.n_metals = 8
         self.no_vertices = 14
 
-    def o1(self):
+    def d2(self):
         """
-        O symmetry cage.
+        D2 or O symmetry cage.
 
         Only one distinct symmetry required.
 
@@ -222,9 +222,9 @@ class M8L6_Symmetry(Symmetry):
             'ratio': (4, 4)
         }
 
-    def t1(self):
+    def t(self):
         """
-        T symmetry cage 1.
+        T symmetry cage.
 
         One distinct symmetry required.
 
