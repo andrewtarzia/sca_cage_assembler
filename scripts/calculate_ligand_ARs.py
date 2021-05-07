@@ -26,6 +26,7 @@ from atools import mol_list2grid
 
 from utilities import calculate_binding_AR, get_planar_conformer
 from cubeface import CubeFace
+from facebuildingblock import FaceBuildingBlock
 
 
 def run_reaction(ligand):
@@ -239,7 +240,7 @@ def output_2d_images(C_ars, Br_ars, N_ars):
 
 def main():
     first_line = (
-        'Usage: plot_AR_comparisons.py'
+        'Usage: calculate_ligand_ARs.py'
     )
     if (not len(sys.argv) == 1):
         print(f"""
@@ -259,7 +260,7 @@ def main():
     N_ars = {}
     for ligand in dataset_of_10:
         print(ligand)
-        planar_mol = stk.BuildingBlock.init_from_file(
+        planar_mol = FaceBuildingBlock.init_from_file(
             f'{ligand}_planar.mol', [stk.BromoFactory()],
         )
         print(planar_mol)

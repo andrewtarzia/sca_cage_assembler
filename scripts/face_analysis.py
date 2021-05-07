@@ -73,7 +73,7 @@ def optimize_complex(complex, name):
 
         print(f'doing xTB optimisation for {name}')
         xtb_opt = stko.XTB(
-            xtb_path='/home/atarzia/software/xtb-6.3.1/bin/xtb',
+            xtb_path='/home/atarzia/anaconda3/envs/sca_cages/bin/xtb',
             output_dir=f'{name}_xtb',
             gfn_version=2,
             num_cores=6,
@@ -476,9 +476,9 @@ def get_paths(face, face_name, metal_atomic_number=30):
 def main():
     first_line = (
         'Usage: face_analysis.py '
-        'lig_directory complex_name'
+        'lig_directory complex_name complex_directory'
     )
-    if (not len(sys.argv) == 3):
+    if (not len(sys.argv) == 4):
         print(f"""
 {first_line}
 
@@ -488,19 +488,22 @@ def main():
     complex_name : (str)
         Prefix of complex used in this run - defines face file names.
 
+    complex_directory : (str)
+        Location with manually constructed complexes.
+
     """)
         sys.exit()
     else:
         ligand_directory = sys.argv[1]
         complex_name = sys.argv[2]
+        complex_directory = sys.argv[3]
 
     # Define two metal building blocks (lambda, delta).
-    complex_name = 'cl1'
     del_name, del_complex = load_complex(
-        f'{complex_name}_zn_oct_del_face.mol'
+        f'{complex_directory}/{complex_name}_zn_oct_del_face.mol'
     )
     lam_name, lam_complex = load_complex(
-        f'{complex_name}_zn_oct_lam_face.mol'
+        f'{complex_directory}/{complex_name}_zn_oct_lam_face.mol'
     )
 
     # Optimise both complexes.

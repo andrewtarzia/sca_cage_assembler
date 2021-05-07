@@ -337,7 +337,9 @@ class Cage:
             self.cage = atools.MOC_xtb_opt(
                 cage=self.cage,
                 cage_name=self.name,
-                gfn_exec='/home/atarzia/software/xtb-6.3.1/bin/xtb',
+                gfn_exec=(
+                    '/home/atarzia/anaconda3/envs/sca_cages/bin/xtb'
+                ),
                 nc=6,
                 free_e=free_e,
                 charge=self.charge,
@@ -501,10 +503,7 @@ class Cage:
                             name=components[comp]['name'],
                             mol=temp_mol,
                             settings=settings,
-                            gfn_exec=(
-                                '/home/atarzia/software/xtb-6.3.1/bin/'
-                                'xtb'
-                            ),
+                            gfn_exec=gfn_exec,
                         )
                         temp_mol.write(low_e_file)
 
@@ -553,7 +552,8 @@ class Cage:
                     name=f'{self.name}_{comp}',
                     mol=components[comp]['mol'],
                     gfn_exec=(
-                        '/home/atarzia/software/xtb-6.3.1/bin/xtb'
+                        '/home/atarzia/anaconda3/envs/sca_cages/bin/'
+                        'xtb'
                     ),
                     ey_file=ey_file,
                     charge=charge,
@@ -609,7 +609,7 @@ class Cage:
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
             file_prefix=f'{self.base_name}_sg',
-            gfn_exec='/home/atarzia/software/xtb-6.3.1/bin/xtb',
+            gfn_exec='/home/atarzia/anaconda3/envs/sca_cages/bin/xtb',
             conformer_function=get_lowest_energy_conformer,
             conformer_settings={
                 'conf_opt_level': 'crude',
@@ -634,7 +634,7 @@ class Cage:
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
             file_prefix=f'{self.base_name}_sg',
-            gfn_exec='/home/atarzia/software/xtb-6.3.1/bin/xtb',
+            gfn_exec='/home/atarzia/anaconda3/envs/sca_cages/bin/xtb',
             cage_free_e=free_e,
         )
 

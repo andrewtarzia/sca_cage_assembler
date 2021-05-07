@@ -40,7 +40,7 @@ def get_spin_state_energies(complex, name, dict):
     spin_energies = {}
     for upe in dict['unpaired_e']:
         xtb_energy = stko.XTBEnergy(
-            xtb_path='/home/atarzia/software/xtb-6.3.1/bin/xtb',
+            xtb_path='/home/atarzia/anaconda3/envs/sca_cages/bin/xtb',
             output_dir=f'{name}_{upe}_xtbey',
             charge=dict['total_charge'],
             num_unpaired_electrons=upe,

@@ -191,7 +191,7 @@ def optimize_SCA_complex(complex, name, dict, metal_FFs):
 
     print(f'doing xTB optimisation for {name}')
     xtb_opt = stko.XTB(
-        xtb_path='/home/atarzia/software/xtb-6.3.1/bin/xtb',
+        xtb_path='/home/atarzia/anaconda3/envs/sca_cages/bin/xtb',
         output_dir=f'{name}_xtb',
         gfn_version=2,
         num_cores=6,

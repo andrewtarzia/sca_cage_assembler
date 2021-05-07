@@ -35,7 +35,7 @@ from utilities import split_xyz_file
 def load_ligands(directory):
 
     ligands = {}
-    for lig in glob(join(directory, f'quad2*_opt.mol')):
+    for lig in glob(join(directory, 'quad2*_opt.mol')):
         l_name = lig.replace(directory, '').replace('_opt.mol', '')
         ligands[l_name] = stk.BuildingBlock.init_from_file(
             lig,
@@ -69,11 +69,10 @@ def calculate_flex(molecule, name, la_pairs):
 
     # Crest part.
     if not exists(f'crst_{name}/crest_rotamers.xyz'):
-        print(f'running XTBFF-Crest on {name}')
         new_molecule = crest_conformer_search(
             molecule=molecule,
             output_dir=f'crst_{name}',
-            gfn_exec='/home/atarzia/software/xtb-6.3.1/bin/xtb',
+            gfn_exec='/home/atarzia/anaconda3/envs/sca_cages/bin/xtb',
             crest_exec='/home/atarzia/software/crest/crest',
             gfn_version=2,
             nc=3,
