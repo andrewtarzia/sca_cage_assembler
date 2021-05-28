@@ -21,7 +21,12 @@ from pymatgen.io.cif import CifParser
 from os.path import exists
 import json
 
-import atools
+from plotting import (
+    histogram_plot_N,
+    colors_i_like,
+    parity_plot,
+)
+from utilities import calculate_sites_order_values, get_element_sites
 
 
 def plot_distances(data, atomic_number):
@@ -30,12 +35,12 @@ def plot_distances(data, atomic_number):
     distance_list += list(data.DIST3)+list(data.DIST4)
     distance_list += list(data.DIST5)+list(data.DIST6)
 
-    fig, ax = atools.histogram_plot_N(
+    fig, ax = histogram_plot_N(
         Y=distance_list,
         X_range=(1.5, 3.0),
         width=0.025,
         alpha=1.0,
-        color=atools.colors_i_like()[2],
+        color=colors_i_like()[2],
         edgecolor='k',
         xtitle=r'N-M bond distance [$\mathrm{\AA}$]'
     )
@@ -63,12 +68,12 @@ def plot_angles(data, atomic_number):
     angle_list1 = [i for i in angle_list if i < 120]
     angle_list2 = [i for i in angle_list if i > 120]
 
-    fig, ax = atools.histogram_plot_N(
+    fig, ax = histogram_plot_N(
         Y=[angle_list1, angle_list2],
         X_range=(0, 200),
         width=5,
         alpha=[1.0, 1.0],
-        color=[atools.colors_i_like()[0], atools.colors_i_like()[1]],
+        color=[colors_i_like()[0], colors_i_like()[1]],
         edgecolor='k',
         xtitle=r'N-M-N angles [$^{\circ}$]',
         labels=['< 120', '> 120'],
@@ -100,7 +105,7 @@ def calculate_orderparams(coord_set):
     neighs = [[j for j in range(1, len(coord_set))]]
 
     # Calculate order parameters.
-    order_values = atools.calculate_sites_order_values(
+    order_values = calculate_sites_order_values(
         molecule=pmg_mol,
         site_idxs=sites,
         neigh_idxs=neighs
@@ -161,7 +166,7 @@ def plot_orderparams(struct_dir, atomic_number, CN):
             # Make supercell.
             pmg_struct.make_supercell([2, 2, 2])
             print(len(pmg_struct.species))
-            metal_site_ids = atools.get_element_sites(
+            metal_site_ids = get_element_sites(
                 pmg_struct,
                 atomic_no=atomic_number
             )
@@ -212,7 +217,7 @@ def plot_orderparams(struct_dir, atomic_number, CN):
             # Calculate order parameters.
             for msite in centre_mols:
                 cmol = centre_mols[msite]
-                order_values = atools.calculate_sites_order_values(
+                order_values = calculate_sites_order_values(
                     molecule=cmol,
                     site_idxs=[0],
                     neigh_idxs=[[1, 2, 3, 4]],
@@ -238,13 +243,13 @@ def plot_orderparams(struct_dir, atomic_number, CN):
     #         print(results['sqpl'][i])
     #         input(c)
 
-    fig, ax = atools.histogram_plot_N(
+    fig, ax = histogram_plot_N(
         Y=results['sqpl'],
         X_range=(0, 1),
         width=0.05,
         alpha=1.0,
         density=True,
-        color=atools.colors_i_like()[0],
+        color=colors_i_like()[0],
         edgecolor='k',
         xtitle=r'$q_{\mathrm{sqp}}$'
     )
@@ -255,13 +260,13 @@ def plot_orderparams(struct_dir, atomic_number, CN):
         bbox_inches='tight'
     )
 
-    fig, ax = atools.histogram_plot_N(
+    fig, ax = histogram_plot_N(
         Y=results['oct'],
         X_range=(0, 1),
         width=0.05,
         alpha=1.0,
         density=True,
-        color=atools.colors_i_like()[1],
+        color=colors_i_like()[1],
         edgecolor='k',
         xtitle=r'$q_{\mathrm{oct}}$'
     )
@@ -272,13 +277,13 @@ def plot_orderparams(struct_dir, atomic_number, CN):
         bbox_inches='tight'
     )
 
-    fig, ax = atools.histogram_plot_N(
+    fig, ax = histogram_plot_N(
         Y=results['q4'],
         X_range=(0, 1),
         width=0.05,
         alpha=1.0,
         density=True,
-        color=atools.colors_i_like()[5],
+        color=colors_i_like()[5],
         edgecolor='k',
         xtitle=r'$q_4$'
     )
@@ -289,13 +294,13 @@ def plot_orderparams(struct_dir, atomic_number, CN):
         bbox_inches='tight'
     )
 
-    fig, ax = atools.histogram_plot_N(
+    fig, ax = histogram_plot_N(
         Y=results['q6'],
         X_range=(0, 1),
         width=0.05,
         alpha=1.0,
         density=True,
-        color=atools.colors_i_like()[2],
+        color=colors_i_like()[2],
         edgecolor='k',
         xtitle=r'$q_6$'
     )
@@ -306,11 +311,11 @@ def plot_orderparams(struct_dir, atomic_number, CN):
         bbox_inches='tight'
     )
 
-    fig, ax = atools.parity_plot(
+    fig, ax = parity_plot(
         X=results['sqpl'],
         Y=results['oct'],
         lim=(0, 1),
-        c=atools.colors_i_like()[2],
+        c=colors_i_like()[2],
         marker='o',
         xtitle=r'avg. $q_{\mathrm{oct}}$',
         ytitle=r'avg. $q_{\mathrm{sqp}}$'

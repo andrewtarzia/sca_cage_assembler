@@ -22,9 +22,11 @@ import json
 
 import stk
 
-from atools import mol_list2grid
-
-from utilities import calculate_binding_AR, get_planar_conformer
+from utilities import (
+    calculate_binding_AR,
+    get_planar_conformer,
+    mol_list2grid,
+)
 from cubeface import CubeFace
 from facebuildingblock import FaceBuildingBlock
 

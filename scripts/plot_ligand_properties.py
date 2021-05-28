@@ -16,7 +16,7 @@ import json
 import sys
 import matplotlib.pyplot as plt
 
-from atools import colors_i_like
+from plotting import colors_i_like
 
 
 def plot_all_ligand_properties(json_files, candms, expts):

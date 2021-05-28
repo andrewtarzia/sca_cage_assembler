@@ -22,7 +22,11 @@ import networkx as nx
 import stk
 import pywindow as pw
 
-from atools import (
+
+from cage import UnexpectedNumLigands
+from utilities import (
+    convert_symm_names,
+    calculate_cube_shape_measure,
     angle_between,
     get_organic_linkers,
     get_atom_distance,
@@ -30,9 +34,6 @@ from atools import (
     calculate_molecule_planarity,
     get_order_values,
 )
-
-from cage import UnexpectedNumLigands
-from utilities import convert_symm_names, calculate_cube_shape_measure
 
 
 class XtalCage:

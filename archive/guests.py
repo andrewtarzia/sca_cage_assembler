@@ -11,7 +11,6 @@ Date Created: 15 Mar 2019
 """
 import sys
 from rdkit.Chem import AllChem as Chem
-import atools
 
 
 def get_guests(paper):
@@ -110,10 +109,10 @@ Usage: guests.py paper
             continue
         # get RDKIT mol -- get a 3D conformer using ETKDG --
         # energy minimize with UFF
-        mol = atools.smiles2conformers(smiles=guests[guest],
+        mol = smiles2conformers(smiles=guests[guest],
                                        N=1, optimize=True)
         # save to mol file
         Chem.MolToMolFile(mol, filename=guest + '.mol')
         # save to xyz file
         Chem.MolToPDBFile(mol, filename=guest + '.pdb')
-        atools.convert_PDB_2_XYZ(file=guest + '.pdb')
+        convert_PDB_2_XYZ(file=guest + '.pdb')

@@ -182,7 +182,8 @@ def main():
     target_cols = [
         'octop', 'rellsesum', 'minitors', 'lsesum',
         'maxcrplan', 'maxdifffaceaniso', 'maxMLlength', 'porediam',
-        'relformatione', 'maxfacemetalpd', 'maxintangledev'
+        'relformatione', 'maxfacemetalpd', 'maxintangledev',
+        'm_cube_shape'
     ]
     for col_name in target_cols:
         categorisation_plot(

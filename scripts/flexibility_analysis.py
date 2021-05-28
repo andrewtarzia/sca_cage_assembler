@@ -21,15 +21,13 @@ import json
 
 import stk
 
-from atools import (
-    calculate_molecule_planarity,
-    colors_i_like,
-    histogram_plot_N,
+from plotting import colors_i_like, histogram_plot_N
+from utilities import (
+    split_xyz_file,
     crest_conformer_search,
     get_atom_distance,
+    calculate_molecule_planarity,
 )
-
-from utilities import split_xyz_file
 
 
 def load_ligands(directory):

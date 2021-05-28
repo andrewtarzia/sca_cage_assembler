@@ -21,12 +21,11 @@ from glob import glob
 
 import stk
 
-import atools
 from stk import (
     get_acute_vector,
     get_plane_normal,
 )
-import symmetries
+from plotting import define_plot_cmap
 from utilities import (
     get_planar_conformer,
     convert_symm_names,
@@ -640,7 +639,7 @@ class CageSet:
             'cmap_label': clabel,
         }
 
-        cmp = atools.define_plot_cmap(
+        cmp = define_plot_cmap(
             fig, ax,
             mid_point=cmap['mid_point'],
             cmap=cmap['cmap'],

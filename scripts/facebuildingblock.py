@@ -15,7 +15,7 @@ from itertools import combinations
 
 import stk
 
-from atools import get_atom_distance
+from utilities import get_atom_distance
 
 
 class FaceBuildingBlock(stk.BuildingBlock):

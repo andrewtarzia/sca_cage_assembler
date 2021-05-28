@@ -16,7 +16,7 @@ import os
 import glob
 import pandas as pd
 
-from atools import read_gfnx2xtb_eyfile
+from utilities import read_gfnx2xtb_eyfile
 
 
 def read_orca_output(output_path):

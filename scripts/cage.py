@@ -20,9 +20,8 @@ import pywindow as pw
 from os import system, mkdir
 
 import stk
-from stko import XTBOptimizerError, XTBConvergenceError
+import stko
 
-import atools
 from molecule_building import (
     metal_FFs,
     optimize_SCA_complex,
@@ -33,6 +32,16 @@ from utilities import (
     calculate_paired_face_anisotropies,
     calculate_cube_likeness,
     calculate_cube_shape_measure,
+    calculate_abs_imine_torsions,
+    calculate_ligand_SE,
+    calculate_metal_ligand_distance,
+    calculate_ligand_planarities,
+    get_query_atom_ids,
+    get_order_values,
+    calculate_energy,
+    read_gfnx2xtb_eyfile,
+    get_organic_linkers,
+    get_lowest_energy_conformers,
 )
 
 
@@ -147,7 +156,7 @@ class Cage:
             ])
             smarts = '[#7X3]~[#6X3]'
             rdkit_mol = mol.to_rdkit_mol()
-            query_ids = atools.get_query_atom_ids(smarts, rdkit_mol)
+            query_ids = get_query_atom_ids(smarts, rdkit_mol)
             bonder_atom_ids = []
             for atom_ids in query_ids:
                 n_id = atom_ids[0]
@@ -197,7 +206,7 @@ class Cage:
             # N(X3)-CX2H1-CX3-NX3, where X != H.
             smarts = '[#7X3]~[#6X3H1]~[#6X3!H1]~[#7X3]'
             rdkit_mol = mol.to_rdkit_mol()
-            query_ids = atools.get_query_atom_ids(smarts, rdkit_mol)
+            query_ids = get_query_atom_ids(smarts, rdkit_mol)
             for atom_ids in query_ids:
                 n1_pos = tuple(
                     mol.get_atomic_positions(atom_ids[0])
@@ -268,13 +277,15 @@ class Cage:
 
         # Run if crush output does not exist.
         if not exists(f'{self.crush_file}.mol'):
-            self.cage = atools.MOC_collapse(
-                cage=self.cage,
-                cage_name=self.name,
+            print(f'..doing collapser optimisation of {self.name}')
+            output_dir = f'cage_opt_{self.name}_coll'
+            optimizer = stko.Collapser(
+                output_dir=output_dir,
                 step_size=step_size,
                 distance_cut=distance_cut,
                 scale_steps=scale_steps,
             )
+            self.cage = optimizer.optimize(mol=self.cage)
             self.cage.write(f'{self.crush_file}.mol')
         else:
             self.cage = self.cage.with_structure_from_file(
@@ -283,14 +294,26 @@ class Cage:
 
         # Run if uff4mof opt output does not exist.
         if not exists(f'{self.uff4mof_CG_file}.mol'):
-            self.cage = atools.MOC_uff_opt(
-                self.cage,
-                self.name,
-                metal_FFs=custom_metal_FFs,
-                CG=True,
-                maxcyc=1000,
-                metal_ligand_bond_order='',
+            gulp_exec = '/home/atarzia/software/gulp-5.1/Src/gulp/gulp'
+            CG = True
+            maxcyc = 1000
+            metal_ligand_bond_order = ''
+            output_dir = (
+                f'cage_opt_{self.name}_uff' if CG is False
+                else f'cage_opt_{self.name}_uffCG'
             )
+            print(f'..doing UFF4MOF optimisation of {self.name}')
+            print(f'Conjugate Gradient: {CG}, Max steps: {maxcyc}')
+            gulp_opt = stko.GulpUFFOptimizer(
+                gulp_path=gulp_exec,
+                maxcyc=maxcyc,
+                metal_FF=custom_metal_FFs,
+                metal_ligand_bond_order=metal_ligand_bond_order,
+                output_dir=output_dir,
+                conjugate_gradient=CG
+            )
+            gulp_opt.assign_FF(self.cage)
+            self.cage = gulp_opt.optimize(mol=self.cage)
             self.cage.write(f'{self.uff4mof_CG_file}.mol')
         else:
             self.cage = self.cage.with_structure_from_file(
@@ -299,12 +322,26 @@ class Cage:
 
         # Run if uff4mof opt output does not exist.
         if not exists(f'{self.uff4mof_file}.mol'):
-            self.cage = atools.MOC_uff_opt(
-                self.cage,
-                self.name,
-                metal_FFs=custom_metal_FFs,
-                metal_ligand_bond_order='',
+            gulp_exec = '/home/atarzia/software/gulp-5.1/Src/gulp/gulp'
+            CG = False
+            maxcyc = 1000
+            metal_ligand_bond_order = ''
+            output_dir = (
+                f'cage_opt_{self.name}_uff' if CG is False
+                else f'cage_opt_{self.name}_uffCG'
             )
+            print(f'..doing UFF4MOF optimisation of {self.name}')
+            print(f'Conjugate Gradient: {CG}, Max steps: {maxcyc}')
+            gulp_opt = stko.GulpUFFOptimizer(
+                gulp_path=gulp_exec,
+                maxcyc=maxcyc,
+                metal_FF=custom_metal_FFs,
+                metal_ligand_bond_order=metal_ligand_bond_order,
+                output_dir=output_dir,
+                conjugate_gradient=CG
+            )
+            gulp_opt.assign_FF(self.cage)
+            self.cage = gulp_opt.optimize(mol=self.cage)
             self.cage.write(f'{self.uff4mof_file}.mol')
         else:
             self.cage = self.cage.with_structure_from_file(
@@ -313,20 +350,26 @@ class Cage:
 
         # Run if uff4mof MD output does not exist.
         if not exists(f'{self.uffMD_file}.mol'):
-            self.cage = atools.MOC_MD_opt(
-                self.cage,
-                self.name,
-                integrator='leapfrog verlet',
-                temperature=400,
-                N=10,
-                timestep=0.5,
-                equib=0.1,
-                production=2,
-                metal_FFs=custom_metal_FFs,
+            gulp_exec = '/home/atarzia/software/gulp-5.1/Src/gulp/gulp'
+
+            print(f'..doing UFF4MOF MD of {self.name}')
+            gulp_MD = stko.GulpUFFMDOptimizer(
+                gulp_path=gulp_exec,
+                metal_FF=custom_metal_FFs,
                 metal_ligand_bond_order='half',
-                opt_conf=False,
-                save_conf=False
+                output_dir=f'cage_opt_{self.name}_MD',
+                integrator='leapfrog verlet',
+                ensemble='nvt',
+                temperature=400,
+                equilbration=0.1,
+                production=2,
+                timestep=0.5,
+                N_conformers=10,
+                opt_conformers=False,
+                save_conformers=False,
             )
+            gulp_MD.assign_FF(self.cage)
+            self.cage = gulp_MD.optimize(self.cage)
             self.cage.write(f'{self.uffMD_file}.mol')
         else:
             self.cage = self.cage.with_structure_from_file(
@@ -334,22 +377,31 @@ class Cage:
             )
 
         try:
-            self.cage = atools.MOC_xtb_opt(
-                cage=self.cage,
-                cage_name=self.name,
-                gfn_exec=(
-                    '/home/atarzia/anaconda3/envs/sca_cages/bin/xtb'
-                ),
-                nc=6,
-                free_e=free_e,
-                charge=self.charge,
-                opt_level='normal',
-                etemp=300,
-                solvent=(self.cage_set_dict['solvent'], 'normal'),
+            gfn_exec = (
+                '/home/atarzia/anaconda3/envs/sca_building/bin/xtb'
             )
+            raise NotImplementedError('fix xtb exec')
+
+            print(f'..........doing XTB optimisation of {self.name}')
+            xtb_opt = stko.XTB(
+                xtb_path=gfn_exec,
+                output_dir=f'cage_opt_{self.name}_xtb',
+                gfn_version=2,
+                num_cores=6,
+                opt_level='normal',
+                charge=self.charge,
+                num_unpaired_electrons=free_e,
+                max_runs=1,
+                electronic_temperature=300,
+                calculate_hessian=False,
+                unlimited_memory=True,
+                solvent=self.cage_set_dict['solvent'],
+                solvent_grid='normal'
+            )
+            self.cage = xtb_opt.optimize(mol=self.cage)
             self.cage.write(f'{self.opt_file}.mol')
             self.optimized = True
-        except (XTBConvergenceError, XTBOptimizerError):
+        except (stko.XTBConvergenceError, stko.XTBOptimizerError):
             # Check if the optimisation was even attempted.
             opt_output_file = join(
                 f'cage_opt_{self.name}_xtb',
@@ -548,7 +600,7 @@ class Cage:
 
             # Calculate all components energies.
             if not exists(ey_file):
-                atools.calculate_energy(
+                calculate_energy(
                     name=f'{self.name}_{comp}',
                     mol=components[comp]['mol'],
                     gfn_exec=(
@@ -560,7 +612,7 @@ class Cage:
                     no_unpaired_e=no_unpaired_e,
                     solvent=solvent
                 )
-            ey = atools.read_gfnx2xtb_eyfile(ey_file)
+            ey = read_gfnx2xtb_eyfile(ey_file)
             components[comp]['total_e'] = ey
 
         # Calculate formation energy in kJ/mol.
@@ -591,7 +643,7 @@ class Cage:
         print(f'....analyzing ligand geometry of {self.name}')
         # Collect the atomic positions of the organic linkers in the
         # cage for analysis.
-        org_ligs, smiles_keys = atools.get_organic_linkers(
+        org_ligs, smiles_keys = get_organic_linkers(
             cage=self.cage,
             metal_atom_nos=(metal_atom_no, ),
             file_prefix=f'{self.name}_sg'
@@ -605,7 +657,7 @@ class Cage:
                 'optimization. Recommend reoptimising structure.'
             )
 
-        atools.get_lowest_energy_conformers(
+        get_lowest_energy_conformers(
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
             file_prefix=f'{self.base_name}_sg',
@@ -638,13 +690,13 @@ class Cage:
             cage_free_e=free_e,
         )
 
-        lse_dict = atools.calculate_ligand_SE(
+        lse_dict = calculate_ligand_SE(
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
             output_json=f'{self.ls_file}.json',
             file_prefix=f'{self.base_name}_sg'
         )
-        imine_torsion_dict = atools.calculate_abs_imine_torsions(
+        imine_torsion_dict = calculate_abs_imine_torsions(
             org_ligs=org_ligs,
         )
         for ol in imine_torsion_dict:
@@ -653,7 +705,7 @@ class Cage:
                   f'{len(imine_torsion_dict[ol])} minies found, '
                   'but 4 expected.'
                 )
-        planarity_dict = atools.calculate_ligand_planarities(
+        planarity_dict = calculate_ligand_planarities(
             org_ligs=org_ligs
         )
 
@@ -762,7 +814,7 @@ class Cage:
             # Save to dict with atom id and atom type.
             op_res = {}
             for metal in pres_atm_no:
-                op_set = atools.get_order_values(
+                op_set = get_order_values(
                     mol=self.cage,
                     metal=metal,
                     per_site=True
@@ -782,7 +834,7 @@ class Cage:
             'Warning! Calculate metal-ligand distance is hard-coded '
             'for Zn-N'
         )
-        self.bl_data = atools.calculate_metal_ligand_distance(
+        self.bl_data = calculate_metal_ligand_distance(
             mol=self.cage,
             metal_atomic_number=30,
             ligand_atomic_number=7,

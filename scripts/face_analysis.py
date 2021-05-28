@@ -21,17 +21,10 @@ import numpy as np
 import stk
 import stko
 
-from atools import get_query_atom_ids
-
 from molecule_building import metal_FFs
 from cubeface import CubeFace
 from facebuildingblock import FaceBuildingBlock
-
-from atools import (
-    MOC_collapse_mc,
-    MOC_uff_opt,
-    get_atom_distance,
-)
+from utilities import get_query_atom_ids, get_atom_distance
 
 
 def load_complex(filename):
@@ -141,25 +134,33 @@ def optimize_face(face, face_name):
         target_bond_length = 1.2
         num_steps = 2000
         step_size = 0.25
-        opt_face = MOC_collapse_mc(
-            cage=face,
-            cage_name=face_name,
+
+        print(f'..doing collapser optimisation of {face_name}')
+        output_dir = f'cage_opt_{face_name}_coll'
+        optimizer = stko.CollapserMC(
+            output_dir=output_dir,
             step_size=step_size,
             target_bond_length=target_bond_length,
             num_steps=num_steps,
         )
+        opt_face = optimizer.optimize(mol=face)
         opt_face.write(coll_file)
 
     # Short restrained UFF opt.
     custom_metal_FFs = metal_FFs(CN=6)
-    opt_face = MOC_uff_opt(
-        opt_face,
-        face_name,
-        metal_FFs=custom_metal_FFs,
-        CG=True,
+    gulp_exec = '/home/atarzia/software/gulp-5.1/Src/gulp/gulp'
+    output_dir = f'cage_opt_{face_name}_uffCG'
+    print(f'..doing UFF4MOF optimisation of {face_name}')
+    gulp_opt = stko.GulpUFFOptimizer(
+        gulp_path=gulp_exec,
         maxcyc=50,
+        metal_FF=custom_metal_FFs,
         metal_ligand_bond_order='',
+        output_dir=output_dir,
+        conjugate_gradient=True
     )
+    gulp_opt.assign_FF(opt_face)
+    opt_face = gulp_opt.optimize(mol=opt_face)
     opt_face.write(opt_file)
 
     return opt_face

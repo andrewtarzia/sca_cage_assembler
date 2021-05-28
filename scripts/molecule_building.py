@@ -14,11 +14,8 @@ Date Created: 23 Jan 2020
 import stk
 import stko
 
-from atools import (
-    AromaticCNCFactory,
-    crest_conformer_search,
-    optimize_conformer,
-)
+from utilities import crest_conformer_search, optimize_conformer
+from functional_groups import AromaticCNCFactory
 
 
 class MissingSettingError(Exception):

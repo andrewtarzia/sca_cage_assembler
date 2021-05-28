@@ -19,15 +19,17 @@ import numpy as np
 import json
 
 from utilities import (
-    heatmap,
-    annotate_heatmap,
     convert_symm_names,
     convert_lig_names_from_cage,
     get_plottables,
     start_at_0,
 )
 
-from atools import colors_i_like
+from plotting import (
+    colors_i_like,
+    heatmap,
+    annotate_heatmap,
+)
 
 
 def plot_heatmap_X_vs_Y(
