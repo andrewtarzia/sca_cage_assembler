@@ -9,9 +9,17 @@ from subcomponent self-assembly.
 Installation
 ============
 
-Clone the repo. Create conda environment from `environment.yml`. Note
-specific version of pymatgen (2019.5.8) from pip. Additionally, the
-`atools` repo is used.
+To get ``XX``, you can clone this repo.
+
+Dependancies:
+
+The file `environment.yml` defines a Python 3.9 conda env used for this project.
+
+
+Extracting new topologies
+=========================
+
+Handled in `topology_extraction` directory.
 
 
 Acknowledgements
