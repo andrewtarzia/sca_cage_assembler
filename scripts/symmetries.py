@@ -440,6 +440,50 @@ class M8L6_Symmetry(Symmetry):
         }
 
 
+class M8L6Knot_Symmetry(Symmetry):
+    """
+    Define a symmetry for a M8L6 cage topology_graph.
+
+    """
+
+    def __init__(
+        self,
+        D_complex,
+        L_complex,
+        linker,
+    ):
+        self.D_complex = D_complex
+        self.L_complex = L_complex
+        self.linker = linker
+        self.n_metals = 8
+        self.no_vertices = 14
+
+    def d3c3(self):
+        """
+        D3 symmetry with a C3 axis.
+
+        Only one distinct symmetry required.
+
+        Delta symmetry complexes at all nodes.
+
+        """
+
+        # All default orientation. All Delta.
+        vertex_alignments = {
+            i: 0 for i in range(self.no_vertices)
+        }
+        building_blocks = {
+            self.D_complex: range(self.n_metals),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
+
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (8, 0)
+        }
+
+
 class M4L4_Symmetry(Symmetry):
     """
     Define a symmetry for a M4L4 cage topology_graph.

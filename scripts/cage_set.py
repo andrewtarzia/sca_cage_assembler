@@ -25,6 +25,12 @@ from stk import (
     get_acute_vector,
     get_plane_normal,
 )
+from symmetries import (
+    M4L4_Symmetry,
+    M6L2L3_Symmetry,
+    M8L6_Symmetry,
+    M8L6Knot_Symmetry,
+)
 from plotting import define_plot_cmap
 from utilities import (
     get_planar_conformer,
@@ -460,7 +466,7 @@ class CageSet:
             linker = linkers[3]
 
             # Predefined list of symmetries.
-            symm_c = symmetries.M4L4_Symmetry(
+            symm_c = M4L4_Symmetry(
                 D_complex=D_complex,
                 L_complex=L_complex,
                 linker=linker,
@@ -472,7 +478,7 @@ class CageSet:
             linker = linkers[4]
 
             # Predefined list of symmetries.
-            symm_c = symmetries.M8L6_Symmetry(
+            symm_c = M8L6_Symmetry(
                 D_complex=D_complex,
                 L_complex=L_complex,
                 linker=linker,
@@ -494,13 +500,25 @@ class CageSet:
             linker4 = linkers[4]
 
             # Predefined list of symmetries.
-            symm_c = symmetries.M6L2L3_Symmetry(
+            symm_c = M6L2L3_Symmetry(
                 D_complex=D_complex,
                 L_complex=L_complex,
                 linker3=linker3,
                 linker4=linker4,
             )
             symm_list['base'] = symm_c.base()
+
+        elif string == 'm8l6knot':
+            symm_list = {}
+            linker = linkers[4]
+
+            # Predefined list of symmetries.
+            symm_c = M8L6Knot_Symmetry(
+                D_complex=D_complex,
+                L_complex=L_complex,
+                linker=linker,
+            )
+            symm_list['d3c3'] = symm_c.d3c3()
         else:
             raise KeyError(f'{string} not in defined')
 
@@ -843,41 +861,46 @@ class HoCube(CageSet):
 
         # Get topology function as object to be used in following list.
         # Homoleptic cage with tetratopic ligand.
-        tet_topo_name = 'm8l6face'
-        tet_topo_fn = available_topologies(string=tet_topo_name)
+        tet_topo_names = ['m8l6face', 'm8l6knot']
+        cages_to_build = []
+        for topo_name in tet_topo_names:
+            tet_topo_fn = available_topologies(string=topo_name)
 
-        symmetries_to_build = self.get_cage_symmetries(
-            string=tet_topo_name,
-            D_complex=D_complex,
-            L_complex=L_complex,
-            linkers={4: tet_linker},
-        )
+            symmetries_to_build = self.get_cage_symmetries(
+                string=topo_name,
+                D_complex=D_complex,
+                L_complex=L_complex,
+                linkers={4: tet_linker},
+            )
 
-        cages_to_build = self.iterate_over_symmetries(
-            base_name=(
-                f"C_{self.cage_set_dict['corner_name']}_"
-                f"{self.cage_set_dict['tetratopic']}"
-            ),
-            topo_name=tet_topo_name,
-            topo_fn=tet_topo_fn,
-            symmetries_to_build=symmetries_to_build,
-            # Set charge properties based on ligand occurances.
-            charge_prop={
-                'D': int(D_charge),
-                'L': int(L_charge),
-                '3': 0,
-                '4': tet_prop['net_charge']*6,
-            },
-            # Set free e properties based on ligand occurances.
-            mult_prop={
-                'D': D_free_e,
-                'L': L_free_e,
-                '3': [0],
-                '4': [
-                    int(i)*6 for i in tet_prop['total_unpaired_e']
-                ],
-            },
-        )
+            temp_cages_to_build = self.iterate_over_symmetries(
+                base_name=(
+                    f"C_{self.cage_set_dict['corner_name']}_"
+                    f"{self.cage_set_dict['tetratopic']}"
+                ),
+                topo_name=topo_name,
+                topo_fn=tet_topo_fn,
+                symmetries_to_build=symmetries_to_build,
+                # Set charge properties based on ligand occurances.
+                charge_prop={
+                    'D': int(D_charge),
+                    'L': int(L_charge),
+                    '3': 0,
+                    '4': tet_prop['net_charge']*6,
+                },
+                # Set free e properties based on ligand occurances.
+                mult_prop={
+                    'D': D_free_e,
+                    'L': L_free_e,
+                    '3': [0],
+                    '4': [
+                        int(i)*6 for i in tet_prop['total_unpaired_e']
+                    ],
+                },
+            )
+
+            for i in temp_cages_to_build:
+                cages_to_build.append(i)
 
         return cages_to_build
 
