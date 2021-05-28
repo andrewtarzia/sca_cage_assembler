@@ -7,6 +7,7 @@ import itertools
 from os.path import exists
 import stk
 from rdkit.Chem import AllChem as Chem
+import env_set
 
 
 def build_ligands():
@@ -14,14 +15,14 @@ def build_ligands():
         'spacer3': {
             'name': 's3',
             'molecule': stk.BuildingBlock.init_from_file(
-                f'spacer3.mol',
+                'spacer3.mol',
                 functional_groups=['bromine']
             )
         },
         'spacer1': {
             'name': 's1',
             'molecule': stk.BuildingBlock.init_from_file(
-                f'spacer1.mol',
+                'spacer1.mol',
                 functional_groups=['bromine']
             )
         },
@@ -39,14 +40,14 @@ def build_ligands():
         'bident1': {
             'name': 'b1',
             'molecule': stk.BuildingBlock.init_from_file(
-                f'bident1.mol',
+                'bident1.mol',
                 functional_groups=['CNC_metal']
             )
         },
         'bident2': {
             'name': 'b2',
             'molecule': stk.BuildingBlock.init_from_file(
-                f'bident2.mol',
+                'bident2.mol',
                 functional_groups=['CNC_metal']
             )
         }
@@ -77,7 +78,7 @@ def build_porphyrin(metal, porph_name, file_name):
     else:
         print('doing XTB optimisation')
         xtb_opt = stk.XTB(
-            xtb_path='',
+            xtb_path=env_set.xtb_path(),
             output_dir=f'{file_name}',
             gfn_version=2,
             num_cores=6,
@@ -148,7 +149,7 @@ def calculate_energy(cage_name, n_metals):
 
     # Extract energy.
     xtb_energy = stk.XTBEnergy(
-        xtb_path='',
+        xtb_path=env_set.xtb_path(),
         output_dir=f'cage_opt_{cage_name}',
         num_cores=6,
         charge=n_metals*2,
@@ -184,7 +185,7 @@ def build_complex(metal_centre, bidentate_ligand, complex_top, name):
         print(f'doing opt for {name}')
         print('doing UFF4MOF optimisation')
         gulp_opt = stk.GulpUFFOptimizer(
-            gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+            gulp_path=env_set.gulp_path(),
             metal_FF='Fe6+2',
             output_dir=f'{name}_uff1'
         )
@@ -196,7 +197,7 @@ def build_complex(metal_centre, bidentate_ligand, complex_top, name):
 
         print('doing XTB optimisation')
         xtb_opt = stk.XTB(
-            xtb_path='',
+            xtb_path=env_set.xtb_path(),
             output_dir=f'{name}_xtb',
             gfn_version=2,
             num_cores=6,
@@ -215,7 +216,7 @@ def build_complex(metal_centre, bidentate_ligand, complex_top, name):
 
         # print('doing UFF4MOF optimisation 2')
         # gulp_opt3 = stk.GulpUFFOptimizer(
-        #     gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        #     gulp_path=env_set.gulp_path(),
         #     metal_FF='Fe6+2',
         #     output_dir=f's_complex_uff3'
         # )
@@ -317,7 +318,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_types):
 
     print('doing UFF4MOF optimisation')
     gulp_opt = stk.GulpUFFOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        gulp_path=env_set.gulp_path(),
         metal_FF=metal_types,
         output_dir=f'cage_opt_{cage_name}_uff1'
     )
@@ -329,7 +330,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_types):
 
     print('doing UFF4MOF MD')
     gulp_MD = stk.GulpUFFMDOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        gulp_path=env_set.gulp_path(),
         metal_FF=metal_types,
         output_dir=f'cage_opt_{cage_name}_MD',
         integrator='stochastic',
@@ -349,7 +350,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_types):
 
     print('doing UFF4MOF optimisation 3')
     gulp_opt3 = stk.GulpUFFOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        gulp_path=env_set.gulp_path(),
         metal_FF=metal_types,
         output_dir=f'cage_opt_{cage_name}_uff3'
     )
@@ -361,7 +362,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_types):
 
     print('doing XTB optimisation')
     xtb_opt = stk.XTB(
-        xtb_path='',
+        xtb_path=env_set.xtb_path(),
         output_dir=f'cage_opt_{cage_name}',
         gfn_version=2,
         num_cores=6,

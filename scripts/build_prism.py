@@ -7,6 +7,7 @@ import sys
 from os.path import exists
 import stk
 from rdkit.Chem import AllChem as Chem
+import env_set
 
 
 def build_ligands():
@@ -14,14 +15,14 @@ def build_ligands():
         'spacer3': {
             'name': 's3',
             'molecule': stk.BuildingBlock.init_from_file(
-                f'spacer3.mol',
+                'spacer3.mol',
                 functional_groups=['bromine']
             )
         },
         'spacerp': {
             'name': 'p4',
             'molecule': stk.BuildingBlock.init_from_file(
-                f'spacerp.mol',
+                'spacerp.mol',
                 functional_groups=['bromine']
             )
         },
@@ -39,7 +40,7 @@ def build_ligands():
         'bident': {
             'name': 'b1',
             'molecule': stk.BuildingBlock.init_from_file(
-                f'bident.mol',
+                'bident.mol',
                 functional_groups=['CNC_metal']
             )
         }
@@ -93,7 +94,7 @@ def build_metal_centre(metal, n_atom):
 
 
 def build_porphyrin(metal, porph_name, file_name):
-    sys.exit('OLD API USED HERE, BROKEN!')
+    raise NotImplementedError('OLD API USED HERE, BROKEN!')
     metal = build_metal(metal_smiles=metal, no_fgs=4)
     porphyrin = stk.BuildingBlock.init_from_file(
         f'{porph_name}.mol',
@@ -115,7 +116,7 @@ def build_porphyrin(metal, porph_name, file_name):
     else:
         print('doing XTB optimisation')
         xtb_opt = stk.XTB(
-            xtb_path='',
+            xtb_path=env_set.xtb_path(),
             output_dir=f'{file_name}',
             gfn_version=2,
             num_cores=6,
@@ -142,7 +143,7 @@ def calculate_energy(cage_name, n_metals):
 
     # Extract energy.
     xtb_energy = stk.XTBEnergy(
-        xtb_path='',
+        xtb_path=env_set.xtb_path(),
         output_dir=f'cage_opt_{cage_name}',
         num_cores=6,
         charge=n_metals*2,
@@ -179,7 +180,7 @@ def build_complex(metal_centre, bidentate_ligand, complex_top, name):
         print(f'doing opt for {name}')
         print('doing UFF4MOF optimisation')
         gulp_opt = stk.GulpUFFOptimizer(
-            gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+            gulp_path=env_set.gulp_path(),
             metal_FF='Zn4+2',
             output_dir=f'{name}_uff1'
         )
@@ -191,7 +192,7 @@ def build_complex(metal_centre, bidentate_ligand, complex_top, name):
 
         print('doing XTB optimisation')
         xtb_opt = stk.XTB(
-            xtb_path='',
+            xtb_path=env_set.xtb_path(),
             output_dir=f'{name}_xtb',
             gfn_version=2,
             num_cores=6,
@@ -300,7 +301,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_types):
 
     print('doing UFF4MOF optimisation')
     gulp_opt = stk.GulpUFFOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        gulp_path=env_set.gulp_path(),
         metal_FF=metal_types,
         output_dir=f'cage_opt_{cage_name}_uff1'
     )
@@ -312,7 +313,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_types):
 
     print('doing UFF4MOF MD')
     gulp_MD = stk.GulpUFFMDOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        gulp_path=env_set.gulp_path(),
         metal_FF=metal_types,
         output_dir=f'cage_opt_{cage_name}_MD',
         integrator='stochastic',
@@ -332,7 +333,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_types):
 
     print('doing UFF4MOF optimisation 3')
     gulp_opt3 = stk.GulpUFFOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        gulp_path=env_set.gulp_path(),
         metal_FF=metal_types,
         output_dir=f'cage_opt_{cage_name}_uff3'
     )
@@ -344,7 +345,7 @@ def optimize_cage(cage, cage_name, n_metals, metal_types):
 
     print('doing XTB optimisation')
     xtb_opt = stk.XTB(
-        xtb_path='',
+        xtb_path=env_set.xtb_path(),
         output_dir=f'cage_opt_{cage_name}',
         gfn_version=2,
         num_cores=6,

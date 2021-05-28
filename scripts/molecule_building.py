@@ -16,6 +16,7 @@ import stko
 
 from utilities import crest_conformer_search, optimize_conformer
 from functional_groups import AromaticCNCFactory
+import env_set
 
 
 class MissingSettingError(Exception):
@@ -178,7 +179,7 @@ def optimize_SCA_complex(complex, name, dict, metal_FFs):
 
     print(f'doing UFF4MOF optimisation for {name}')
     gulp_opt = stko.GulpUFFOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        gulp_path=env_set.gulp_path(),
         metal_FF=metal_FFs,
         output_dir=f'{name}_uff1'
     )
@@ -188,7 +189,7 @@ def optimize_SCA_complex(complex, name, dict, metal_FFs):
 
     print(f'doing xTB optimisation for {name}')
     xtb_opt = stko.XTB(
-        xtb_path='/home/atarzia/anaconda3/envs/sca_cages/bin/xtb',
+        xtb_path=env_set.xtb_path(),
         output_dir=f'{name}_xtb',
         gfn_version=2,
         num_cores=6,
@@ -209,7 +210,7 @@ def get_lowest_energy_conformer(
     name,
     mol,
     settings,
-    gfn_exec,
+    xtb_path,
 ):
     """
     Get lowest energy conformer of molecule.
@@ -236,7 +237,7 @@ def get_lowest_energy_conformer(
     low_e_conf = crest_conformer_search(
         molecule=mol,
         output_dir=f'{name}_confs/xtbcrest/',
-        gfn_exec=gfn_exec,
+        xtb_path=xtb_path,
         gfn_version=2,
         crest_exec=settings['crest_exec'],
         nc=settings['nc'],
@@ -259,7 +260,7 @@ def get_lowest_energy_conformer(
     low_e_conf = optimize_conformer(
         name=name+'low_e_opt',
         mol=low_e_conf,
-        gfn_exec=gfn_exec,
+        xtb_path=xtb_path,
         opt_level=settings['final_opt_level'],
         charge=settings['charge'],
         no_unpaired_e=settings['no_unpaired_e'],

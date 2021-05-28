@@ -43,6 +43,7 @@ from utilities import (
     get_organic_linkers,
     get_lowest_energy_conformers,
 )
+import env_set
 
 
 class UnexpectedNumLigands(Exception):
@@ -294,7 +295,6 @@ class Cage:
 
         # Run if uff4mof opt output does not exist.
         if not exists(f'{self.uff4mof_CG_file}.mol'):
-            gulp_exec = '/home/atarzia/software/gulp-5.1/Src/gulp/gulp'
             CG = True
             maxcyc = 1000
             metal_ligand_bond_order = ''
@@ -305,7 +305,7 @@ class Cage:
             print(f'..doing UFF4MOF optimisation of {self.name}')
             print(f'Conjugate Gradient: {CG}, Max steps: {maxcyc}')
             gulp_opt = stko.GulpUFFOptimizer(
-                gulp_path=gulp_exec,
+                gulp_path=env_set.gulp_path(),
                 maxcyc=maxcyc,
                 metal_FF=custom_metal_FFs,
                 metal_ligand_bond_order=metal_ligand_bond_order,
@@ -322,7 +322,6 @@ class Cage:
 
         # Run if uff4mof opt output does not exist.
         if not exists(f'{self.uff4mof_file}.mol'):
-            gulp_exec = '/home/atarzia/software/gulp-5.1/Src/gulp/gulp'
             CG = False
             maxcyc = 1000
             metal_ligand_bond_order = ''
@@ -333,7 +332,7 @@ class Cage:
             print(f'..doing UFF4MOF optimisation of {self.name}')
             print(f'Conjugate Gradient: {CG}, Max steps: {maxcyc}')
             gulp_opt = stko.GulpUFFOptimizer(
-                gulp_path=gulp_exec,
+                gulp_path=env_set.gulp_path(),
                 maxcyc=maxcyc,
                 metal_FF=custom_metal_FFs,
                 metal_ligand_bond_order=metal_ligand_bond_order,
@@ -350,11 +349,9 @@ class Cage:
 
         # Run if uff4mof MD output does not exist.
         if not exists(f'{self.uffMD_file}.mol'):
-            gulp_exec = '/home/atarzia/software/gulp-5.1/Src/gulp/gulp'
-
             print(f'..doing UFF4MOF MD of {self.name}')
             gulp_MD = stko.GulpUFFMDOptimizer(
-                gulp_path=gulp_exec,
+                gulp_path=env_set.gulp_path(),
                 metal_FF=custom_metal_FFs,
                 metal_ligand_bond_order='half',
                 output_dir=f'cage_opt_{self.name}_MD',
@@ -377,14 +374,9 @@ class Cage:
             )
 
         try:
-            gfn_exec = (
-                '/home/atarzia/anaconda3/envs/sca_building/bin/xtb'
-            )
-            raise NotImplementedError('fix xtb exec')
-
             print(f'..........doing XTB optimisation of {self.name}')
             xtb_opt = stko.XTB(
-                xtb_path=gfn_exec,
+                xtb_path=env_set.xtb_path(),
                 output_dir=f'cage_opt_{self.name}_xtb',
                 gfn_version=2,
                 num_cores=6,
@@ -445,7 +437,7 @@ class Cage:
         org_ligs,
         smiles_keys,
         file_prefix,
-        gfn_exec,
+        xtb_path,
         cage_free_e,
     ):
         """
@@ -535,9 +527,7 @@ class Cage:
                             'max_runs': 1,
                             'calc_hessian': False,
                             'solvent': solvent,
-                            'crest_exec': (
-                                '/home/atarzia/software/crest/crest'
-                            ),
+                            'crest_exec': env_set.creat_path(),
                             'nc': 4,
                             'etemp': 300,
                             'keepdir': False,
@@ -555,7 +545,7 @@ class Cage:
                             name=components[comp]['name'],
                             mol=temp_mol,
                             settings=settings,
-                            gfn_exec=gfn_exec,
+                            xtb_path=xtb_path,
                         )
                         temp_mol.write(low_e_file)
 
@@ -603,10 +593,7 @@ class Cage:
                 calculate_energy(
                     name=f'{self.name}_{comp}',
                     mol=components[comp]['mol'],
-                    gfn_exec=(
-                        '/home/atarzia/anaconda3/envs/sca_cages/bin/'
-                        'xtb'
-                    ),
+                    xtb_path=env_set.xtb_path(),
                     ey_file=ey_file,
                     charge=charge,
                     no_unpaired_e=no_unpaired_e,
@@ -661,7 +648,7 @@ class Cage:
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
             file_prefix=f'{self.base_name}_sg',
-            gfn_exec='/home/atarzia/anaconda3/envs/sca_cages/bin/xtb',
+            xtb_path=env_set.xtb_path(),
             conformer_function=get_lowest_energy_conformer,
             conformer_settings={
                 'conf_opt_level': 'crude',
@@ -671,7 +658,7 @@ class Cage:
                 'max_runs': 1,
                 'calc_hessian': False,
                 'solvent': (self.cage_set_dict['solvent'], 'normal'),
-                'crest_exec': '/home/atarzia/software/crest/crest',
+                'crest_exec': env_set.crest_path(),
                 'nc': 4,
                 'etemp': 300,
                 'keepdir': False,
@@ -686,7 +673,7 @@ class Cage:
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
             file_prefix=f'{self.base_name}_sg',
-            gfn_exec='/home/atarzia/anaconda3/envs/sca_cages/bin/xtb',
+            xtb_path=env_set.xtb_path,
             cage_free_e=free_e,
         )
 

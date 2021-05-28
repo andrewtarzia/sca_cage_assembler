@@ -24,6 +24,7 @@ from molecule_building import (
     optimize_SCA_complex,
 )
 from utilities import read_lib
+import env_set
 
 
 def get_spin_state_energies(complex, name, dict):
@@ -40,7 +41,7 @@ def get_spin_state_energies(complex, name, dict):
     spin_energies = {}
     for upe in dict['unpaired_e']:
         xtb_energy = stko.XTBEnergy(
-            xtb_path='/home/atarzia/anaconda3/envs/sca_cages/bin/xtb',
+            xtb_path=env_set.xtb_path(),
             output_dir=f'{name}_{upe}_xtbey',
             charge=dict['total_charge'],
             num_unpaired_electrons=upe,

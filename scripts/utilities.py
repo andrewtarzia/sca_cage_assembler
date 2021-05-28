@@ -23,10 +23,11 @@ import pymatgen as pmg
 from pymatgen.analysis.local_env import (
     LocalStructOrderParams,
 )
+from scipy.spatial.distance import euclidean
 import stk
 import stko
 
-from scipy.spatial.distance import euclidean
+import env_set
 
 
 def get_lowest_energy_conformers(
@@ -35,7 +36,7 @@ def get_lowest_energy_conformers(
     conformer_function,
     conformer_settings,
     file_prefix=None,
-    gfn_exec=None,
+    xtb_path=None,
 ):
     """
     Determine the lowest energy conformer of cage organic linkers.
@@ -57,7 +58,7 @@ def get_lowest_energy_conformers(
         "file_prefix"{number of atoms}_{idx}_{i}.mol
         Where `idx` determines if a molecule is unique by smiles.
 
-    gfn_exec : :class:`str`, optional
+    xtb_path : :class:`str`, optional
         Location of GFN-xTB executable to use.
 
     conformer_function : :class:`function`
@@ -85,7 +86,7 @@ def get_lowest_energy_conformers(
             low_e_conf = conformer_function(
                 name=ligand_name_,
                 mol=stk_lig,
-                gfn_exec=gfn_exec,
+                xtb_path=xtb_path,
                 settings=conformer_settings
             )
             low_e_conf.write(filename_)
@@ -94,7 +95,7 @@ def get_lowest_energy_conformers(
 def optimize_conformer(
     name,
     mol,
-    gfn_exec=None,
+    xtb_path=None,
     opt_level='extreme',
     charge=0,
     no_unpaired_e=0,
@@ -107,10 +108,8 @@ def optimize_conformer(
 
     """
 
-    raise NotImplementedError('update xtb')
-
-    if gfn_exec is None:
-        gfn_exec = '/home/atarzia/software/xtb-190806/bin/xtb'
+    if xtb_path is None:
+        xtb_path = env_set.xtb_path()
 
     print(f'....optimizing {name}')
     if solvent is None:
@@ -119,7 +118,7 @@ def optimize_conformer(
     else:
         solvent_str, solvent_grid = solvent
     xtb_opt = stko.XTB(
-        xtb_path=gfn_exec,
+        xtb_path=env_set.xtb_path(),
         output_dir=f'{name}_opt',
         gfn_version=2,
         num_cores=6,
@@ -139,8 +138,6 @@ def optimize_conformer(
 def crest_conformer_search(
     molecule,
     output_dir,
-    gfn_exec,
-    crest_exec,
     gfn_version,
     nc,
     opt_level,
@@ -173,13 +170,11 @@ def crest_conformer_search(
     else:
         solvent_str, solvent_grid = solvent
 
-    raise NotImplementedError('update xtb')
-
     print('..........doing GFN-2 CREST optimisation')
-    xtb_ff_crest = stko.XTBCREST(
-        crest_path=crest_exec,
-        xtb_path=gfn_exec,
-        gfn_version=2,
+    xtb_crest = stko.XTBCREST(
+        crest_path=env_set.crest_path(),
+        xtb_path=env_set.xtb_path(),
+        gfn_version=gfn_version,
         output_dir=output_dir,
         num_cores=nc,
         ewin=ewin,
@@ -194,7 +189,7 @@ def crest_conformer_search(
         md_len=md_len,
         unlimited_memory=True,
     )
-    molecule = xtb_ff_crest.optimize(mol=molecule)
+    molecule = xtb_crest.optimize(mol=molecule)
 
     return molecule
 
@@ -593,7 +588,7 @@ def calculate_energy(
     name,
     mol,
     ey_file,
-    gfn_exec=None,
+    xtb_path=None,
     charge=0,
     no_unpaired_e=0,
     solvent=None
@@ -603,8 +598,8 @@ def calculate_energy(
 
     """
 
-    if gfn_exec is None:
-        gfn_exec = '/home/atarzia/software/xtb-190806/bin/xtb'
+    if xtb_path is None:
+        xtb_path = env_set.xtb_path()
 
     print(f'....getting energy of {name}')
     if solvent is None:
@@ -613,7 +608,7 @@ def calculate_energy(
     else:
         solvent_str, solvent_grid = solvent
     xtb_energy = stko.XTBEnergy(
-        xtb_path=gfn_exec,
+        xtb_path=env_set.xtb_path(),
         output_dir=f'{name}_ey',
         num_cores=6,
         charge=charge,
@@ -1509,11 +1504,6 @@ def calculate_cube_shape_measure(name, molecule):
     if molecule.get_num_atoms() != 8:
         raise ValueError('Molecule does not have 8 atoms.')
 
-    shape_path = (
-        '/home/atarzia/software/shape_2.1_linux_64/'
-        'SHAPE_2.1_linux_64/shape_2.1_linux64'
-    )
-
     shape_dicts = (
         ref_shape_dict()['cube'],
         ref_shape_dict()['octagon']
@@ -1534,7 +1524,7 @@ def calculate_cube_shape_measure(name, molecule):
         ref_shapes=[i['code'] for i in shape_dicts],
     )
 
-    run_shape(input_file, shape_path, std_out)
+    run_shape(input_file, env_set.shape_path(), std_out)
     shapes = collect_all_shape_values(output_file)
     print(shapes)
     return shapes
@@ -1591,10 +1581,7 @@ def run_shape(input_file, shape_path, std_out):
 
     """
 
-    cmd = (
-        f'{shape_path} {input_file}'
-    )
-
+    cmd = f'{shape_path} {input_file}'
     with open(std_out, 'w') as f:
         # Note that sp.call will hold the program until completion
         # of the calculation.

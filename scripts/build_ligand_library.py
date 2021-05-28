@@ -24,6 +24,7 @@ from utilities import (
     read_lib,
     get_planar_conformer,
 )
+import env_set
 
 
 def build_organics(ligs):
@@ -56,7 +57,7 @@ def optimise_metal_centre(name, charge, complex, metal_FF):
 
     print(f'.......UFF4MOF optimisation of {name}')
     gulp_opt = stko.GulpUFFOptimizer(
-        gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+        gulp_path=env_set.gulp_path(),
         metal_FF=metal_FF,
         output_dir=f'{name}_uff1'
     )
@@ -66,7 +67,7 @@ def optimise_metal_centre(name, charge, complex, metal_FF):
 
     print(f'.......XTB optimisation of {name}')
     xtb_opt = stko.XTB(
-        xtb_path='/home/atarzia/anaconda3/envs/sca_cages/bin/xtb',
+        xtb_path=env_set.xtb_path(),
         output_dir=f'{name}_xtb',
         gfn_version=2,
         num_cores=6,

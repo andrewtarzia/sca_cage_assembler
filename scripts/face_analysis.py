@@ -25,6 +25,7 @@ from molecule_building import metal_FFs
 from cubeface import CubeFace
 from facebuildingblock import FaceBuildingBlock
 from utilities import get_query_atom_ids, get_atom_distance
+import env_set
 
 
 def load_complex(filename):
@@ -56,7 +57,7 @@ def optimize_complex(complex, name):
     else:
         print(f'doing UFF4MOF optimisation for {name}')
         gulp_opt = stko.GulpUFFOptimizer(
-            gulp_path='/home/atarzia/software/gulp-5.1/Src/gulp/gulp',
+            gulp_path=env_set.gulp_path(),
             metal_FF=metal_FFs(CN=6),
             output_dir=f'{name}_uff1'
         )
@@ -66,7 +67,7 @@ def optimize_complex(complex, name):
 
         print(f'doing xTB optimisation for {name}')
         xtb_opt = stko.XTB(
-            xtb_path='/home/atarzia/anaconda3/envs/sca_cages/bin/xtb',
+            xtb_path=env_set.xtb_path(),
             output_dir=f'{name}_xtb',
             gfn_version=2,
             num_cores=6,
@@ -148,11 +149,10 @@ def optimize_face(face, face_name):
 
     # Short restrained UFF opt.
     custom_metal_FFs = metal_FFs(CN=6)
-    gulp_exec = '/home/atarzia/software/gulp-5.1/Src/gulp/gulp'
     output_dir = f'cage_opt_{face_name}_uffCG'
     print(f'..doing UFF4MOF optimisation of {face_name}')
     gulp_opt = stko.GulpUFFOptimizer(
-        gulp_path=gulp_exec,
+        gulp_path=env_set.gulp_path(),
         maxcyc=50,
         metal_FF=custom_metal_FFs,
         metal_ligand_bond_order='',

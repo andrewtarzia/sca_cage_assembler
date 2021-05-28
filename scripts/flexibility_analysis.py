@@ -28,6 +28,7 @@ from utilities import (
     get_atom_distance,
     calculate_molecule_planarity,
 )
+import env_set
 
 
 def load_ligands(directory):
@@ -70,8 +71,8 @@ def calculate_flex(molecule, name, la_pairs):
         new_molecule = crest_conformer_search(
             molecule=molecule,
             output_dir=f'crst_{name}',
-            gfn_exec='/home/atarzia/anaconda3/envs/sca_cages/bin/xtb',
-            crest_exec='/home/atarzia/software/crest/crest',
+            xtb_path=env_set.xtb_path(),
+            crest_exec=env_set.crest_path(),
             gfn_version=2,
             nc=3,
             opt_level='crude',
