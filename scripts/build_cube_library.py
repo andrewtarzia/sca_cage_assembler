@@ -58,7 +58,7 @@ def build_cages(
                 default_free_e = C.free_electron_options[0]
                 # Use a slightly different collapser threshold for
                 # different topologies.
-                if C.topology_string == 'm8l6face':
+                if C.topology_string in ['m8l6face', 'm8l6knot']:
                     step_size = 0.05
                     distance_cut = 2.5
                     scale_steps = False

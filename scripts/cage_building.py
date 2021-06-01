@@ -44,6 +44,7 @@ def m8l6knot_graph(building_blocks, vertex_alignments):
         building_blocks=building_blocks,
         vertex_alignments=vertex_alignments,
         num_processes=2,
+        optimizer=stk.MCHammer(),
     )
 
     return topology_graph
