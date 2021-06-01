@@ -28,7 +28,6 @@ from utilities import (
     get_atom_distance,
     calculate_molecule_planarity,
 )
-import env_set
 
 
 def load_ligands(directory):
