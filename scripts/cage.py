@@ -545,7 +545,6 @@ class Cage:
                             name=components[comp]['name'],
                             mol=temp_mol,
                             settings=settings,
-                            xtb_path=xtb_path,
                         )
                         temp_mol.write(low_e_file)
 
@@ -648,7 +647,6 @@ class Cage:
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
             file_prefix=f'{self.base_name}_sg',
-            xtb_path=env_set.xtb_path(),
             conformer_function=get_lowest_energy_conformer,
             conformer_settings={
                 'conf_opt_level': 'crude',

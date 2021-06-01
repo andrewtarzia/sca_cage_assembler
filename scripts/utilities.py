@@ -36,7 +36,6 @@ def get_lowest_energy_conformers(
     conformer_function,
     conformer_settings,
     file_prefix=None,
-    xtb_path=None,
 ):
     """
     Determine the lowest energy conformer of cage organic linkers.
@@ -57,9 +56,6 @@ def get_lowest_energy_conformers(
         Eventual file name is:
         "file_prefix"{number of atoms}_{idx}_{i}.mol
         Where `idx` determines if a molecule is unique by smiles.
-
-    xtb_path : :class:`str`, optional
-        Location of GFN-xTB executable to use.
 
     conformer_function : :class:`function`
         Define the function used to rank and find the lowest energy
@@ -86,7 +82,6 @@ def get_lowest_energy_conformers(
             low_e_conf = conformer_function(
                 name=ligand_name_,
                 mol=stk_lig,
-                xtb_path=xtb_path,
                 settings=conformer_settings
             )
             low_e_conf.write(filename_)
@@ -95,7 +90,6 @@ def get_lowest_energy_conformers(
 def optimize_conformer(
     name,
     mol,
-    xtb_path=None,
     opt_level='extreme',
     charge=0,
     no_unpaired_e=0,
@@ -107,9 +101,6 @@ def optimize_conformer(
     Run simple GFN-xTB optimisation of molecule.
 
     """
-
-    if xtb_path is None:
-        xtb_path = env_set.xtb_path()
 
     print(f'....optimizing {name}')
     if solvent is None:

@@ -71,8 +71,6 @@ def calculate_flex(molecule, name, la_pairs):
         new_molecule = crest_conformer_search(
             molecule=molecule,
             output_dir=f'crst_{name}',
-            xtb_path=env_set.xtb_path(),
-            crest_exec=env_set.crest_path(),
             gfn_version=2,
             nc=3,
             opt_level='crude',

@@ -206,12 +206,7 @@ def optimize_SCA_complex(complex, name, dict, metal_FFs):
     return complex
 
 
-def get_lowest_energy_conformer(
-    name,
-    mol,
-    settings,
-    xtb_path,
-):
+def get_lowest_energy_conformer(name, mol, settings):
     """
     Get lowest energy conformer of molecule.
 
@@ -237,9 +232,7 @@ def get_lowest_energy_conformer(
     low_e_conf = crest_conformer_search(
         molecule=mol,
         output_dir=f'{name}_confs/xtbcrest/',
-        xtb_path=xtb_path,
         gfn_version=2,
-        crest_exec=settings['crest_exec'],
         nc=settings['nc'],
         opt_level=settings['conf_opt_level'],
         charge=settings['charge'],
@@ -260,7 +253,6 @@ def get_lowest_energy_conformer(
     low_e_conf = optimize_conformer(
         name=name+'low_e_opt',
         mol=low_e_conf,
-        xtb_path=xtb_path,
         opt_level=settings['final_opt_level'],
         charge=settings['charge'],
         no_unpaired_e=settings['no_unpaired_e'],
