@@ -41,6 +41,9 @@ def build_organics(ligs):
 
         if exists(input_file):
             mol = stk.BuildingBlock.init_from_file(input_file)
+            raise NotImplementedError(
+                'Input files should not be used here'
+            )
         else:
             smi = ligs[name]['smiles']
             mol = stk.BuildingBlock(smiles=smi)
