@@ -21,7 +21,7 @@ from stk.utilities import (
 )
 
 
-class _FaceVertex(stk.Vertex):
+class FaceVertex(stk.Vertex):
     """
     Represents a vertex of a :class:`.CubeFace`.
 
@@ -35,7 +35,7 @@ class _FaceVertex(stk.Vertex):
         aligner_edge=0,
     ):
         """
-        Initialize a :class:`._CageVertex`.
+        Initialize a :class:`.FaceVertex`.
 
         Parameters
         ----------
@@ -88,7 +88,7 @@ class _FaceVertex(stk.Vertex):
 
         Returns
         -------
-        :class:`._CageVertex`
+        :class:`.FaceVertex`
             The clone. Has the same type as the original instance.
 
         """
@@ -113,7 +113,7 @@ class _FaceVertex(stk.Vertex):
     @classmethod
     def init_at_center(cls, id, vertices):
         """
-        Initialize a :class:`._CageVertex` in the middle of `vertices`.
+        Initialize a :class:`.FaceVertex` in the middle of `vertices`.
 
         Parameters
         ----------
@@ -125,7 +125,7 @@ class _FaceVertex(stk.Vertex):
 
         Returns
         -------
-        :class:`._CageVertex`
+        :class:`.FaceVertex`
             The new vertex.
 
         """
@@ -159,7 +159,7 @@ class _FaceVertex(stk.Vertex):
         )
 
 
-class _MetalVertex(_FaceVertex):
+class MetalVertex(FaceVertex):
     def place_building_block(self, building_block, edges):
         assert (
             building_block.get_num_functional_groups() == 1
@@ -216,7 +216,7 @@ class _MetalVertex(_FaceVertex):
         }
 
 
-class _LinkerVertex(_FaceVertex):
+class LinkerVertex(FaceVertex):
 
     def place_building_block(self, building_block, edges):
         assert (
@@ -334,22 +334,22 @@ class CubeFace(stk.cage.Cage):
     """
 
     _vertex_prototypes = (
-        _MetalVertex(
+        MetalVertex(
             id=0,
             position=[1, 1, 0],
             use_neighbor_placement=False,
         ),
-        _MetalVertex(
+        MetalVertex(
             id=1,
             position=[1, -1, 0],
             use_neighbor_placement=False,
         ),
-        _MetalVertex(
+        MetalVertex(
             id=2,
             position=[-1, -1, 0],
             use_neighbor_placement=False,
         ),
-        _MetalVertex(
+        MetalVertex(
             id=3,
             position=[-1, 1, 0],
             use_neighbor_placement=False,
@@ -359,7 +359,7 @@ class CubeFace(stk.cage.Cage):
     _vertex_prototypes = (
         *_vertex_prototypes,
 
-        _LinkerVertex(
+        LinkerVertex(
             id=4,
             position=[0, 0, 0],
             use_neighbor_placement=False,
