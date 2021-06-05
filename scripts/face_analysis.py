@@ -145,6 +145,7 @@ def optimize_face(face, face_name):
             num_steps=num_steps,
         )
         opt_face = optimizer.optimize(mol=face)
+        opt_face = opt_face.with_centroid([0, 0, 0])
         opt_face.write(coll_file)
 
     # Short restrained UFF opt.
@@ -161,6 +162,7 @@ def optimize_face(face, face_name):
     )
     gulp_opt.assign_FF(opt_face)
     opt_face = gulp_opt.optimize(mol=opt_face)
+    opt_face = opt_face.with_centroid([0, 0, 0])
     opt_face.write(opt_file)
 
     return opt_face
