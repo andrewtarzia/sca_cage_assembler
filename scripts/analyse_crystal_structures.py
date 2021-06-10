@@ -131,7 +131,7 @@ def main():
         print(xtal_cage)
         org_ligs, smiles_keys = xtal_cage.get_organic_linkers()
         xtal_cage.write_metal_atom_structure()
-        xtal_cage.get_lowest_energy_conformer_file(
+        xtal_cage.collect_lowest_energy_conformer_file(
             cage_directory=cage_directory,
             n_atoms=[org_ligs[i].get_num_atoms() for i in org_ligs][0],
             cage_set=xtals[xtal]['cage_set'],

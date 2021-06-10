@@ -519,23 +519,6 @@ class Cage:
                             low_e_file
                         )
                     else:
-                        settings = {
-                            'conf_opt_level': 'crude',
-                            'final_opt_level': 'extreme',
-                            'charge': charge,
-                            'no_unpaired_e': no_unpaired_e,
-                            'max_runs': 1,
-                            'calc_hessian': False,
-                            'solvent': solvent,
-                            'crest_exec': env_set.creat_path(),
-                            'nc': 4,
-                            'etemp': 300,
-                            'keepdir': False,
-                            'cross': True,
-                            'md_len': None,
-                            'ewin': 5,
-                            'speed_setting': 'squick',
-                        }
                         conf_folder = (
                             f"{components[comp]['name']}_confs/"
                         )
@@ -544,7 +527,11 @@ class Cage:
                         temp_mol = get_lowest_energy_conformer(
                             name=components[comp]['name'],
                             mol=temp_mol,
-                            settings=settings,
+                            settings=(
+                                env_set.crest_conformer_settings(
+                                    solvent=None
+                                )
+                            ),
                         )
                         temp_mol.write(low_e_file)
 
@@ -620,6 +607,7 @@ class Cage:
         metal_atom_no,
         expected_ligands,
         free_e,
+        ligand_dir,
     ):
         """
         Analyse cage ligand geometry for strain.
@@ -643,28 +631,15 @@ class Cage:
                 'optimization. Recommend reoptimising structure.'
             )
 
+        # Loads from flexibility analysis and optimizes with solvent.
         get_lowest_energy_conformers(
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
             file_prefix=f'{self.base_name}_sg',
-            conformer_function=get_lowest_energy_conformer,
-            conformer_settings={
-                'conf_opt_level': 'crude',
-                'final_opt_level': 'extreme',
-                'charge': 0,
-                'no_unpaired_e': 0,
-                'max_runs': 1,
-                'calc_hessian': False,
-                'solvent': (self.cage_set_dict['solvent'], 'normal'),
-                'crest_exec': env_set.crest_path(),
-                'nc': 4,
-                'etemp': 300,
-                'keepdir': False,
-                'cross': True,
-                'md_len': None,
-                'ewin': 5,
-                'speed_setting': 'squick',
-            },
+            ligand_dir=ligand_dir,
+            settings=env_set.crest_conformer_settings(
+                solvent=(self.cage_set_dict['solvent'], 'normal'),
+            ),
         )
 
         self.calculate_formation_energy(

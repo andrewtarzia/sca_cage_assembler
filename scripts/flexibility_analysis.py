@@ -28,6 +28,8 @@ from utilities import (
     get_atom_distance,
     calculate_molecule_planarity,
 )
+from molecule_building import get_lowest_energy_conformer
+import env_set
 
 
 def load_ligands(directory):
@@ -65,23 +67,16 @@ def calculate_flex(molecule, name, la_pairs):
                 ' than 1 binder.'
             )
 
+    low_e_conformer_output = f'../{name}_loweconf.mol'
+
     # Crest part.
-    if not exists(f'crst_{name}/crest_rotamers.xyz'):
-        new_molecule = crest_conformer_search(
-            molecule=molecule,
-            output_dir=f'crst_{name}',
-            gfn_version=2,
-            nc=3,
-            opt_level='crude',
-            charge=0,
-            keepdir=False,
-            cross=False,
-            etemp=300,
-            no_unpaired_e=0,
-            speed_setting='squick',
-            solvent=('acetonitrile', 'normal'),
+    if not exists(low_e_conformer_output):
+        new_molecule = get_lowest_energy_conformer(
+            name=name,
+            mol=molecule,
+            settings=env_set.crest_conformer_settings(solvent=None),
         )
-        new_molecule.write(f'{name}_loweconf.mol')
+        new_molecule.write(low_e_conformer_output)
 
     # Extract some measure of conformer ensemble size.
     crest_output_file = f'{name}_flex_measure.json'
@@ -100,7 +95,7 @@ def calculate_flex(molecule, name, la_pairs):
                     int(line.rstrip().split(' ')[-1])
                 )
 
-    # Analyse all rotamers from CREST.
+    # Analyse all conformers from CREST.
     crest_conformer_files = split_xyz_file(
         num_atoms=molecule.get_num_atoms(),
         xyz_file=f'crst_{name}/crest_conformers.xyz',

@@ -14,9 +14,8 @@ Date Created: 11 Nov 2020
 import numpy as np
 import json
 import matplotlib.pyplot as plt
-from os.path import join
 from itertools import combinations
-from os import system
+import os
 import networkx as nx
 
 import stk
@@ -33,7 +32,9 @@ from utilities import (
     calculate_abs_imine_torsions,
     calculate_molecule_planarity,
     get_order_values,
+    optimize_conformer,
 )
+import env_set
 
 
 class XtalCage:
@@ -71,7 +72,7 @@ class XtalCage:
         self.stk_mol.write('temp.xyz')
         pw_cage = pw.MolecularSystem.load_file('temp.xyz')
         pw_cage_mol = pw_cage.system_to_molecule()
-        system('rm temp.xyz')
+        os.system('rm temp.xyz')
         # Calculate pore size.
         return pw_cage_mol.calculate_pore_diameter_opt()
 
@@ -98,24 +99,50 @@ class XtalCage:
             smarts='[#6]-[#7X2]-[#6X3H1]-[#6X3!H1]',
         )
 
-    def get_lowest_energy_conformer_file(
+    def collect_lowest_energy_conformer_file(
         self,
         cage_directory,
         n_atoms,
         cage_set,
     ):
 
+        # From cage analysis - optimized at solvent level.
+        already_run_lowest_energy_cage_filename = (
+            f'C_{cage_set}_sg{n_atoms}_1_opt.mol'
+        )
+        # From flex analysis - not optimized at solvent level.
         already_run_lowest_energy_filename = (
             f'C_{cage_set}_sg{n_atoms}_1_opt.mol'
         )
-        mol = stk.BuildingBlock.init_from_file(
-            join(cage_directory, already_run_lowest_energy_filename)
-        )
-        new_filename = f'{self.name}_sg{n_atoms}_1_opt.mol'
-        mol.write(new_filename)
+        final_filename = f'{self.name}_sg{n_atoms}_1_opt.mol'
+
+        if os.path.exists(already_run_lowest_energy_cage_filename):
+            mol = stk.BuildingBlock.init_from_file(os.path.join(
+                cage_directory, already_run_lowest_energy_cage_filename
+            ))
+            mol.write(final_filename)
+        else:
+            # Load from flex analysis and optimize with solvent.
+            mol = stk.BuildingBlock.init_from_file(os.path.join(
+                cage_directory, already_run_lowest_energy_filename
+            ))
+            settings = env_set.crest_conformer_settings(
+                solvent=(self.cage_set_dict['solvent'], 'normal'),
+            ),
+            low_e_conf = optimize_conformer(
+                name=self.name+'low_e_opt',
+                mol=mol,
+                opt_level=settings['final_opt_level'],
+                charge=settings['charge'],
+                no_unpaired_e=settings['no_unpaired_e'],
+                max_runs=settings['max_runs'],
+                calc_hessian=settings['calc_hessian'],
+                solvent=settings['solvent']
+            )
+            low_e_conf.write(final_filename)
 
     def get_cage_set_measures(self, cage_directory, cage_set):
-        measures_file = join(
+        measures_file = os.path.join(
             cage_directory, f'{cage_set}_measures.json'
         )
         with open(measures_file, 'r') as f:

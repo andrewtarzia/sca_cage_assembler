@@ -14,7 +14,6 @@ import subprocess as sp
 import numpy as np
 import networkx as nx
 import os
-from os.path import exists
 import json
 from itertools import combinations, permutations
 from rdkit.Chem import AllChem as rdkit
@@ -33,9 +32,9 @@ import env_set
 def get_lowest_energy_conformers(
     org_ligs,
     smiles_keys,
-    conformer_function,
-    conformer_settings,
-    file_prefix=None,
+    file_prefix,
+    ligand_dir,
+    settings,
 ):
     """
     Determine the lowest energy conformer of cage organic linkers.
@@ -51,15 +50,14 @@ def get_lowest_energy_conformers(
     smiles_keys : :class:`dict` of :class:`int`
         Key is the linker smiles, value is the idx of that smiles.
 
-    file_prefix : :class:`str`, optional
+    file_prefix : :class:`str`
         Prefix to file name of each output ligand structure.
         Eventual file name is:
         "file_prefix"{number of atoms}_{idx}_{i}.mol
         Where `idx` determines if a molecule is unique by smiles.
 
-    conformer_function : :class:`function`
-        Define the function used to rank and find the lowest energy
-        conformer.
+    ligand_dir : :class:`str`
+        Location of built ligands.
 
     """
 
@@ -68,23 +66,35 @@ def get_lowest_energy_conformers(
         smiles_key = stk.Smiles().get_key(stk_lig)
         idx = smiles_keys[smiles_key]
         sgt = str(stk_lig.get_num_atoms())
-        # Get optimized ligand name that excludes any cage information.
-        if file_prefix is None:
-            filename_ = f'organic_linker_s{sgt}_{idx}_opt.mol'
-            ligand_name_ = f'organic_linker_s{sgt}_{idx}_opt'
-        else:
-            filename_ = f'{file_prefix}{sgt}_{idx}_opt.mol'
-            ligand_name_ = f'{file_prefix}{sgt}_{idx}_opt'
+        filename_ = f'{file_prefix}{sgt}_{idx}_opt.mol'
+        ligand_name_ = f'{file_prefix}{sgt}_{idx}_opt'
 
-        if not exists(filename_):
-            if not exists(f'{ligand_name_}_confs/'):
-                os.mkdir(f'{ligand_name_}_confs/')
-            low_e_conf = conformer_function(
-                name=ligand_name_,
-                mol=stk_lig,
-                settings=conformer_settings
+        low_e_conformer_file = os.path.join(ligand_dir, filename_)
+        if not os.path.exists(low_e_conformer_file):
+            raise FileNotFoundError(
+                f'{low_e_conformer_file} does not exist. '
+                'Requires running of flexibility_analysis.py'
             )
-            low_e_conf.write(filename_)
+        low_e_conf = stk.BuildingBlock.init_from_file(
+            low_e_conformer_file
+        )
+
+        # In cage specific case, we want this optimised with solvent.
+        low_e_conf = optimize_conformer(
+            name=ligand_name_+'low_e_opt',
+            mol=low_e_conf,
+            opt_level=settings['final_opt_level'],
+            charge=settings['charge'],
+            no_unpaired_e=settings['no_unpaired_e'],
+            max_runs=settings['max_runs'],
+            calc_hessian=settings['calc_hessian'],
+            solvent=settings['solvent']
+        )
+        low_e_conf.write(filename_)
+        import sys
+        sys.exit(
+            f'check {filename_} differs from {low_e_conformer_file}.'
+        )
 
 
 def optimize_conformer(
@@ -651,7 +661,7 @@ def calculate_ligand_SE(
     """
 
     # Check if output file exists.
-    if not exists(output_json):
+    if not os.path.exists(output_json):
         strain_energies = {}
         # Iterate over ligands.
         for lig in org_ligs:
@@ -672,7 +682,7 @@ def calculate_ligand_SE(
                 opt_lig_n = f'{file_prefix}{sgt}_{idx}_opt'
 
             # Calculate energy of extracted ligand.
-            if not exists(ey_file):
+            if not os.path.exists(ey_file):
                 calculate_energy(
                     name=lig.replace('.mol', ''),
                     mol=stk_lig,
@@ -687,7 +697,7 @@ def calculate_ligand_SE(
             opt_mol = stk.BuildingBlock.init_from_file(
                 filename_
             )
-            if not exists(opt_lig_ey):
+            if not os.path.exists(opt_lig_ey):
                 calculate_energy(
                     name=opt_lig_n,
                     mol=opt_mol,
@@ -1346,7 +1356,7 @@ def planarfy(ligands):
 
     for ligand in ligands:
         planar_file = f'{ligand}_planar.mol'
-        if exists(planar_file):
+        if os.path.exists(planar_file):
             opt_lig = ligands[ligand].with_structure_from_file(
                 planar_file
             )

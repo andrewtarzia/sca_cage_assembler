@@ -114,6 +114,7 @@ def build_cages(
                         ][0],
                         expected_ligands=expected_ligands,
                         free_e=default_free_e,
+                        ligand_dir=ligand_directory,
                     )
 
                     C.analyze_cube_likeness()
