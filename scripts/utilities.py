@@ -18,7 +18,7 @@ import json
 from itertools import combinations, permutations
 from rdkit.Chem import AllChem as rdkit
 from rdkit.Chem import Draw
-import pymatgen as pmg
+import pymatgen.core as pmg
 from pymatgen.analysis.local_env import (
     LocalStructOrderParams,
 )

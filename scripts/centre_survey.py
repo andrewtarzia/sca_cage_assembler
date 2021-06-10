@@ -15,7 +15,7 @@ import sys
 import glob
 import numpy as np
 import pandas as pd
-from pymatgen import Molecule
+from pymatgen.core import Molecule
 from pymatgen.analysis.local_env import CrystalNN
 from pymatgen.io.cif import CifParser
 from os.path import exists
