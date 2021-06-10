@@ -107,25 +107,25 @@ class XtalCage:
     ):
 
         # From cage analysis - optimized at solvent level.
-        already_run_lowest_energy_cage_filename = (
-            f'C_{cage_set}_sg{n_atoms}_1_opt.mol'
+        already_run_lowest_energy_cage_filename = os.path.join(
+                cage_directory, f'C_{cage_set}_sg{n_atoms}_1_opt.mol'
         )
         # From flex analysis - not optimized at solvent level.
-        already_run_lowest_energy_filename = (
-            f'{ligand_directory}/{ligand_name}_loweconf.mol'
+        already_run_lowest_energy_filename = os.path.join(
+            ligand_directory, f'{ligand_name}_loweconf.mol'
         )
         final_filename = f'{self.name}_sg{n_atoms}_1_opt.mol'
 
         if os.path.exists(already_run_lowest_energy_cage_filename):
-            mol = stk.BuildingBlock.init_from_file(os.path.join(
-                cage_directory, already_run_lowest_energy_cage_filename
-            ))
+            mol = stk.BuildingBlock.init_from_file(
+                already_run_lowest_energy_cage_filename
+            )
             mol.write(final_filename)
         else:
             # Load from flex analysis and optimize with solvent.
-            mol = stk.BuildingBlock.init_from_file(os.path.join(
-                cage_directory, already_run_lowest_energy_filename
-            ))
+            mol = stk.BuildingBlock.init_from_file(
+                already_run_lowest_energy_filename
+            )
             settings = env_set.crest_conformer_settings(
                 solvent=self.cage_set_dict['solvent'],
             ),
