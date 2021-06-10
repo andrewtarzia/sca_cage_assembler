@@ -388,7 +388,6 @@ class Cage:
                 calculate_hessian=False,
                 unlimited_memory=True,
                 solvent=self.cage_set_dict['solvent'],
-                solvent_grid='normal'
             )
             self.cage = xtb_opt.optimize(mol=self.cage)
             self.cage.write(f'{self.opt_file}.mol')
@@ -465,7 +464,7 @@ class Cage:
             raise NotImplementedError('need to handle het cages.')
 
         components = deepcopy(self.cage_set_dict['components'])
-        solvent = (self.cage_set_dict['solvent'], 'normal')
+        solvent = self.cage_set_dict['solvent']
 
         # Get lowest energy conformer filenames.
         low_e_lig_filenames = []
@@ -638,7 +637,7 @@ class Cage:
             file_prefix=f'{self.base_name}_sg',
             ligand_dir=ligand_dir,
             settings=env_set.crest_conformer_settings(
-                solvent=(self.cage_set_dict['solvent'], 'normal'),
+                solvent=self.cage_set_dict['solvent'],
             ),
         )
 

@@ -113,11 +113,6 @@ def optimize_conformer(
     """
 
     print(f'....optimizing {name}')
-    if solvent is None:
-        solvent_str = None
-        solvent_grid = 'normal'
-    else:
-        solvent_str, solvent_grid = solvent
     xtb_opt = stko.XTB(
         xtb_path=env_set.xtb_path(),
         output_dir=f'{name}_opt',
@@ -129,8 +124,7 @@ def optimize_conformer(
         max_runs=max_runs,
         calculate_hessian=calc_hessian,
         unlimited_memory=True,
-        solvent=solvent_str,
-        solvent_grid=solvent_grid
+        solvent=solvent,
     )
 
     return xtb_opt.optimize(mol=mol)
@@ -158,18 +152,10 @@ def crest_conformer_search(
     Parameters
     ----------
 
-    solvent grid is not considered in CREST.
-
     Returns
     -------
 
     """
-
-    if solvent is None:
-        solvent_str = None
-        solvent_grid = 'normal'
-    else:
-        solvent_str, solvent_grid = solvent
 
     print('..........doing GFN-2 CREST optimisation')
     xtb_crest = stko.XTBCREST(
@@ -183,7 +169,7 @@ def crest_conformer_search(
         charge=charge,
         electronic_temperature=etemp,
         num_unpaired_electrons=no_unpaired_e,
-        solvent=solvent_str,
+        solvent=solvent,
         keepdir=keepdir,
         cross=cross,
         speed_setting=speed_setting,
@@ -603,11 +589,6 @@ def calculate_energy(
         xtb_path = env_set.xtb_path()
 
     print(f'....getting energy of {name}')
-    if solvent is None:
-        solvent_str = None
-        solvent_grid = 'normal'
-    else:
-        solvent_str, solvent_grid = solvent
     xtb_energy = stko.XTBEnergy(
         xtb_path=env_set.xtb_path(),
         output_dir=f'{name}_ey',
@@ -617,8 +598,7 @@ def calculate_energy(
         electronic_temperature=300,
         unlimited_memory=True,
         calculate_free_energy=False,
-        solvent=solvent_str,
-        solvent_grid=solvent_grid
+        solvent=solvent,
     )
     energy = xtb_energy.get_energy(mol)
 
