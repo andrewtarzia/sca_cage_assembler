@@ -29,16 +29,13 @@ from xtalcage import XtalCage
 
 def main():
     first_line = (
-        'Usage: analyse_crystal_structures.py lig_lib_file '
-        'prism_lib_file compl_lib_file lig_directory compl_directory '
+        'Usage: analyse_crystal_structures.py '
+        'complex_lib_file cage_set_lib_file ligand_directory '
         'cage_directory'
     )
-    if (not len(sys.argv) == 7):
+    if (not len(sys.argv) == 5):
         print(f"""
 {first_line}
-
-    ligand_lib_file : (str)
-        File containing ligand information (XXXXX)
 
     complex_lib_file : (str)
         File containing complex information (XXXXX).
@@ -49,23 +46,19 @@ def main():
     ligand_directory : (str)
         Directory with required ligand structures.
 
-    complex_directory : (str)
-        Directory with required complex structures.
-
     cage_directory : (str)
         Directory with required cage structures.
 
     """)
         sys.exit()
     else:
-        ligand_lib_file = sys.argv[1]
-        complex_lib_file = sys.argv[2]
-        cage_set_lib_file = sys.argv[3]
-        cage_directory = sys.argv[6]
+        complex_lib_file = sys.argv[1]
+        cage_set_lib_file = sys.argv[2]
+        ligand_directory = sys.argv[3]
+        cage_directory = sys.argv[4]
 
     cage_set_lib = read_lib(cage_set_lib_file)
     complexes = read_lib(complex_lib_file)
-    ligands = read_lib(ligand_lib_file)
 
     # List of the xtal structures and their corresponding names.
     xtals = {
@@ -122,7 +115,6 @@ def main():
         xtal_cage = XtalCage(
             name=xtal,
             pdb_file=pdb_file,
-            ligand_dict=ligands[xtals[xtal]['ligand_name']],
             complex_dicts=[
                 complexes[i] for i in xtals[xtal]['complexes']
             ],
@@ -135,6 +127,8 @@ def main():
             cage_directory=cage_directory,
             n_atoms=[org_ligs[i].get_num_atoms() for i in org_ligs][0],
             cage_set=xtals[xtal]['cage_set'],
+            ligand_name=xtals[xtal]['ligand_name'],
+            ligand_directory=ligand_directory,
         )
 
         # Face-based analysis.

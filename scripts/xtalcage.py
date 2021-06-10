@@ -47,14 +47,12 @@ class XtalCage:
         self,
         name,
         pdb_file,
-        ligand_dict,
         complex_dicts,
         cage_set_dict
     ):
 
         self.name = name
         self.pdb_file = pdb_file
-        self.ligand_dict = ligand_dict
         self.complex_dicts = complex_dicts
         self.cage_set_dict = cage_set_dict
 
@@ -104,6 +102,8 @@ class XtalCage:
         cage_directory,
         n_atoms,
         cage_set,
+        ligand_name,
+        ligand_directory,
     ):
 
         # From cage analysis - optimized at solvent level.
@@ -112,7 +112,7 @@ class XtalCage:
         )
         # From flex analysis - not optimized at solvent level.
         already_run_lowest_energy_filename = (
-            f'C_{cage_set}_sg{n_atoms}_1_opt.mol'
+            f'{ligand_directory}/{ligand_name}_loweconf.mol'
         )
         final_filename = f'{self.name}_sg{n_atoms}_1_opt.mol'
 
