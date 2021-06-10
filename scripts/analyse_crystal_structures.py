@@ -105,6 +105,12 @@ def main():
             'ligand_name': 'quad2_5',
             'complexes': ('cl1_zn_oct_lam', 'cl1_zn_oct_del'),
         },
+        'jd490': {
+            'cage_set': 'cl1_quad2_9',
+            'symmetry_name': 'd3c3',
+            'ligand_name': 'quad2_9',
+            'complexes': ('cl1_zn_oct_lam', 'cl1_zn_oct_del'),
+        },
     }
 
     xtal_cage_data = {}
