@@ -526,10 +526,8 @@ class Cage:
                         temp_mol = get_lowest_energy_conformer(
                             name=components[comp]['name'],
                             mol=temp_mol,
-                            settings=(
-                                env_set.crest_conformer_settings(
-                                    solvent=None
-                                )
+                            settings=env_set.crest_conformer_settings(
+                                solvent=None
                             ),
                         )
                         temp_mol.write(low_e_file)

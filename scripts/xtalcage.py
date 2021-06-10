@@ -128,7 +128,7 @@ class XtalCage:
             )
             settings = env_set.crest_conformer_settings(
                 solvent=self.cage_set_dict['solvent'],
-            ),
+            )
             low_e_conf = optimize_conformer(
                 name=self.name+'low_e_opt',
                 mol=mol,
