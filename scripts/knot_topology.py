@@ -30,41 +30,49 @@ class M8L6KnotPrism(stk.cage.Cage):
 
     _vertex_prototypes = (
         # 3 Functional groups.
+        # Prism, delta
         stk.cage.NonLinearVertex(
             id=0,
             position=[-8.0, 5.5, 12.2],
             use_neighbor_placement=False,
         ),
+        # Helicate, lambda
         stk.cage.NonLinearVertex(
             id=1,
             position=[-0.2, 13.8, 2.9],
             use_neighbor_placement=False,
         ),
+        # Prism, delta
         stk.cage.NonLinearVertex(
             id=2,
             position=[13.1, 7.3, 4.1],
             use_neighbor_placement=False,
         ),
+        # Prism, delta
         stk.cage.NonLinearVertex(
             id=3,
             position=[-4.4, -10.3, 11.2],
             use_neighbor_placement=False,
         ),
+        # Prism, delta
         stk.cage.NonLinearVertex(
             id=4,  # 10,
             position=[-8.0, -5.5, -12.2],
             use_neighbor_placement=False,
         ),
+        # Prism, delta
         stk.cage.NonLinearVertex(
             id=5,  # 11,
             position=[-4.4, 10.3, -11.2],
             use_neighbor_placement=False,
         ),
+        # Prism, delta
         stk.cage.NonLinearVertex(
             id=6,  # 5,
             position=[13.1, -7.3, -4.1],
             use_neighbor_placement=False,
         ),
+        # Helicate, lambda
         stk.cage.NonLinearVertex(
             id=7,  # 6,
             position=[-0.2, -13.8, -2.9],
@@ -72,31 +80,37 @@ class M8L6KnotPrism(stk.cage.Cage):
         ),
 
         # 4 Functional groups.
+        # Outer prism.
         stk.cage.NonLinearVertex(
             id=8,  # 4,
             position=[3.4, -1.4, 6.0],
             use_neighbor_placement=False,
         ),
+        # Helicate.
         stk.cage.NonLinearVertex(
             id=9,  # 7,
             position=[2.1, -1.0, 3.7],
             use_neighbor_placement=False,
         ),
+        # Outer prism.
         stk.cage.NonLinearVertex(
             id=10,  # 8,
             position=[-7.1, 0.0, 0.0],
             use_neighbor_placement=False,
         ),
+        # Helicate.
         stk.cage.NonLinearVertex(
             id=11,  # 9,
             position=[-4.4, -0.0, -0.0],
             use_neighbor_placement=False,
         ),
+        # Outer prism.
         stk.cage.NonLinearVertex(
             id=12,
             position=[3.4, 1.4, -6.0],
             use_neighbor_placement=False,
         ),
+        # Helicate.
         stk.cage.NonLinearVertex(
             id=13,
             position=[2.1, 1.0, -3.7],
