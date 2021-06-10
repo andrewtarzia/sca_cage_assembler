@@ -14,7 +14,7 @@ Date Created: 21 Oct 2020
 import numpy as np
 from itertools import combinations
 import sys
-from os.path import join, exists
+import os
 from glob import glob
 import matplotlib.pyplot as plt
 import json
@@ -35,7 +35,7 @@ import env_set
 def load_ligands(directory):
 
     ligands = {}
-    for lig in glob(join(directory, 'quad2*_opt.mol')):
+    for lig in glob(os.path.join(directory, 'quad2*_opt.mol')):
         l_name = lig.replace(directory, '').replace('_opt.mol', '')
         ligands[l_name] = stk.BuildingBlock.init_from_file(
             lig,
@@ -68,9 +68,12 @@ def calculate_flex(molecule, name, la_pairs):
             )
 
     low_e_conformer_output = f'../{name}_loweconf.mol'
+    conf_dir = f'{name}_confs'
+    if not os.path.exists(conf_dir):
+        os.mkdir(conf_dir)
 
     # Crest part.
-    if not exists(low_e_conformer_output):
+    if not os.path.exists(low_e_conformer_output):
         new_molecule = get_lowest_energy_conformer(
             name=name,
             mol=molecule,
@@ -81,7 +84,7 @@ def calculate_flex(molecule, name, la_pairs):
     # Extract some measure of conformer ensemble size.
     crest_output_file = f'{name}_flex_measure.json'
     crest_data = {}
-    with open(f'crst_{name}/crest.output', 'r') as f:
+    with open(f'{name}_confs/xtbcrest/crest.output', 'r') as f:
         for line in f.readlines():
             # Get number of conformers.
             if ' number of unique conformers for further calc' in line:
@@ -98,7 +101,7 @@ def calculate_flex(molecule, name, la_pairs):
     # Analyse all conformers from CREST.
     crest_conformer_files = split_xyz_file(
         num_atoms=molecule.get_num_atoms(),
-        xyz_file=f'crst_{name}/crest_conformers.xyz',
+        xyz_file=f'{name}_confs/xtbcrest/crest_conformers.xyz',
     )
     bromo_ids = [
         fg.get_bromine().get_id()
