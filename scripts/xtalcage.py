@@ -116,7 +116,9 @@ class XtalCage:
         )
         final_filename = f'{self.name}_sg{n_atoms}_1_opt.mol'
 
-        if os.path.exists(already_run_lowest_energy_cage_filename):
+        if os.path.exists(final_filename):
+            return
+        elif os.path.exists(already_run_lowest_energy_cage_filename):
             mol = stk.BuildingBlock.init_from_file(
                 already_run_lowest_energy_cage_filename
             )
