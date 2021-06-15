@@ -196,7 +196,7 @@ dependencies:
     - pywindowx==0.0.4
     - scikit-learn==0.24.2
     - seaborn==0.11.1
-    - stk==2021.5.26.0
-    - stko==0.0.32
+    - stk==2021.6.14.0
+    - stko==0.0.33
     - threadpoolctl==2.1.0
 prefix: /home/atarzia/anaconda3/envs/sca_building
