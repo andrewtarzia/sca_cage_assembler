@@ -66,10 +66,15 @@ def get_lowest_energy_conformers(
         smiles_key = stk.Smiles().get_key(stk_lig)
         idx = smiles_keys[smiles_key]
         sgt = str(stk_lig.get_num_atoms())
-        filename_ = f'{file_prefix}{sgt}_{idx}_opt.mol'
-        ligand_name_ = f'{file_prefix}{sgt}_{idx}_opt'
+        final_filename_ = f'{file_prefix}{sgt}_{idx}_opt.mol'
+        ligand_name_ = '_'.join(file_prefix.split('_')[1:3])
 
-        low_e_conformer_file = os.path.join(ligand_dir, filename_)
+        if not os.path.exists(final_filename_):
+            continue
+        low_e_conformer_file = os.path.join(
+            ligand_dir,
+            ligand_name_,
+        )
         if not os.path.exists(low_e_conformer_file):
             raise FileNotFoundError(
                 f'{low_e_conformer_file} does not exist. '
@@ -90,11 +95,7 @@ def get_lowest_energy_conformers(
             calc_hessian=settings['calc_hessian'],
             solvent=settings['solvent']
         )
-        low_e_conf.write(filename_)
-        import sys
-        sys.exit(
-            f'check {filename_} differs from {low_e_conformer_file}.'
-        )
+        low_e_conf.write(final_filename_)
 
 
 def optimize_conformer(
