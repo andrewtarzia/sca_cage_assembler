@@ -69,7 +69,7 @@ def get_lowest_energy_conformers(
         final_filename_ = f'{file_prefix}{sgt}_{idx}_opt.mol'
         ligand_name_ = '_'.join(file_prefix.split('_')[1:3])
 
-        if not os.path.exists(final_filename_):
+        if os.path.exists(final_filename_):
             continue
         low_e_conformer_file = os.path.join(
             ligand_dir,
