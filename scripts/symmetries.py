@@ -464,23 +464,27 @@ class M8L6Knot_Symmetry(Symmetry):
 
         Only one distinct symmetry required.
 
-        Delta symmetry complexes at all nodes.
+        Delta symmetry for prism metal centres, lambda for helicates.
 
         """
 
         # All default orientation. All Delta.
         vertex_alignments = {
-            i: 0 for i in range(self.no_vertices)
+            # Metals.
+            0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
+            # Linkers.
+            8: 0, 9: 1, 10: 1, 11: 1, 12: 0, 13: 1
         }
         building_blocks = {
-            self.D_complex: range(self.n_metals),
+            self.D_complex: (0, 2, 3, 4, 5, 6),
+            self.L_complex: (1, 7),
             self.linker: range(self.n_metals, self.no_vertices)
         }
 
         return {
             'building_blocks': building_blocks,
             'vertex_alignments': vertex_alignments,
-            'ratio': (8, 0)
+            'ratio': (6, 2)
         }
 
 
