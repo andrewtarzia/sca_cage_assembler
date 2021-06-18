@@ -460,7 +460,7 @@ class Cage:
 
         """
 
-        if self.topology_string != 'm8l6face':
+        if self.topology_string not in ['m8l6face', 'm8l6knot']:
             raise NotImplementedError('need to handle het cages.')
 
         components = deepcopy(self.cage_set_dict['components'])
