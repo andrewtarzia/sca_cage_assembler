@@ -688,10 +688,11 @@ class Cage:
         """
 
         if self.topology_string != 'm8l6face':
-            raise NotImplementedError(
-                f'Cube-likeness is not defined for '
-                f'{self.topology_string} topology.'
+            print(
+                f'Warning. cube-likeness is not defined for '
+                f'{self.topology_string} topology. Returning -1.'
             )
+            return -1
 
         print(f'....analyzing cube shape of {self.name}')
 
