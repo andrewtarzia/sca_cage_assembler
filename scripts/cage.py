@@ -726,6 +726,7 @@ class Cage:
             )
             self.fa_data = None
             self.cl_data = None
+            return
 
         # Check if output file exists.
         if not exists(f'{self.cl_file}.json'):
