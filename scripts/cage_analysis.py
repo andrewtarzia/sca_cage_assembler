@@ -575,6 +575,8 @@ def analyse_cage_sets(cage_sets):
         '3': colors_i_like()[6],
         '4': colors_i_like()[3],
         '5': colors_i_like()[4],
+        '6': colors_i_like()[2],
+        '7': colors_i_like()[5],
     }
     M = 's'
     fig, ax = plt.subplots(figsize=(8, 5))
