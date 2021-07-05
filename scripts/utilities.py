@@ -1267,6 +1267,7 @@ def convert_symm_names(symm_name):
         'd32': r'D$_{3, 2}$',
         'c2v': r'C$_{2h}$',
         'c2h': r'C$_{2v}$',
+        'd3c3': r'knot',
     }
 
     return new_names[symm_name]
