@@ -436,7 +436,6 @@ class Cage:
         org_ligs,
         smiles_keys,
         file_prefix,
-        xtb_path,
         cage_free_e,
     ):
         """
@@ -643,7 +642,6 @@ class Cage:
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
             file_prefix=f'{self.base_name}_sg',
-            xtb_path=env_set.xtb_path,
             cage_free_e=free_e,
         )
 

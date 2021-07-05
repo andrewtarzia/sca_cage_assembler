@@ -255,10 +255,13 @@ class CageSet:
         if C_data['optimized'] is False:
             return None
 
-        return max([
-            100*((i[2] - i[3]) / i[2])
-            for i in C_data['fa_prop']
-        ])
+        if C_data['fa_prop'] is None:
+            return None
+        else:
+            return max([
+                100*((i[2] - i[3]) / i[2])
+                for i in C_data['fa_prop']
+            ])
 
     def get_max_ML_distance(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
@@ -274,9 +277,12 @@ class CageSet:
         if C_data['optimized'] is False:
             return None
 
-        return max([
-            C_data['cl_prop'][i]['metal_PD'] for i in C_data['cl_prop']
-        ])
+        if C_data['cl_prop'] is None:
+            return None
+        else:
+            return max([
+                C_data['cl_prop'][i]['metal_PD'] for i in C_data['cl_prop']
+            ])
 
     def get_m_cube_shape(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
@@ -290,14 +296,17 @@ class CageSet:
         if C_data['optimized'] is False:
             return None
 
-        return max([
-            abs(
-                360-sum(
-                    C_data['cl_prop'][i]['interior_angles'].values()
+        if C_data['cl_prop'] is None:
+            return None
+        else:
+            return max([
+                abs(
+                    360-sum(
+                        C_data['cl_prop'][i]['interior_angles'].values()
+                    )
                 )
-            )
-            for i in C_data['cl_prop']
-        ])
+                for i in C_data['cl_prop']
+            ])
 
     def get_formation_energy(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
