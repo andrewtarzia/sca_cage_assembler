@@ -35,12 +35,14 @@ import env_set
 def load_ligands(directory):
 
     ligands = {}
-    for lig in glob(os.path.join(directory, 'quad2*_opt.mol')):
+    for lig in glob(os.path.join(directory, '*_opt.mol')):
         l_name = lig.replace(directory, '').replace('_opt.mol', '')
-        ligands[l_name] = stk.BuildingBlock.init_from_file(
+        bb = stk.BuildingBlock.init_from_file(
             lig,
             functional_groups=[stk.BromoFactory()],
         )
+        if bb.get_num_functional_groups() == 4:
+            ligands[l_name] = bb
 
     return ligands
 
