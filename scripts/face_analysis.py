@@ -85,12 +85,14 @@ def optimize_complex(complex, name):
 def load_ligands(directory):
 
     ligands = {}
-    for lig in glob(join(directory, 'quad2*_opt.mol')):
+    for lig in glob(join(directory, '*_opt.mol')):
         l_name = lig.replace(directory, '').replace('_opt.mol', '')
-        ligands[l_name] = FaceBuildingBlock.init_from_file(
+        bb = FaceBuildingBlock.init_from_file(
             lig,
             functional_groups=[stk.BromoFactory()],
         )
+        if bb.get_num_functional_groups() == 4:
+            ligands[l_name] = bb
 
     return ligands
 
@@ -554,16 +556,8 @@ def main():
         },
     }
 
-    # Skip ligands not in database of 10.
-    dataset_of_10 = [
-        'quad2_1', 'quad2_12', 'quad2_2', 'quad2_3', 'quad2_8',
-        'quad2_9', 'quad2_10', 'quad2_5', 'quad2_16', 'quad2_17',
-    ]
-
     # Build and optimise five face options per ligand.
     for lig in sorted(ligands):
-        if lig not in dataset_of_10:
-            continue
         print(f'doing {lig}...')
         lig_structure = ligands[lig]
         lig_structure.show_long_axis(
