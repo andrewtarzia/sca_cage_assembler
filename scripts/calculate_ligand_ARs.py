@@ -14,6 +14,7 @@ Date Created: 23 Feb 2021
 import sys
 import numpy as np
 from os.path import exists
+from glob import glob
 import matplotlib.pyplot as plt
 import os
 import shutil
@@ -251,20 +252,18 @@ def main():
     """)
         sys.exit()
 
-    # Skip ligands not in database of 10.
-    dataset_of_10 = [
-        'quad2_1', 'quad2_12', 'quad2_2', 'quad2_3', 'quad2_8',
-        'quad2_9', 'quad2_10', 'quad2_5', 'quad2_16', 'quad2_17',
-    ]
-
     C_ars = {}
     Br_ars = {}
     N_ars = {}
-    for ligand in dataset_of_10:
+    for l_file in glob('*_planar.mol'):
+        ligand = l_file.replace('_planar.mol', '')
+
         print(ligand)
         planar_mol = FaceBuildingBlock.init_from_file(
-            f'{ligand}_planar.mol', [stk.BromoFactory()],
+            l_file, [stk.BromoFactory()],
         )
+        if planar_mol.get_num_functional_groups() != 4:
+            continue
         print(planar_mol)
 
         reacted_planar_file = f'{ligand}_reacted_planar.mol'
