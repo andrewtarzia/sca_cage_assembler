@@ -67,7 +67,11 @@ def get_lowest_energy_conformers(
         idx = smiles_keys[smiles_key]
         sgt = str(stk_lig.get_num_atoms())
         final_filename_ = f'{file_prefix}{sgt}_{idx}_opt.mol'
-        ligand_name_ = '_'.join(file_prefix.split('_')[2:4])
+        ligand_name_ = file_prefix.split('_sg')[0].split('_')[2:]
+        if len(ligand_name_) > 1:
+            ligand_name_ = '_'.join(ligand_name_)
+        else:
+            ligand_name_ = ligand_name_[0]
 
         if os.path.exists(final_filename_):
             continue
