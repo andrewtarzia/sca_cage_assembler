@@ -29,11 +29,74 @@ import stko
 import env_set
 
 
+class MissingSettingError(Exception):
+    ...
+
+
+def get_lowest_energy_conformer(name, mol, conf_dir, settings):
+    """
+    Get lowest energy conformer of molecule.
+
+    Method:
+        1) squick CREST conformer search
+        2) xTB `opt_level` optimisation of lowest energy conformer
+        3) save file
+
+    """
+
+    # Check for missing settings.
+    req_settings = [
+        'final_opt_level', 'conf_opt_level', 'charge', 'no_unpaired_e',
+        'max_runs', 'calc_hessian', 'solvent', 'nc', 'crest_exec',
+        'etemp', 'keepdir', 'cross', 'md_len', 'ewin', 'speed_setting'
+    ]
+    for i in req_settings:
+        if i not in settings:
+            raise MissingSettingError(
+                f'Settings missing {i}. Has {settings.keys()}.'
+            )
+
+    low_e_conf = crest_conformer_search(
+        molecule=mol,
+        output_dir=conf_dir,
+        gfn_version=2,
+        nc=settings['nc'],
+        opt_level=settings['conf_opt_level'],
+        charge=settings['charge'],
+        etemp=settings['etemp'],
+        no_unpaired_e=settings['no_unpaired_e'],
+        keepdir=settings['keepdir'],
+        cross=settings['cross'],
+        md_len=settings['md_len'],
+        ewin=settings['ewin'],
+        speed_setting=settings['speed_setting'],
+        solvent=settings['solvent'],
+    )
+
+    # Save lowest energy conformer.
+    low_e_conf.write(os.path.join(conf_dir, 'low_e_unopt.mol'))
+
+    # Optimize lowest energy conformer at opt_level.
+    low_e_conf = optimize_conformer(
+        name=f'{name}_low_e_opt',
+        mol=low_e_conf,
+        opt_level=settings['final_opt_level'],
+        charge=settings['charge'],
+        no_unpaired_e=settings['no_unpaired_e'],
+        max_runs=settings['max_runs'],
+        calc_hessian=settings['calc_hessian'],
+        solvent=settings['solvent']
+    )
+    low_e_conf.write(os.path.join(conf_dir, 'low_e_opt.mol'))
+
+    # Return molecule.
+    return low_e_conf
+
+
 def get_lowest_energy_conformers(
     org_ligs,
     smiles_keys,
     file_prefix,
-    ligand_dir,
     settings,
 ):
     """
@@ -75,31 +138,35 @@ def get_lowest_energy_conformers(
 
         if os.path.exists(final_filename_):
             continue
-        low_e_conformer_file = os.path.join(
-            ligand_dir,
-            f'{ligand_name_}_loweconf.mol',
-        )
-        if not os.path.exists(low_e_conformer_file):
-            raise FileNotFoundError(
-                f'{low_e_conformer_file} does not exist. '
-                'Requires running of flexibility_analysis.py'
+        else:
+            print(
+                '......calculating lowest energy conformer of '
+                f'{ligand_name_}'
             )
-        low_e_conf = stk.BuildingBlock.init_from_file(
-            low_e_conformer_file
-        )
-
-        # In cage specific case, we want this optimised with solvent.
-        low_e_conf = optimize_conformer(
-            name=ligand_name_+'low_e_opt',
-            mol=low_e_conf,
-            opt_level=settings['final_opt_level'],
-            charge=settings['charge'],
-            no_unpaired_e=settings['no_unpaired_e'],
-            max_runs=settings['max_runs'],
-            calc_hessian=settings['calc_hessian'],
-            solvent=settings['solvent']
-        )
-        low_e_conf.write(final_filename_)
+            # Get low energy conformer using CREST.
+            conf_dir = f'{ligand_name_}_xtbcrest_confs'
+            if not os.path.exists(conf_dir):
+                os.mkdir(conf_dir)
+            low_e_conf = get_lowest_energy_conformer(
+                name=ligand_name_,
+                mol=stk_lig,
+                conf_dir=conf_dir,
+                settings=env_set.crest_conformer_settings(
+                    solvent=None
+                ),
+            )
+            # In cage specific case, we want this optimised with solvent.
+            low_e_conf = optimize_conformer(
+                name=ligand_name_+'low_e_opt',
+                mol=low_e_conf,
+                opt_level=settings['final_opt_level'],
+                charge=settings['charge'],
+                no_unpaired_e=settings['no_unpaired_e'],
+                max_runs=settings['max_runs'],
+                calc_hessian=settings['calc_hessian'],
+                solvent=settings['solvent']
+            )
+            low_e_conf.write(final_filename_)
 
 
 def optimize_conformer(
@@ -1513,7 +1580,6 @@ def calculate_cube_shape_measure(name, molecule):
 
     run_shape(input_file, env_set.shape_path(), std_out)
     shapes = collect_all_shape_values(output_file)
-    print(shapes)
     return shapes
 
 
