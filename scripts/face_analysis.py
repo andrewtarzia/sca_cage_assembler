@@ -23,7 +23,7 @@ import stko
 
 from molecule_building import metal_FFs
 from cubeface import CubeFace
-from facebuildingblock import FaceBuildingBlock
+from facebuildingblock import FaceBuildingBlock, face_topology_dict
 from utilities import get_query_atom_ids, get_atom_distance
 import env_set
 
@@ -518,43 +518,7 @@ def main():
     # Load in each ligand structure.
     ligands = load_ligands(ligand_directory)
 
-    face_topologies = {
-        '1': {
-            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
-            'd_pos': (1, 3),
-            'l_pos': (0, 2),
-        },
-        '2': {
-            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
-            'd_pos': (0, 2),
-            'l_pos': (1, 3),
-        },
-        '3': {
-            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
-            'd_pos': (),
-            'l_pos': (0, 1, 2, 3),
-        },
-        '4': {
-            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
-            'd_pos': (3, ),
-            'l_pos': (0, 1, 2),
-        },
-        '5': {
-            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
-            'd_pos': (2, ),
-            'l_pos': (0, 1, 3, ),
-        },
-        '6': {
-            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
-            'd_pos': (0, 3),
-            'l_pos': (1, 2),
-        },
-        '7': {
-            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
-            'd_pos': (0, 1),
-            'l_pos': (2, 3),
-        },
-    }
+    face_topologies = face_topology_dict()
 
     # Build and optimise five face options per ligand.
     for lig in sorted(ligands):

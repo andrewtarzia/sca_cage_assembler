@@ -95,3 +95,44 @@ class FaceBuildingBlock(stk.BuildingBlock):
         long_axis = short_pair_2_centroid - short_pair_1_centroid
 
         return long_axis
+
+
+def face_topology_dict():
+    face_topologies = {
+        '1': {
+            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
+            'd_pos': (1, 3),
+            'l_pos': (0, 2),
+        },
+        '2': {
+            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
+            'd_pos': (0, 2),
+            'l_pos': (1, 3),
+        },
+        '3': {
+            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
+            'd_pos': (),
+            'l_pos': (0, 1, 2, 3),
+        },
+        '4': {
+            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
+            'd_pos': (3, ),
+            'l_pos': (0, 1, 2),
+        },
+        '5': {
+            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
+            'd_pos': (2, ),
+            'l_pos': (0, 1, 3, ),
+        },
+        '6': {
+            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
+            'd_pos': (0, 3),
+            'l_pos': (1, 2),
+        },
+        '7': {
+            'va': {0: 0, 1: 0, 2: 0, 3: 0, 4: 0},
+            'd_pos': (0, 1),
+            'l_pos': (2, 3),
+        },
+    }
+    return face_topologies

@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import json
 import numpy as np
-from glob import glob
 
 import stk
 
@@ -39,7 +38,7 @@ from utilities import (
 )
 from cage_building import available_topologies
 from cage import Cage
-from facebuildingblock import FaceBuildingBlock
+from facebuildingblock import FaceBuildingBlock, face_topology_dict
 
 
 class CageSet:
@@ -148,8 +147,10 @@ class CageSet:
         """
 
         face_dir = join(ligand_dir, 'face_analysis')
-        face_prop_files = glob(
-            join(face_dir, f'F_{self.name}_*properties.json')
+        face_topologies = face_topology_dict()
+        face_prop_files = (
+            join(face_dir, f'F_{self.name}_{i}_properties.json')
+            for i in face_topologies
         )
 
         properties = {}
