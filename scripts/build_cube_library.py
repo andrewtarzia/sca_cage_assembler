@@ -15,11 +15,7 @@ import sys
 from os.path import exists
 
 from cage_set import HoCube
-from cage_analysis import (
-    analyse_cages,
-    analyse_cage_sets,
-    write_csv,
-)
+from cage_analysis import write_csv
 from utilities import read_lib
 
 
@@ -197,9 +193,6 @@ def main():
         complex_directory=complex_directory,
         read_data=read_data,
     )
-    analyse_cage_sets(cage_sets)
-    analyse_cages(cage_sets, experimentals)
-
     write_csv(cage_sets, experimentals)
 
 
