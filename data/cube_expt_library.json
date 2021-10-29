@@ -1,0 +1,23 @@
+{
+    "cl1_quad2_12": {
+        "symmetry": "th1"
+    },
+    "cl1_quad2_8": {
+        "symmetry": "s62"
+    },
+    "cl1_quad2_3": {
+        "symmetry": "th1"
+    },
+    "cl1_quad2_16": {
+        "symmetry": "th2"
+    },
+    "cl1_quad2_2": {
+        "symmetry": "d31"
+    },
+    "cl1_quad2_5": {
+        "symmetry": "t"
+    },
+    "cl1_quad2_9": {
+        "symmetry": "d3c3"
+    }
+}

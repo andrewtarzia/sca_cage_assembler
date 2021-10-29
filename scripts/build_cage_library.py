@@ -138,9 +138,10 @@ def build_cages(
 def main():
     first_line = (
         'Usage: build_cube_library.py lig_lib_file prism_lib_file '
-        'compl_lib_file lig_directory compl_directory read_data'
+        'compl_lib_file lig_directory compl_directory read_data '
+        'expt_lib_file'
     )
-    if (not len(sys.argv) == 7):
+    if (not len(sys.argv) == 8):
         print(f"""
 {first_line}
 
@@ -163,6 +164,9 @@ def main():
         't' if cage analysis can be read from CageSet.properties_file.
         All other strings gives False.
 
+    expt_lib_file : (str)
+        File containing experimental symmetry  information (XXXXX).
+
     """)
         sys.exit()
     else:
@@ -172,17 +176,16 @@ def main():
         ligand_directory = sys.argv[4]
         complex_directory = sys.argv[5]
         read_data = True if sys.argv[6] == 't' else False
+        expt_lib_file = sys.argv[7]
 
     cage_set_lib = read_lib(cage_set_lib_file)
     complexes = read_lib(complex_lib_file)
     ligands = read_lib(ligand_lib_file)
+    expt_data = read_lib(expt_lib_file)
 
     # List of the cages that are known to form, including symmetry.
-    experimentals = [
-        'C_cl1_quad2_12_th1', 'C_cl1_quad2_16_th2',
-        'C_cl1_quad2_3_th1', 'C_cl1_quad2_8_s62',
-        'C_cl1_quad2_2_d31',
-    ]
+    experimentals = [i for i in expt_data]
+    raise SystemExit(experimentals)
 
     # Build and optimise all organic molecules in lib.
     cage_sets = build_cages(
