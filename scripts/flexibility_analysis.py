@@ -24,11 +24,10 @@ import stk
 from plotting import colors_i_like, histogram_plot_N
 from utilities import (
     split_xyz_file,
-    crest_conformer_search,
     get_atom_distance,
     calculate_molecule_planarity,
+    get_lowest_energy_conformer,
 )
-from molecule_building import get_lowest_energy_conformer
 import env_set
 
 
