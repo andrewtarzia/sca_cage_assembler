@@ -17,7 +17,7 @@ import sys
 import matplotlib.pyplot as plt
 
 from plotting import colors_i_like
-
+from utilities import read_lib
 
 def plot_all_ligand_properties(json_files, candms, expts):
     print(expts)
@@ -148,16 +148,26 @@ def plot_MM_vs_AR(json_files, candms, expts):
 
 def main():
     first_line = (
-        'Usage: plot_ligand_properties.py'
+        'Usage: plot_ligand_properties.py expt_lib_file'
     )
-    if (not len(sys.argv) == 1):
+    if (not len(sys.argv) == 2):
         print(f"""
 {first_line}
 
+    expt_lib_file : (str)
+        File containing experimental symmetry  information (XXXXX).
+
     """)
         sys.exit()
+    else:
+        expt_lib_file = sys.argv[2]
 
     json_files = glob('*_ligand_measures.json')
+    expt_data = read_lib(expt_lib_file)
+
+    # List of the cages that are known to form, including symmetry.
+    experimental_results = [i for i in expt_data]
+    raise SystemExit(experimental_results)
 
     experimental_results = {
         # cage set: face in XRD

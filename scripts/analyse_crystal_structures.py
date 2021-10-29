@@ -31,9 +31,9 @@ def main():
     first_line = (
         'Usage: analyse_crystal_structures.py '
         'complex_lib_file cage_set_lib_file ligand_directory '
-        'cage_directory'
+        'cage_directory expt_lib_file'
     )
-    if (not len(sys.argv) == 5):
+    if (not len(sys.argv) == 6):
         print(f"""
 {first_line}
 
@@ -49,6 +49,9 @@ def main():
     cage_directory : (str)
         Directory with required cage structures.
 
+    expt_lib_file : (str)
+        File containing experimental symmetry  information (XXXXX).
+
     """)
         sys.exit()
     else:
@@ -56,9 +59,15 @@ def main():
         cage_set_lib_file = sys.argv[2]
         ligand_directory = sys.argv[3]
         cage_directory = sys.argv[4]
+        expt_lib_file = sys.argv[5]
 
     cage_set_lib = read_lib(cage_set_lib_file)
     complexes = read_lib(complex_lib_file)
+    expt_data = read_lib(expt_lib_file)
+
+    # List of the cages that are known to form, including symmetry.
+    experimentals = [i for i in expt_data]
+    raise SystemExit(experimentals)
 
     # List of the xtal structures and their corresponding names.
     xtals = {
@@ -200,9 +209,10 @@ def main():
             if p in ['formatione']:
                 continue
             if p in ['lsesum']:
-                xtal_data = cage_data[p] - min(
-                    comp_cage_data[xtal][p].values()
-                )
+                xtal_data = cage_data[p] - min([
+                    i for i in comp_cage_data[xtal][p].values()
+                    if i is not None
+                ])
             else:
                 xtal_data = cage_data[p]
             xtal_cage.plot_Y(
