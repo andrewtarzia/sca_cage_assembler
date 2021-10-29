@@ -195,7 +195,8 @@ class CageSet:
         properties['c_conformers'] = cr_data['no_conformers']
         properties['c_rotamers'] = cr_data['no_rotamers']
         properties['la_range'] = abs(
-            max(cr_data['la_dist'])-min(cr_data['la_dist'])
+            max(cr_data['long_axis_distances'])
+            -min(cr_data['long_axis_distances'])
         )
         return properties
 
@@ -217,6 +218,9 @@ class CageSet:
         C_data = self.built_cage_properties[cage_name]
         if C_data['optimized'] is False:
             return None
+
+        print(C_data)
+        raise SystemExit()
 
         return sum([
             C_data['li_prop']['strain_energies'][i]

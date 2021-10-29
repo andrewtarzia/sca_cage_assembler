@@ -15,7 +15,6 @@ import numpy as np
 from itertools import combinations
 import sys
 import os
-from glob import glob
 import matplotlib.pyplot as plt
 import json
 
@@ -27,128 +26,64 @@ from utilities import (
     get_atom_distance,
     calculate_molecule_planarity,
     get_lowest_energy_conformer,
+    read_lib,
 )
 import env_set
 
 
-def load_ligands(directory):
+def get_crest_ensemble_data(crest_directory):
 
-    ligands = {}
-    for lig in glob(os.path.join(directory, '*_opt.mol')):
-        l_name = lig.replace(directory, '').replace('_opt.mol', '')
-        bb = stk.BuildingBlock.init_from_file(
-            lig,
-            functional_groups=[stk.BromoFactory()],
-        )
-        if bb.get_num_functional_groups() == 4:
-            ligands[l_name] = bb
-
-    return ligands
-
-
-def calculate_flex(molecule, name, la_pairs):
-    """
-    Calculate flexibility of molecule from CREST conformer ensemble.
-
-    Three approaches:
-        1) Based on plane deviation of Bromine atoms in molecule.
-        Assumes molecule has N functional groups with only 1 binder
-        atom each.
-
-        2) Based on plane deviation of all atoms in molecule.
-
-        3) Long-axis distance.
-
-    """
-
-    for fg in molecule.get_functional_groups():
-        if len(list(fg.get_bonder_ids())) > 1:
-            raise ValueError(
-                f'{molecule} has functional groups with more'
-                ' than 1 binder.'
-            )
-
-    low_e_conformer_output = f'../{name}_loweconf.mol'
-    conf_dir = f'{name}_confs'
-    if not os.path.exists(conf_dir):
-        os.mkdir(conf_dir)
-
-    # Crest part.
-    if not os.path.exists(low_e_conformer_output):
-        new_molecule = get_lowest_energy_conformer(
-            name=name,
-            mol=molecule,
-            settings=env_set.crest_conformer_settings(solvent=None),
-        )
-        new_molecule.write(low_e_conformer_output)
-
-    # Extract some measure of conformer ensemble size.
-    crest_output_file = f'{name}_flex_measure.json'
-    crest_data = {}
-    with open(f'{name}_confs/xtbcrest/crest.output', 'r') as f:
+    with open(f'{crest_directory}/crest.output', 'r') as f:
         for line in f.readlines():
             # Get number of conformers.
             if ' number of unique conformers for further calc' in line:
-                crest_data['no_conformers'] = (
+                no_conformers = (
                     int(line.rstrip().split(' ')[-1])
                 )
 
             # Get number of rotamers.
             if 'total number unique points considered further' in line:
-                crest_data['no_rotamers'] = (
+                no_rotamers = (
                     int(line.rstrip().split(' ')[-1])
                 )
 
-    # Analyse all conformers from CREST.
-    crest_conformer_files = split_xyz_file(
-        num_atoms=molecule.get_num_atoms(),
-        xyz_file=f'{name}_confs/xtbcrest/crest_conformers.xyz',
-    )
-    bromo_ids = [
-        fg.get_bromine().get_id()
-        for fg in molecule.get_functional_groups()
-    ]
-    crest_data['binder_plane_deviations'] = [
-        calculate_molecule_planarity(
-            mol=molecule.with_structure_from_file(i),
-            atom_ids=bromo_ids,
-        )
-        for i in crest_conformer_files
-    ]
-    crest_data['plane_deviations'] = [
-        calculate_molecule_planarity(
-            mol=molecule.with_structure_from_file(i),
-        )
-        for i in crest_conformer_files
-    ]
-    print(f'{name} has {len(crest_conformer_files)} conformers')
+    return no_rotamers, no_conformers
 
+
+def is_single_binder(molecule):
+    for fg in molecule.get_functional_groups():
+        if len(list(fg.get_bonder_ids())) > 1:
+            return False
+    return True
+
+def calculate_long_axis_distance(molecule, conformer_files):
+
+    if not is_single_binder(molecule):
+        raise ValueError(
+            f'{molecule} has FGs with more than one binder.'
+        )
+    long_axis_atom_pair = get_long_axis_atoms(molecule)
     pair1_cents = [
         molecule.with_structure_from_file(i).get_centroid(
-            atom_ids=tuple(la_pairs[0])
+            atom_ids=tuple(long_axis_atom_pair[0])
         )
-        for i in crest_conformer_files
+        for i in conformer_files
     ]
     pair2_cents = [
         molecule.with_structure_from_file(i).get_centroid(
-            atom_ids=tuple(la_pairs[1])
+            atom_ids=tuple(long_axis_atom_pair[1])
         )
-        for i in crest_conformer_files
+        for i in conformer_files
     ]
 
     la_dist = [
         np.linalg.norm(i-j)
         for i, j in zip(pair1_cents, pair2_cents)
     ]
-    crest_data['la_dist'] = la_dist
-
-    with open(crest_output_file, 'w') as f:
-        json.dump(crest_data, f)
-
-    return crest_data
+    return la_dist
 
 
-def plot_lap(measures, name, crest=False):
+def plot_long_axis_deviation(measures, name, crest=False):
     # Can assume the first one in the list of measures is the lowest
     # energy conformer.
     fig, ax = histogram_plot_N(
@@ -176,7 +111,7 @@ def plot_lap(measures, name, crest=False):
     plt.close()
 
 
-def plot_pd(measures, name, crest=False):
+def plot_plane_deviation(measures, name, crest=False):
 
     fig, ax = histogram_plot_N(
         Y=measures,
@@ -203,7 +138,7 @@ def plot_pd(measures, name, crest=False):
     plt.close()
 
 
-def plot_bpd(measures, name, crest=False):
+def plot_binder_plane_deviation(measures, name, crest=False):
 
     fig, ax = histogram_plot_N(
         Y=measures,
@@ -230,57 +165,53 @@ def plot_bpd(measures, name, crest=False):
     plt.close()
 
 
-def get_long_axis_atoms(ligands):
+def get_long_axis_atoms(molecule):
 
-    long_axis_atom_pairs = {}
-    for ligand in ligands:
-        molecule = ligands[ligand]
-        binder_atom_ids = [
-            list(fg.get_bonder_ids())
-            for fg in molecule.get_functional_groups()
-        ]
-        binder_atom_dists = sorted(
-            [
-                (idx1, idx2, get_atom_distance(
-                    molecule,
-                    idx1,
-                    idx2
-                ))
-                for idx1, idx2 in combinations(binder_atom_ids, r=2)
-            ],
-            key=lambda a: a[2]
-        )
-        # Can assume the ordering of the binder atom distances:
-        # 0, 1: short vectors
-        # 2, 3: long vectors
-        # 4, 5: diagonal vectors
-        # This fails when the molecule is not sufficiently anisotropic,
-        # at which point it will not matter.
-        short_vector_fg_1 = (
-            binder_atom_dists[0][0], binder_atom_dists[0][1]
-        )
-        short_vector_fg_2 = (
-            (binder_atom_dists[1][0], binder_atom_dists[1][1])
-            if (
-                binder_atom_dists[1][0] not in short_vector_fg_1 and
-                binder_atom_dists[1][1] not in short_vector_fg_1
-            ) else
-            (binder_atom_dists[2][0], binder_atom_dists[2][1])
-        )
+    binder_atom_ids = [
+        list(fg.get_bonder_ids())
+        for fg in molecule.get_functional_groups()
+    ]
+    binder_atom_dists = sorted(
+        [
+            (idx1, idx2, get_atom_distance(
+                molecule,
+                idx1,
+                idx2
+            ))
+            for idx1, idx2 in combinations(binder_atom_ids, r=2)
+        ],
+        key=lambda a: a[2]
+    )
+    # Can assume the ordering of the binder atom distances:
+    # 0, 1: short vectors
+    # 2, 3: long vectors
+    # 4, 5: diagonal vectors
+    # This fails when the molecule is not sufficiently anisotropic,
+    # at which point it will not matter.
+    short_vector_fg_1 = (
+        binder_atom_dists[0][0], binder_atom_dists[0][1]
+    )
+    short_vector_fg_2 = (
+        (binder_atom_dists[1][0], binder_atom_dists[1][1])
+        if (
+            binder_atom_dists[1][0] not in short_vector_fg_1 and
+            binder_atom_dists[1][1] not in short_vector_fg_1
+        ) else
+        (binder_atom_dists[2][0], binder_atom_dists[2][1])
+    )
 
-        pairs = (
-            [i[0] for i in short_vector_fg_1],
-            [i[0] for i in short_vector_fg_2]
-        )
-        long_axis_atom_pairs[ligand] = pairs
+    long_axis_atom_pairs = (
+        [i[0] for i in short_vector_fg_1],
+        [i[0] for i in short_vector_fg_2]
+    )
 
     return long_axis_atom_pairs
 
 
 def main():
     first_line = (
-        'Usage: flexibility_analysis.py '
-        'lig_directory'
+        'Usage: flexibility_analysis.py ligand_directory '
+        'ligand_lib_file'
     )
     if (not len(sys.argv) == 2):
         print(f"""
@@ -289,40 +220,124 @@ def main():
     ligand_directory : (str)
         Directory with required ligand structures.
 
+    ligand_lib_file : (str)
+        File containing ligand information (XXXXX)
+
     """)
         sys.exit()
     else:
         ligand_directory = sys.argv[1]
+        ligand_lib_file = sys.argv[2]
 
     # Load in each ligand structure.
-    ligands = load_ligands(ligand_directory)
-    long_axis_atom_pairs = get_long_axis_atoms(ligands)
+    ligand_lib = read_lib(ligand_lib_file)
+    ligand_structures = {}
+    for name in ligand_lib:
+        structure_file = os.path.join(
+            ligand_directory, f'{name}_opt.mol'
+        )
+        bb = stk.BuildingBlock.init_from_file(
+            structure_file,
+            functional_groups=[stk.BromoFactory()],
+        )
+        ligand_structures[name] = bb
 
-    for lig in sorted(ligands):
-        lig_structure = ligands[lig]
-        crest_data = calculate_flex(
-            molecule=lig_structure,
+    for lig in sorted(ligand_structures):
+        lig_structure = ligand_structures[lig]
+        crest_output_file = f'{name}_flex_measure.json'
+        crest_data = {}
+
+        low_e_conformer_output = f'../{name}_loweconf.mol'
+        conf_dir = f'{name}_confs'
+        if not os.path.exists(conf_dir):
+            os.mkdir(conf_dir)
+        # Crest part.
+        if not os.path.exists(low_e_conformer_output):
+            new_molecule = get_lowest_energy_conformer(
+                name=name,
+                mol=lig_structure,
+                settings=env_set.crest_conformer_settings(
+                    solvent=None,
+                ),
+            )
+            new_molecule.write(low_e_conformer_output)
+
+        # Extract some measure of conformer ensemble size.
+        no_rotamers, no_conformers = get_crest_ensemble_data(
+            crest_directory=f'{conf_dir}/xtbcrest'
+        )
+        crest_data['no_rotamers'] = no_rotamers
+        crest_data['no_conformers'] = no_conformers
+
+        # Analyse all conformers from CREST.
+        crest_conformer_files = split_xyz_file(
+            num_atoms=lig_structure.get_num_atoms(),
+            xyz_file=f'{name}_confs/xtbcrest/crest_conformers.xyz',
+        )
+        print(f'{name} has {len(crest_conformer_files)} conformers')
+        # Plane deviations.
+        crest_data['plane_deviations'] = [
+            calculate_molecule_planarity(
+                mol=lig_structure.with_structure_from_file(i),
+            )
+            for i in crest_conformer_files
+        ]
+
+        print(
+            f": {lig}, num rotamers: {crest_data['no_rotamers']}, "
+            f"num conformers: {crest_data['no_conformers']}\n-------"
+        )
+        plot_plane_deviation(
+            measures=crest_data['plane_deviations'],
             name=lig,
-            la_pairs=long_axis_atom_pairs[lig],
+            crest=True,
         )
 
-        print(
-            '::',
-            abs(max(crest_data['la_dist'])-min(crest_data['la_dist']))
-        )
-        plot_lap(crest_data['la_dist'], lig, crest=True)
-        plot_bpd(
-            crest_data['binder_plane_deviations'],
-            lig,
-            crest=True
-        )
-        plot_pd(crest_data['plane_deviations'], lig, crest=True)
-        print(
-            lig,
-            crest_data['no_rotamers'],
-            crest_data['no_conformers']
-        )
-        print('---')
+        # Do functional group dependant analysis.
+        if lig_structure.get_num_functional_groups() == 4:
+            # Tetratopic, single binder specific measures.
+            long_axis_distances = calculate_long_axis_distance(
+                molecule=lig_structure,
+                conformer_files=crest_conformer_files,
+            )
+            dist_width = abs(
+                max(long_axis_distances)
+                -min(long_axis_distances)
+            )
+            print(f':: {lig}, dist width = {dist_width}')
+            plot_long_axis_deviation(
+                measures=long_axis_distances,
+                name=lig,
+                crest=True,
+            )
+            crest_data['long_axis_distances'] = long_axis_distances
+        if lig_structure.get_num_functional_groups() == 3:
+            # Tritopic specific measures.
+            pass
+        if lig_structure.get_num_functional_groups() == 2:
+            # Ditopic specific measures.
+            pass
+        if lig_structure.get_num_functional_groups() > 1:
+            # At least two functional groups.
+            binder_ids = [
+                fg.get_bromine().get_id()
+                for fg in lig_structure.get_functional_groups()
+            ]
+            crest_data['binder_plane_deviations'] = [
+                calculate_molecule_planarity(
+                    mol=lig_structure.with_structure_from_file(i),
+                    atom_ids=binder_ids,
+                )
+                for i in crest_conformer_files
+            ]
+            plot_binder_plane_deviation(
+                measures=crest_data['binder_plane_deviations'],
+                name=lig,
+                crest=True,
+            )
+
+        with open(crest_output_file, 'w') as f:
+            json.dump(crest_data, f, indent=4)
 
 
 if __name__ == '__main__':
