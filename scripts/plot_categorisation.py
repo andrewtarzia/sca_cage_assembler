@@ -23,7 +23,7 @@ def categorisation_plot(df, xray_df, col_name):
         'octop': (
             r'min. $q_{\mathrm{oct}}$', (None, None), 'min'
         ),
-        'm_cube_shape': ('CU-8 cube measure', (None, None), 'min'),
+        'm_cube_shape': ('CU-8 cube measure', (-0.5, None), 'min'),
         'rellsesum': (
             r'rel. sum strain energy [kJmol$^{-1}$]',
             (-10, 1000),
@@ -127,8 +127,8 @@ def categorisation_plot(df, xray_df, col_name):
     ax.set_ylabel(yprops[col_name][0], fontsize=16)
     ax.set_xlim((0, 1))
     ax.set_ylim(yprops[col_name][1])
-    ax.set_xticklabels(['forms', 'does not form'])
     ax.set_xticks([0.25, 0.75])
+    ax.set_xticklabels(['forms', 'does not form'])
 
     if col_name not in dont_show:
         ax.scatter(
