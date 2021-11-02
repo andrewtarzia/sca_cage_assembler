@@ -219,9 +219,6 @@ class CageSet:
         if C_data['optimized'] is False:
             return None
 
-        print(C_data)
-        raise SystemExit()
-
         return sum([
             C_data['li_prop']['strain_energies'][i]
             for i in C_data['li_prop']['strain_energies']
@@ -625,8 +622,8 @@ class CageSet:
         ax.set_ylabel(ylabel, fontsize=16)
         ax.set_xlim(1, i+3)
         ax.set_ylim(ylim)
-        ax.set_xticklabels(names_list)
         ax.set_xticks(x_pos_list)
+        ax.set_xticklabels(names_list)
 
         fig.tight_layout()
         fig.savefig(
@@ -711,8 +708,8 @@ class CageSet:
         ax.set_ylabel(ylabel, fontsize=16)
         ax.set_xlim(1, i+3)
         ax.set_ylim(ylim)
-        ax.set_xticklabels(names_list)
         ax.set_xticks(x_pos_list)
+        ax.set_xticklabels(names_list)
 
         fig.tight_layout()
         fig.savefig(
