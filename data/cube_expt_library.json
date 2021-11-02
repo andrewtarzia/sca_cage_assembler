@@ -22,7 +22,7 @@
     },
     "cl1_quad2_16": {
         "symmetry": "th2",
-        "face": "x",
+        "face": "2",
         "xtal_struct_name": "jd326",
         "ligand_name": "quad2_16",
         "complexes": ["cl1_zn_oct_del", "cl1_zn_oct_lam"]

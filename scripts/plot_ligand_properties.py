@@ -71,8 +71,8 @@ def plot_all_ligand_properties(json_files, candms, expts):
         r'long axis deviation [$\mathrm{\AA}$]',
         fontsize=16
     )
-    ax.set_xlim(1.0, 2.6)
-    ax.set_ylim(0.4, 2)
+    ax.set_xlim(1.0, 2.1)
+    ax.set_ylim(0.1, 2.1)
     ax.legend(fontsize=16, ncol=2)
     fig.savefig(
         'all_ligand_properties.pdf',
@@ -90,6 +90,8 @@ def plot_MM_vs_AR(json_files, candms, expts):
         '3': {'ar': [], 'stab': []},
         '4': {'ar': [], 'stab': []},
         '5': {'ar': [], 'stab': []},
+        '6': {'ar': [], 'stab': []},
+        '7': {'ar': [], 'stab': []},
     }
     for i in json_files:
         cage_set = i.replace('_ligand_measures.json', '')
@@ -105,7 +107,7 @@ def plot_MM_vs_AR(json_files, candms, expts):
             )
 
     for face in stabs:
-        if face in ['1', '4']:
+        if face in ['1', '4', '6', '7']:
             continue
         c, m = candms[face]
         XY = [
@@ -134,7 +136,7 @@ def plot_MM_vs_AR(json_files, candms, expts):
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_xlabel('aspect ratio [1:X]', fontsize=16)
     ax.set_ylabel('avg. side mismatch [%]', fontsize=16)
-    ax.set_xlim(1.0, 2.6)
+    ax.set_xlim(1.0, 2.0)
     ax.set_ylim(0, None)
     ax.legend(fontsize=16, ncol=3)
     fig.savefig(
@@ -160,29 +162,25 @@ def main():
     """)
         sys.exit()
     else:
-        expt_lib_file = sys.argv[2]
+        expt_lib_file = sys.argv[1]
 
     json_files = glob('*_ligand_measures.json')
     expt_data = read_lib(expt_lib_file)
 
-    # List of the cages that are known to form, including symmetry.
-    experimental_results = [i for i in expt_data]
-    raise SystemExit(experimental_results)
+    # Dict of the cages with the face they form.
+    experimental_results = {}
+    for expt in expt_data:
+        if expt_data[expt]['face'] is not None:
+            experimental_results[expt] = expt_data[expt]['face']
 
-    experimental_results = {
-        # cage set: face in XRD
-        'cl1_quad2_2': '5',
-        'cl1_quad2_3': '2',
-        'cl1_quad2_8': '5',
-        'cl1_quad2_12': '2',
-        'cl1_quad2_16': '2',
-    }
     candms = {
         '1': (colors_i_like()[9], 'o'),
         '2': (colors_i_like()[4], 'X'),
         '3': (colors_i_like()[11], 's'),
         '4': (colors_i_like()[10], 'D'),
         '5': (colors_i_like()[3], 'P'),
+        '6': (colors_i_like()[5], 'p'),
+        '7': (colors_i_like()[7], '^'),
     }
     plot_all_ligand_properties(json_files, candms, experimental_results)
     plot_MM_vs_AR(json_files, candms, experimental_results)
