@@ -65,55 +65,15 @@ def main():
     complexes = read_lib(complex_lib_file)
     expt_data = read_lib(expt_lib_file)
 
-    # List of the cages that are known to form, including symmetry.
-    experimentals = [i for i in expt_data]
-    raise SystemExit(experimentals)
-
     # List of the xtal structures and their corresponding names.
-    xtals = {
-        'jd235': {
-            'cage_set': 'cl1_quad2_12',
-            'symmetry_name': 'th1',  # or th2
-            'ligand_name': 'quad2_12',
-            'complexes': ('cl1_zn_oct_lam', 'cl1_zn_oct_del'),
-        },
-        'jd257': {
-            'cage_set': 'cl1_quad2_8',
-            'symmetry_name': 'th1',  # or th2
-            'ligand_name': 'quad2_8',
-            'complexes': ('cl1_zn_oct_lam', 'cl1_zn_oct_del'),
-        },
-        'jd301': {
-            'cage_set': 'cl1_quad2_3',
-            'symmetry_name': 'th1',  # or th2
-            'ligand_name': 'quad2_3',
-            'complexes': ('cl1_zn_oct_lam', 'cl1_zn_oct_del'),
-        },
-        'jd326': {
-            'cage_set': 'cl1_quad2_16',
-            'symmetry_name': 's61',  # or s62
-            'ligand_name': 'quad2_16',
-            'complexes': ('cl1_zn_oct_lam', 'cl1_zn_oct_del'),
-        },
-        'jd354': {
-            'cage_set': 'cl1_quad2_2',
-            'symmetry_name': 'd31',
-            'ligand_name': 'quad2_2',
-            'complexes': ('cl1_zn_oct_lam', 'cl1_zn_oct_del'),
-        },
-        'jd370': {
-            'cage_set': 'cl1_quad2_5',
-            'symmetry_name': 't',
-            'ligand_name': 'quad2_5',
-            'complexes': ('cl1_zn_oct_lam', 'cl1_zn_oct_del'),
-        },
-        'jd490': {
-            'cage_set': 'cl1_quad2_9',
-            'symmetry_name': 'd3c3',
-            'ligand_name': 'quad2_9',
-            'complexes': ('cl1_zn_oct_lam', 'cl1_zn_oct_del'),
-        },
-    }
+    xtals = {}
+    for expt in expt_data:
+        xtals[expt_data[expt]['xtal_struct_name']] = {
+            'cage_set': expt,
+            'symmetry_name': expt_data[expt]['symmetry'],
+            'ligand_name': expt_data[expt]['ligand_name'],
+            'complexes': tuple(expt_data[expt]['complexes']),
+        }
 
     xtal_cage_data = {}
     comp_cage_data = {}
@@ -129,7 +89,6 @@ def main():
             ],
             cage_set_dict=cage_set_lib[xtals[xtal]['cage_set']]
         )
-        print(xtal_cage)
         org_ligs, smiles_keys = xtal_cage.get_organic_linkers()
         xtal_cage.write_metal_atom_structure()
         xtal_cage.collect_lowest_energy_conformer_file(
