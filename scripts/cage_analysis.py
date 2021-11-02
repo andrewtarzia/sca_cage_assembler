@@ -476,7 +476,6 @@ def write_csv(cage_sets, experimentals):
             'maxintangledev': measures['maxintangledev'],
         }
 
-    print(experimentals)
     tested_cage_sets = [
         key for key in cage_set_data
         if f'_{key}_' in '__'.join(experimentals)

@@ -25,7 +25,6 @@ import stko
 from molecule_building import (
     metal_FFs,
     optimize_SCA_complex,
-    get_lowest_energy_conformer,
 )
 from face_sets import M8L6_FaceSets
 from utilities import (
@@ -41,6 +40,7 @@ from utilities import (
     calculate_energy,
     read_gfnx2xtb_eyfile,
     get_organic_linkers,
+    get_lowest_energy_conformer,
     get_lowest_energy_conformers,
 )
 import env_set
@@ -603,7 +603,6 @@ class Cage:
         metal_atom_no,
         expected_ligands,
         free_e,
-        ligand_dir,
     ):
         """
         Analyse cage ligand geometry for strain.
@@ -632,7 +631,6 @@ class Cage:
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
             file_prefix=f'{self.base_name}_sg',
-            ligand_dir=ligand_dir,
             settings=env_set.crest_conformer_settings(
                 solvent=self.cage_set_dict['solvent'],
             ),

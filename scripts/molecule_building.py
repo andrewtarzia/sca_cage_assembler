@@ -14,13 +14,8 @@ Date Created: 23 Jan 2020
 import stk
 import stko
 
-from utilities import crest_conformer_search, optimize_conformer
 from functional_groups import AromaticCNCFactory
 import env_set
-
-
-class MissingSettingError(Exception):
-    ...
 
 
 def build_oct_lambda(metal, ligand):
@@ -204,63 +199,3 @@ def optimize_SCA_complex(complex, name, dict, metal_FFs):
     complex.write(f'{name}_opt.mol')
 
     return complex
-
-
-def get_lowest_energy_conformer(name, mol, settings):
-    """
-    Get lowest energy conformer of molecule.
-
-    Method:
-        1) squick CREST conformer search
-        2) xTB `opt_level` optimisation of lowest energy conformer
-        3) save file
-
-    """
-
-    # Check for missing settings.
-    req_settings = [
-        'final_opt_level', 'conf_opt_level', 'charge', 'no_unpaired_e',
-        'max_runs', 'calc_hessian', 'solvent', 'nc', 'crest_exec',
-        'etemp', 'keepdir', 'cross', 'md_len', 'ewin', 'speed_setting'
-    ]
-    for i in req_settings:
-        if i not in settings:
-            raise MissingSettingError(
-                f'Settings missing {i}. Has {settings.keys()}.'
-            )
-
-    low_e_conf = crest_conformer_search(
-        molecule=mol,
-        output_dir=f'{name}_confs/xtbcrest/',
-        gfn_version=2,
-        nc=settings['nc'],
-        opt_level=settings['conf_opt_level'],
-        charge=settings['charge'],
-        etemp=settings['etemp'],
-        no_unpaired_e=settings['no_unpaired_e'],
-        keepdir=settings['keepdir'],
-        cross=settings['cross'],
-        md_len=settings['md_len'],
-        ewin=settings['ewin'],
-        speed_setting=settings['speed_setting'],
-        solvent=settings['solvent'],
-    )
-
-    # Save lowest energy conformer.
-    low_e_conf.write(f'{name}_confs/low_e_unopt.mol')
-
-    # Optimize lowest energy conformer at opt_level.
-    low_e_conf = optimize_conformer(
-        name=name+'low_e_opt',
-        mol=low_e_conf,
-        opt_level=settings['final_opt_level'],
-        charge=settings['charge'],
-        no_unpaired_e=settings['no_unpaired_e'],
-        max_runs=settings['max_runs'],
-        calc_hessian=settings['calc_hessian'],
-        solvent=settings['solvent']
-    )
-    low_e_conf.write(f'{name}_confs/low_e_opt.mol')
-
-    # Return molecule.
-    return low_e_conf

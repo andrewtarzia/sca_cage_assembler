@@ -65,7 +65,6 @@ class XtalCage:
         return [i['metal_atom_no'] for i in self.complex_dicts]
 
     def get_pore_size(self):
-        print(f'....analyzing porosity of {self.name}')
         # Load cage into pywindow.
         self.stk_mol.write('temp.xyz')
         pw_cage = pw.MolecularSystem.load_file('temp.xyz')
@@ -110,10 +109,6 @@ class XtalCage:
         already_run_lowest_energy_cage_filename = os.path.join(
                 cage_directory, f'C_{cage_set}_sg{n_atoms}_1_opt.mol'
         )
-        # From flex analysis - not optimized at solvent level.
-        already_run_lowest_energy_filename = os.path.join(
-            ligand_directory, f'{ligand_name}_loweconf.mol'
-        )
         final_filename = f'{self.name}_sg{n_atoms}_1_opt.mol'
 
         if os.path.exists(final_filename):
@@ -124,24 +119,10 @@ class XtalCage:
             )
             mol.write(final_filename)
         else:
-            # Load from flex analysis and optimize with solvent.
-            mol = stk.BuildingBlock.init_from_file(
-                already_run_lowest_energy_filename
+            raise FileNotFoundError(
+                f'{already_run_lowest_energy_cage_filename} does not '
+                'exist. Run build_cage_library.py'
             )
-            settings = env_set.crest_conformer_settings(
-                solvent=self.cage_set_dict['solvent'],
-            )
-            low_e_conf = optimize_conformer(
-                name=self.name+'low_e_opt',
-                mol=mol,
-                opt_level=settings['final_opt_level'],
-                charge=settings['charge'],
-                no_unpaired_e=settings['no_unpaired_e'],
-                max_runs=settings['max_runs'],
-                calc_hessian=settings['calc_hessian'],
-                solvent=settings['solvent']
-            )
-            low_e_conf.write(final_filename)
 
     def get_cage_set_measures(self, cage_directory, cage_set):
         measures_file = os.path.join(
@@ -189,8 +170,8 @@ class XtalCage:
         ax.set_ylabel(ylabel, fontsize=16)
         ax.set_xlim(1, i+5)
         ax.set_ylim(ylim)
-        ax.set_xticklabels(names_list)
         ax.set_xticks(x_pos_list)
+        ax.set_xticklabels(names_list)
 
         fig.tight_layout()
         fig.savefig(
@@ -207,11 +188,7 @@ class XtalCage:
             metal=self.get_metal_atom_nos()[0],
             per_site=True
         )
-        print(op_set)
-        print(op_set.keys())
         target_OPs = [op_set[i]['oct'] for i in op_set]
-        print(target_OPs)
-
         return min(target_OPs)
 
     def define_faces(self, m_structure):
