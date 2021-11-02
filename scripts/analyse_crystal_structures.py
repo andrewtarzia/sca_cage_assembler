@@ -174,12 +174,18 @@ def main():
                 ])
             else:
                 xtal_data = cage_data[p]
+
+            expt_name = (
+                f"C_{xtals[xtal]['cage_set']}_"
+                f"{xtals[xtal]['symmetry_name']}"
+            )
             xtal_cage.plot_Y(
                 data=p_dict['data'],
                 xtal_data=xtal_data,
                 ylabel=p_dict['ylabel'],
                 ylim=(None, None),
-                filename=p_dict['filename']
+                filename=p_dict['filename'],
+                expt_name=expt_name,
             )
 
     write_xray_csv(xtal_cage_data)

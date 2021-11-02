@@ -131,7 +131,15 @@ class XtalCage:
         with open(measures_file, 'r') as f:
             return json.load(f)
 
-    def plot_Y(self, data, xtal_data, ylabel, filename, ylim=None):
+    def plot_Y(
+        self,
+        data,
+        xtal_data,
+        ylabel,
+        filename,
+        expt_name,
+        ylim=None,
+    ):
         C = '#AFE074'
         M = 'o'
 
@@ -139,13 +147,17 @@ class XtalCage:
         x_pos_list = []
         names_list = []
         for i, name in enumerate(data):
+            if name == expt_name:
+                col = 'r'
+            else:
+                col = C
             X = i+2
             names_list.append(convert_symm_names(name.split('_')[-1]))
             x_pos_list.append(X)
             ax.scatter(
                 X,
                 data[name],
-                c=C,
+                c=col,
                 edgecolors='k',
                 marker=M,
                 alpha=1.0,
@@ -165,6 +177,7 @@ class XtalCage:
             alpha=1.0,
             s=180
         )
+
         # Set number of ticks for x-axis
         ax.tick_params(axis='both', which='major', labelsize=16)
         ax.set_ylabel(ylabel, fontsize=16)
