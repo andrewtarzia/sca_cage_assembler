@@ -110,7 +110,6 @@ def build_cages(
                         ][0],
                         expected_ligands=expected_ligands,
                         free_e=default_free_e,
-                        ligand_dir=ligand_directory,
                     )
 
                     C.analyze_cube_likeness()
@@ -184,8 +183,9 @@ def main():
     expt_data = read_lib(expt_lib_file)
 
     # List of the cages that are known to form, including symmetry.
-    experimentals = [i for i in expt_data]
-    raise SystemExit(experimentals)
+    experimentals = [
+        f"C_{i}_{expt_data[i]['symmetry']}" for i in expt_data
+    ]
 
     # Build and optimise all organic molecules in lib.
     cage_sets = build_cages(
