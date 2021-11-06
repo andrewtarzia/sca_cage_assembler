@@ -94,7 +94,8 @@ def write_input_file(input_file, dft_directory, mol_file):
 def main():
     if (not len(sys.argv) == 4):
         print(
-            """Usage: setup_lse_dft.py dft_directory cage_directory
+            """
+Usage: setup_lse_dft.py dft_directory cage_directory xray_directory
 
     dft_directory : (str)
         Directory to run dft from - will be created.
@@ -103,8 +104,8 @@ def main():
         Directory with required cage structures.
 
     xray_directory : (str)
-        Directory with extracted ligands."""
-        )
+        Directory with extracted-from-crystal ligands.
+""")
         sys.exit()
     else:
         dft_directory = sys.argv[1]
