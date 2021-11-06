@@ -139,8 +139,9 @@ class XtalCage:
         filename,
         expt_name,
         ylim=None,
+        show_xtal=True,
     ):
-        C = '#AFE074'
+        C = 'grey'
         M = 'o'
 
         fig, ax = plt.subplots(figsize=(8, 5))
@@ -161,27 +162,31 @@ class XtalCage:
                 edgecolors='k',
                 marker=M,
                 alpha=1.0,
-                s=180
+                s=250
             )
 
-        # Add xtal data.
-        X = i+1+2
-        names_list.append('xtal')
-        x_pos_list.append(X)
-        ax.scatter(
-            X,
-            xtal_data,
-            c=C,
-            edgecolors='k',
-            marker='X',
-            alpha=1.0,
-            s=180
-        )
+        if show_xtal:
+            # Add xtal data.
+            X = i+1+2
+            names_list.append('xtal')
+            x_pos_list.append(X)
+            ax.scatter(
+                X,
+                xtal_data,
+                c=C,
+                edgecolors='k',
+                marker='X',
+                alpha=1.0,
+                s=250
+            )
 
         # Set number of ticks for x-axis
         ax.tick_params(axis='both', which='major', labelsize=16)
         ax.set_ylabel(ylabel, fontsize=16)
-        ax.set_xlim(1, i+5)
+        if show_xtal:
+            ax.set_xlim(1, i+4)
+        else:
+            ax.set_xlim(1, i+3)
         ax.set_ylim(ylim)
         ax.set_xticks(x_pos_list)
         ax.set_xticklabels(names_list)

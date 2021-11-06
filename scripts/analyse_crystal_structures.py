@@ -172,8 +172,10 @@ def main():
                     i for i in comp_cage_data[xtal][p].values()
                     if i is not None
                 ])
+                show_xtal = False
             else:
                 xtal_data = cage_data[p]
+                show_xtal = True
 
             expt_name = (
                 f"C_{xtals[xtal]['cage_set']}_"
@@ -186,6 +188,7 @@ def main():
                 ylim=(None, None),
                 filename=p_dict['filename'],
                 expt_name=expt_name,
+                show_xtal=show_xtal,
             )
 
     write_xray_csv(xtal_cage_data)

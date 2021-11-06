@@ -26,7 +26,7 @@ def main():
 
     data['dft_kjpermol'] = data['dft'] * 2625.5
 
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(5, 5))
 
     xray_data = data[data['from'] == 'crystal']
     calc_data = data[data['from'] == 'computation']
