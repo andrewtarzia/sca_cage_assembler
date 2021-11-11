@@ -1,6 +1,6 @@
 {
     "cl1_quad2_12": {
-        "symmetry": "th1",
+        "symmetry": "th2",
         "face": "2",
         "xtal_struct_name": "jd235",
         "ligand_name": "quad2_12",
@@ -14,7 +14,7 @@
         "complexes": ["cl1_zn_oct_del", "cl1_zn_oct_lam"]
     },
     "cl1_quad2_3": {
-        "symmetry": "th1",
+        "symmetry": "th2",
         "face": "2",
         "xtal_struct_name": "jd301",
         "ligand_name": "quad2_3",
@@ -28,7 +28,7 @@
         "complexes": ["cl1_zn_oct_del", "cl1_zn_oct_lam"]
     },
     "cl1_quad2_2": {
-        "symmetry": "d31",
+        "symmetry": "d32",
         "face": "5",
         "xtal_struct_name": "jd354",
         "ligand_name": "quad2_2",
