@@ -147,7 +147,7 @@ def plot_binder_plane_deviation(measures, name, crest=False):
         alpha=1.0,
         color=colors_i_like()[1],
         edgecolor=colors_i_like()[1],
-        xtitle=r'all atom plane deviation [$\mathrm{\AA}$]',
+        xtitle=r'binder plane deviation [$\mathrm{\AA}$]',
         N=1
     )
     range = abs(max(measures) - min(measures))
