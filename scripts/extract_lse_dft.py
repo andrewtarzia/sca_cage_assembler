@@ -45,10 +45,12 @@ def collect_all_energies(ey_files, dft_directory):
         output_file = xtb_ey_file.replace('.ey', '.out').split('/')[-1]
         output_path = os.path.join(dft_directory, output_file)
         if not os.path.exists(output_path):
-            raise FileNotFoundError(xtb_ey_file)
+            raise FileNotFoundError(output_path)
+
         dft_ey = read_orca_output(output_path)
         if dft_ey is None:
             raise ValueError(output_path)
+
         energies[xtb_ey_file] = (output_file, xtb_ey, dft_ey)
 
     return energies
@@ -93,17 +95,17 @@ def calculate_all_strain_energies(all_energies):
 def main():
     if (not len(sys.argv) == 4):
         print(
-            """Usage: extract_lse_dft.py dft_directory cage_directory
-                            xray_directory
+"""Usage: extract_lse_dft.py dft_directory cage_directory
+    xray_directory
 
-    dft_directory : (str)
-        Directory to run dft from - will be created.
+dft_directory : (str)
+    Directory to run dft from - will be created.
 
-    cage_directory : (str)
-        Directory with required cage structures.
+cage_directory : (str)
+    Directory with required cage structures.
 
-    xray_directory : (str)
-        Directory with extracted ligands."""
+xray_directory : (str)
+    Directory with extracted ligands."""
         )
         sys.exit()
     else:
