@@ -131,15 +131,15 @@ Usage: setup_lse_dft.py dft_directory cage_directory xray_directory
 
     dft_directory = os.path.abspath(dft_directory)
     if os.path.exists(dft_directory):
-        input(f'sure you want to delete {dft_directory}?')
+        input(
+            f'sure you want to delete {dft_directory}? ctrl-C if not!'
+        )
         shutil.rmtree(dft_directory)
     os.mkdir(dft_directory)
 
     all_ligands = all_free_ligands+all_extr_ligands+all_xray_ligands
     all_input_file_names = []
     for lig_mol in sorted(all_ligands):
-        if 'jd354' in lig_mol:
-            continue
         input_file = lig_mol.replace('.mol', '.in').split('/')[-1]
         write_input_file(input_file, dft_directory, lig_mol)
         all_input_file_names.append(input_file)
