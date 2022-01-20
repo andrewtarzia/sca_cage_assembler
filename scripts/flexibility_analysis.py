@@ -27,9 +27,19 @@ from utilities import (
     calculate_molecule_planarity,
     get_lowest_energy_conformer,
     read_lib,
+    angle_between,
 )
 import env_set
 
+
+def get_xyz_energy(file):
+
+    with open(file, 'r') as f:
+        line = f.readlines()[1]
+
+    energy = float(line.rstrip())
+
+    return energy
 
 def get_crest_ensemble_data(crest_directory):
 
@@ -83,6 +93,40 @@ def calculate_long_axis_distance(molecule, conformer_files):
     return la_dist
 
 
+def calculate_vector_angle(molecule, conformer_files):
+
+    if not is_single_binder(molecule):
+        raise ValueError(
+            f'{molecule} has FGs with more than one binder.'
+        )
+
+    long_axis_atom_pair = get_long_axis_atoms(molecule)
+    pair1_vectors = []
+    pair2_vectors = []
+    for i in conformer_files:
+        conformer = molecule.with_structure_from_file(i)
+        pair1_atoms = list(conformer.get_atomic_positions(
+            atom_ids=tuple(long_axis_atom_pair[0])
+        ))
+        pair2_atoms = list(conformer.get_atomic_positions(
+            atom_ids=tuple(long_axis_atom_pair[1])
+        ))
+        v1 = pair1_atoms[1] - pair1_atoms[0]
+        v2 = pair2_atoms[1] - pair2_atoms[0]
+        pair1_vectors.append(v1)
+        pair2_vectors.append(v2)
+
+    va_dist = []
+    for i, j in zip(pair1_vectors, pair2_vectors):
+        angle1 = np.degrees(angle_between(i, j))
+        # Handle if the vectors are pointing the wrong way.
+        if angle1 > 90:
+            va_dist.append(np.degrees(angle_between(i, -j)))
+        else:
+            va_dist.append(angle1)
+    return va_dist
+
+
 def plot_long_axis_deviation(measures, name, crest=False):
     # Can assume the first one in the list of measures is the lowest
     # energy conformer.
@@ -103,6 +147,34 @@ def plot_long_axis_deviation(measures, name, crest=False):
         filename = f'{name}_lapC_dist.pdf'
     else:
         filename = f'{name}_lap_dist.pdf'
+    fig.savefig(
+        filename,
+        dpi=720,
+        bbox_inches='tight'
+    )
+    plt.close()
+
+
+def plot_vector_angle(measures, name, crest=False):
+    # Can assume the first one in the list of measures is the lowest
+    # energy conformer.
+    fig, ax = histogram_plot_N(
+        Y=[i for i in measures],
+        X_range=(0, 92),
+        width=2,
+        alpha=1.0,
+        color=colors_i_like()[1],
+        edgecolor=colors_i_like()[1],
+        xtitle='vector angle [degrees]',
+        N=1
+    )
+    range = abs(max(measures) - min(measures))
+    ax.set_title(f'range = {round(range, 2)}', fontsize=16)
+    fig.tight_layout()
+    if crest:
+        filename = f'{name}_vaC_dist.pdf'
+    else:
+        filename = f'{name}_va_dist.pdf'
     fig.savefig(
         filename,
         dpi=720,
@@ -279,6 +351,13 @@ def main():
             xyz_file=f'{conf_dir}/crest_conformers.xyz',
         )
         print(f'{name} has {len(crest_conformer_files)} conformers')
+
+        # Crest energies from second line of xyz.
+        crest_data['energies'] = [
+            get_xyz_energy(i)
+            for i in crest_conformer_files
+        ]
+
         # Plane deviations.
         crest_data['plane_deviations'] = [
             calculate_molecule_planarity(
@@ -315,6 +394,16 @@ def main():
                 crest=True,
             )
             crest_data['long_axis_distances'] = long_axis_distances
+            crest_data['vector_angle'] = calculate_vector_angle(
+                molecule=lig_structure,
+                conformer_files=crest_conformer_files,
+            )
+            plot_vector_angle(
+                measures=crest_data['vector_angle'],
+                name=name,
+                crest=True,
+            )
+
         if lig_structure.get_num_functional_groups() == 3:
             # Tritopic specific measures.
             pass
