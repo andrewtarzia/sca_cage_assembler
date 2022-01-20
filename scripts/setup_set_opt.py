@@ -18,80 +18,7 @@ import os
 
 import stk
 
-
-def write_sub_file(input_files, dft_directory):
-    orca_bin_dir = '/apps/orca/4.2.1/bin/orca'
-
-    runfile = os.path.join(f'{dft_directory}', 'run_orca.sh')
-
-    runlines = ''.join([
-        f"{orca_bin_dir} {infile} > {infile.replace('.in', '.out')}\n"
-        for infile in input_files
-    ])
-
-    string = (
-        '#PBS -N lig_spe\n'
-        '#PBS -l walltime=72:00:00\n'
-        '#PBS -l select=1:ncpus=32:mem=124gb\n\n'
-        'module load orca/4.2.1\n\n'
-        'cd $PBS_O_WORKDIR\n\n'
-        f'{runlines}'
-    )
-
-    with open(runfile, 'w') as f:
-        f.write(string)
-
-
-def write_molecule_section(directory, base_name, struct):
-
-    charge = 16
-    multiplicity = 1
-    xyzfile = f'{base_name}_init.xyz'
-
-    string = f'* xyzfile {charge} {multiplicity} {xyzfile}\n'
-    string += (
-        f'#* xyzfile {charge} {multiplicity} {base_name}_B97-3c\n'
-    )
-
-    struct.write(os.path.join(directory, xyzfile))
-
-    return string
-
-
-def write_input_file(input_file, dft_directory, mol_file):
-    """
-    Write ORCA optimisation of mol file.
-
-    """
-
-    top_line = (
-        '! DFT COPT B97-3c '
-        'Grid6 NOFINALGRID SlowConv TightSCF\n\n'
-    )
-    base_name = '_'+input_file.replace('.in', '')
-    base_line = f'%base "{base_name}" \n\n'
-
-    scf_section = (
-        '%scf\n   MaxIter 2000\nend\n\n'
-    )
-
-    procs_section = (
-        '%pal\n   nprocs 32\nend\n\n'
-    )
-
-    struct = stk.BuildingBlock.init_from_file(mol_file)
-    mol_section = write_molecule_section(
-        dft_directory, base_name, struct
-    )
-
-    string = top_line
-    string += base_line
-    string += scf_section
-    string += procs_section
-    string += mol_section
-
-    with open(f'{dft_directory}/{input_file}', 'w') as f:
-        f.write(string)
+import dft_utilities
 
 
 def main():
@@ -133,11 +60,53 @@ Usage: setup_lse_dft.py dft_directory cage_directory xray_directory
 
     all_input_file_names = []
     for lig_mol in sorted(all_cage_structures):
-        input_file = lig_mol.replace('.mol', '.in').split('/')[-1]
-        write_input_file(input_file, dft_directory, lig_mol)
+        job_name = lig_mol.replace('.mol', '').split('/')[-1]
+        opt = dft_utilities.CP2KOptimizer(f'{job_name}_opt')
+        spe = dft_utilities.CP2KEnergy(f'{job_name}_spe')
+        molecule = stk.BuildingBlock.init_from_file(lig_mol)
+
+        # Write optimisation input file.
+        opt.write_calculation_input(
+            output_directory=dft_directory,
+            molecule=molecule,
+            charge=16,
+            guess='ATOMIC',
+            cutoff=350,
+            rel_cutoff=60,
+            solvent=35.688,
+        )
+        # Write single-point input file using coord from opt file.
+        spe.write_calculation_input(
+            output_directory=dft_directory,
+            molecule=None,
+            charge=16,
+            guess='ATOMIC',
+            cutoff=350,
+            rel_cutoff=60,
+            solvent=35.688,
+        )
+        # Write optimisation slurm.
+        opt.write_slurm_file(
+            output_directory=dft_directory,
+            hours=12,
+        )
+        # Write single-point slurm.
+        spe.write_slurm_file(
+            output_directory=dft_directory,
+            hours=2,
+        )
+        raise SystemExit()
+
+        dft_utilities.write_input_file(
+            input_file=input_file,
+            dft_directory=dft_directory,
+            mol_file=lig_mol,
+            charge=16,
+            method='opt-b97',
+        )
         all_input_file_names.append(input_file)
 
-    write_sub_file(all_input_file_names, dft_directory)
+    dft_utilities.write_sub_file(all_input_file_names, dft_directory)
     print(len(all_input_file_names))
 
 
