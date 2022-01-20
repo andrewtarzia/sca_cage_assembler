@@ -72,6 +72,49 @@ def plot_ladists(json_files):
 
 
 def plot_ladev_planedev(json_files):
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    for i, _file in enumerate(json_files):
+        with open(_file, 'r') as f:
+            data = json.load(f)
+        x = abs(
+            max(data['long_axis_distances'])
+            - min(data['long_axis_distances'])
+        )
+        y = abs(
+            max(data['plane_deviations'])
+            - min(data['plane_deviations'])
+        )
+        # measures = [i-min(measures) for i in measures]
+        ax.scatter(
+            x=x,
+            y=y,
+            c='gold',
+            alpha=1.0,
+            edgecolor='k',
+            s=160,
+        )
+    ax.tick_params(labelsize=16, bottom=True)
+    ax.set_xlabel(r'long-axis deviation [$\mathrm{\AA}$]', fontsize=16)
+    ax.set_ylabel(r'plane deviation [$\mathrm{\AA}$]', fontsize=16)
+    fig.tight_layout()
+    fig.savefig(
+        'flex_comp.pdf',
+        dpi=720,
+        bbox_inches='tight'
+    )
+    plt.close()
+
+    fig.tight_layout()
+    fig.savefig(
+        'flex_torsion_energy.pdf',
+        dpi=720,
+        bbox_inches='tight'
+    )
+    plt.close()
+
+
+def plot_ladev_energy(json_files):
     # xbins = np.arange(0, 15, xwidth)
     fig, ax = plt.subplots(figsize=(8, 5))
     # Remove horizontal space between axes
@@ -102,7 +145,7 @@ def plot_ladev_planedev(json_files):
     ax.set_ylabel(r'plane deviation [$\mathrm{\AA}$]', fontsize=16)
     fig.tight_layout()
     fig.savefig(
-        'flex_comp.pdf',
+        'flex_energy_ladev.pdf',
         dpi=720,
         bbox_inches='tight'
     )
