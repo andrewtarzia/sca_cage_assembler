@@ -16,6 +16,7 @@ import sys
 import os
 import numpy as np
 from scipy.spatial.distance import cdist
+from itertools import product
 
 import stk
 import spindry as spd
@@ -93,7 +94,6 @@ def align_cages(name, xtal, comp):
             guests=stk.host_guest.Guest(comp),
         )
     )
-    print(fake_complex)
     supramolecule = spd.SupraMolecule(
         atoms=(
             spd.Atom(
@@ -112,7 +112,6 @@ def align_cages(name, xtal, comp):
         ),
         position_matrix=fake_complex.get_position_matrix(),
     )
-    print(supramolecule)
 
     cg = spd.Spinner(
         step_size=0.2,
@@ -122,7 +121,7 @@ def align_cages(name, xtal, comp):
         potential_function=AlignmentPotential(),
     )
     for conformer in cg.get_conformers(supramolecule):
-        print(conformer.get_cid(), conformer.get_potential())
+        pass
     print(f'{name} final potential: {conformer.get_potential()}')
     conformer.write_xyz_file(
         f'conf_{name}_final.xyz'
@@ -190,8 +189,9 @@ def main():
             cage_set_dict=cage_set_lib[xtals[xtal]['cage_set']]
         )
 
-        rots = (None, (1, 0, 0), (0, 1, 0), (1, 0, 0))
-        for r, rot in enumerate(rots):
+        rots = (None, (1, 0, 0), (0, 1, 0), (0, 0, -1))
+        angles = (np.radians(90), np.radians(180), np.radians(270))
+        for r, rot in enumerate(product(rots, angles)):
             if os.path.exists(f'{xtal}_a_{r}_xtal.mol'):
                 continue
             else:
@@ -215,12 +215,15 @@ def main():
                     )
                 )
                 comp_struct = comp_struct.with_centroid((0, 0, 0))
-                if rot is not None:
+                if rot[0] is not None:
+                    print(rot)
                     comp_struct = comp_struct.with_rotation_about_axis(
-                        angle=np.degrees(90),
-                        axis=np.array(rot),
+                        angle=rot[1],
+                        axis=np.array(rot[0]),
                         origin=np.array((0, 0, 0)),
                     )
+                elif r != 0:
+                    continue
 
                 xtal_struct.write(f'{xtal}_u_{r}_xtal.mol')
                 comp_struct.write(f'{xtal}_u_{r}_comp.mol')
@@ -232,6 +235,7 @@ def main():
 
                 xtal_struct.write(f'{xtal}_a_{r}_xtal.mol')
                 comp_struct.write(f'{xtal}_a_{r}_comp.mol')
+
 
 if __name__ == "__main__":
     main()
