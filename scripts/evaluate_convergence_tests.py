@@ -3,7 +3,7 @@
 # Distributed under the terms of the MIT License.
 
 """
-Script to setup parameter-search DFT calculations.
+Script to evaluate parameter-search DFT calculations.
 
 Author: Andrew Tarzia
 
