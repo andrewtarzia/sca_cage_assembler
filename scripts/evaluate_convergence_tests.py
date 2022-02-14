@@ -17,10 +17,6 @@ import glob
 import os
 import matplotlib.pyplot as plt
 
-import stk
-
-import dft_utilities
-
 
 def get_cp2k_energy(file):
     search = 'ENERGY| Total FORCE_EVAL ( QS ) energy [a.u.]:'
