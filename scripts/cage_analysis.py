@@ -489,8 +489,8 @@ def write_csv(cage_sets, experimentals):
         'maxintangledev', 'm_cube_shape', 'outcome', 'tested'
     ]
     symmetries = [
-        'd2', 'th1', 'th2', 't', 's61', 's62', 'd31', 'd32',
-        'c2v', 'c2h', 'd3c3',
+        'd2', 'th1', 'th2', 'td', 'tl', 's61', 's62', 'd31', 'd32',
+        'd31n', 'd32n', 's41', 's42', 'c2v', 'c2h', 'd3c3',
     ]
     dataframe = pd.DataFrame(columns=set_columns)
 

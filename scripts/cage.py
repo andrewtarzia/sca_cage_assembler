@@ -445,18 +445,6 @@ class Cage:
         FE = [(cage energy) + a*(free precursor lig. energy)]
              - [b*(metal precursor energy) + c*(free ligand energy)]
 
-        Where a = 6*b (octahedral metal complex).
-
-        In practice, this is done alchemically based on the building
-        blocks present in the molecules.
-
-        FE =
-        [(cage energy) + a*(energy of deleter atoms)] -
-        [sum_i(b_i*(energy BB_i))]
-
-        Where a is determined by the atoms in each BB and i is over all
-        BBs used to build the cage.
-
         """
 
         if self.topology_string not in ['m8l6face', 'm8l6knot']:
@@ -626,7 +614,6 @@ class Cage:
                 'optimization. Recommend reoptimising structure.'
             )
 
-        # Loads from flexibility analysis and optimizes with solvent.
         get_lowest_energy_conformers(
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,

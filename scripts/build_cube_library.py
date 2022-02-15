@@ -96,6 +96,8 @@ def build_cages(
                         distance_cut=distance_cut,
                         scale_steps=scale_steps,
                     )
+                print('avoiding analysis for now.')
+                continue
                 if C.optimized is False:
                     cage_set.built_cage_properties[C.name] = {
                         'optimized': C.optimized,

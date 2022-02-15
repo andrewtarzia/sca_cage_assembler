@@ -222,7 +222,7 @@ class M8L6_Symmetry(Symmetry):
             'ratio': (4, 4)
         }
 
-    def t(self):
+    def td(self):
         """
         T symmetry cage.
 
@@ -249,6 +249,35 @@ class M8L6_Symmetry(Symmetry):
             'building_blocks': building_blocks,
             'vertex_alignments': vertex_alignments,
             'ratio': (8, 0)
+        }
+
+    def tl(self):
+        """
+        T symmetry cage.
+
+        One distinct symmetry required.
+
+        All Lambda symmetry complexes.
+
+        """
+
+        # With default rotation pattern.
+        # All Delta, orientation pattern 1.
+        vertex_alignments = {
+            # Metals.
+            0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
+            # Linkers.
+            8: 0, 9: 1, 10: 1, 11: 1, 12: 0, 13: 1
+        }
+        building_blocks = {
+            self.L_complex: range(self.n_metals),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
+
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (0, 8)
         }
 
     def s61(self):
@@ -377,6 +406,112 @@ class M8L6_Symmetry(Symmetry):
             'building_blocks': building_blocks,
             'vertex_alignments': vertex_alignments,
             'ratio': (6, 2)
+        }
+
+    def d31n(self):
+        """
+        New, homochiral (all delta), D_3 symmetry cage 1.
+
+        Two distinct symmetries required.
+
+        """
+
+        # With default rotation pattern.
+        # Set metal complex symmetries.
+        vertex_alignments = {
+            # Metals.
+            0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
+            # Linkers.
+            8: 0, 9: 1, 10: 0, 11: 0, 12: 1, 13: 1
+        }
+        building_blocks = {
+            self.D_complex: (0, 1, 2, 3, 4, 5, 6, 7),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
+
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (8, 0)
+        }
+
+    def d32n(self):
+        """
+        New, homochiral (all lambda), D_3 symmetry cage 2.
+
+        Two distinct symmetries required.
+
+        """
+
+        # With opposite rotation pattern.
+        # Set metal complex symmetries.
+        vertex_alignments = {
+            # Metals.
+            0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
+            # Linkers.
+            8: 0, 9: 1, 10: 0, 11: 0, 12: 1, 13: 1
+        }
+        building_blocks = {
+            self.L_complex: (0, 1, 2, 3, 4, 5, 6, 7),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
+
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (0, 8)
+        }
+
+    def s41(self):
+        """
+        S_4 symmetry cage.
+
+        """
+
+        # With opposite rotation pattern.
+        # Set metal complex symmetries.
+        vertex_alignments = {
+            # Metals.
+            0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
+            # Linkers.
+            8: 1, 9: 1, 10: 0, 11: 1, 12: 0, 13: 0
+        }
+        building_blocks = {
+            self.D_complex: (0, 1, 2, 3),
+            self.L_complex: (4, 5, 6, 7),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
+
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (4, 4)
+        }
+
+    def s42(self):
+        """
+        S_4 symmetry cage.
+
+        """
+
+        # With opposite rotation pattern.
+        # Set metal complex symmetries.
+        vertex_alignments = {
+            # Metals.
+            0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0,
+            # Linkers.
+            8: 1, 9: 0, 10: 1, 11: 0, 12: 0, 13: 1
+        }
+        building_blocks = {
+            self.D_complex: (0, 1, 2, 3),
+            self.L_complex: (4, 5, 6, 7),
+            self.linker: range(self.n_metals, self.no_vertices)
+        }
+
+        return {
+            'building_blocks': building_blocks,
+            'vertex_alignments': vertex_alignments,
+            'ratio': (4, 4)
         }
 
     def c2v(self):

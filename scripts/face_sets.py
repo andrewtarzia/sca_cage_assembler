@@ -49,7 +49,7 @@ class M8L6_FaceSets(FaceSets):
         }
 
     def _define_vertices(self, symmetry_string):
-        if symmetry_string in ['d2', 't']:
+        if symmetry_string in ['d2', 'td', 'tl']:
             return {
                 '001': (0, 1, 2, 3),
                 '100': (0, 1, 4, 5),
@@ -76,7 +76,17 @@ class M8L6_FaceSets(FaceSets):
                 '-100': (2, 4, 6, 7),
                 '0-10': (1, 2, 3, 6),
             }
-        elif symmetry_string in ['d31', 'd32']:
+        elif symmetry_string in ['s41', 's42']:
+            raise SystemExit('check this')
+            return {
+                '001': (0, 1, 2, 4),
+                '100': (0, 1, 3, 5),
+                '010': (0, 4, 5, 7),
+                '00-1': (3, 5, 6, 7),
+                '-100': (2, 4, 6, 7),
+                '0-10': (1, 2, 3, 6),
+            }
+        elif symmetry_string in ['d31', 'd32', 'd31n', 'd32n']:
             return {
                 '001': (0, 1, 2, 6),
                 '100': (0, 3, 4, 6),
@@ -105,7 +115,7 @@ class M8L6_FaceSets(FaceSets):
             }
 
     def _define_connected(self, symmetry_string):
-        if symmetry_string in ['d2', 't']:
+        if symmetry_string in ['d2', 'td', 'tl']:
             return {
                 '001': ((0, 1), (1, 2), (2, 3), (3, 0)),
                 '100': ((0, 1), (1, 5), (5, 4), (4, 0)),
@@ -132,7 +142,17 @@ class M8L6_FaceSets(FaceSets):
                 '-100': ((4, 2), (2, 6), (6, 7), (7, 4)),
                 '0-10': ((1, 2), (2, 6), (6, 3), (3, 1)),
             }
-        elif symmetry_string in ['d31', 'd32']:
+        elif symmetry_string in ['s41', 's42']:
+            raise SystemExit('check this')
+            return {
+                '001': ((0, 1), (1, 2), (2, 4), (4, 0)),
+                '100': ((0, 5), (5, 3), (3, 1), (1, 0)),
+                '010': ((0, 4), (4, 7), (7, 5), (5, 0)),
+                '00-1': ((3, 6), (6, 7), (7, 5), (5, 3)),
+                '-100': ((4, 2), (2, 6), (6, 7), (7, 4)),
+                '0-10': ((1, 2), (2, 6), (6, 3), (3, 1)),
+            }
+        elif symmetry_string in ['d31', 'd32', 'd31n', 'd32n']:
             return {
                 '001': ((0, 6), (6, 1), (1, 2), (2, 0)),
                 '100': ((0, 3), (3, 4), (4, 6), (6, 0)),
