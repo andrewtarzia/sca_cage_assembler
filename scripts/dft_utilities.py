@@ -195,6 +195,7 @@ f'		FILENAME {self._job_name}.res\n'
     def write_calculation_input(self):
         raise NotImplementedError()
 
+
 class CP2KEnergy(CP2KCalculator):
 
     def _global_section(self):
