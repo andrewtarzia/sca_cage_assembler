@@ -328,6 +328,19 @@ def get_face_properties(face, face_name, paths):
     return data
 
 
+def face_convert(string):
+    conv = {
+        'i': 1,
+        'ii': 2,
+        'iii': 3,
+        'iv': 4,
+        'v': 5,
+        'vi': 6,
+        'vii': 7,
+    }
+    return conv[string]
+
+
 def plot_face_mismatches(data, name):
 
     avg_m_mismatches = {}
@@ -342,14 +355,14 @@ def plot_face_mismatches(data, name):
         avg_n_mismatches[face] = avg_n_mismatch
         avg_c_mismatches[face] = avg_c_mismatch
 
-    x_ticks = [i for i in range(len(data))]
+    x_ticks = [face_convert(i) for i in data]
     x_ticklabels = [i for i in data]
 
     # width = 0.9
     fig, ax = plt.subplots(figsize=(8, 5))
 
     ax.scatter(
-        x=[int(i) for i in avg_m_mismatches],
+        x=[face_convert(i) for i in avg_m_mismatches],
         y=[avg_m_mismatches[i] for i in avg_m_mismatches],
         # width=width,
         facecolor='orange',
@@ -362,7 +375,7 @@ def plot_face_mismatches(data, name):
     )
 
     ax.scatter(
-        x=[int(i) for i in avg_n_mismatches],
+        x=[face_convert(i) for i in avg_n_mismatches],
         y=[avg_n_mismatches[i] for i in avg_n_mismatches],
         # width=width,
         facecolor='skyblue',
