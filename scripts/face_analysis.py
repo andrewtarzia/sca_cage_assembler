@@ -342,7 +342,7 @@ def plot_face_mismatches(data, name):
         avg_n_mismatches[face] = avg_n_mismatch
         avg_c_mismatches[face] = avg_c_mismatch
 
-    x_ticks = [int(i) for i in data]
+    x_ticks = [i for i in range(len(data))]
     x_ticklabels = [i for i in data]
 
     # width = 0.9
