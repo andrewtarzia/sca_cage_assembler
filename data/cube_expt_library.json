@@ -1,42 +1,42 @@
 {
     "cl1_quad2_12": {
         "symmetry": "th2",
-        "face": "2",
+        "face": "ii",
         "xtal_struct_name": "jd235",
         "ligand_name": "quad2_12",
         "complexes": ["cl1_zn_oct_del", "cl1_zn_oct_lam"]
     },
     "cl1_quad2_8": {
         "symmetry": "s62",
-        "face": "5",
+        "face": "iii",
         "xtal_struct_name": "jd257",
         "ligand_name": "quad2_8",
         "complexes": ["cl1_zn_oct_del", "cl1_zn_oct_lam"]
     },
     "cl1_quad2_3": {
         "symmetry": "th2",
-        "face": "2",
+        "face": "ii",
         "xtal_struct_name": "jd301",
         "ligand_name": "quad2_3",
         "complexes": ["cl1_zn_oct_del", "cl1_zn_oct_lam"]
     },
     "cl1_quad2_16": {
         "symmetry": "th2",
-        "face": "2",
+        "face": "ii",
         "xtal_struct_name": "jd326",
         "ligand_name": "quad2_16",
         "complexes": ["cl1_zn_oct_del", "cl1_zn_oct_lam"]
     },
     "cl1_quad2_2": {
         "symmetry": "d32",
-        "face": "5",
+        "face": "iii",
         "xtal_struct_name": "jd354",
         "ligand_name": "quad2_2",
         "complexes": ["cl1_zn_oct_del", "cl1_zn_oct_lam"]
     },
     "cl1_quad2_5": {
         "symmetry": "tl",
-        "face": "3",
+        "face": "i",
         "xtal_struct_name": "jd370",
         "ligand_name": "quad2_5",
         "complexes": ["cl1_zn_oct_del", "cl1_zn_oct_lam"]
