@@ -11,9 +11,7 @@ Date Created: 17 Feb 2022
 
 """
 
-
 import sys
-from json import load
 import stk
 import numpy as np
 import rdkit.Chem.AllChem as rdkit
@@ -22,7 +20,6 @@ import re
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import json
-import subprocess as sp
 from string import digits
 
 import stk
@@ -34,6 +31,8 @@ from utilities import (
     run_shape,
     ref_shape_dict,
     collect_all_shape_values,
+    convert_symm_names,
+    read_lib,
 )
 from facebuildingblock import FaceBuildingBlock
 
@@ -117,15 +116,15 @@ class CGGulpOptimizer:
 
     def _define_bond_potentials(self):
         bond_ks_ = {
-            ('C', 'C'): 100,
-            ('B', 'B'): 100,
+            ('C', 'C'): 10,
+            ('B', 'B'): 10,
             ('B', 'C'): self._ortho_k,
-            ('C', 'Zn'): 100,
-            ('B', 'Zn'): 100,
+            ('C', 'Zn'): 10,
+            ('B', 'Zn'): 10,
 
-            ('Fe', 'Fe'): 100,
-            ('Fe', 'Zn'): 100,
-            ('Zn', 'Zn'): 100,
+            ('Fe', 'Fe'): 10,
+            ('Fe', 'Zn'): 10,
+            ('Zn', 'Zn'): 10,
         }
         _base_length = 4
         _ortho_length = self._anisotropy*_base_length
@@ -147,17 +146,17 @@ class CGGulpOptimizer:
             ('B', 'C', 'C'): self._o_angle_k,
             ('B', 'B', 'C'): self._o_angle_k,
 
-            ('Fe', 'Fe', 'Fe'): 100,
+            ('Fe', 'Fe', 'Fe'): 10,
             # ('Fe', 'Fe', 'Zn'): 10,
-            ('Fe', 'Zn', 'Zn'): 100,
-            ('Zn', 'Zn', 'Zn'): 100,
+            ('Fe', 'Zn', 'Zn'): 10,
+            ('Zn', 'Zn', 'Zn'): 10,
 
             ('B', 'C', 'Zn'): self._o_angle_k,
             ('B', 'B', 'Zn'): self._o_angle_k,
             ('C', 'C', 'Zn'): self._o_angle_k,
 
-            ('C', 'Fe', 'Zn'): 100,
-            ('B', 'Fe', 'Zn'): 100,
+            ('C', 'Fe', 'Zn'): 10,
+            ('B', 'Fe', 'Zn'): 10,
         }
         angle_thetas_ = {
             ('B', 'C', 'C'): 90,
@@ -496,19 +495,281 @@ def run_aniso_optimisation(
 
     return res_dict
 
+
+def scatter(
+    symm_to_c,
+    results,
+    ylabel,
+    output_dir,
+    filename,
+    flex,
+):
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for aniso in results:
+        da = results[aniso]
+        for symm in da:
+            if ylabel == 'energy (eV)':
+                ys = da[symm]['fin_energy']
+            elif ylabel == 'CU-8':
+                ys = da[symm]['cu8']['CU-8']
+                ax.axhline(y=0, lw=2, c='k')
+
+            ax.scatter(
+                aniso,
+                ys,
+                c=symm_to_c[symm][1],
+                marker=symm_to_c[symm][0],
+                edgecolor='k',
+                s=80,
+                alpha=0.5,
+            )
+
+    legend_elements = []
+    for s in symm_to_c:
+        legend_elements.append(
+            Line2D(
+                [0],
+                [0],
+                color='w',
+                marker=symm_to_c[s][0],
+                label=convert_symm_names(s),
+                markerfacecolor=symm_to_c[s][1],
+                markersize=10,
+                markeredgecolor='k',
+            )
+        )
+
+    ax.legend(handles=legend_elements, fontsize=16, ncol=3)
+
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.set_xlabel('anisotropy', fontsize=16)
+    ax.set_ylabel(ylabel, fontsize=16)
+    ax.set_title(f'flex: {flex}', fontsize=16)
+
+    fig.tight_layout()
+    fig.savefig(
+        os.path.join(output_dir, filename),
+        dpi=720,
+        bbox_inches='tight',
+    )
+    plt.close()
+
+
+def comp_scatter(
+    symm_to_c,
+    symm_set,
+    results,
+    ylabel,
+    output_dir,
+    filename,
+    flex,
+    ylim,
+):
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for aniso in results:
+        da = results[aniso]
+        for symm in da:
+            if symm not in symm_set:
+                continue
+            if ylabel == 'energy (eV)':
+                ys = da[symm]['fin_energy']
+            elif ylabel == 'CU-8':
+                ys = da[symm]['cu8']['CU-8']
+                ax.axhline(y=0, lw=2, c='k')
+
+            ax.scatter(
+                aniso,
+                ys,
+                c=symm_to_c[symm][1],
+                marker=symm_to_c[symm][0],
+                edgecolor='k',
+                s=120,
+            )
+
+    legend_elements = []
+    for s in symm_to_c:
+        if s not in symm_set:
+            continue
+        legend_elements.append(
+            Line2D(
+                [0],
+                [0],
+                color='w',
+                marker=symm_to_c[s][0],
+                label=convert_symm_names(s),
+                markerfacecolor=symm_to_c[s][1],
+                markersize=12,
+                markeredgecolor='k',
+            )
+        )
+
+    ax.legend(handles=legend_elements, fontsize=16, ncol=2)
+
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.set_xlabel('anisotropy', fontsize=16)
+    ax.set_ylabel(ylabel, fontsize=16)
+    ax.set_title(f'flex: {flex}', fontsize=16)
+    ax.set_ylim(ylim)
+
+    fig.tight_layout()
+    fig.savefig(
+        os.path.join(output_dir, filename),
+        dpi=720,
+        bbox_inches='tight',
+    )
+    plt.close()
+
+
+def heatmap(
+    symm_to_c,
+    results,
+    output_dir,
+    filename,
+    vmin,
+    vmax,
+    clabel,
+    flex,
+    expt_data,
+    ligand_ars,
+):
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    maps = np.zeros((len(symm_to_c), len(results)))
+    for j, aniso in enumerate(results):
+        da = results[aniso]
+        for i, symm in enumerate(symm_to_c):
+            if clabel == 'energy (eV)':
+                maps[i][j] = da[symm]['fin_energy']
+            elif clabel == 'CU-8':
+                maps[i][j] = da[symm]['cu8']['CU-8']
+
+    im = ax.imshow(maps, vmin=vmin, vmax=vmax, cmap='Purples_r')
+    # Create colorbar
+    cbar = ax.figure.colorbar(im, ax=ax, shrink=0.4)
+    cbar.ax.set_ylabel(clabel, rotation=-90, va="bottom", fontsize=16)
+    cbar.ax.tick_params(labelsize=16)
+
+    # Turn spines off and create white grid.
+    ax.spines[:].set_visible(False)
+    ax.grid(which="minor", color="w", linestyle='-', linewidth=1)
+    # ax.set_xticks(np.arange(maps.shape[1]+1)-.5, minor=True)
+    ax.set_yticks(np.arange(maps.shape[0]+1)-.5, minor=True)
+    ax.tick_params(which="minor", bottom=False, left=False)
+
+    # Scatter points for where experiments land.
+    for expt in expt_data:
+        da = expt_data[expt]
+        # Get symm position.
+        symm_position = symm_to_c[da['symmetry']][2]
+        known_aniso = ligand_ars[da['ligand_name']]['N']
+        sub_arr = [(a-known_aniso)**2 for a in results]
+        matched_x_position = np.argmin(sub_arr)
+        ax.scatter(
+            x=matched_x_position,
+            y=symm_position,
+            c='red',
+            edgecolors='k',
+            marker='o',
+            s=80,
+        )
+
+    # Scatter points for lowest/highest energy for each symm.
+    if clabel == 'energy (eV)':
+        # Min of each row.
+        index_min = np.argmin(maps, axis=1)
+        ax.scatter(
+            x=index_min,
+            y=[symm_to_c[symm][2] for symm in symm_to_c],
+            c='white',
+            marker='P',
+            edgecolors='k',
+            s=80,
+        )
+        # # Max of each row.
+        # index_max = np.argmax(maps, axis=1)
+        # ax.scatter(
+        #     x=index_max,
+        #     y=[symm_to_c[symm][2] for symm in symm_to_c],
+        #     c='white',
+        #     edgecolors='k',
+        #     marker='X',
+        #     s=40,
+        # )
+
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.set_xlabel('anisotropy', fontsize=16)
+    ax.set_ylabel('symmetry', fontsize=16)
+    # Show all ticks and label them with the respective lists.
+    ax.set_xticks([i for i in range(len(results))])
+    ax.set_xticklabels([a for a in results])
+    ax.set_yticks([symm_to_c[symm][2] for symm in symm_to_c])
+    ax.set_yticklabels([
+        convert_symm_names(symm) for symm in symm_to_c
+    ])
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(
+        ax.get_xticklabels(),
+        rotation=45,
+        ha="right",
+        rotation_mode="anchor",
+    )
+    ax.set_title(f'flex: {flex}', fontsize=16)
+
+    fig.tight_layout()
+    fig.savefig(
+        os.path.join(output_dir, filename),
+        dpi=720,
+        bbox_inches='tight',
+    )
+    plt.close()
+
+
+def get_ligand_ars(ligand_directory):
+    json_file = os.path.join(ligand_directory, 'ligand_ARs.json')
+    with open(json_file, 'r') as f:
+        ar_data = json.load(f)
+    return ar_data
+
+
 def main():
     first_line = (
         'Usage: run_cg_model.py precursor_dir output_dir'
+        ' expt_lib_file ligand_directory'
     )
-    if (not len(sys.argv) == 3):
+    if (not len(sys.argv) == 5):
         print(f"""
 {first_line}
+
+    precursor_dir : (str)
+        Directrory containing precursor structures.
+
+    output_dir : (str)
+        Directrory to output files to.
+
+    expt_lib_file : (str)
+        File containing experimental symmetry  information (XXXXX).
+
+    ligand_directory : (str)
+        Directory with required ligand structures.
 
     """)
         sys.exit()
     else:
         precursor_dir = sys.argv[1]
         output_dir = sys.argv[2]
+        expt_lib_file = sys.argv[3]
+        ligand_directory = sys.argv[4]
+
+    expt_data = read_lib(expt_lib_file)
+
+    # Get ligand aspect ratios.
+    ligand_ars = get_ligand_ars(ligand_directory)
+
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
 
     delta_bb, lambda_bb, plane_bb = prepare_precursors(
         precursor_dir=precursor_dir,
@@ -546,176 +807,112 @@ def main():
                 )
                 results[aniso][symm] = res_dict
 
-        raise SystemExit('refactor belo')
         symm_to_c = {
-            'd2': ('o', 'k', 'd2', 0),
-            'th1': ('D', 'r', 'th1', 1),
-            'th2': ('X', 'r', 'th2', 2),
-            'td': ('P', 'r', 't', 3),
-            'tl': ('P', 'r', 't', 4),
-            's61': ('X', 'gold', 's61', 5),
-            's62': ('D', 'gold', 's62', 6),
-            's41': ('X', 'gold', 's61', 7),
-            's42': ('D', 'gold', 's62', 8),
-            'd31': ('P', 'skyblue', 'd31', 9),
-            'd32': ('o', 'skyblue', 'd32', 10),
-            'd31n': ('P', 'skyblue', 'd31', 11),
-            'd32n': ('o', 'skyblue', 'd32', 12),
-            'c2h': ('o', 'green', 'c2h', 13),
-            'c2v': ('X', 'green', 'c2v', 14),
+            'd2': ('o', 'k', 0),
+            'th1': ('D', 'r', 1),
+            'th2': ('X', 'r', 2),
+            'td': ('o', 'r', 3),
+            'tl': ('P', 'r', 4),
+            's61': ('X', 'gold', 5),
+            's62': ('D', 'gold', 6),
+            's41': ('X', 'gray', 7),
+            's42': ('D', 'gray', 8),
+            'd31': ('P', 'skyblue', 9),
+            'd32': ('o', 'skyblue', 10),
+            'd31n': ('P', 'b', 11),
+            'd32n': ('o', 'b', 12),
+            'c2h': ('o', 'green', 13),
+            'c2v': ('X', 'green', 14),
         }
 
-        fig, ax = plt.subplots(figsize=(8, 8))
-        maps = np.zeros((len(symm_to_c), len(results)))
-        for j, aniso in enumerate(results):
-            da = results[aniso]
-            for i, symm in enumerate(symm_to_c):
-                maps[i][j] = da[symm]['fin_energy']
-
-        im = ax.imshow(maps, vmin=25, vmax=70)
-        # Create colorbar
-        cbar = ax.figure.colorbar(im, ax=ax, shrink=0.4)
-        cbar.ax.set_ylabel('energy', rotation=-90, va="bottom")
-
-        ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.set_xlabel('anisotropy', fontsize=16)
-        ax.set_ylabel('symmetry', fontsize=16)
-        # Show all ticks and label them with the respective lists.
-        ax.set_xticks([i for i in range(len(results))])
-        ax.set_xticklabels([a for a in results])
-        ax.set_yticks([symm_to_c[symm][3] for symm in symm_to_c])
-        ax.set_yticklabels([symm_to_c[symm][2] for symm in symm_to_c])
-
-        # Rotate the tick labels and set their alignment.
-        plt.setp(
-            ax.get_xticklabels(),
-            rotation=45,
-            ha="right",
-            rotation_mode="anchor",
+        heatmap(
+            symm_to_c=symm_to_c,
+            results=results,
+            output_dir=output_dir,
+            filename=f'energy_map_{flex}.pdf',
+            vmin=25,
+            vmax=55,
+            clabel='energy (eV)',
+            flex=flex,
+            expt_data=expt_data,
+            ligand_ars=ligand_ars,
         )
 
-        fig.tight_layout()
-        fig.savefig(
-            f'energy_map_{flex}.pdf', dpi=720, bbox_inches='tight'
-        )
-        plt.close()
-
-        fig, ax = plt.subplots(figsize=(8, 8))
-        maps = np.zeros((len(symm_to_c), len(results)))
-        for j, aniso in enumerate(results):
-            da = results[aniso]
-            for i, symm in enumerate(symm_to_c):
-                maps[i][j] = da[symm]['cu8']['CU-8']
-
-        im = ax.imshow(maps, vmin=0, vmax=4)
-        # Create colorbar
-        cbar = ax.figure.colorbar(im, ax=ax, shrink=0.4)
-        cbar.ax.set_ylabel('CU-8', rotation=-90, va="bottom")
-
-        ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.set_xlabel('anisotropy', fontsize=16)
-        ax.set_ylabel('symmetry', fontsize=16)
-        # Show all ticks and label them with the respective lists.
-        ax.set_xticks([i for i in range(len(results))])
-        ax.set_xticklabels([a for a in results])
-        ax.set_yticks([symm_to_c[symm][3] for symm in symm_to_c])
-        ax.set_yticklabels([symm_to_c[symm][2] for symm in symm_to_c])
-
-        # Rotate the tick labels and set their alignment.
-        plt.setp(
-            ax.get_xticklabels(),
-            rotation=45,
-            ha="right",
-            rotation_mode="anchor",
+        heatmap(
+            symm_to_c=symm_to_c,
+            results=results,
+            output_dir=output_dir,
+            filename=f'energy_map_flat_{flex}.pdf',
+            vmin=25,
+            vmax=30,
+            clabel='energy (eV)',
+            flex=flex,
+            expt_data=expt_data,
+            ligand_ars=ligand_ars,
         )
 
-        fig.tight_layout()
-        fig.savefig(
-            f'shape_map_{flex}.pdf', dpi=720, bbox_inches='tight'
+        heatmap(
+            symm_to_c=symm_to_c,
+            results=results,
+            output_dir=output_dir,
+            filename=f'shape_map_{flex}.pdf',
+            vmin=0,
+            vmax=2.2,
+            clabel='CU-8',
+            flex=flex,
+            expt_data=expt_data,
+            ligand_ars=ligand_ars,
         )
-        plt.close()
 
-        fig, ax = plt.subplots(figsize=(8, 5))
-        for aniso in results:
-            da = results[aniso]
-            min_energy = min([float(da[i]['fin_energy']) for i in da])
-            for symm in da:
-                ax.scatter(
-                    aniso,
-                    da[symm]['fin_energy'],
-                    c=symm_to_c[symm][1],
-                    marker=symm_to_c[symm][0],
-                    # label=symm_to_c[symm][2],
-                    edgecolor='k',
-                    s=80,
-                    alpha=0.5,
-                )
+        scatter(
+            symm_to_c=symm_to_c,
+            results=results,
+            output_dir=output_dir,
+            filename=f'energy_{flex}.pdf',
+            ylabel='energy (eV)',
+            flex=flex,
+        )
+        scatter(
+            symm_to_c=symm_to_c,
+            results=results,
+            output_dir=output_dir,
+            filename=f'shape_{flex}.pdf',
+            ylabel='CU-8',
+            flex=flex,
+        )
 
-        legend_elements = []
-        for s in symm_to_c:
-            legend_elements.append(
-                Line2D(
-                    [0],
-                    [0],
-                    color='w',
-                    marker=symm_to_c[s][0],
-                    label=symm_to_c[s][2],
-                    markerfacecolor=symm_to_c[s][1],
-                    markersize=10,
-                    markeredgecolor='k',
-                )
+        comp_sets = {
+            'ts': ('th1', 'th2', 'td', 'tl'),
+            'ds': ('d31', 'd32', 'd31n', 'd32n'),
+            'ss': ('s61', 's62', 's41', 's42'),
+            'expt': ('d2', 'tl', 's62', 'th2', 'd32'),
+        }
+        for key, values in comp_sets.items():
+            if flex == 'high':
+                eylim = (25, 30)
+            else:
+                eylim = (25, 50)
+
+            comp_scatter(
+                symm_to_c=symm_to_c,
+                symm_set=values,
+                results=results,
+                output_dir=output_dir,
+                filename=f'comp_energy_{flex}_{key}.pdf',
+                ylabel='energy (eV)',
+                flex=flex,
+                ylim=eylim,
             )
-
-        ax.legend(handles=legend_elements, fontsize=16)
-
-        ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.set_xlabel('anisotropy', fontsize=16)
-        ax.set_ylabel('energy (eV)', fontsize=16)
-
-        fig.tight_layout()
-        fig.savefig(f'energy_{flex}.pdf', dpi=720, bbox_inches='tight')
-        plt.close()
-
-        fig, ax = plt.subplots(figsize=(8, 5))
-        for aniso in results:
-            da = results[aniso]
-            min_energy = min([float(da[i]['fin_energy']) for i in da])
-            for symm in da:
-                ax.scatter(
-                    aniso,
-                    da[symm]['cu8']['CU-8'],
-                    c=symm_to_c[symm][1],
-                    marker=symm_to_c[symm][0],
-                    edgecolor='k',
-                    s=80,
-                    alpha=0.5,
-                )
-
-        legend_elements = []
-        for s in symm_to_c:
-            legend_elements.append(
-                Line2D(
-                    [0],
-                    [0],
-                    color='w',
-                    marker=symm_to_c[s][0],
-                    label=symm_to_c[s][2],
-                    markerfacecolor=symm_to_c[s][1],
-                    markersize=10,
-                    markeredgecolor='k',
-                )
+            comp_scatter(
+                symm_to_c=symm_to_c,
+                symm_set=values,
+                results=results,
+                output_dir=output_dir,
+                filename=f'comp_shape_{flex}_{key}.pdf',
+                ylabel='CU-8',
+                flex=flex,
+                ylim=(0, 2),
             )
-
-        ax.legend(handles=legend_elements, fontsize=16)
-        ax.axhline(y=0, lw=2, c='k')
-
-        ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.set_xlabel('anisotropy', fontsize=16)
-        ax.set_ylabel('CU-8', fontsize=16)
-
-        fig.tight_layout()
-        fig.savefig(f'shape_{flex}.pdf', dpi=720, bbox_inches='tight')
-        plt.close()
 
 
 if __name__ == "__main__":
