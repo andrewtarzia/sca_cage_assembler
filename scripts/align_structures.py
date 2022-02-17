@@ -88,18 +88,13 @@ class AlignmentPotential(spd.Potential):
 
 
 def align_cages(name, xtal, comp):
-    fake_complex = stk.ConstructedMolecule(
-        topology_graph=stk.host_guest.Complex(
-            host=stk.BuildingBlock.init_from_molecule(xtal),
-            guests=stk.host_guest.Guest(comp),
-        )
-    )
-    supramolecule = spd.SupraMolecule(
+
+    host_molecule = spd.Molecule(
         atoms=(
             spd.Atom(
                 id=atom.get_id(),
                 element_string=atom.__class__.__name__,
-            ) for atom in fake_complex.get_atoms()
+            ) for atom in xtal.get_atoms()
         ),
         bonds=(
             spd.Bond(
@@ -108,16 +103,44 @@ def align_cages(name, xtal, comp):
                     bond.get_atom1().get_id(),
                     bond.get_atom2().get_id(),
                 )
-            ) for i, bond in enumerate(fake_complex.get_bonds())
+            ) for i, bond in enumerate(xtal.get_bonds())
         ),
-        position_matrix=fake_complex.get_position_matrix(),
+        position_matrix=xtal.get_position_matrix(),
+    )
+    guest_molecule = spd.Molecule(
+        atoms=(
+            spd.Atom(
+                id=atom.get_id()+host_molecule.get_num_atoms(),
+                element_string=atom.__class__.__name__,
+            ) for atom in comp.get_atoms()
+        ),
+        bonds=(
+            spd.Bond(
+                id=i,
+                atom_ids=(
+                    (
+                        bond.get_atom1().get_id()
+                        +host_molecule.get_num_atoms()
+                    ),
+                    (
+                        bond.get_atom2().get_id()
+                        +host_molecule.get_num_atoms()
+                    ),
+                )
+            ) for i, bond in enumerate(comp.get_bonds())
+        ),
+        position_matrix=comp.get_position_matrix(),
+    )
+
+    supramolecule = spd.SupraMolecule.init_from_components(
+        components=(host_molecule, guest_molecule),
     )
 
     cg = spd.Spinner(
         step_size=0.2,
         rotation_step_size=0.2,
-        num_conformers=100,
-        max_attempts=1000,
+        num_conformers=70,
+        max_attempts=500,
         potential_function=AlignmentPotential(),
     )
     for conformer in cg.get_conformers(supramolecule):
@@ -135,7 +158,7 @@ def align_cages(name, xtal, comp):
 
 def main():
     first_line = (
-        'Usage: analyse_crystal_structures.py '
+        'Usage: align_structures.py '
         'complex_lib_file cage_set_lib_file '
         'cage_directory expt_lib_file'
     )
@@ -189,13 +212,19 @@ def main():
             cage_set_dict=cage_set_lib[xtals[xtal]['cage_set']]
         )
 
-        rots = (None, (1, 0, 0), (0, 1, 0), (0, 0, -1))
-        angles = (np.radians(90), np.radians(180), np.radians(270))
+        rots = (
+            None, (1, 0, 0), (0, 1, 0), (0, 0, 1),
+            (1, 0, 1), (1, 1, 0), (0, 1, 1)
+        )
+        angles = (
+            np.radians(60), np.radians(90), np.radians(120),
+            np.radians(180), np.radians(240), np.radians(270)
+        )
         for r, rot in enumerate(product(rots, angles)):
             if os.path.exists(f'{xtal}_a_{r}_xtal.mol'):
                 continue
             else:
-                print(f'---- doing: {xtal} - {r}: rotation {rot}')
+
                 # Read in xtal structure.
                 xtal_struct = stk.BuildingBlock.init_from_file(
                     f'{xtal_cage.name}_stkin.mol'
@@ -216,7 +245,6 @@ def main():
                 )
                 comp_struct = comp_struct.with_centroid((0, 0, 0))
                 if rot[0] is not None:
-                    print(rot)
                     comp_struct = comp_struct.with_rotation_about_axis(
                         angle=rot[1],
                         axis=np.array(rot[0]),
@@ -227,12 +255,12 @@ def main():
 
                 xtal_struct.write(f'{xtal}_u_{r}_xtal.mol')
                 comp_struct.write(f'{xtal}_u_{r}_comp.mol')
+                print(f'---- doing: {xtal} - {r}: rotation {rot}')
                 xtal_struct, comp_struct = align_cages(
                     name=f'{xtal}_{r}',
                     xtal=xtal_struct,
                     comp=comp_struct,
                 )
-
                 xtal_struct.write(f'{xtal}_a_{r}_xtal.mol')
                 comp_struct.write(f'{xtal}_a_{r}_comp.mol')
 
