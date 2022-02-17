@@ -130,7 +130,7 @@ class CGGulpOptimizer:
         _base_length = 4
         _ortho_length = self._anisotropy*_base_length
         bond_rs_ = {
-            ('C', 'C'): _ortho_length,
+            ('C', 'C'): _base_length,
             ('B', 'B'): _base_length,
             ('B', 'C'): _ortho_length,
             ('C', 'Zn'): 4,
@@ -545,9 +545,8 @@ def main():
                     output_dir=output_dir,
                 )
                 results[aniso][symm] = res_dict
-            raise SystemExit()
 
-        raise SystemExit()
+        raise SystemExit('refactor belo')
         symm_to_c = {
             'd2': ('o', 'k', 'd2', 0),
             'th1': ('D', 'r', 'th1', 1),
