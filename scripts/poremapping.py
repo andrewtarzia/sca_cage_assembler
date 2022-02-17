@@ -3,27 +3,37 @@
 # Distributed under the terms of the MIT License.
 
 """
-Script to align crystal structures to calculated structures.
+Script to run poremapper on aligned structures.
 
 Author: Andrew Tarzia
 
-Date Created: 03 Feb 2022
+Date Created: 17 Feb 2022
 
 """
 
-
 import sys
-import os
-import numpy as np
-from scipy.spatial.distance import cdist
-from itertools import product
 
 import stk
-import spindry as spd
+import pore_mapper as pm
 
 from utilities import read_lib
-from xtalcage import XtalCage
 
+
+def run_poremapper(structure, file_prefix):
+    structure.write(f'{file_prefix}_host.xyz')
+    # Read in host from xyz file.
+    host = pm.Host.init_from_xyz_file(path=f'{file_prefix}_host.xyz')
+    host = host.with_centroid([0., 0., 0.])
+
+    # Define calculator object.
+    calculator = pm.Inflater(bead_sigma=1.6)
+    final_result = calculator.get_inflated_blob(host=host)
+    pore = final_result.pore
+
+    # Do final structure.
+    host.write_xyz_file(f'{file_prefix}_host.xyz')
+    pore.write_xyz_file(f'{file_prefix}_pore.xyz')
+    return pore.get_volume()
 
 
 def main():
@@ -61,22 +71,29 @@ def main():
         'jd257': 14,
         'jd301': 6,
         'jd326': 0,
-        'jd354': 1,
-        'jd370': 1,
+        'jd354': 0,
+        'jd370': 0,
     }
 
     for xtal in xtals:
-        print(f'---- doing: {xtal}')
         aid_ = aligned_ids[xtal]
         xtal_struct = stk.BuildingBlock.init_from_file(
             f'{xtal}_a_{aid_}_xtal.mol'
         )
+        xtal_porevolume = run_poremapper(
+            structure=xtal_struct,
+            file_prefix=f'{xtal}_pm_xtal',
+        )
+
         comp_struct = stk.BuildingBlock.init_from_file(
             f'{xtal}_a_{aid_}_comp.mol'
         )
-        print(xtal_struct)
-        print(comp_struct)
-        raise SystemExit()
+        comp_porevolume = run_poremapper(
+            structure=comp_struct,
+            file_prefix=f'{xtal}_pm_comp',
+        )
+
+        print(f'---- {xtal}: {xtal_porevolume} vs. {comp_porevolume}')
 
 
 if __name__ == "__main__":
