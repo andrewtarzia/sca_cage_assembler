@@ -77,7 +77,6 @@ class M8L6_FaceSets(FaceSets):
                 '0-10': (1, 2, 3, 6),
             }
         elif symmetry_string in ['s41', 's42']:
-            raise SystemExit('check this')
             return {
                 '001': (0, 1, 2, 4),
                 '100': (0, 1, 3, 5),
@@ -143,7 +142,6 @@ class M8L6_FaceSets(FaceSets):
                 '0-10': ((1, 2), (2, 6), (6, 3), (3, 1)),
             }
         elif symmetry_string in ['s41', 's42']:
-            raise SystemExit('check this')
             return {
                 '001': ((0, 1), (1, 2), (2, 4), (4, 0)),
                 '100': ((0, 5), (5, 3), (3, 1), (1, 0)),

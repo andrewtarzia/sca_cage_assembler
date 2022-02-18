@@ -726,11 +726,14 @@ class Cage:
             ]
 
             face_sets = self.get_cage_face_sets()
-            self.fa_data = calculate_paired_face_anisotropies(
-                mol=self.cage,
-                metal_atom_ids=metal_atom_ids,
-                face_sets=face_sets,
-            )
+            if self.symmetry_string in ('s41', 's42'):
+                self.fa_data = None
+            else:
+                self.fa_data = calculate_paired_face_anisotropies(
+                    mol=self.cage,
+                    metal_atom_ids=metal_atom_ids,
+                    face_sets=face_sets,
+                )
 
             self.cl_data = calculate_cube_likeness(
                 mol=self.cage,
