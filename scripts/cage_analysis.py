@@ -486,8 +486,10 @@ def write_csv(cage_sets, experimentals):
         if f'_{key}_' in '__'.join(experimentals)
     ]
     set_columns = [
-        'cageset', 'symmetry', 'AR', 'FAMM1', 'FAMM2', 'FAMM3', 'FAMM4',
-        'FAMM5', 'PPD', 'LAR', 'octop',
+        'cageset', 'symmetry', 'AR',
+        'FAMMi', 'FAMMii', 'FAMMiii', 'FAMMiv', 'FAMMv',
+        'FAMMvi', 'FAMMvii',
+        'PPD', 'LAR', 'octop',
         'lsesum', 'rellsesum', 'minitors', 'maxcrplan',
         'maxMLlength', 'porediam', 'relformatione',
         'maxintangledev', 'm_cube_shape', 'outcome', 'tested'
@@ -505,11 +507,13 @@ def write_csv(cage_sets, experimentals):
             rowinfo['cageset'] = cagesetname
             rowinfo['symmetry'] = symm
             rowinfo['AR'] = csd['AR']
-            rowinfo['FAMM1'] = csd['FAMM']['1']
-            rowinfo['FAMM2'] = csd['FAMM']['2']
-            rowinfo['FAMM3'] = csd['FAMM']['3']
-            rowinfo['FAMM4'] = csd['FAMM']['4']
-            rowinfo['FAMM5'] = csd['FAMM']['5']
+            rowinfo['FAMMi'] = csd['FAMM']['i']
+            rowinfo['FAMMii'] = csd['FAMM']['ii']
+            rowinfo['FAMMiii'] = csd['FAMM']['iii']
+            rowinfo['FAMMiv'] = csd['FAMM']['iv']
+            rowinfo['FAMMv'] = csd['FAMM']['v']
+            rowinfo['FAMMvi'] = csd['FAMM']['vi']
+            rowinfo['FAMMvii'] = csd['FAMM']['vii']
             rowinfo['PPD'] = csd['PPD']
             rowinfo['LAR'] = csd['LAR']
             cage_name = f'C_{cagesetname}_{symm}'

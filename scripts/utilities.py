@@ -1289,7 +1289,7 @@ def calculate_interior_face_angles(mol, metal_atom_ids, face_sets):
                 )
             interior_angles[idx] = interior_angle
 
-        cube_angles[fs]['interior_angles'] = interior_angles
+        cube_angles[fs] = interior_angles
 
     return cube_angles
 
@@ -1479,7 +1479,7 @@ def get_plottables(measures, name):
         'maxintangledev': {
             'data': measures['maxintangledev'],
             'ylabel': r'max. interior angle deviation [$^{\circ}$]',
-            'ylim': (-8, 8),
+            'ylim': (-0.5, 10),
             'filename': f'{name}_maxintangledev.pdf'
         },
         'maxMLlength': {

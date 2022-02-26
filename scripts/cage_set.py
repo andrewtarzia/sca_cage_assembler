@@ -273,8 +273,6 @@ class CageSet:
         if C_data['cl_prop'] is None:
             return None
         else:
-            print(C_data['cl_prop'])
-            raise SystemExit()
             return max([
                 abs(
                     360-sum(
@@ -625,7 +623,6 @@ class CageSet:
 
         M = 'o'
 
-        print(data_C)
         fig, ax = plt.subplots(figsize=(8, 5))
         # Define cmap.
         CMAP = {}
