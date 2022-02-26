@@ -26,7 +26,7 @@ def run_poremapper(structure, file_prefix):
     host = host.with_centroid([0., 0., 0.])
 
     # Define calculator object.
-    calculator = pm.Inflater(bead_sigma=1.6)
+    calculator = pm.Inflater(bead_sigma=1.2)
     final_result = calculator.get_inflated_blob(host=host)
     pore = final_result.pore
 
@@ -71,7 +71,7 @@ def main():
         'jd257': 14,
         'jd301': 6,
         'jd326': 0,
-        'jd354': 0,
+        'jd354': 15,
         'jd370': 0,
     }
 
