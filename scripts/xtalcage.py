@@ -162,7 +162,7 @@ class XtalCage:
                 edgecolors='k',
                 marker=M,
                 alpha=1.0,
-                s=250
+                s=250,
             )
 
         if show_xtal:
@@ -173,11 +173,11 @@ class XtalCage:
             ax.scatter(
                 X,
                 xtal_data,
-                c=C,
+                c='gold',
                 edgecolors='k',
                 marker='X',
                 alpha=1.0,
-                s=250
+                s=250,
             )
 
         # Set number of ticks for x-axis

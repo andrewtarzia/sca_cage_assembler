@@ -88,13 +88,13 @@ def plot_MM_vs_AR(json_files, candms, expts):
     _figure_path = 'figures'
     fig, ax = plt.subplots(figsize=(8, 5))
     stabs = {
-        '1': {'ar': [], 'stab': []},
-        '2': {'ar': [], 'stab': []},
-        '3': {'ar': [], 'stab': []},
-        '4': {'ar': [], 'stab': []},
-        '5': {'ar': [], 'stab': []},
-        '6': {'ar': [], 'stab': []},
-        '7': {'ar': [], 'stab': []},
+        'i': {'ar': [], 'stab': []},
+        'ii': {'ar': [], 'stab': []},
+        'iii': {'ar': [], 'stab': []},
+        'iv': {'ar': [], 'stab': []},
+        'v': {'ar': [], 'stab': []},
+        'vi': {'ar': [], 'stab': []},
+        'vii': {'ar': [], 'stab': []},
     }
     for i in json_files:
         cage_set = i.replace('_ligand_measures.json', '')
@@ -110,7 +110,7 @@ def plot_MM_vs_AR(json_files, candms, expts):
             )
 
     for face in stabs:
-        if face in ['1', '4', '6', '7']:
+        if face not in ['i', 'ii', 'iii']:
             continue
         c, m = candms[face]
         XY = [
@@ -177,13 +177,13 @@ def main():
             experimental_results[expt] = expt_data[expt]['face']
 
     candms = {
-        '1': (colors_i_like()[9], 'o'),
-        '2': (colors_i_like()[4], 'X'),
-        '3': (colors_i_like()[11], 's'),
-        '4': (colors_i_like()[10], 'D'),
-        '5': (colors_i_like()[3], 'P'),
-        '6': (colors_i_like()[5], 'p'),
-        '7': (colors_i_like()[7], '^'),
+        'i': (colors_i_like()[9], 'o'),
+        'ii': (colors_i_like()[4], 'X'),
+        'iii': (colors_i_like()[11], 's'),
+        'iv': (colors_i_like()[10], 'D'),
+        'v': (colors_i_like()[3], 'P'),
+        'vi': (colors_i_like()[5], 'p'),
+        'vii': (colors_i_like()[7], '^'),
     }
     plot_all_ligand_properties(json_files, candms, experimental_results)
     plot_MM_vs_AR(json_files, candms, experimental_results)
