@@ -73,6 +73,7 @@ def distribution_plot(df, col_name, sets_to_plot):
         set_df = df[df['cageset'] == cageset]
         _x_positions += 1
         _x_names.append((_x_positions, print_name))
+        cset_ys = []
         for i, row in set_df.iterrows():
             outcome = True if row['outcome'] == 1 else False
             y_val = row[col_name]
@@ -82,6 +83,25 @@ def distribution_plot(df, col_name, sets_to_plot):
                 forms.append((_x_positions, float(y_val)))
             else:
                 does_not_form.append((_x_positions, float(y_val)))
+            cset_ys.append(float(y_val))
+
+        parts = ax.violinplot(
+            cset_ys,
+            [_x_positions],
+            # points=200,
+            vert=True,
+            widths=0.8,
+            showmeans=False,
+            showextrema=False,
+            showmedians=False,
+            bw_method=0.5,
+        )
+
+        for pc in parts['bodies']:
+            pc.set_facecolor('gray')
+            pc.set_edgecolor('none')
+            pc.set_alpha(0.3)
+
 
     ax.scatter(
         x=[i[0] for i in does_not_form],
@@ -95,7 +115,7 @@ def distribution_plot(df, col_name, sets_to_plot):
     ax.scatter(
         x=[i[0] for i in forms],
         y=[i[1] for i in forms],
-        c='#4691C3',
+        c='gold',
         edgecolors='k',
         marker='o',
         alpha=1.0,
@@ -129,7 +149,6 @@ def plot_set_energies(data, filename, sets_to_plot):
     for cageset in sets_to_plot:
         print_name = sets_to_plot[cageset]
         set_values = data[cageset]
-        print(print_name, set_values)
         formed_symm = []
         all_energies = []
         for i in set_values:
@@ -144,38 +163,51 @@ def plot_set_energies(data, filename, sets_to_plot):
             _x_positions += 1
             _x_names.append((_x_positions, print_name))
             stab_energies.append(-100)
-            ax.scatter(
-                x=[_x_positions for i in other_energies],
-                y=other_energies,
-                c='gray',
-                s=40,
-            )
+
         else:
             if len(formed_symm) != 1:
                 raise ValueError(
                     'Missing something; there should be one True case.'
                 )
-            print(formed_symm)
-            print(all_energies)
-            stabilisation_energy = formed_symm[0][1][0] - min(all_energies)
-            print(stabilisation_energy)
+            stabilisation_energy = (
+                formed_symm[0][1][0] - min(all_energies)
+            )
             stab_energies.append(stabilisation_energy*2625.5)
             other_energies = [
                 (i-min(all_energies))*2625.5 for i in all_energies
             ]
             _x_positions += 1
             _x_names.append((_x_positions, print_name))
-            ax.scatter(
-                x=[_x_positions for i in other_energies],
-                y=other_energies,
-                c='gray',
-                s=40,
-            )
+
+        parts = ax.violinplot(
+            other_energies,
+            [_x_positions],
+            # points=200,
+            vert=True,
+            widths=0.8,
+            showmeans=False,
+            showextrema=False,
+            showmedians=False,
+            bw_method=0.5,
+        )
+
+        for pc in parts['bodies']:
+            pc.set_facecolor('gray')
+            pc.set_edgecolor('none')
+            pc.set_alpha(0.3)
+        ax.scatter(
+            x=[_x_positions for i in other_energies],
+            y=other_energies,
+            c='gray',
+            s=40,
+            alpha=0.5,
+        )
 
     ax.scatter(
         x=range(1, _x_positions+1),
         y=stab_energies,
-        c='r',
+        c='gold',
+        edgecolors='k',
         s=180,
     )
 
@@ -210,6 +242,9 @@ def main():
 
     _figure_path = 'figures'
     all_cage_properties = pd.read_csv('all_cage_csv_data.csv')
+    all_cage_properties = all_cage_properties.where(
+        pd.notnull(all_cage_properties), None
+    )
 
     # Define sets.
     sets_to_plot = {
@@ -220,7 +255,6 @@ def main():
         'cl1_quad2_16': 'jd326',
         'cl1_quad2_2': 'jd354',
         'cl1_quad2_5': 'jd370',
-        'cl1_quad2_9': 'jd490',
     }
     target_cols = [
         'octop', 'rellsesum', 'minitors', 'lsesum',
@@ -241,13 +275,11 @@ def main():
         setname = row['cageset']
         if setname not in sets_to_plot:
             continue
-        print(setname)
         symm = row['symmetry']
         forms = True if row['outcome'] == 1 else False
-        print(forms)
         ey_file = f'C_{setname}_{symm}_optc.ey'
         if not os.path.exists(ey_file):
-            print(ey_file)
+            print(ey_file, 'missing')
             continue
         with open(ey_file, 'r') as f:
             lines = f.readlines()
@@ -256,7 +288,6 @@ def main():
 
     # Get total energies from DFT.
 
-    print(set_gfn_energies)
     # Plot relative energy cf. more stable symmetry of expt symmetry.
     plot_set_energies(
         data=set_gfn_energies,

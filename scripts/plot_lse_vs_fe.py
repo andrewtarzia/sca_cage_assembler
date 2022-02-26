@@ -88,15 +88,6 @@ def main():
         dpi=720, bbox_inches='tight',
     )
 
-    ax.set_xlim(1550, 2500)
-    ax.set_ylim(-2300, -1400)
-    fig.savefig(
-        os.path.join(_figure_path, 'lse_sum_vs_fe_z.pdf'),
-        dpi=720, bbox_inches='tight',
-    )
-
-    plt.close()
-
 
 if __name__ == "__main__":
     main()
