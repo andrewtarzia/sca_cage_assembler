@@ -28,7 +28,6 @@ from molecule_building import (
 )
 from face_sets import M8L6_FaceSets
 from utilities import (
-    calculate_paired_face_anisotropies,
     calculate_cube_likeness,
     calculate_cube_shape_measure,
     calculate_abs_imine_torsions,
@@ -707,7 +706,6 @@ class Cage:
                 f'Warning. cube-likeness is not defined for '
                 f'{self.topology_string} topology. Returning None.'
             )
-            self.fa_data = None
             self.cl_data = None
             return
 
@@ -726,15 +724,6 @@ class Cage:
             ]
 
             face_sets = self.get_cage_face_sets()
-            if self.symmetry_string in ('s41', 's42'):
-                self.fa_data = None
-            else:
-                self.fa_data = calculate_paired_face_anisotropies(
-                    mol=self.cage,
-                    metal_atom_ids=metal_atom_ids,
-                    face_sets=face_sets,
-                )
-
             self.cl_data = calculate_cube_likeness(
                 mol=self.cage,
                 metal_atom_ids=metal_atom_ids,

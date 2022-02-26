@@ -41,7 +41,6 @@ def main():
         # 'rellsesum',
         # 'minitors',
         # 'maxcrplan',
-        # 'maxdifffaceaniso',
         'maxMLlength',
         # 'relformatione',
         # 'maxfacemetalpd',

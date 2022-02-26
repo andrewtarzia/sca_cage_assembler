@@ -121,7 +121,6 @@ def build_cages(
                         'op_prop': C.op_data,
                         'fe_prop': C.fe_data,
                         'li_prop': C.ls_data,
-                        'fa_prop': C.fa_data,
                         'bl_prop': C.bl_data,
                         'cl_prop': C.cl_data,
                         'c8_prop': C.analyze_cube_shape(),

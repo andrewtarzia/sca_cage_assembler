@@ -328,34 +328,6 @@ class XtalCage:
         )
         return max_face_interior_angle_dev
 
-    def get_max_face_anisotropy(self, mol):
-
-        face_anisos = {}
-        for face in self.faces:
-            atom_ids = [i.get_id() for i in self.faces[face][0]]
-
-            # Pick one metal - use index 1 as central atom.
-            d1 = get_atom_distance(
-                molecule=mol,
-                atom1_id=atom_ids[0],
-                atom2_id=atom_ids[1],
-            )
-            d2 = get_atom_distance(
-                molecule=mol,
-                atom1_id=atom_ids[1],
-                atom2_id=atom_ids[2],
-            )
-            face_anisos[face] = d2 / d1 if d2 > d1 else d1 / d2
-        paired_face_anisos = [
-            (i, j, face_anisos[i], face_anisos[j])
-            for i, j in combinations(face_anisos, r=2)
-            if self.faces[i][1] == j
-        ]
-        max_face_aniso_diff = max([
-            100*((i[2] - i[3]) / i[2]) for i in paired_face_anisos
-        ])
-        return max_face_aniso_diff
-
     def write_metal_atom_structure(self):
 
         metal_atom_ids = [

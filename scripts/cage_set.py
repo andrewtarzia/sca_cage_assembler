@@ -249,19 +249,6 @@ class CageSet:
 
         return C_data['pw_prop']['pore_diameter_opt']['diameter']
 
-    def get_max_face_anisotropy(self, cage_name):
-        C_data = self.built_cage_properties[cage_name]
-        if C_data['optimized'] is False:
-            return None
-
-        if C_data['fa_prop'] is None:
-            return None
-        else:
-            return max([
-                100*((i[2] - i[3]) / i[2])
-                for i in C_data['fa_prop']
-            ])
-
     def get_max_ML_distance(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
         if C_data['optimized'] is False:

@@ -43,11 +43,6 @@ def categorisation_plot(df, xray_df, col_name):
             (None, None),
             'max'
         ),
-        'maxdifffaceaniso': (
-            r'max. $\Delta$opposing face anisotropy [%]',
-            (None, None),
-            'max'
-        ),
         'maxMLlength': (
             r'max. N-Zn bond length [$\mathrm{\AA}$]',
             (None, None),
@@ -182,7 +177,7 @@ def main():
     print(all_cage_properties.columns)
     target_cols = [
         'octop', 'rellsesum', 'minitors', 'lsesum',
-        'maxcrplan', 'maxdifffaceaniso', 'maxMLlength', 'porediam',
+        'maxcrplan', 'maxMLlength', 'porediam',
         'relformatione', 'maxfacemetalpd', 'maxintangledev',
         'm_cube_shape'
     ]

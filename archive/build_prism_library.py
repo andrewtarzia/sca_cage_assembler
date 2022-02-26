@@ -92,8 +92,7 @@ def build_cages(
                     'op_prop': C.op_data,
                     'fe_prop': C.fe_data,
                     'li_prop': C.ls_data,
-                    'fa_prop': C.fa_data,
-                    'bl_prop': C.bl_data
+                    'bl_prop': C.bl_data,
                 }
                 # Dump to JSON.
                 cage_set.dump_properties()

@@ -44,11 +44,6 @@ def distribution_plot(df, col_name, sets_to_plot):
             (None, None),
             'max'
         ),
-        'maxdifffaceaniso': (
-            r'max. $\Delta$opposing face anisotropy [%]',
-            (None, None),
-            'max'
-        ),
         'maxMLlength': (
             r'max. N-Zn bond length [$\mathrm{\AA}$]',
             (None, None),
@@ -234,7 +229,7 @@ def main():
     }
     target_cols = [
         'octop', 'rellsesum', 'minitors', 'lsesum',
-        'maxcrplan', 'maxdifffaceaniso', 'maxMLlength', 'porediam',
+        'maxcrplan', 'maxMLlength', 'porediam',
         'relformatione', 'maxfacemetalpd', 'maxintangledev',
         'm_cube_shape'
     ]

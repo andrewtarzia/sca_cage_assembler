@@ -315,7 +315,6 @@ def cage_set_properties(cage_set):
          - lsesum: sum of ligand xtb strain energies in cage
          - minitors: min imine torsion angle in cage
          - maxcrplan: max ligand core planarity in cage
-         - maxdifffaceaniso: max percent face anisotropy of cage
          - maxMLlength: max Zn-N bond length in cage
          - formatione: xtb formation energy of cage
          - maxfacemetalpd:
@@ -355,10 +354,6 @@ def cage_set_properties(cage_set):
             },
             'porediam': {
                 i.name: cage_set.get_pore_diameter(i.name)
-                for i in cage_set.cages_to_build
-            },
-            'maxdifffaceaniso': {
-                i.name: cage_set.get_max_face_anisotropy(i.name)
                 for i in cage_set.cages_to_build
             },
             'maxMLlength': {
@@ -482,7 +477,6 @@ def write_csv(cage_sets, experimentals):
             'minitors': measures['minitors'],
             'm_cube_shape': measures['m_cube_shape'],
             'maxcrplan': measures['maxcrplan'],
-            'maxdifffaceaniso': measures['maxdifffaceaniso'],
             'maxMLlength': measures['maxMLlength'],
             'porediam': measures['porediam'],
             'relformatione': start_at_0(
@@ -500,7 +494,6 @@ def write_csv(cage_sets, experimentals):
         'cageset', 'symmetry', 'AR', 'FAMM1', 'FAMM2', 'FAMM3', 'FAMM4',
         'FAMM5', 'PPD', 'LAR', 'octop',
         'lsesum', 'rellsesum', 'minitors', 'maxcrplan',
-        'maxdifffaceaniso',
         'maxMLlength', 'porediam', 'relformatione', 'maxfacemetalpd',
         'maxintangledev', 'm_cube_shape', 'outcome', 'tested'
     ]
@@ -539,9 +532,6 @@ def write_csv(cage_sets, experimentals):
             rowinfo['minitors'] = csd['minitors'][cage_name]
             rowinfo['m_cube_shape'] = csd['m_cube_shape'][cage_name]
             rowinfo['maxcrplan'] = csd['maxcrplan'][cage_name]
-            rowinfo['maxdifffaceaniso'] = (
-                csd['maxdifffaceaniso'][cage_name]
-            )
             rowinfo['maxMLlength'] = csd['maxMLlength'][cage_name]
             rowinfo['porediam'] = csd['porediam'][cage_name]
             rowinfo['relformatione'] = csd['relformatione'][cage_name]
@@ -562,7 +552,6 @@ def write_xray_csv(xtal_cage_data):
         'cageset', 'symmetry', 'AR', 'FAMM1', 'FAMM2', 'FAMM3', 'FAMM4',
         'FAMM5', 'PPD', 'LAR', 'octop',
         'lsesum', 'rellsesum', 'minitors', 'maxcrplan',
-        'maxdifffaceaniso',
         'maxMLlength', 'porediam', 'relformatione', 'maxfacemetalpd',
         'maxintangledev', 'm_cube_shape', 'outcome', 'tested'
     ]
@@ -590,7 +579,6 @@ def write_xray_csv(xtal_cage_data):
         rowinfo['minitors'] = csd['minitors']
         rowinfo['m_cube_shape'] = csd['m_cube_shape']
         rowinfo['maxcrplan'] = csd['maxcrplan']
-        rowinfo['maxdifffaceaniso'] = csd['maxdifffaceaniso']
         rowinfo['maxMLlength'] = csd['maxMLlength']
         rowinfo['porediam'] = csd['porediam']
         rowinfo['relformatione'] = None
