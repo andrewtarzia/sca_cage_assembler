@@ -14,12 +14,14 @@ Date Created: 15 Feb 2021
 
 import numpy as np
 import pandas as pd
+import os
 import matplotlib.pyplot as plt
 
 from plotting import colors_i_like
 
 
 def main():
+    _figure_path = 'figures'
 
     csv_file = 'strain_energy_comparison.csv'
     data = pd.read_csv(csv_file)
@@ -67,7 +69,8 @@ def main():
     ax.legend(fontsize=16)
     fig.tight_layout()
     fig.savefig(
-        'strain_energy_comparison.pdf', dpi=720, bbox_inches='tight'
+        os.path.join(_figure_path, 'strain_energy_comparison.pdf'),
+        dpi=720, bbox_inches='tight'
     )
 
     ax.set_xlim(0, 600)
@@ -75,7 +78,9 @@ def main():
     ax.legend(fontsize=16)
     fig.tight_layout()
     fig.savefig(
-        'strain_energy_comparison_zoomed.pdf',
+        os.path.join(
+            _figure_path, 'strain_energy_comparison_zoomed.pdf'
+        ),
         dpi=720, bbox_inches='tight'
     )
 

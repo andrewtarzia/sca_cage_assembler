@@ -31,6 +31,8 @@ def main():
     else:
         pass
 
+    _figure_path = 'figures'
+
     all_cage_data = pd.read_csv('all_cage_csv_data.csv')
     all_cage_data = all_cage_data.where(
         pd.notnull(all_cage_data), None
@@ -101,7 +103,7 @@ def main():
 
     fig.tight_layout()
     fig.savefig(
-        f"shape_vs_energies.pdf",
+        os.path.join(_figure_path, f"shape_vs_energies.pdf"),
         dpi=720,
         bbox_inches='tight'
     )
@@ -145,7 +147,7 @@ def main():
 
     fig.tight_layout()
     fig.savefig(
-        f"shape_vs_int_angle.pdf",
+        os.path.join(_figure_path, f"shape_vs_int_angle.pdf"),
         dpi=720,
         bbox_inches='tight'
     )

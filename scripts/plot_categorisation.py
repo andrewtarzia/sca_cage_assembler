@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 
 
 def categorisation_plot(df, xray_df, col_name):
+    _figure_path = 'figures'
 
     yprops = {
         'octop': (
@@ -152,7 +153,7 @@ def categorisation_plot(df, xray_df, col_name):
         ax.legend(fontsize=16)
     fig.tight_layout()
     fig.savefig(
-        f"categorical_{col_name}.pdf",
+        os.path.join(_figure_path, f"categorical_{col_name}.pdf"),
         dpi=720,
         bbox_inches='tight'
     )

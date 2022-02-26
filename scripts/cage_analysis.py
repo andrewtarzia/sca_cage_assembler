@@ -16,6 +16,7 @@ from itertools import combinations
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import os
 import json
 
 from utilities import (
@@ -384,25 +385,44 @@ def cage_set_properties(cage_set):
 
     plottables = get_plottables(measures=measures, name=cage_set.name)
 
+    _figure_path = 'figures'
     for p1, p2 in combinations(plottables, 2):
         p1_dict = plottables[p1]
-        if not exists(p1_dict['filename']):
+        p1_filename = os.path.join(
+            _figure_path, p1_dict['filename'],
+        )
+        p2_filename = os.path.join(
+            _figure_path, p2_dict['filename'],
+        )
+        p1_p2_filename = os.path.join(
+            _figure_path, f'{cage_set.name}_{p1}_{p2}.pdf',
+        )
+        p2_p1_filename = os.path.join(
+            _figure_path, f'{cage_set.name}_{p2}_{p1}.pdf'
+        )
+        pN1 = p1 if p2 == 'lsesum' else p2
+        pN1_dict = p1_dict if pN1 == p1 else p2_dict
+        pN2_dict = p1_dict if pN1 != p1 else p2_dict
+        lse_filename = os.path.join(
+            _figure_path,  f'{cage_set.name}_{pN1}_LSE.pdf'
+        )
+
+        if not exists(p1_filename):
             cage_set.plot_Y(
                 data=p1_dict['data'],
                 ylabel=p1_dict['ylabel'],
                 ylim=p1_dict['ylim'],
-                filename=p1_dict['filename']
+                filename=p1_filename,
             )
         p2_dict = plottables[p2]
-        if not exists(p2_dict['filename']):
+        if not exists(p2_filename):
             cage_set.plot_Y(
                 data=p2_dict['data'],
                 ylabel=p2_dict['ylabel'],
                 ylim=p2_dict['ylim'],
-                filename=p2_dict['filename']
+                filename=p2_filename,
             )
 
-        p1_p2_filename = f'{cage_set.name}_{p1}_{p2}.pdf'
         if not exists(p1_p2_filename):
             cage_set.plot_Y_C(
                 data=p1_dict['data'],
@@ -413,7 +433,7 @@ def cage_set_properties(cage_set):
                 clim=p2_dict['ylim'],
                 filename=p1_p2_filename
             )
-        p2_p1_filename = f'{cage_set.name}_{p2}_{p1}.pdf'
+
         if not exists(p2_p1_filename):
             cage_set.plot_Y_C(
                 data=p2_dict['data'],
@@ -426,10 +446,6 @@ def cage_set_properties(cage_set):
             )
 
         if 'lsesum' in (p1, p2):
-            pN1 = p1 if p2 == 'lsesum' else p2
-            pN1_dict = p1_dict if pN1 == p1 else p2_dict
-            pN2_dict = p1_dict if pN1 != p1 else p2_dict
-            lse_filename = f'{cage_set.name}_{pN1}_LSE.pdf'
             if not exists(lse_filename):
                 plot_X_vs_lse(
                     xdata=pN1_dict['data'],

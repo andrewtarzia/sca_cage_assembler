@@ -57,7 +57,11 @@ def main():
     ax.set_ylabel('CU-8 shape measure', fontsize=16)
 
     fig.tight_layout()
-    fig.savefig('shape_examples.pdf', dpi=720, bbox_inches='tight')
+    fig.savefig(
+        'shape_examples.pdf',
+        dpi=720,
+        bbox_inches='tight',
+    )
 
     plt.close()
 

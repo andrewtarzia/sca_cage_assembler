@@ -14,6 +14,7 @@ Date Created: 08 Nov 2020
 import numpy as np
 from glob import glob
 import json
+import os
 import sys
 import matplotlib.pyplot as plt
 
@@ -31,6 +32,7 @@ def main():
     else:
         pass
 
+    _figure_path = 'figures'
     json_files = glob('*CS.json')
 
     lses = []
@@ -81,11 +83,17 @@ def main():
     ax.set_ylabel(r'formation energy [kJmol$^{-1}$]', fontsize=16)
 
     fig.tight_layout()
-    fig.savefig('lse_sum_vs_fe.pdf', dpi=720, bbox_inches='tight')
+    fig.savefig(
+        os.path.join(_figure_path, 'lse_sum_vs_fe.pdf'),
+        dpi=720, bbox_inches='tight',
+    )
 
     ax.set_xlim(1550, 2500)
     ax.set_ylim(-2300, -1400)
-    fig.savefig('lse_sum_vs_fe_z.pdf', dpi=720, bbox_inches='tight')
+    fig.savefig(
+        os.path.join(_figure_path, 'lse_sum_vs_fe_z.pdf'),
+        dpi=720, bbox_inches='tight',
+    )
 
     plt.close()
 

@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 
 
 def distribution_plot(df, col_name, sets_to_plot):
+    _figure_path = 'figures'
 
     yprops = {
         'octop': (
@@ -121,7 +122,7 @@ def distribution_plot(df, col_name, sets_to_plot):
     fig.legend(fontsize=16)
     fig.tight_layout()
     fig.savefig(
-        f"distribution_{col_name}.pdf",
+        os.path.join(_figure_path, f"distribution_{col_name}.pdf"),
         dpi=720,
         bbox_inches='tight'
     )
@@ -138,6 +139,7 @@ def plot_set_energies(data, filename, sets_to_plot):
     for cageset in sets_to_plot:
         print_name = sets_to_plot[cageset]
         set_values = data[cageset]
+        print(print_name, set_values)
         formed_symm = []
         all_energies = []
         for i in set_values:
@@ -216,6 +218,7 @@ def main():
     else:
         pass
 
+    _figure_path = 'figures'
     all_cage_properties = pd.read_csv('all_cage_csv_data.csv')
 
     # Define sets.
@@ -248,8 +251,10 @@ def main():
         setname = row['cageset']
         if setname not in sets_to_plot:
             continue
+        print(setname)
         symm = row['symmetry']
         forms = True if row['outcome'] == 1 else False
+        print(forms)
         ey_file = f'C_{setname}_{symm}_optc.ey'
         if not os.path.exists(ey_file):
             print(ey_file)
@@ -261,15 +266,16 @@ def main():
 
     # Get total energies from DFT.
 
+    print(set_gfn_energies)
     # Plot relative energy cf. more stable symmetry of expt symmetry.
     plot_set_energies(
         data=set_gfn_energies,
-        filename='set_energies_xtb.pdf',
+        filename=os.path.join(_figure_path, 'set_energies_xtb.pdf'),
         sets_to_plot=sets_to_plot,
     )
     raise SystemExit('waiting on DFT')
     plot_set_energies(
-        data=set_gfn_energies,
+        data=set_dft_energies,
         filename='set_energies_dft.pdf',
         sets_to_plot=sets_to_plot,
     )

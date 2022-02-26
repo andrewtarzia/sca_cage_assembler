@@ -97,18 +97,6 @@ Usage: setup_lse_dft.py dft_directory cage_directory xray_directory
         )
         raise SystemExit()
 
-        dft_utilities.write_input_file(
-            input_file=input_file,
-            dft_directory=dft_directory,
-            mol_file=lig_mol,
-            charge=16,
-            method='opt-b97',
-        )
-        all_input_file_names.append(input_file)
-
-    dft_utilities.write_sub_file(all_input_file_names, dft_directory)
-    print(len(all_input_file_names))
-
 
 if __name__ == "__main__":
     main()

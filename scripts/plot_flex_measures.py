@@ -105,6 +105,75 @@ def plot_ladev_planedev(json_files):
     )
     plt.close()
 
+
+def plot_planedev_energy(json_files):
+    num_mols = len(json_files)
+    # xbins = np.arange(0, 15, xwidth)
+    fig, ax = plt.subplots(
+        num_mols, 1, sharex=True, sharey=True, figsize=(8, 10)
+    )
+    # Remove horizontal space between axes
+    fig.subplots_adjust(hspace=0)
+
+    for i, _file in enumerate(json_files):
+        lig_name = (
+            _file.replace('_flex_measure.json', '').split('_')[1]
+        )
+        with open(_file, 'r') as f:
+            data = json.load(f)
+        x_measures = data['vector_angle']
+        y_measures = [
+            (i-min(data['energies']))*2625.5
+            for i in data['energies']
+        ]
+        # measures = [i-min(measures) for i in measures]
+        ax[i].text(0., 0., lig_name, fontsize=16)
+        ax[i].scatter(
+            x=x_measures,
+            y=y_measures,
+            facecolor='gold',
+            alpha=1.0,
+            edgecolor='k',
+        )
+
+        ax[i].tick_params(left=False, bottom=False)
+    ax[i].tick_params(labelsize=16, bottom=True)
+    ax[i].set_xlabel(
+        'vecotr angle [degrees]', fontsize=16
+    )
+    ax[i].set_ylabel('rel. energy [a.u.]', fontsize=16)
+
+
+
+
+    # # xbins = np.arange(0, 15, xwidth)
+    # fig, ax = plt.subplots(figsize=(8, 5))
+    # # Remove horizontal space between axes
+    # fig.subplots_adjust(hspace=0)
+
+    # for i, _file in enumerate(json_files):
+    #     with open(_file, 'r') as f:
+    #         data = json.load(f)
+    #     x = abs(
+    #         max(data['long_axis_distances'])
+    #         - min(data['long_axis_distances'])
+    #     )
+    #     y = abs(
+    #         max(data['plane_deviations'])
+    #         - min(data['plane_deviations'])
+    #     )
+    #     # measures = [i-min(measures) for i in measures]
+    #     ax.scatter(
+    #         x=x,
+    #         y=y,
+    #         c='gold',
+    #         alpha=1.0,
+    #         edgecolor='k',
+    #         s=160,
+    #     )
+    # ax.tick_params(labelsize=16, bottom=True)
+    # ax.set_xlabel(r'long-axis deviation [$\mathrm{\AA}$]', fontsize=16)
+    # ax.set_ylabel(r'plane deviation [$\mathrm{\AA}$]', fontsize=16)
     fig.tight_layout()
     fig.savefig(
         'flex_torsion_energy.pdf',
@@ -164,6 +233,8 @@ def main():
 
     plot_ladists(json_files)
     plot_ladev_planedev(json_files)
+    plot_ladev_energy(json_files)
+    plot_planedev_energy(json_files)
 
 
 if __name__ == "__main__":

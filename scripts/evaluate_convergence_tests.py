@@ -42,6 +42,7 @@ Usage: evaluate_convergence_tests.py dft_directory
     else:
         dft_directory = sys.argv[1]
 
+    _figure_path = 'figures'
     output_files = glob.glob(os.path.join(dft_directory, '*out'))
     print(len(output_files))
 
@@ -95,7 +96,7 @@ Usage: evaluate_convergence_tests.py dft_directory
         ax.legend(fontsize=16)
         fig.tight_layout()
         fig.savefig(
-            f'{syst}_convergence.pdf',
+            os.path.join(_figure_path, f'{syst}_convergence.pdf'),
             dpi=720,
             bbox_inches='tight',
         )
@@ -127,7 +128,7 @@ Usage: evaluate_convergence_tests.py dft_directory
         # ax.set_ylim(-0.1, 1)
         fig.tight_layout()
         fig.savefig(
-            f'{syst}_at60rel.pdf',
+            os.path.join(_figure_path, f'{syst}_at60rel.pdf'),
             dpi=720,
             bbox_inches='tight',
         )
@@ -160,7 +161,7 @@ Usage: evaluate_convergence_tests.py dft_directory
         # ax.set_ylim(-0.1, 1)
         fig.tight_layout()
         fig.savefig(
-            f'{syst}_at400ry.pdf',
+            os.path.join(_figure_path, f'{syst}_at400ry.pdf'),
             dpi=720,
             bbox_inches='tight',
         )

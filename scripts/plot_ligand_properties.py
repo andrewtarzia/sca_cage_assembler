@@ -12,6 +12,7 @@ Date Created: 08 Nov 2020
 """
 
 from glob import glob
+import os
 import json
 import sys
 import matplotlib.pyplot as plt
@@ -20,6 +21,7 @@ from plotting import colors_i_like
 from utilities import read_lib
 
 def plot_all_ligand_properties(json_files, candms, expts):
+    _figure_path = 'figures'
     print(expts)
     fig, ax = plt.subplots(figsize=(8, 5))
     for i in json_files:
@@ -75,7 +77,7 @@ def plot_all_ligand_properties(json_files, candms, expts):
     ax.set_ylim(0.1, 2.1)
     ax.legend(fontsize=16, ncol=2)
     fig.savefig(
-        'all_ligand_properties.pdf',
+        os.path.join(_figure_path, 'all_ligand_properties.pdf'),
         dpi=720,
         bbox_inches='tight'
     )
@@ -83,6 +85,7 @@ def plot_all_ligand_properties(json_files, candms, expts):
 
 
 def plot_MM_vs_AR(json_files, candms, expts):
+    _figure_path = 'figures'
     fig, ax = plt.subplots(figsize=(8, 5))
     stabs = {
         '1': {'ar': [], 'stab': []},
@@ -140,7 +143,7 @@ def plot_MM_vs_AR(json_files, candms, expts):
     ax.set_ylim(0, None)
     ax.legend(fontsize=16, ncol=3)
     fig.savefig(
-        'all_ligand_MM_vs_AR.pdf',
+        os.path.join(_figure_path, 'all_ligand_MM_vs_AR.pdf'),
         dpi=720,
         bbox_inches='tight'
     )
