@@ -292,19 +292,6 @@ class XtalCage:
         shapes = calculate_cube_shape_measure(self.name, mol)
         return shapes['CU-8']
 
-    def get_max_face_metal_PD(self, mol):
-
-        plane_devs = []
-        for face in self.faces:
-            atom_ids = [i.get_id() for i in self.faces[face][0]]
-            plane_devs.append(calculate_molecule_planarity(
-                mol=mol,
-                plane_ids=atom_ids,
-                atom_ids=atom_ids,
-            ))
-        max_face_metal_PD = max(plane_devs)
-        return max_face_metal_PD
-
     def get_max_face_interior_angle_dev(self, mol):
 
         pos_mat = mol.get_position_matrix()

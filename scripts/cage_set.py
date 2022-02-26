@@ -258,18 +258,6 @@ class CageSet:
             i for i in C_data['bl_prop']
         ])
 
-    def get_max_face_metal_PD(self, cage_name):
-        C_data = self.built_cage_properties[cage_name]
-        if C_data['optimized'] is False:
-            return None
-
-        if C_data['cl_prop'] is None:
-            return None
-        else:
-            return max([
-                C_data['cl_prop'][i]['metal_PD'] for i in C_data['cl_prop']
-            ])
-
     def get_m_cube_shape(self, cage_name):
         C_data = self.built_cage_properties[cage_name]
         if C_data['optimized'] is False:
@@ -285,10 +273,12 @@ class CageSet:
         if C_data['cl_prop'] is None:
             return None
         else:
+            print(C_data['cl_prop'])
+            raise SystemExit()
             return max([
                 abs(
                     360-sum(
-                        C_data['cl_prop'][i]['interior_angles'].values()
+                        C_data['cl_prop'][i].values()
                     )
                 )
                 for i in C_data['cl_prop']

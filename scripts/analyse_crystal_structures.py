@@ -107,14 +107,8 @@ def main():
              xtal_cage.get_m_shape(m_structure)
          )
         xtal_cage.define_faces(m_structure)
-        cage_data['maxfacemetalpd'] = xtal_cage.get_max_face_metal_PD(
-            m_structure
-        )
         cage_data['maxintangledev'] = (
             xtal_cage.get_max_face_interior_angle_dev(m_structure)
-        )
-        cage_data['maxdifffaceaniso'] = (
-            xtal_cage.get_max_face_anisotropy(m_structure)
         )
 
         # Full cage analysis.

@@ -12,6 +12,7 @@ Date Created: 12 Feb 2021
 """
 
 import pandas as pd
+import os
 import numpy as np
 import sys
 import matplotlib.pyplot as plt

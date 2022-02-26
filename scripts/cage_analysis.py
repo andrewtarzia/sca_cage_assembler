@@ -364,10 +364,6 @@ def cage_set_properties(cage_set):
                 i.name: cage_set.get_formation_energy(i.name)
                 for i in cage_set.cages_to_build
             },
-            'maxfacemetalpd': {
-                i.name: cage_set.get_max_face_metal_PD(i.name)
-                for i in cage_set.cages_to_build
-            },
             'maxintangledev': {
                 i.name: cage_set.get_max_face_interior_angle_dev(
                     i.name

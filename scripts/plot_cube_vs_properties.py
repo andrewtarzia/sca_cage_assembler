@@ -11,9 +11,8 @@ Date Created: 08 Nov 2020
 
 """
 
-import numpy as np
+import numpy as os
 import pandas as pd
-import json
 import sys
 import matplotlib.pyplot as plt
 

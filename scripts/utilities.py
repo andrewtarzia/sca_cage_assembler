@@ -1204,12 +1204,48 @@ def calculate_ideal_pore_size(mol):
     return sum(short_distances)/len(short_distances)
 
 
-def calculate_cube_likeness(mol, metal_atom_ids, face_sets):
+def output_face_atoms(mol, metal_atom_ids, face_sets, prefix):
     """
-    Calculate cube likeness a prism.
+    Output structure with metal atoms, differentiated by face.
 
-    Defined as:
-        XXXXXXX
+    """
+
+    _face_atom_types = {
+        '001': 'H',
+        '100': 'O',
+        '010': 'F',
+        '00-1': 'N',
+        '-100': 'C',
+        '0-10': 'B',
+    }
+
+    atom_count = 0
+    xyz_file = f'{prefix}_metal_faces.xyz'
+    atoms = []
+    for fs in face_sets.sets:
+        fsv = face_sets.vertices[fs]
+        fs_atom_ids = tuple(metal_atom_ids[i] for i in fsv)
+        fs_atom_positions = mol.get_atomic_positions(fs_atom_ids)
+
+        for ai, ap in zip(fs_atom_ids, fs_atom_positions):
+            atoms.append((
+                _face_atom_types[fs],
+                ap[0],
+                ap[1],
+                ap[2],
+                ai,
+            ))
+            atom_count += 1
+
+    with open(xyz_file, 'w') as f:
+        f.write(f'{atom_count}\n\n')
+        for ma in atoms:
+            f.write(f'{ma[0]} {ma[1]} {ma[2]} {ma[3]} {ma[4]}\n')
+
+
+def calculate_interior_face_angles(mol, metal_atom_ids, face_sets):
+    """
+    Calculate interor angles in faces of metal atoms.
 
     """
 
@@ -1220,13 +1256,11 @@ def calculate_cube_likeness(mol, metal_atom_ids, face_sets):
         for idx1, idx2 in permutations(metal_atom_ids, r=2)
     }
 
-    cube_likeness = {fs: {} for fs in face_sets.sets}
+    cube_angles = {fs: {} for fs in face_sets.sets}
     for fs in face_sets.sets:
-        print(fs)
         fsv = face_sets.vertices[fs]
         fsc = face_sets.connected[fs]
         fs_atom_ids = tuple(metal_atom_ids[i] for i in fsv)
-        print(fs_atom_ids)
 
         # Calculate the interior angles based on connected metals.
         interior_angles = {}
@@ -1248,20 +1282,16 @@ def calculate_cube_likeness(mol, metal_atom_ids, face_sets):
             interior_angle = np.degrees(
                 angle_between(vector1, vector2)
             )
-            print(vector1, vector2, interior_angle)
+            if interior_angle < 75 or interior_angle > 105:
+                print(
+                    f'Interior angle: {interior_angle} - suggests bad '
+                    'optimisation.'
+                )
             interior_angles[idx] = interior_angle
-        print(interior_angles, sum(interior_angles.values()))
 
-        metal_plane_deviation = calculate_molecule_planarity(
-            mol=mol,
-            plane_ids=fs_atom_ids,
-            atom_ids=fs_atom_ids,
-        )
-        print('>>>>', fs, metal_plane_deviation)
-        cube_likeness[fs]['interior_angles'] = interior_angles
-        cube_likeness[fs]['metal_PD'] = metal_plane_deviation
+        cube_angles[fs]['interior_angles'] = interior_angles
 
-    return cube_likeness
+    return cube_angles
 
 
 def convert_symm_names(symm_name):

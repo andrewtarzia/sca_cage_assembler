@@ -28,7 +28,7 @@ from molecule_building import (
 )
 from face_sets import M8L6_FaceSets
 from utilities import (
-    calculate_cube_likeness,
+    calculate_interior_face_angles,
     calculate_cube_shape_measure,
     calculate_abs_imine_torsions,
     calculate_ligand_SE,
@@ -41,6 +41,7 @@ from utilities import (
     get_organic_linkers,
     get_lowest_energy_conformer,
     get_lowest_energy_conformers,
+    output_face_atoms,
 )
 import env_set
 
@@ -724,7 +725,14 @@ class Cage:
             ]
 
             face_sets = self.get_cage_face_sets()
-            self.cl_data = calculate_cube_likeness(
+            output_face_atoms(
+                mol=self.cage,
+                metal_atom_ids=metal_atom_ids,
+                face_sets=face_sets,
+                prefix=self.name,
+            )
+
+            self.cl_data = calculate_interior_face_angles(
                 mol=self.cage,
                 metal_atom_ids=metal_atom_ids,
                 face_sets=face_sets,
