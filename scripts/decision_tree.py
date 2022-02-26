@@ -43,7 +43,6 @@ def main():
         # 'maxcrplan',
         'maxMLlength',
         # 'relformatione',
-        # 'maxfacemetalpd',
         'maxintangledev',
         'm_cube_shape'
     ]

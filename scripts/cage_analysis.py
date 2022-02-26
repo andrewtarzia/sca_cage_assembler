@@ -317,7 +317,6 @@ def cage_set_properties(cage_set):
          - maxcrplan: max ligand core planarity in cage
          - maxMLlength: max Zn-N bond length in cage
          - formatione: xtb formation energy of cage
-         - maxfacemetalpd:
          - maxintangledev: maximum deviation from 360 degrees
             (in degrees) of the interior angles of metal atoms in a
             face
@@ -382,6 +381,7 @@ def cage_set_properties(cage_set):
         p1_filename = os.path.join(
             _figure_path, p1_dict['filename'],
         )
+        p2_dict = plottables[p2]
         p2_filename = os.path.join(
             _figure_path, p2_dict['filename'],
         )
@@ -405,7 +405,7 @@ def cage_set_properties(cage_set):
                 ylim=p1_dict['ylim'],
                 filename=p1_filename,
             )
-        p2_dict = plottables[p2]
+
         if not exists(p2_filename):
             cage_set.plot_Y(
                 data=p2_dict['data'],
@@ -478,7 +478,6 @@ def write_csv(cage_sets, experimentals):
             'relformatione': start_at_0(
                 data_dict=measures['formatione']
             ),
-            'maxfacemetalpd': measures['maxfacemetalpd'],
             'maxintangledev': measures['maxintangledev'],
         }
 
@@ -490,7 +489,7 @@ def write_csv(cage_sets, experimentals):
         'cageset', 'symmetry', 'AR', 'FAMM1', 'FAMM2', 'FAMM3', 'FAMM4',
         'FAMM5', 'PPD', 'LAR', 'octop',
         'lsesum', 'rellsesum', 'minitors', 'maxcrplan',
-        'maxMLlength', 'porediam', 'relformatione', 'maxfacemetalpd',
+        'maxMLlength', 'porediam', 'relformatione',
         'maxintangledev', 'm_cube_shape', 'outcome', 'tested'
     ]
     symmetries = [
@@ -531,7 +530,6 @@ def write_csv(cage_sets, experimentals):
             rowinfo['maxMLlength'] = csd['maxMLlength'][cage_name]
             rowinfo['porediam'] = csd['porediam'][cage_name]
             rowinfo['relformatione'] = csd['relformatione'][cage_name]
-            rowinfo['maxfacemetalpd'] = csd['maxfacemetalpd'][cage_name]
             rowinfo['maxintangledev'] = csd['maxintangledev'][cage_name]
             dataframe = dataframe.append(rowinfo, ignore_index=True)
 
@@ -548,7 +546,7 @@ def write_xray_csv(xtal_cage_data):
         'cageset', 'symmetry', 'AR', 'FAMM1', 'FAMM2', 'FAMM3', 'FAMM4',
         'FAMM5', 'PPD', 'LAR', 'octop',
         'lsesum', 'rellsesum', 'minitors', 'maxcrplan',
-        'maxMLlength', 'porediam', 'relformatione', 'maxfacemetalpd',
+        'maxMLlength', 'porediam', 'relformatione',
         'maxintangledev', 'm_cube_shape', 'outcome', 'tested'
     ]
     dataframe = pd.DataFrame(columns=set_columns)
@@ -578,7 +576,6 @@ def write_xray_csv(xtal_cage_data):
         rowinfo['maxMLlength'] = csd['maxMLlength']
         rowinfo['porediam'] = csd['porediam']
         rowinfo['relformatione'] = None
-        rowinfo['maxfacemetalpd'] = csd['maxfacemetalpd']
         rowinfo['maxintangledev'] = csd['maxintangledev']
         dataframe = dataframe.append(rowinfo, ignore_index=True)
 

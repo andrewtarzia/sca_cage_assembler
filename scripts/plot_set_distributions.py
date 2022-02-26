@@ -55,11 +55,6 @@ def distribution_plot(df, col_name, sets_to_plot):
         'relformatione': (
             r'rel. formation energy [kJmol$^{-1}$]', (-10, 1000), 'max'
         ),
-        'maxfacemetalpd': (
-            r'max. face metal planarity deviation [$\mathrm{\AA}$]',
-            (None, None),
-            'max'
-        ),
         'maxintangledev': (
             r'max. interior angle deviation [degrees]',
             (None, None),
@@ -230,7 +225,7 @@ def main():
     target_cols = [
         'octop', 'rellsesum', 'minitors', 'lsesum',
         'maxcrplan', 'maxMLlength', 'porediam',
-        'relformatione', 'maxfacemetalpd', 'maxintangledev',
+        'relformatione', 'maxintangledev',
         'm_cube_shape'
     ]
     for col_name in target_cols:

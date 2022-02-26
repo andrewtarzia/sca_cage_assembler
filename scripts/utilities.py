@@ -1476,15 +1476,6 @@ def get_plottables(measures, name):
             'ylim': (0, 185),
             'filename': f'{name}_maxcrplane.pdf'
         },
-        'maxfacemetalpd': {
-            'data': measures['maxfacemetalpd'],
-            'ylabel': (
-                r'max. face metal planarity deviation '
-                r'[$\mathrm{\AA}$]'
-            ),
-            'ylim': (0, 10),
-            'filename': f'{name}_maxfacemetalpd.pdf'
-        },
         'maxintangledev': {
             'data': measures['maxintangledev'],
             'ylabel': r'max. interior angle deviation [$^{\circ}$]',
