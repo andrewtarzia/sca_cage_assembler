@@ -230,7 +230,7 @@ def plot_set_energies(data, filename, sets_to_plot):
 
 def main():
     first_line = (
-        'Usage: plot_set_energies.py'
+        'Usage: plot_set_distributions.py'
     )
     if (not len(sys.argv) == 1):
         print(f"""
