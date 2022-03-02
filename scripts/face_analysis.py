@@ -185,7 +185,7 @@ def get_all_bond_lengths(face):
     return all_bls
 
 
-def calculate_face_properties(face, paths, metal_atomic_number=30):
+def calculate_face_properties(face, paths):
     """
     Calculate geometrical properties of a face.
 
@@ -374,34 +374,10 @@ def plot_face_mismatches(data, name):
         label='M-M',
     )
 
-    ax.scatter(
-        x=[face_convert(i) for i in avg_n_mismatches],
-        y=[avg_n_mismatches[i] for i in avg_n_mismatches],
-        # width=width,
-        facecolor='skyblue',
-        edgecolor='k',
-        # linewidth=2,
-        s=160,
-        marker='P',
-        alpha=1,
-        label='N-N',
-    )
-
-    # ax.bar(
-    #     x=[int(i) for i in avg_c_mismatches],
-    #     height=[avg_c_mismatches[i] for i in avg_c_mismatches],
-    #     width=width,
-    #     facecolor='none',
-    #     edgecolor='gray',
-    #     linewidth=2,
-    #     alpha=1,
-    #     label='C-C',
-    # )
-
     # Set number of ticks for x-axis
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_ylabel('avg. face-side mismatch [%]', fontsize=16)
-    ax.set_ylim(0, 75)
+    # ax.set_ylim(0, 75)
     # Set number of ticks for x-axis
     ax.set_xticks(x_ticks)
     ax.set_xticklabels(x_ticklabels)
@@ -491,6 +467,89 @@ def get_paths(face, face_name, metal_atomic_number=30):
     return paths
 
 
+def heatmap(
+    data_dict,
+    vmin,
+    vmax,
+):
+
+    faces = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii']
+    _expt_lig_data = {
+        'quad2_12': 'ii',
+        'quad2_8': 'iii',
+        'quad2_3': 'ii',
+        'quad2_16': 'ii',
+        'quad2_2': 'iii',
+        'quad2_5': 'i',
+    }
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    xshape = len(data_dict)
+    yshape = len(faces)
+    maps = np.zeros((xshape, yshape))
+    for i, lig in enumerate(data_dict):
+        da = data_dict[lig]
+        for j, face in enumerate(da):
+            maps[i][j] = np.average(da[face]['metals'])
+
+    im = ax.imshow(maps, vmin=vmin, vmax=vmax, cmap='Purples_r')
+    # Create colorbar
+    cbar = ax.figure.colorbar(im, ax=ax, shrink=0.4)
+    cbar.ax.set_ylabel(
+        'avg. side mismatch [%]',
+        rotation=-90, va="bottom", fontsize=16,
+    )
+    cbar.ax.tick_params(labelsize=16)
+
+    # Min of each row.
+    index_min = np.argmin(maps, axis=1)
+    ax.scatter(
+        x=index_min,
+        y=[lig for lig in data_dict],
+        c='white',
+        marker='o',
+        edgecolors='k',
+        s=150,
+    )
+
+    for expt in _expt_lig_data:
+        lig_position = list(data_dict.keys()).index(expt)
+        face_position = faces.index(_expt_lig_data[expt])
+        ax.scatter(
+            x=face_position,
+            y=lig_position,
+            c='red',
+            edgecolors='k',
+            marker='P',
+            s=120,
+        )
+
+    # Turn spines off and create white grid.
+    ax.spines[:].set_visible(False)
+    ax.grid(which="minor", color="w", linestyle='-', linewidth=1)
+    # ax.set_xticks(np.arange(maps.shape[1]+1)-.5, minor=True)
+    ax.set_yticks(np.arange(maps.shape[0]+1)-.5, minor=True)
+    ax.tick_params(which="minor", bottom=False, left=False)
+
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.set_xlabel('face', fontsize=16)
+    ax.set_ylabel('ligand', fontsize=16)
+
+    # Show all ticks and label them with the respective lists.
+    ax.set_xticks([face_convert(a)-1 for a in faces])
+    ax.set_xticklabels([a for a in faces])
+    ax.set_yticks([i for i in range(len(data_dict))])
+    ax.set_yticklabels([lig for lig in data_dict])
+
+    fig.tight_layout()
+    fig.savefig(
+        'face_map.pdf',
+        dpi=720,
+        bbox_inches='tight',
+    )
+    plt.close()
+
+
 def main():
     first_line = (
         'Usage: face_analysis.py '
@@ -534,6 +593,7 @@ def main():
     face_topologies = face_topology_dict()
 
     # Build and optimise five face options per ligand.
+    face_matches = {}
     for lig in sorted(ligands):
         print(f'doing {lig}...')
         lig_structure = ligands[lig]
@@ -579,6 +639,13 @@ def main():
             )
             lig_faces[face_t] = face_properties
         plot_face_mismatches(data=lig_faces, name=lig)
+        face_matches[lig] = lig_faces
+
+    heatmap(
+        data_dict=face_matches,
+        vmin=0,
+        vmax=40,
+    )
 
 
 if __name__ == '__main__':
