@@ -17,12 +17,13 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
+from plotting import colors_i_like
 
-def plot_ladists(json_files):
+
+def plot_dists(json_files, data_name, xlabel, xprops):
     num_mols = len(json_files)
-    xwidth = 0.2
-    xbins = np.arange(7.5, 25, xwidth)
-    # xbins = np.arange(0, 15, xwidth)
+    xwidth = xprops[2]
+    xbins = np.arange(xprops[0], xprops[1], xwidth)
     fig, ax = plt.subplots(num_mols, 1, sharex=True, figsize=(8, 10))
     # Remove horizontal space between axes
     fig.subplots_adjust(hspace=0)
@@ -33,9 +34,8 @@ def plot_ladists(json_files):
         )
         with open(_file, 'r') as f:
             data = json.load(f)
-        measures = data['long_axis_distances']
-        # measures = [i-min(measures) for i in measures]
-        ax[i].text(7.5, 0.5, lig_name, fontsize=16)
+        measures = data[data_name]
+        ax[i].text(xprops[0]+0.1, 0., lig_name, fontsize=16)
         ax[i].hist(
             x=measures,
             bins=xbins,
@@ -57,21 +57,20 @@ def plot_ladists(json_files):
 
         ax[i].tick_params(left=False, bottom=False)
         # ax.set_ylim(0, ylim)
+
     ax[i].tick_params(labelsize=16, bottom=True)
-    ax[i].set_xlabel(
-        r'long-axis deviation [$\mathrm{\AA}$]', fontsize=16
-    )
+    ax[i].set_xlabel(xlabel, fontsize=16)
     ax[i].set_ylabel('frequency', fontsize=16)
     fig.tight_layout()
     fig.savefig(
-        'flex_dists.pdf',
+        f'flex_{data_name}_dists.pdf',
         dpi=720,
         bbox_inches='tight'
     )
     plt.close()
 
 
-def plot_ladev_planedev(json_files):
+def plot_ladev_planedev(json_files, series_props, series_map):
     fig, ax = plt.subplots(figsize=(8, 5))
 
     for i, _file in enumerate(json_files):
@@ -86,14 +85,30 @@ def plot_ladev_planedev(json_files):
             - min(data['plane_deviations'])
         )
         # measures = [i-min(measures) for i in measures]
+        name = _file.replace('_flex_measure.json', '')
+        prop = series_props[series_map[name]]
         ax.scatter(
             x=x,
             y=y,
-            c='gold',
+            c=prop['c'],
+            marker=prop['m'],
             alpha=1.0,
             edgecolor='k',
             s=160,
         )
+
+    for prop in series_props:
+        ax.scatter(
+            [], [],
+            c=series_props[prop]['c'],
+            marker=series_props[prop]['m'],
+            alpha=1.0,
+            edgecolor='k',
+            s=160,
+            label=f'series {prop}',
+        )
+
+    ax.legend(fontsize=16)
     ax.tick_params(labelsize=16, bottom=True)
     ax.set_xlabel(r'long-axis deviation [$\mathrm{\AA}$]', fontsize=16)
     ax.set_ylabel(r'plane deviation [$\mathrm{\AA}$]', fontsize=16)
@@ -106,7 +121,7 @@ def plot_ladev_planedev(json_files):
     plt.close()
 
 
-def plot_planedev_energy(json_files):
+def plot_planedev_energy(json_files, series_props, series_map):
     num_mols = len(json_files)
     # xbins = np.arange(0, 15, xwidth)
     fig, ax = plt.subplots(
@@ -183,11 +198,9 @@ def plot_planedev_energy(json_files):
     plt.close()
 
 
-def plot_ladev_energy(json_files):
+def plot_ladev_angle(json_files, series_props, series_map):
     # xbins = np.arange(0, 15, xwidth)
     fig, ax = plt.subplots(figsize=(8, 5))
-    # Remove horizontal space between axes
-    fig.subplots_adjust(hspace=0)
 
     for i, _file in enumerate(json_files):
         with open(_file, 'r') as f:
@@ -196,25 +209,42 @@ def plot_ladev_energy(json_files):
             max(data['long_axis_distances'])
             - min(data['long_axis_distances'])
         )
+        min_energy_angle = data['vector_angle'][0]
         y = abs(
-            max(data['plane_deviations'])
-            - min(data['plane_deviations'])
+            max(data['vector_angle'])
+            - min(data['vector_angle'])
         )
-        # measures = [i-min(measures) for i in measures]
+
+        name = _file.replace('_flex_measure.json', '')
+        prop = series_props[series_map[name]]
         ax.scatter(
             x=x,
             y=y,
-            c='gold',
+            c=prop['c'],
+            marker=prop['m'],
             alpha=1.0,
             edgecolor='k',
             s=160,
         )
+
+    for prop in series_props:
+        ax.scatter(
+            [], [],
+            c=series_props[prop]['c'],
+            marker=series_props[prop]['m'],
+            alpha=1.0,
+            edgecolor='k',
+            s=160,
+            label=f'series {prop}',
+        )
+
+    ax.legend(fontsize=16)
     ax.tick_params(labelsize=16, bottom=True)
     ax.set_xlabel(r'long-axis deviation [$\mathrm{\AA}$]', fontsize=16)
-    ax.set_ylabel(r'plane deviation [$\mathrm{\AA}$]', fontsize=16)
+    ax.set_ylabel(r'vector angle deviation [degrees]', fontsize=16)
     fig.tight_layout()
     fig.savefig(
-        'flex_energy_ladev.pdf',
+        'flex_ladev_angle.pdf',
         dpi=720,
         bbox_inches='tight'
     )
@@ -230,11 +260,39 @@ def main():
         sys.exit()
 
     json_files = glob('*_flex_measure.json')
+    series_map = {
+        'quad2_1': '1',
+        'quad2_12': '1',
+        'quad2_2': '1',
+        'quad2_3': '2',
+        'quad2_8': '2',
+        'quad2_9': '2',
+        'quad2_10': '2',
+        'quad2_5': '3',
+        'quad2_16': '3',
+        'quad2_17': '3',
+    }
+    series_props = {
+        '1': {'c': colors_i_like()[9], 'm': 'o'},
+        '2': {'c': colors_i_like()[4], 'm': 'X'},
+        '3': {'c': colors_i_like()[11], 'm': 's'},
+    }
 
-    plot_ladists(json_files)
-    plot_ladev_planedev(json_files)
-    plot_ladev_energy(json_files)
-    plot_planedev_energy(json_files)
+    plot_dists(
+        json_files=json_files,
+        data_name='long_axis_distances',
+        xlabel=r'long-axis deviation [$\mathrm{\AA}$]',
+        xprops=(7.5, 25, 0.2),
+    )
+    plot_dists(
+        json_files=json_files,
+        data_name='vector_angle',
+        xlabel=r'vector angle deviation [degrees]',
+        xprops=(0., 90., 5.),
+    )
+    plot_ladev_planedev(json_files, series_props, series_map)
+    plot_ladev_angle(json_files, series_props, series_map)
+    plot_planedev_energy(json_files, series_props, series_map)
 
 
 if __name__ == "__main__":
