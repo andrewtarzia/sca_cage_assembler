@@ -13,6 +13,7 @@ Date Created: 27 Jan 2020
 import sys
 from os.path import exists, join
 import json
+from itertools import product
 
 import stk
 import stko
@@ -23,7 +24,7 @@ from molecule_building import (
     metal_FFs,
     optimize_SCA_complex,
 )
-from utilities import read_lib
+from utilities import read_lib, get_atom_distance
 import env_set
 
 
@@ -120,6 +121,38 @@ def build_complexes(complexes, ligand_directory):
     return
 
 
+def report_M_L_distances(complexes, atomic_number_pairs):
+    for name in complexes:
+        comp = complexes[name]
+        outputs = (
+            f'{name}_uff1.mol',
+            f'{name}_opt.mol',
+        )
+        for output in outputs:
+            stkmol = stk.BuildingBlock.init_from_file(output)
+            for pair in atomic_number_pairs:
+                atom_ids1 = [
+                    i.get_id() for i in stkmol.get_atoms()
+                    if i.get_atomic_number() == pair[0]
+                ]
+                atom_ids2 = [
+                    i.get_id() for i in stkmol.get_atoms()
+                    if i.get_atomic_number() == pair[1]
+                ]
+                distances = []
+                for atompair in product(atom_ids1, atom_ids2):
+                    distances.append(get_atom_distance(
+                        molecule=stkmol,
+                        atom1_id=atompair[0],
+                        atom2_id=atompair[1],
+                    ))
+
+                avgd = sum(distances)/len(distances)
+                print(
+                    f'file: {output}, pair: {pair}, avg. dists: {avgd}'
+                )
+
+
 def main():
     if (not len(sys.argv) == 3):
         print("""
@@ -141,6 +174,9 @@ Usage: build_complex_library.py lib_file ligand_directory
 
     # Build and optimise all organic molecules in lib.
     build_complexes(compls, ligand_directory)
+
+    # Report N-Zn distances for each optimisation level.
+    report_M_L_distances(compls, [(30, 7)])
 
 
 if __name__ == "__main__":
