@@ -87,7 +87,7 @@ f'    CHARGE {charge}\n'
 '  &END QS\n'
 f'{solvent_section}'
 '  &MGRID\n'
-'    NRGIDS 5\n'
+'    NGRIDS 5\n'
 f'   CUTOFF {cutoff}\n'
 f'   REL_CUTOFF {rel_cutoff}\n'
 '  &END MGRID\n'
@@ -127,7 +127,10 @@ f'        FILENAME {self._job_name}.res\n'
 '  &END XC_FUNCTIONAL\n'
 '&END XC\n'
 '&END DFT\n'
-'&SUBSYS\n\n'
+'  &PRINT\n'
+'    &FORCES\n'
+'    &END\n'
+'  &END\n'
         )
 
         return string
@@ -137,6 +140,7 @@ f'        FILENAME {self._job_name}.res\n'
         val = round(molecule.get_maximum_diameter()+10, 2)
 
         string = (
+            '&SUBSYS\n\n'
             '! Cell\n'
             '! ----\n'
             '&CELL\n'
@@ -204,10 +208,6 @@ class CP2KEnergy(CP2KCalculator):
             '    EXTENDED_FFT_LENGTHS\n'
             '    PRINT_LEVEL MEDIUM\n'
             '&END GLOBAL\n\n'
-            '  &PRINT\n'
-            '    &FORCES\n'
-            '    &END\n'
-            '  &END\n'
         )
         return string
 
