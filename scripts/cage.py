@@ -468,11 +468,9 @@ class Cage:
                 filename_ = f'{file_prefix}{sgt}_{idx}_opt.mol'
             low_e_lig_filenames.append(filename_)
         low_e_lig_filenames = set(low_e_lig_filenames)
-        print(low_e_lig_filenames)
 
         # Load in each component.
         for comp in components:
-            print(comp, components[comp])
             if comp in ['mprec', 'mpreclig']:
                 opt_file = f"{components[comp]['name']}_opt.mol"
                 low_e_file = f"{components[comp]['name']}_loweopt.mol"
@@ -582,9 +580,7 @@ class Cage:
             for i in components if components[i]['product'] is False
         ])
         fe = prod_ey - react_ey
-        print(prod_ey, react_ey, fe)
         self.fe_data = fe
-        print(self.name, self.fe_data)
 
     def analyze_ligand_strain(
         self,
