@@ -11,9 +11,6 @@ Date Created: 20 Jan 2022
 
 """
 
-import shutil
-import sys
-import glob
 import os
 
 import stk
@@ -90,12 +87,13 @@ f'    CHARGE {charge}\n'
 '  &END QS\n'
 f'{solvent_section}'
 '  &MGRID\n'
+'    NRGIDS 5\n'
 f'   CUTOFF {cutoff}\n'
 f'   REL_CUTOFF {rel_cutoff}\n'
 '  &END MGRID\n'
 '  &SCF\n'
 f'      SCF_GUESS {guess}\n'
-'      EPS_SCF 1.0E-6\n'
+'      EPS_SCF 5.0E-7\n'
 '      MAX_SCF 300\n'
 '      &OT\n'
 '        PRECONDITIONER FULL_SINGLE_INVERSE\n'
@@ -103,11 +101,11 @@ f'      SCF_GUESS {guess}\n'
 '      &END OT\n'
 '      &OUTER_SCF ! Repeat the inner SCF cycle 10 times\n'
 '        MAX_SCF 10\n'
-'        EPS_SCF 1.0E-6 ! Must match the above\n'
+'        EPS_SCF 5.0E-7 ! Must match the above\n'
 '      &END\n'
 '      &PRINT\n'
 '        &RESTART ON\n'
-f'		FILENAME {self._job_name}.res\n'
+f'        FILENAME {self._job_name}.res\n'
 '        &END\n'
 '      &END\n'
 '  &END SCF\n'
@@ -201,10 +199,15 @@ class CP2KEnergy(CP2KCalculator):
     def _global_section(self):
         string = (
             '&GLOBAL\n'
-            f'  PROJECT_NAME {self._job_name}\n'
-            '  RUN_TYPE Energy\n'
-            '  EXTENDED_FFT_LENGTHS\n'
+            f'    PROJECT_NAME {self._job_name}\n'
+            '    RUN_TYPE Energy\n'
+            '    EXTENDED_FFT_LENGTHS\n'
+            '    PRINT_LEVEL MEDIUM\n'
             '&END GLOBAL\n\n'
+            '  &PRINT\n'
+            '    &FORCES\n'
+            '    &END\n'
+            '  &END\n'
         )
         return string
 
