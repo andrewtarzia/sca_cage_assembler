@@ -128,8 +128,9 @@ f'        FILENAME {self._job_name}.res\n'
 '&END XC\n'
 '&END DFT\n'
 '  &PRINT\n'
-'    &FORCES\n'
-'    &END\n'
+'    &FORCES ON\n'
+'    &END FORCES\n'
+'  &END PRINT\n'
 '  &END\n'
         )
 
@@ -204,7 +205,7 @@ class CP2KEnergy(CP2KCalculator):
         string = (
             '&GLOBAL\n'
             f'    PROJECT_NAME {self._job_name}\n'
-            '    RUN_TYPE Energy\n'
+            '    RUN_TYPE Energy_FORCE\n'
             '    EXTENDED_FFT_LENGTHS\n'
             '    PRINT_LEVEL MEDIUM\n'
             '&END GLOBAL\n\n'
