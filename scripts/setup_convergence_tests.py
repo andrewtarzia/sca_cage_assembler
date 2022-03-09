@@ -88,35 +88,34 @@ delete_directory
                 hours=2,
             )
 
-    chosen_cutoff = None
+    chosen_cutoff = 700
     if chosen_cutoff is None:
         print('A cutoff should be chosen based on the prior tests.')
         raise SystemExit()
 
     rel_cutoffs = range(10, 101, 10)
     for lig_mol in sorted(all_cage_structures):
-        for cutoff in cutoffs:
-            for rel_cutoff in rel_cutoffs:
-                job_name = lig_mol.replace('.mol', '').split('/')[-1]
-                job_name += f'_{cutoff}_{rel_cutoff}'
-                spe = dft_utilities.CP2KEnergy(f'{job_name}_spe')
-                molecule = stk.BuildingBlock.init_from_file(lig_mol)
+        for rel_cutoff in rel_cutoffs:
+            job_name = lig_mol.replace('.mol', '').split('/')[-1]
+            job_name += f'_{chosen_cutoff}_{rel_cutoff}'
+            spe = dft_utilities.CP2KEnergy(f'{job_name}_spe')
+            molecule = stk.BuildingBlock.init_from_file(lig_mol)
 
-                # Write single-point input file using coord from opt file.
-                spe.write_calculation_input(
-                    output_directory=dft_directory,
-                    molecule=molecule,
-                    charge=16,
-                    guess='ATOMIC',
-                    cutoff=cutoff,
-                    rel_cutoff=rel_cutoff,
-                    # solvent=35.688,
-                )
-                # Write single-point slurm.
-                spe.write_slurm_file(
-                    output_directory=dft_directory,
-                    hours=2,
-                )
+            # Write single-point input file using coord from opt file.
+            spe.write_calculation_input(
+                output_directory=dft_directory,
+                molecule=molecule,
+                charge=16,
+                guess='ATOMIC',
+                cutoff=chosen_cutoff,
+                rel_cutoff=rel_cutoff,
+                # solvent=35.688,
+            )
+            # Write single-point slurm.
+            spe.write_slurm_file(
+                output_directory=dft_directory,
+                hours=2,
+            )
 
 if __name__ == "__main__":
     main()
