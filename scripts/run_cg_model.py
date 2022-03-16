@@ -488,6 +488,7 @@ def run_aniso_optimisation(
         num_steps = len(run_data['traj'])
         fin_energy = run_data['final_energy']
         fin_gnorm = run_data['final_gnorm']
+        traj_data = run_data['traj']
         print(
             f'{run_prefix}: {num_steps} {fin_energy} {fin_gnorm} '
             f'{cu8_measure}'
@@ -495,6 +496,7 @@ def run_aniso_optimisation(
         res_dict = {
             'fin_energy': fin_energy,
             'cu8': cu8_measure,
+            'traj': traj_data,
         }
         with open(output_file, 'w') as f:
             json.dump(res_dict, f)
@@ -733,6 +735,88 @@ def heatmap(
     plt.close()
 
 
+def convergence(
+    results,
+    output_dir,
+    filename,
+):
+
+    # Pick examples to plot.
+    _to_plot = (
+        'td_2.0',
+        # 'c2v_1.65',
+        'c2v_1.5',
+        # 'th2_1.6',
+        'th2_1.1',
+        # 's61_1.85',
+        's61_1.3',
+        's42_1.05',
+    )
+
+    fig, axs = plt.subplots(
+        nrows=len(_to_plot),
+        ncols=1,
+        sharex=True,
+        figsize=(8, 10),
+    )
+
+    for name, ax in zip(_to_plot, axs):
+        symm, aniso = name.split('_')
+        da = results[float(aniso)]
+        traj = da[symm]['traj']
+        traj_x = [i for i in traj]
+        traj_e = [traj[i]['energy'] for i in traj]
+        traj_g = [traj[i]['gnorm'] for i in traj]
+
+        color = 'tab:red'
+        ax.plot(
+            traj_x,
+            traj_e,
+            lw=5,
+            # marker='o',
+            # markersize=12,
+            color=color,
+        )
+        ax.tick_params(axis='y', labelcolor=color, labelsize=16)
+        ax.set_yscale('log')
+
+        # instantiate a second axes that shares the same x-axis
+        ax2 = ax.twinx()
+        color = 'tab:blue'
+        ax2.plot(
+            traj_x,
+            traj_g,
+            lw=5,
+            # marker='X',
+            # markersize=12,
+            color=color,
+        )
+        ax2.tick_params(axis='y', labelcolor=color, labelsize=16)
+        ax2.set_yscale('log')
+
+        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.text(
+            x=340, y=1100,
+            s=f'{convert_symm_names(symm)}, aniso={aniso}',
+            fontsize=16,
+        )
+        if name == 'th2_1.1':
+            ax.set_ylabel('energy [eV]', fontsize=16)
+            ax2.set_ylabel('Gnorm', fontsize=16)
+
+    ax.set_xlabel('step', fontsize=16)
+    ax.set_xticks(range(0, 501, 50))
+    ax.set_xticklabels([str(i) for i in range(0, 501, 50)])
+
+    fig.tight_layout()
+    fig.savefig(
+        os.path.join(output_dir, filename),
+        dpi=720,
+        bbox_inches='tight',
+    )
+    plt.close()
+
+
 def get_ligand_ars(ligand_directory):
     json_file = os.path.join(ligand_directory, 'ligand_ARs.json')
     with open(json_file, 'r') as f:
@@ -831,6 +915,11 @@ def main():
             'c2v': ('X', 'green', 14),
         }
 
+        convergence(
+            results=results,
+            output_dir=output_dir,
+            filename=f'convergence_{flex}.pdf',
+        )
         heatmap(
             symm_to_c=symm_to_c,
             results=results,
