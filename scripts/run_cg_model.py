@@ -416,6 +416,85 @@ def prepare_precursors(precursor_dir):
     return delta_bb, lambda_bb, plane_bb
 
 
+def get_shape_measure(cage, run_prefix, output_dir):
+    Zn_bb_ids = {}
+    for ai in cage.get_atom_infos():
+        aibbid = ai.get_building_block_id()
+        if ai.get_atom().get_atomic_number() == 30:
+            if aibbid not in Zn_bb_ids:
+                Zn_bb_ids[aibbid] = []
+            Zn_bb_ids[aibbid].append(
+                ai.get_atom().get_id()
+            )
+
+    Zn_centroids = []
+    for n in Zn_bb_ids:
+        Zn_centroids.append(cage.get_centroid(
+            atom_ids=Zn_bb_ids[n]
+        ))
+    with open(
+        os.path.join(output_dir, f'{run_prefix}_cents.xyz'), 'w'
+    ) as f:
+        f.write('8\n\n')
+        for c in Zn_centroids:
+            f.write(f'Zn {c[0]} {c[1]} {c[2]}\n')
+
+    # Run calculations.
+    s_string = f'{run_prefix}\n'
+    for c in Zn_centroids:
+        s_string += f'Zn {c[0]} {c[1]} {c[2]}\n'
+
+    cu8_measure = calculate_cgcube_shape_measure(
+        name=os.path.join(output_dir, f'{run_prefix}'),
+        structure_string=s_string,
+    )
+    return cu8_measure
+
+
+def get_distances(optimizer, cage):
+    bond_ks_, __ = optimizer.define_bond_potentials()
+    set_ks = tuple(bond_ks_.keys())
+    distances = {''.join(i): [] for i in set_ks}
+    for bond in cage.get_bonds():
+        a1 = bond.get_atom1()
+        a2 = bond.get_atom2()
+        a1name = a1.__class__.__name__
+        a2name = a2.__class__.__name__
+        pair = tuple(sorted([a1name, a2name]))
+        if pair in set_ks:
+            a1id = a1.get_id()
+            a2id = a2.get_id()
+            distances[''.join(pair)].append(
+                get_atom_distance(cage, a1id, a2id)
+            )
+
+    return distances
+
+
+def get_angles(optimizer, cage):
+    angle_ks_, __ = optimizer.define_angle_potentials()
+    set_ks = tuple(angle_ks_.keys())
+    angles = {''.join(i): [] for i in set_ks}
+    pos_mat = cage.get_position_matrix()
+
+    angle_atoms = get_all_angles(cage)
+    for angle_trip in angle_atoms:
+        triplet = tuple(
+            sorted([i.__class__.__name__ for i in angle_trip])
+        )
+        if triplet in set_ks:
+            a1id = angle_trip[0].get_id()
+            a2id = angle_trip[1].get_id()
+            a3id = angle_trip[2].get_id()
+            vector1 = pos_mat[a2id]-pos_mat[a1id]
+            vector2 = pos_mat[a2id]-pos_mat[a3id]
+            angles[''.join(triplet)].append(np.degrees(
+                angle_between(vector1, vector2)
+            ))
+
+    return angles
+
+
 def run_aniso_optimisation(
     cage,
     aniso,
@@ -453,37 +532,9 @@ def run_aniso_optimisation(
             os.path.join(output_dir, f'{run_prefix}_final.mol')
         )
 
-        Zn_bb_ids = {}
-        for ai in opted.get_atom_infos():
-            aibbid = ai.get_building_block_id()
-            if ai.get_atom().get_atomic_number() == 30:
-                if aibbid not in Zn_bb_ids:
-                    Zn_bb_ids[aibbid] = []
-                Zn_bb_ids[aibbid].append(
-                    ai.get_atom().get_id()
-                )
-
-        Zn_centroids = []
-        for n in Zn_bb_ids:
-            Zn_centroids.append(opted.get_centroid(
-                atom_ids=Zn_bb_ids[n]
-            ))
-        with open(
-            os.path.join(output_dir, f'{run_prefix}_cents.xyz'), 'w'
-        ) as f:
-            f.write('8\n\n')
-            for c in Zn_centroids:
-                f.write(f'Zn {c[0]} {c[1]} {c[2]}\n')
-
-        # Run calculations.
-        s_string = f'{run_prefix}\n'
-        for c in Zn_centroids:
-            s_string += f'Zn {c[0]} {c[1]} {c[2]}\n'
-
-        cu8_measure = calculate_cgcube_shape_measure(
-            name=os.path.join(output_dir, f'{run_prefix}'),
-            structure_string=s_string,
-        )
+        cu8_measure = get_shape_measure(opted, run_prefix, output_dir)
+        distances = get_distances(optimizer=opt, cage=opted)
+        angles = get_angles(optimizer=opt, cage=opted)
 
         num_steps = len(run_data['traj'])
         fin_energy = run_data['final_energy']
@@ -497,6 +548,7 @@ def run_aniso_optimisation(
             'fin_energy': fin_energy,
             'cu8': cu8_measure,
             'traj': traj_data,
+            'angles': angles,
         }
         with open(output_file, 'w') as f:
             json.dump(res_dict, f)
@@ -620,6 +672,138 @@ def comp_scatter(
     ax.set_ylabel(ylabel, fontsize=16)
     ax.set_title(f'flex: {flex}', fontsize=16)
     ax.set_ylim(ylim)
+
+    fig.tight_layout()
+    fig.savefig(
+        os.path.join(output_dir, filename),
+        dpi=720,
+        bbox_inches='tight',
+    )
+    plt.close()
+
+
+def merge_bond_types(s):
+
+    translation = {
+        'CC': 'face',
+        'BB': 'face',
+        'CZn': 'face-metal',
+        'BZn': 'face-metal',
+        'FeFe': 'metal',
+        'FeZn': 'metal',
+        'ZnZn': 'metal',
+    }
+
+    return translation[s]
+
+
+def merge_angle_types(s):
+
+    translation = {
+        'BCC': 'face',
+        'BBC': 'face',
+        'BCZn': 'face-metal',
+        'BBZn': 'face-metal',
+        'CCZn': 'face-metal',
+        'BFeZn': 'face-metal',
+        'CFeZn': 'face-metal',
+        'FeZnZn': 'metal',
+        'FeFeFe': 'metal',
+        'ZnZnZn': 'metal',
+    }
+
+    return translation[s]
+
+
+def geom_distributions(
+    results,
+    output_dir,
+    filename,
+):
+
+    # Collect all values for each bond and angle type.
+    distance_by_type = {}
+    angle_by_type = {}
+    for aniso in results:
+        da = results[aniso]
+        for symm in da:
+            dists = da[symm]['distances']
+            angles = da[symm]['angles']
+            for d in dists:
+                if d == 'BC':
+                    dd = f'{d}{aniso}'
+                else:
+                    dd = merge_bond_types(d)
+                if dd in distance_by_type:
+                    distance_by_type[dd].extend(dists[d])
+                else:
+                    distance_by_type[dd] = dists[d]
+            for a in angles:
+                aa = merge_angle_types(a)
+                if aa in angle_by_type:
+                    angle_by_type[aa].extend(angles[a])
+                else:
+                    angle_by_type[aa] = angles[a]
+
+    fig, axs = plt.subplots(
+        nrows=3,
+        ncols=1,
+        figsize=(8, 8),
+    )
+    # Plot distributions of each bond type.
+    for btype in distance_by_type:
+        if 'BC' in btype:
+            continue
+        data = distance_by_type[btype]
+        axs[0].hist(
+            x=data,
+            bins=50,
+            range=(3.6, 4.4),
+            density=True,
+            histtype='step',
+            # color='',
+            label=btype,
+            lw=3,
+        )
+    axs[0].tick_params(axis='both', which='major', labelsize=16)
+    axs[0].set_xlabel('distance [$\mathrm{\AA}}$]', fontsize=16)
+    axs[0].set_ylabel('frequency', fontsize=16)
+    axs[0].legend(fontsize=16, ncol=1)
+
+    # Plot distributions of each variable bond type.
+    for btype in distance_by_type:
+        if 'BC' not in btype:
+            continue
+        data = distance_by_type[btype]
+        aniso = float(btype.replace('BC', ''))
+        axs[1].scatter(
+            x=[aniso for i in data],
+            y=data,
+            color='gray',
+            s=30,
+            alpha=0.3,
+        )
+    axs[1].tick_params(axis='both', which='major', labelsize=16)
+    axs[1].set_xlabel('anisotropy', fontsize=16)
+    axs[1].set_ylabel('F1-F2 distance [$\mathrm{\AA}}$]', fontsize=16)
+
+    # Plot distributions of each angle type.
+    for atype in angle_by_type:
+        data = angle_by_type[atype]
+        axs[2].hist(
+            x=data,
+            bins=50,
+            range=(20, 182),
+            density=True,
+            histtype='step',
+            # color='',
+            label=atype,
+            lw=3,
+        )
+    axs[2].tick_params(axis='both', which='major', labelsize=16)
+    axs[2].set_xlabel('angle [degrees]', fontsize=16)
+    axs[2].set_ylabel('frequency', fontsize=16)
+    axs[2].legend(fontsize=16, ncol=1)
 
     fig.tight_layout()
     fig.savefig(
@@ -920,6 +1104,13 @@ def main():
             output_dir=output_dir,
             filename=f'convergence_{flex}.pdf',
         )
+
+        geom_distributions(
+            results=results,
+            output_dir=output_dir,
+            filename=f'dist_{flex}.pdf',
+        )
+
         heatmap(
             symm_to_c=symm_to_c,
             results=results,
