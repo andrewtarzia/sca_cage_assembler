@@ -37,6 +37,27 @@ from utilities import (
 from facebuildingblock import FaceBuildingBlock
 
 
+def get_all_angles(molecule):
+
+    paths = rdkit.FindAllPathsOfLengthN(
+        mol=molecule.to_rdkit_mol(),
+        length=3,
+        useBonds=False,
+        useHs=True,
+    )
+    angles = []
+    for atom_ids in paths:
+        atoms = list(
+            molecule.get_atoms(atom_ids=[i for i in atom_ids])
+        )
+        atom1 = atoms[0]
+        atom2 = atoms[1]
+        atom3 = atoms[2]
+        angles.append((atom1, atom2, atom3))
+
+    return angles
+
+
 class CGGulpOptimizer:
 
     def __init__(
@@ -96,29 +117,12 @@ class CGGulpOptimizer:
 
         return run_data
 
-    def _get_all_angles(self, mol):
-
-        paths = rdkit.FindAllPathsOfLengthN(
-            mol=mol.to_rdkit_mol(),
-            length=3,
-            useBonds=False,
-            useHs=True,
-        )
-        angles = []
-        for atom_ids in paths:
-            atoms = list(mol.get_atoms(atom_ids=[i for i in atom_ids]))
-            atom1 = atoms[0]
-            atom2 = atoms[1]
-            atom3 = atoms[2]
-            angles.append((atom1, atom2, atom3))
-
-        return angles
-
-    def _define_bond_potentials(self):
+    def define_bond_potentials(self):
         bond_ks_ = {
             ('C', 'C'): 10,
             ('B', 'B'): 10,
             ('B', 'C'): self._ortho_k,
+
             ('C', 'Zn'): 10,
             ('B', 'Zn'): 10,
 
@@ -132,6 +136,7 @@ class CGGulpOptimizer:
             ('C', 'C'): _base_length,
             ('B', 'B'): _base_length,
             ('B', 'C'): _ortho_length,
+
             ('C', 'Zn'): 4,
             ('B', 'Zn'): 4,
 
@@ -141,22 +146,22 @@ class CGGulpOptimizer:
         }
         return bond_ks_, bond_rs_
 
-    def _define_angle_potentials(self):
+    def define_angle_potentials(self):
         angle_ks_ = {
             ('B', 'C', 'C'): self._o_angle_k,
             ('B', 'B', 'C'): self._o_angle_k,
 
-            ('Fe', 'Fe', 'Fe'): 10,
+            ('Fe', 'Fe', 'Fe'): 20,
             # ('Fe', 'Fe', 'Zn'): 10,
-            ('Fe', 'Zn', 'Zn'): 10,
-            ('Zn', 'Zn', 'Zn'): 10,
+            ('Fe', 'Zn', 'Zn'): 20,
+            ('Zn', 'Zn', 'Zn'): 20,
 
             ('B', 'C', 'Zn'): self._o_angle_k,
             ('B', 'B', 'Zn'): self._o_angle_k,
             ('C', 'C', 'Zn'): self._o_angle_k,
 
-            ('C', 'Fe', 'Zn'): 10,
-            ('B', 'Fe', 'Zn'): 10,
+            ('C', 'Fe', 'Zn'): 20,
+            ('B', 'Fe', 'Zn'): 20,
         }
         angle_thetas_ = {
             ('B', 'C', 'C'): 90,
@@ -193,7 +198,7 @@ class CGGulpOptimizer:
         return coord_string, mass_string
 
     def _get_bond_string(self, mol):
-        bond_ks_, bond_rs_ = self._define_bond_potentials()
+        bond_ks_, bond_rs_ = self.define_bond_potentials()
         bond_string = 'harm\n'
         bonds = list(mol.get_bonds())
 
@@ -224,8 +229,9 @@ class CGGulpOptimizer:
 
     def _get_angle_string(self, mol):
         angle_string = 'three\n'
-        angle_ks_, angle_thetas_ = self._define_angle_potentials()
-        angles = self._get_all_angles(mol)
+        angle_ks_, angle_thetas_ = self.define_angle_potentials()
+        angles = get_all_angles(mol)
+        pos_mat = mol.get_position_matrix()
 
         for angle in angles:
             atom1, atom2, atom3 = angle
