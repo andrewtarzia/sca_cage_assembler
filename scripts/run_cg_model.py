@@ -805,6 +805,7 @@ def geom_distributions(
             color='gray',
             s=30,
             alpha=0.3,
+            rasterized=True,
         )
     axs[1].tick_params(axis='both', which='major', labelsize=16)
     axs[1].set_xlabel('anisotropy', fontsize=16)
@@ -1139,8 +1140,8 @@ def main():
             results=results,
             output_dir=output_dir,
             filename=f'energy_map_{flex}.pdf',
-            vmin=25,
-            vmax=55,
+            vmin=0,
+            vmax=45,
             clabel='energy (eV)',
             flex=flex,
             expt_data=expt_data,
@@ -1152,8 +1153,8 @@ def main():
             results=results,
             output_dir=output_dir,
             filename=f'energy_map_flat_{flex}.pdf',
-            vmin=25,
-            vmax=30,
+            vmin=0,
+            vmax=10,
             clabel='energy (eV)',
             flex=flex,
             expt_data=expt_data,
@@ -1198,9 +1199,9 @@ def main():
         }
         for key, values in comp_sets.items():
             if flex == 'high':
-                eylim = (25, 30)
+                eylim = (0, 10)
             else:
-                eylim = (25, 50)
+                eylim = (0, 45)
 
             comp_scatter(
                 symm_to_c=symm_to_c,
