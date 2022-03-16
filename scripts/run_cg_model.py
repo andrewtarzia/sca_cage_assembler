@@ -33,6 +33,8 @@ from utilities import (
     collect_all_shape_values,
     convert_symm_names,
     read_lib,
+    angle_between,
+    get_atom_distance,
 )
 from facebuildingblock import FaceBuildingBlock
 
@@ -169,7 +171,11 @@ class CGGulpOptimizer:
 
             ('Fe', 'Fe', 'Fe'): 60,
             # ('Fe', 'Fe', 'Zn'): 60,
-            ('Fe', 'Zn', 'Zn'): 60,
+            # This requires a special rule.
+            ('Fe', 'Zn', 'Zn'): (
+                'check',
+                {'cut': 70, 'min': 60, 'max': 90},
+            ),
             ('Zn', 'Zn', 'Zn'): 60,
 
             ('B', 'C', 'Zn'): 135,
@@ -249,6 +255,22 @@ class CGGulpOptimizer:
             try:
                 angle_k = angle_ks_[sorted_name]
                 angle_theta = angle_thetas_[sorted_name]
+                if isinstance(angle_theta, int):
+                    pass
+                elif angle_theta[0] == 'check':
+                    a1id = atom1.get_id()
+                    a2id = atom2.get_id()
+                    a3id = atom3.get_id()
+                    vector1 = pos_mat[a2id]-pos_mat[a1id]
+                    vector2 = pos_mat[a2id]-pos_mat[a3id]
+                    curr_angle = np.degrees(
+                        angle_between(vector1, vector2)
+                    )
+                    if curr_angle < angle_theta[1]['cut']:
+                        angle_theta = angle_theta[1]['min']
+                    elif curr_angle >= angle_theta[1]['cut']:
+                        angle_theta = angle_theta[1]['max']
+
             except KeyError:
                 continue
 
@@ -548,6 +570,7 @@ def run_aniso_optimisation(
             'fin_energy': fin_energy,
             'cu8': cu8_measure,
             'traj': traj_data,
+            'distances': distances,
             'angles': angles,
         }
         with open(output_file, 'w') as f:
@@ -1052,13 +1075,13 @@ def main():
     # Make cage of each symmetry.
     symms = symmetries(delta_bb, lambda_bb, plane_bb)
     anisotropies = np.arange(1.0, 2.01, 0.05)
-    results = {round(i, 2): {} for i in anisotropies}
     # results = {i: {} for i in symms}
     flexes = {
-        'low': (10, 10),
-        'high': (0.1, 1.0),
+        'low': (10, 20),
+        'high': (0.1, 2.0),
     }
     for flex in flexes:
+        results = {round(i, 2): {} for i in anisotropies}
         for symm in symms:
             topology_graph = CGM8L6Cube(
                 building_blocks=symms[symm]['building_blocks'],
