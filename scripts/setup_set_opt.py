@@ -25,7 +25,7 @@ def main():
     if (not len(sys.argv) == 5):
         print(
             """
-Usage: setup_lse_dft.py dft_directory cage_directory xray_directory
+Usage: setup_set_opt.py dft_directory cage_directory xray_directory
 delete_directory
 
     dft_directory : (str)
