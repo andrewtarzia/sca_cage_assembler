@@ -383,11 +383,7 @@ def main():
                 molecule=lig_structure,
                 conformer_files=crest_conformer_files,
             )
-            dist_width = abs(
-                max(long_axis_distances)
-                -min(long_axis_distances)
-            )
-            print(f':: {name}, dist width = {dist_width}')
+
             plot_long_axis_deviation(
                 measures=long_axis_distances,
                 name=name,
@@ -398,6 +394,12 @@ def main():
                 molecule=lig_structure,
                 conformer_files=crest_conformer_files,
             )
+
+            dist_width = abs(
+                max(crest_data['vector_angle'])
+                -min(crest_data['vector_angle'])
+            )
+            print(f': vector angle, {name}, dist width = {dist_width}')
             plot_vector_angle(
                 measures=crest_data['vector_angle'],
                 name=name,
