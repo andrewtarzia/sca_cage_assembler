@@ -38,11 +38,12 @@ def main():
 
     target_cols = [
         # 'octop',
+        # 'lsesum',
         # 'rellsesum',
         # 'minitors',
         # 'maxcrplan',
-        'maxMLlength',
-        # 'relformatione',
+        # 'maxMLlength',
+        'relformatione',
         'maxintangledev',
         'm_cube_shape'
     ]
@@ -65,19 +66,21 @@ def main():
             y.append(int(row['outcome']))
 
     X = np.array(X)
-    print(X.shape)
     y = np.array(y)
-    print(y.shape)
 
-    clf = tree.DecisionTreeClassifier()
+    clf = tree.DecisionTreeClassifier(
+        max_depth=4,
+    )
     clf = clf.fit(X, y)
 
-    fig, ax = plt.subplots(figsize=(8, 8))
+    fig, ax = plt.subplots(figsize=(8, 6))
     tree.plot_tree(
         decision_tree=clf,
         ax=ax,
         feature_names=target_cols,
-        class_names=['no', 'yes']
+        class_names=['no', 'yes'],
+        # filled=True,
+        fontsize=8,
     )
 
     fig.tight_layout()
