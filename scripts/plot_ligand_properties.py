@@ -87,18 +87,21 @@ def plot_all_ligand_properties(json_files, candms, expts):
 
 def plot_MM_vs_AR(json_files, candms, expts):
     _figure_path = 'figures'
-    fig, ax = plt.subplots(figsize=(8, 5))
+
+    fig, ax = plt.subplots(nrows=2, sharex=True,figsize=(8, 7))
     stabs = {
-        'i': {'ar': [], 'stab': []},
-        'ii': {'ar': [], 'stab': []},
-        'iii': {'ar': [], 'stab': []},
-        'iv': {'ar': [], 'stab': []},
-        'v': {'ar': [], 'stab': []},
-        'vi': {'ar': [], 'stab': []},
-        'vii': {'ar': [], 'stab': []},
+        'i': {'ar': [], 'stab': [], 'long_stab': []},
+        'ii': {'ar': [], 'stab': [], 'long_stab': []},
+        'iii': {'ar': [], 'stab': [], 'long_stab': []},
+        'iv': {'ar': [], 'stab': [], 'long_stab': []},
+        'v': {'ar': [], 'stab': [], 'long_stab': []},
+        'vi': {'ar': [], 'stab': [], 'long_stab': []},
+        'vii': {'ar': [], 'stab': [], 'long_stab': []},
     }
     for i in json_files:
         cage_set = i.replace('_ligand_measures.json', '')
+        if cage_set not in expts:
+            continue
         print(f'doing {cage_set}')
         with open(i, 'r') as f:
             cage_set_data = json.load(f)
@@ -108,6 +111,9 @@ def plot_MM_vs_AR(json_files, candms, expts):
             )
             stabs[face]['stab'].append(
                 cage_set_data['face_properties'][face]
+            )
+            stabs[face]['long_stab'].append(
+                cage_set_data['face_long_properties'][face]
             )
 
     for face in stabs:
@@ -121,11 +127,31 @@ def plot_MM_vs_AR(json_files, candms, expts):
                 key=lambda pair: pair[0]
             )
         ]
+        XY2 = [
+            (y, x) for y, x
+            in sorted(
+                zip(stabs[face]['ar'], stabs[face]['long_stab']),
+                key=lambda pair: pair[0]
+            )
+        ]
         print(XY)
         # input()
         X = [i[0] for i in XY]
         Y = [i[1] for i in XY]
-        ax.plot(
+        ax[0].plot(
+            X,
+            Y,
+            c=c,
+            # edgecolors='k',
+            marker=m,
+            alpha=1.0,
+            markersize=10,
+            linestyle='dashed',
+            label=f'{face}'
+        )
+        X = [i[0] for i in XY2]
+        Y = [i[1] for i in XY2]
+        ax[1].plot(
             X,
             Y,
             c=c,
@@ -137,12 +163,16 @@ def plot_MM_vs_AR(json_files, candms, expts):
             label=f'{face}'
         )
 
-    ax.tick_params(axis='both', which='major', labelsize=16)
-    ax.set_xlabel('aspect ratio [1:X]', fontsize=16)
-    ax.set_ylabel('avg. side mismatch [%]', fontsize=16)
-    ax.set_xlim(1.0, 2.0)
-    ax.set_ylim(0, None)
-    ax.legend(fontsize=16, ncol=3)
+    ax[0].tick_params(axis='both', which='major', labelsize=16)
+    ax[1].tick_params(axis='both', which='major', labelsize=16)
+    ax[1].set_xlabel('aspect ratio [1:X]', fontsize=16)
+    ax[0].set_ylabel('avg. mismatch [%]', fontsize=16)
+    ax[1].set_ylabel('avg. mismatch [%]', fontsize=16)
+    ax[0].set_xlim(1.0, 1.9)
+    ax[1].set_xlim(1.0, 1.9)
+    ax[0].set_ylim(0, 35)
+    ax[1].set_ylim(0, 35)
+    ax[1].legend(fontsize=16, ncol=3)
     fig.savefig(
         os.path.join(_figure_path, 'all_ligand_MM_vs_AR.pdf'),
         dpi=720,

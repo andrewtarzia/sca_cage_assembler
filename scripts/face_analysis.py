@@ -170,6 +170,52 @@ def optimize_face(face, face_name):
     return opt_face
 
 
+def long_optimize_face(face, face_name):
+    gulp_file = f'{face_name}_lgulp.mol'
+    lopt_file = f'{face_name}_lopt.mol'
+
+    if exists(lopt_file):
+        return face.with_structure_from_file(lopt_file)
+
+    # Unrestrained UFF opt.
+    custom_metal_FFs = metal_FFs(CN=6)
+    output_dir = f'cage_opt_{face_name}_gulp'
+    print(f'..doing UFF4MOF optimisation of {face_name}')
+    gulp_opt = stko.GulpUFFOptimizer(
+        gulp_path=env_set.gulp_path(),
+        maxcyc=2000,
+        metal_FF=custom_metal_FFs,
+        metal_ligand_bond_order='',
+        output_dir=output_dir,
+        conjugate_gradient=False,
+    )
+    gulp_opt.assign_FF(face)
+    opt_face = gulp_opt.optimize(mol=face)
+    opt_face = opt_face.with_centroid([0, 0, 0])
+    opt_face.write(gulp_file)
+
+    # xTB opt.
+    print(f'..doing XTB optimisation of {face_name}')
+    xtb_opt = stko.XTB(
+        xtb_path=env_set.xtb_path(),
+        output_dir=f'cage_opt_{face_name}_xtb',
+        gfn_version=2,
+        num_cores=6,
+        opt_level='crude',
+        charge=8,
+        num_unpaired_electrons=0,
+        max_runs=1,
+        electronic_temperature=300,
+        calculate_hessian=False,
+        unlimited_memory=True,
+        solvent=None,
+    )
+    opt_face = xtb_opt.optimize(mol=opt_face)
+    opt_face.write(lopt_file)
+
+    return opt_face
+
+
 def get_all_bond_lengths(face):
 
     all_bls = []
@@ -341,54 +387,101 @@ def face_convert(string):
     return conv[string]
 
 
-def plot_face_mismatches(data, name):
+def plot_face_mismatches(data, name, types='metals'):
 
-    avg_m_mismatches = {}
-    avg_n_mismatches = {}
-    avg_c_mismatches = {}
+    m1 = {}
+    m2 = {}
+    diff = {}
+    avg = {}
 
     for face in data:
-        avg_m_mismatch = np.average(data[face]['metals'])
-        avg_n_mismatch = np.average(data[face]['Ns'])
-        avg_c_mismatch = np.average(data[face]['Cs'])
-        avg_m_mismatches[face] = avg_m_mismatch
-        avg_n_mismatches[face] = avg_n_mismatch
-        avg_c_mismatches[face] = avg_c_mismatch
+        m1[face] = data[face][types][0]
+        m2[face] = data[face][types][1]
+        avg[face] = np.average(data[face][types])
+        diff[face] = abs(
+            data[face][types][0] - data[face][types][1]
+        )
 
     x_ticks = [face_convert(i) for i in data]
-    x_ticklabels = [i for i in data]
+    x_ticklabels = [f'${i}$' for i in data]
 
     # width = 0.9
     fig, ax = plt.subplots(figsize=(8, 5))
 
     ax.scatter(
-        x=[face_convert(i) for i in avg_m_mismatches],
-        y=[avg_m_mismatches[i] for i in avg_m_mismatches],
+        x=[face_convert(i)-0.1 for i in m1],
+        y=[m1[i] for i in m1],
         # width=width,
-        facecolor='orange',
+        facecolor='grey',
+        # edgecolor='k',
+        # linewidth=2,
+        s=80,
+        marker='o',
+        alpha=0.6,
+        # label='corner 1',
+    )
+
+    ax.scatter(
+        x=[face_convert(i)+0.1 for i in m2],
+        y=[m2[i] for i in m2],
+        # width=width,
+        facecolor='grey',
+        # edgecolor='k',
+        # linewidth=2,
+        s=80,
+        marker='o',
+        alpha=0.6,
+        label=r'$M_\mathrm{F}$',
+    )
+
+    ax.plot(
+        [face_convert(i) for i in avg],
+        [avg[i] for i in avg],
+        # width=width,
+        color='gold',
+        # edgecolor='k',
+        marker='o',
+        markersize=9,
+        linewidth=4,
+        alpha=1,
+        label='average',
+    )
+
+    ax.scatter(
+        x=[face_convert(i) for i in diff],
+        y=[diff[i] for i in diff],
+        # width=width,
+        facecolor='k',
         edgecolor='k',
         # linewidth=2,
-        s=160,
-        marker='o',
+        s=100,
+        marker='D',
         alpha=1,
-        label='M-M',
+        label='difference',
     )
 
     # Set number of ticks for x-axis
     ax.tick_params(axis='both', which='major', labelsize=16)
-    ax.set_ylabel('avg. face-side mismatch [%]', fontsize=16)
-    # ax.set_ylim(0, 75)
+    ax.set_ylabel('mismatch [%]', fontsize=16)
+    ax.set_ylim(0, 60)
     # Set number of ticks for x-axis
     ax.set_xticks(x_ticks)
     ax.set_xticklabels(x_ticklabels)
     ax.legend(fontsize=16)
 
     fig.tight_layout()
-    fig.savefig(
-        f'f_mismatch_{name}.pdf',
-        dpi=720,
-        bbox_inches='tight'
-    )
+    if types == 'metals':
+        fig.savefig(
+            f'f_mismatch_{name}.pdf',
+            dpi=720,
+            bbox_inches='tight'
+        )
+    else:
+        fig.savefig(
+            f'f_mismatch_{types}_{name}.pdf',
+            dpi=720,
+            bbox_inches='tight'
+        )
     plt.close()
 
 
@@ -594,6 +687,7 @@ def main():
 
     # Build and optimise five face options per ligand.
     face_matches = {}
+    long_face_matches = {}
     for lig in sorted(ligands):
         print(f'doing {lig}...')
         lig_structure = ligands[lig]
@@ -603,6 +697,7 @@ def main():
         )
         # Build each face topology.
         lig_faces = {}
+        long_lig_faces = {}
         for face_t in face_topologies:
             final_topology_dict = face_topologies[face_t]
             face_name = f'F_{complex_name}_{lig}_{face_t}'
@@ -638,11 +733,47 @@ def main():
                 f"{np.average(face_properties['Cs'])}, "
             )
             lig_faces[face_t] = face_properties
+
+            long_face_name = f'{face_name}_long'
+            long_opt_face = long_optimize_face(
+                face=opt_face,
+                face_name=long_face_name,
+            )
+            all_bls = get_all_bond_lengths(long_opt_face)
+            if max(all_bls) > 3:
+                raise ValueError(
+                    f'max bond length of {long_face_name} is '
+                    f'{max(all_bls)}'
+                )
+
+            # Get the paths to use in visualisation and calculation.
+            paths = get_paths(long_opt_face, long_face_name)
+
+            # Measure properties.
+            long_face_properties = get_face_properties(
+                long_opt_face, long_face_name, paths
+            )
+            print(
+                f":: {long_face_name}: "
+                f"{np.average(long_face_properties['metals'])}, "
+                f"{np.average(long_face_properties['Ns'])}, "
+                f"{np.average(long_face_properties['Cs'])}, "
+            )
+            long_lig_faces[face_t] = long_face_properties
+
         plot_face_mismatches(data=lig_faces, name=lig)
         face_matches[lig] = lig_faces
+        plot_face_mismatches(data=long_lig_faces, name=f'{lig}_long')
+        long_face_matches[lig] = long_lig_faces
 
     heatmap(
         data_dict=face_matches,
+        vmin=0,
+        vmax=40,
+    )
+
+    heatmap(
+        data_dict=long_face_matches,
         vmin=0,
         vmax=40,
     )

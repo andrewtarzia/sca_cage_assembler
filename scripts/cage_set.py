@@ -71,6 +71,9 @@ class CageSet:
         self.ligand_aspect_ratio = self._get_ligand_AR(ligand_dir)
         # Get ligand:face properties.
         self.face_properties = self._get_face_properties(ligand_dir)
+        self.face_long_properties = self._get_face_long_properties(
+            ligand_dir
+        )
         # Get ligand flexibility.
         self.flex_properties = self._get_flex_properties(ligand_dir)
         # Get ideal pore size based on short axis of ligand.
@@ -80,6 +83,7 @@ class CageSet:
                 {
                     'ligand_aspect_ratio': self.ligand_aspect_ratio,
                     'face_properties': self.face_properties,
+                    'face_long_properties': self.face_long_properties,
                     'flex_properties': self.flex_properties,
                     'ideal_pore_size': self.ideal_pore_size,
                 },
@@ -139,14 +143,43 @@ class CageSet:
         """
         Load hypothetical face mismatches of tetratopic ligand.
 
-        Determined based on 5 models of possible face symmetries.
-
         """
 
         face_dir = join(ligand_dir, 'face_analysis')
         face_topologies = face_topology_dict()
         face_prop_files = (
             join(face_dir, f'F_{self.name}_{i}_properties.json')
+            for i in face_topologies
+        )
+
+        properties = {}
+        for face_prop_file in face_prop_files:
+            if not exists(face_prop_file):
+                raise FileNotFoundError(
+                    f'{face_prop_file} does not exist. Make sure face '
+                    'analysis has been run.'
+                )
+
+            # Get average of all mismatches for face.
+            face_type = (
+                face_prop_file.replace(face_dir, '').split('_')[4]
+            )
+            with open(face_prop_file, 'r') as f:
+                data = json.load(f)
+            properties[face_type] = np.average(data['metals'])
+
+        return properties
+
+    def _get_face_long_properties(self, ligand_dir):
+        """
+        Load hypothetical face mismatches of tetratopic ligand.
+
+        """
+
+        face_dir = join(ligand_dir, 'face_analysis')
+        face_topologies = face_topology_dict()
+        face_prop_files = (
+            join(face_dir, f'F_{self.name}_{i}_long_properties.json')
             for i in face_topologies
         )
 
