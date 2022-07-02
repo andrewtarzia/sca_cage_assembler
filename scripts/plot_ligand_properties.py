@@ -11,6 +11,7 @@ Date Created: 08 Nov 2020
 
 """
 
+from ast import Raise
 from glob import glob
 import os
 import json
@@ -35,7 +36,7 @@ def plot_all_ligand_properties(json_files, candms, expts):
             cage_set_data['face_properties'],
             key=cage_set_data['face_properties'].get
         )
-        x = cage_set_data['ligand_aspect_ratio']
+        x = cage_set_data['ligand_aspect_difference']
         y = cage_set_data['flex_properties']['la_range']
         c, m = candms[preferred_face]
         if cage_set in expts:
@@ -69,12 +70,13 @@ def plot_all_ligand_properties(json_files, candms, expts):
         )
 
     ax.tick_params(axis='both', which='major', labelsize=16)
-    ax.set_xlabel('aspect ratio [1:X]', fontsize=16)
+    # ax.set_xlabel('aspect ratio [1:X]', fontsize=16)
+    ax.set_xlabel(r'aspect difference [$\mathrm{\AA}$]', fontsize=16)
     ax.set_ylabel(
         r'long axis deviation [$\mathrm{\AA}$]',
         fontsize=16
     )
-    ax.set_xlim(1.0, 2.1)
+    ax.set_xlim(0., 8)
     ax.set_ylim(0.1, 2.1)
     ax.legend(fontsize=16, ncol=2)
     fig.savefig(
@@ -107,7 +109,7 @@ def plot_MM_vs_AR(json_files, candms, expts):
             cage_set_data = json.load(f)
         for face in cage_set_data['face_properties']:
             stabs[face]['ar'].append(
-                cage_set_data['ligand_aspect_ratio']
+                cage_set_data['ligand_aspect_difference']
             )
             stabs[face]['stab'].append(
                 cage_set_data['face_properties'][face]
@@ -117,7 +119,7 @@ def plot_MM_vs_AR(json_files, candms, expts):
             )
 
     for face in stabs:
-        if face not in ['i', 'ii', 'iii']:
+        if face not in ['i', 'ii']:  # , 'iii']:
             continue
         c, m = candms[face]
         XY = [
@@ -165,13 +167,16 @@ def plot_MM_vs_AR(json_files, candms, expts):
 
     ax[0].tick_params(axis='both', which='major', labelsize=16)
     ax[1].tick_params(axis='both', which='major', labelsize=16)
-    ax[1].set_xlabel('aspect ratio [1:X]', fontsize=16)
-    ax[0].set_ylabel('avg. mismatch [%]', fontsize=16)
-    ax[1].set_ylabel('avg. mismatch [%]', fontsize=16)
-    ax[0].set_xlim(1.0, 1.9)
-    ax[1].set_xlim(1.0, 1.9)
-    ax[0].set_ylim(0, 35)
-    ax[1].set_ylim(0, 35)
+    # ax[1].set_xlabel('aspect ratio [1:X]', fontsize=16)
+    ax[1].set_xlabel(
+        r'aspect difference [$\mathrm{\AA}$]', fontsize=16
+    )
+    ax[0].set_ylabel(r'avg. mismatch [$\mathrm{\AA}$]', fontsize=16)
+    ax[1].set_ylabel(r'avg. mismatch [$\mathrm{\AA}$]', fontsize=16)
+    ax[0].set_xlim(0, 8)
+    ax[1].set_xlim(0, 8)
+    ax[0].set_ylim(0, 7)
+    ax[1].set_ylim(0, 7)
     ax[1].legend(fontsize=16, ncol=3)
     fig.savefig(
         os.path.join(_figure_path, 'all_ligand_MM_vs_AR.pdf'),
@@ -208,9 +213,9 @@ def main():
             experimental_results[expt] = expt_data[expt]['face']
 
     candms = {
-        'i': (colors_i_like()[9], 'o'),
+        'i': (colors_i_like()[11], 'o'),
         'ii': (colors_i_like()[4], 'X'),
-        'iii': (colors_i_like()[11], 's'),
+        'iii': (colors_i_like()[9], 's'),
         'iv': (colors_i_like()[10], 'D'),
         'v': (colors_i_like()[3], 'P'),
         'vi': (colors_i_like()[5], 'p'),
