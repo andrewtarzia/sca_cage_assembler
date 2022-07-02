@@ -248,13 +248,13 @@ def main():
 
     # Define sets.
     sets_to_plot = {
-        'cl1_quad2_1': 'quad2_1',
-        'cl1_quad2_12': 'jd235',
-        'cl1_quad2_8': 'jd257',
-        'cl1_quad2_3': 'jd301',
-        'cl1_quad2_16': 'jd326',
-        'cl1_quad2_2': 'jd354',
-        'cl1_quad2_5': 'jd370',
+        'cl1_quad2_5': '1',
+        'cl1_quad2_16': '2',
+        'cl1_quad2_12': '3',
+        'cl1_quad2_3': '4',
+        'cl1_quad2_8': '5',
+        'cl1_quad2_2': '6',
+        'cl1_quad2_1': '7',
     }
     target_cols = [
         'octop', 'rellsesum', 'minitors', 'lsesum',

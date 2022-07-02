@@ -27,12 +27,12 @@ def distribution_plot(df, col_name):
         ),
         'm_cube_shape': ('CU-8 cube measure', (-0.5, None), 'min'),
         'rellsesum': (
-            r'rel. sum strain energy [kJmol$^{-1}$]',
+            r'rel. sum strain energy [kJ mol$^{-1}$]',
             (-10, 1000),
             'max'
         ),
         'lsesum': (
-            r'sum strain energy [kJmol$^{-1}$]',
+            r'sum strain energy [kJ mol$^{-1}$]',
             (None, None),
             'max'
         ),
@@ -53,7 +53,7 @@ def distribution_plot(df, col_name):
             r'pore diameter [$\mathrm{\AA}$]', (None, None), 'min'
         ),
         'relformatione': (
-            r'rel. formation energy [kJmol$^{-1}$]', (-10, 1000), 'max'
+            r'rel. formation energy [kJ mol$^{-1}$]', (-10, 1000), 'max'
         ),
         'maxintangledev': (
             r'max. interior angle deviation [degrees]',
@@ -146,7 +146,7 @@ def distribution_plot(df, col_name):
     ax.set_ylabel(yprops[col_name][0], fontsize=16)
     ax.set_ylim(yprops[col_name][1])
     ax.set_xticks([i[0] for i in _x_names])
-    ax.set_xticklabels([i[1] for i in _x_names])
+    ax.set_xticklabels([i[1] for i in _x_names], rotation=45)
     fig.legend(fontsize=16)
     fig.tight_layout()
     fig.savefig(
