@@ -464,6 +464,7 @@ def write_csv(cage_sets, experimentals):
         # each cages measures.
         cage_set_data[cage_set.name] = {
             'AR': cage_set.ligand_aspect_ratio,
+            'AB': cage_set.ligand_aspect_difference,
             'FAMM': cage_set.face_properties,
             'PPD': cage_set.ideal_pore_size,
             'LAR': cage_set.flex_properties['la_range'],
@@ -486,7 +487,7 @@ def write_csv(cage_sets, experimentals):
         if f'_{key}_' in '__'.join(experimentals)
     ]
     set_columns = [
-        'cageset', 'symmetry', 'AR',
+        'cageset', 'symmetry', 'AR', 'AB',
         'FAMMi', 'FAMMii', 'FAMMiii', 'FAMMiv', 'FAMMv',
         'FAMMvi', 'FAMMvii',
         'PPD', 'LAR', 'octop',
@@ -496,7 +497,7 @@ def write_csv(cage_sets, experimentals):
     ]
     symmetries = [
         'd2', 'th1', 'th2', 'td', 'tl', 's61', 's62', 'd31', 'd32',
-        'd31n', 'd32n', 's41', 's42', 'c2v', 'c2h', 'd3c3',
+        'd31n', 'd32n', 's41', 's42', 'c2v', 'c2h',
     ]
     dataframe = pd.DataFrame(columns=set_columns)
 
@@ -507,6 +508,7 @@ def write_csv(cage_sets, experimentals):
             rowinfo['cageset'] = cagesetname
             rowinfo['symmetry'] = symm
             rowinfo['AR'] = csd['AR']
+            rowinfo['AB'] = csd['AB']
             rowinfo['FAMMi'] = csd['FAMM']['i']
             rowinfo['FAMMii'] = csd['FAMM']['ii']
             rowinfo['FAMMiii'] = csd['FAMM']['iii']
@@ -547,7 +549,7 @@ def write_xray_csv(xtal_cage_data):
     """
 
     set_columns = [
-        'cageset', 'symmetry', 'AR', 'FAMM1', 'FAMM2', 'FAMM3', 'FAMM4',
+        'cageset', 'symmetry', 'AR', 'AB', 'FAMM1', 'FAMM2', 'FAMM3', 'FAMM4',
         'FAMM5', 'PPD', 'LAR', 'octop',
         'lsesum', 'rellsesum', 'minitors', 'maxcrplan',
         'maxMLlength', 'porediam', 'relformatione',
@@ -562,6 +564,7 @@ def write_xray_csv(xtal_cage_data):
         rowinfo['cageset'] = xtal
         rowinfo['symmetry'] = None
         rowinfo['AR'] = None
+        rowinfo['AB'] = None
         rowinfo['FAMM1'] = None
         rowinfo['FAMM2'] = None
         rowinfo['FAMM3'] = None
