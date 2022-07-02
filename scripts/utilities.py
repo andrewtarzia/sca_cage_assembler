@@ -1112,6 +1112,57 @@ def calculate_binding_AR(mol, atom_ids=None):
     return ligand_AR
 
 
+def calculate_binding_ABS(mol, atom_ids=None):
+    """
+    Calculate ligand binder differences based on binder positions.
+
+    Defined as:
+        Average diffference of the two shortest binding atom-binding
+        atom distances eminating from each binding atom in the
+        molecule.
+
+    Using the atom_ids argument, you can define a different set of four
+    atoms to define the anisotropy.
+
+    """
+
+    if atom_ids is None:
+        if mol.get_num_functional_groups() != 4:
+            return None
+        target_atom_ids = [
+            list(fg.get_bonder_ids())
+            for fg in mol.get_functional_groups()
+        ]
+    else:
+        if len(atom_ids) != 4:
+            raise ValueError('Requires exactly four target atom ids.')
+        target_atom_ids = atom_ids
+
+    atom_dists = sorted(
+        [
+            (idx1, idx2, get_atom_distance(mol, idx1, idx2))
+            for idx1, idx2 in combinations(target_atom_ids, r=2)
+        ],
+        key=lambda a: a[2]
+    )
+
+    far_binder_pair = (
+        atom_dists[-1][0],
+        atom_dists[-1][1]
+    )
+    ABSs = []
+    for fg_id in far_binder_pair:
+        ds = sorted([
+            i[2] for i in atom_dists
+            if fg_id in (i[0], i[1])
+        ])
+        AB = ds[1]-ds[0]
+        ABSs.append(AB)
+
+    ligand_AB = sum(ABSs)/len(ABSs)
+    return ligand_AB
+
+
 def calculate_metal_ligand_distance(
     mol,
     metal_atomic_number,

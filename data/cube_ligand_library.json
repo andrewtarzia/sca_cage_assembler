@@ -9,18 +9,8 @@
         "total_unpaired_e": [0],
         "calculate_flex": false
     },
-    "quad2_1": {
-        "smiles": "Brc1ccc(-c2cc(-c3ccc(Br)cc3)c3ccc4c(-c5ccc(Br)cc5)cc(-c5ccc(Br)cc5)c5ccc2c3c54)cc1",
-        "file_loc": "manual/",
-        "experimental": true,
-        "check_orientations": true,
-        "no_metals": 0,
-        "net_charge": 0,
-        "total_unpaired_e": [0],
-        "calculate_flex": true
-    },
-    "quad2_12": {
-        "smiles": "Brc1ccc(-c2cc3cc(-c4ccc(Br)cc4)cc4c5cc(-c6ccc(Br)cc6)cc6cc(-c7ccc(Br)cc7)cc(c(c2)c34)c65)cc1",
+    "quad2_5": {
+        "smiles": "Brc1ccc(N(c2ccc(Br)cc2)c2ccc(N(c3ccc(Br)cc3)c3ccc(Br)cc3)cc2)cc1",
         "file_loc": "manual/",
         "experimental": true,
         "check_orientations": true,
@@ -39,8 +29,8 @@
         "total_unpaired_e": [0],
         "calculate_flex": true
     },
-    "quad2_2": {
-        "smiles": "Brc1ccc(-c2cc(-c3ccc(Br)cc3)c(-c3ccc(Br)cc3)cc2-c2ccc(Br)cc2)cc1",
+    "quad2_12": {
+        "smiles": "Brc1ccc(-c2cc3cc(-c4ccc(Br)cc4)cc4c5cc(-c6ccc(Br)cc6)cc6cc(-c7ccc(Br)cc7)cc(c(c2)c34)c65)cc1",
         "file_loc": "manual/",
         "experimental": true,
         "check_orientations": true,
@@ -59,8 +49,8 @@
         "total_unpaired_e": [0],
         "calculate_flex": true
     },
-    "quad2_5": {
-        "smiles": "Brc1ccc(N(c2ccc(Br)cc2)c2ccc(N(c3ccc(Br)cc3)c3ccc(Br)cc3)cc2)cc1",
+    "quad2_8": {
+        "smiles": "Brc1ccc(-c2cc(-c3ccc(Br)cc3)cc(-c3ccc(-c4cc(-c5ccc(Br)cc5)cc(-c5ccc(Br)cc5)c4)cc3)c2)cc1",
         "file_loc": "manual/",
         "experimental": true,
         "check_orientations": true,
@@ -69,8 +59,18 @@
         "total_unpaired_e": [0],
         "calculate_flex": true
     },
-    "quad2_8": {
-        "smiles": "Brc1ccc(-c2cc(-c3ccc(Br)cc3)cc(-c3ccc(-c4cc(-c5ccc(Br)cc5)cc(-c5ccc(Br)cc5)c4)cc3)c2)cc1",
+    "quad2_2": {
+        "smiles": "Brc1ccc(-c2cc(-c3ccc(Br)cc3)c(-c3ccc(Br)cc3)cc2-c2ccc(Br)cc2)cc1",
+        "file_loc": "manual/",
+        "experimental": true,
+        "check_orientations": true,
+        "no_metals": 0,
+        "net_charge": 0,
+        "total_unpaired_e": [0],
+        "calculate_flex": true
+    },
+    "quad2_1": {
+        "smiles": "Brc1ccc(-c2cc(-c3ccc(Br)cc3)c3ccc4c(-c5ccc(Br)cc5)cc(-c5ccc(Br)cc5)c5ccc2c3c54)cc1",
         "file_loc": "manual/",
         "experimental": true,
         "check_orientations": true,
