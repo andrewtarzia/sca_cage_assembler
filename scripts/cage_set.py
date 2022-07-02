@@ -20,12 +20,7 @@ import numpy as np
 
 import stk
 
-from symmetries import (
-    M4L4_Symmetry,
-    M6L2L3_Symmetry,
-    M8L6_Symmetry,
-    M8L6Knot_Symmetry,
-)
+from symmetries import M8L6_Symmetry
 from plotting import define_plot_cmap
 from utilities import (
     get_planar_conformer,
@@ -69,6 +64,9 @@ class CageSet:
         self.built_cage_properties = {}
         # Get ligand aspect ratio.
         self.ligand_aspect_ratio = self._get_ligand_AR(ligand_dir)
+        self.ligand_aspect_difference = self._get_ligand_ABS(
+            ligand_dir
+        )
         # Get ligand:face properties.
         self.face_properties = self._get_face_properties(ligand_dir)
         self.face_long_properties = self._get_face_long_properties(
@@ -82,6 +80,9 @@ class CageSet:
             json.dump(
                 {
                     'ligand_aspect_ratio': self.ligand_aspect_ratio,
+                    'ligand_aspect_difference': (
+                        self.ligand_aspect_difference
+                    ),
                     'face_properties': self.face_properties,
                     'face_long_properties': self.face_long_properties,
                     'flex_properties': self.flex_properties,
@@ -111,6 +112,27 @@ class CageSet:
             AR_dict = json.load(f)
 
         return AR_dict[self.cage_set_dict['tetratopic']]['Br']
+
+    def _get_ligand_ABS(self, ligand_dir):
+        """
+        Calculate ligand aspect ratio of tetratopic ligand.
+
+        Determined based on binder positions.
+
+        """
+
+        AB_file = join(ligand_dir, 'ligand_ABs.json')
+
+        if not exists(AB_file):
+            raise FileNotFoundError(
+                f'{AB_file} not found. Run calculate_ligand_ARs.py'
+                f' in {ligand_dir}'
+            )
+
+        with open(AB_file, 'r') as f:
+            AB_dict = json.load(f)
+
+        return AB_dict[self.cage_set_dict['tetratopic']]['Br']
 
     def _get_ideal_pore_size(self, ligand_dir):
         """
@@ -166,7 +188,7 @@ class CageSet:
             )
             with open(face_prop_file, 'r') as f:
                 data = json.load(f)
-            properties[face_type] = np.average(data['metals'])
+            properties[face_type] = np.average(data['metals']['dif'])
 
         return properties
 
@@ -197,7 +219,7 @@ class CageSet:
             )
             with open(face_prop_file, 'r') as f:
                 data = json.load(f)
-            properties[face_type] = np.average(data['metals'])
+            properties[face_type] = np.average(data['metals']['dif'])
 
         return properties
 
@@ -476,72 +498,30 @@ class CageSet:
         Returns cage symmetries for a given topology.
 
         """
+        symm_list = {}
+        linker = linkers[4]
 
-        if string == 'm4l4spacer':
-            symm_list = {}
-            linker = linkers[3]
-
-            # Predefined list of symmetries.
-            symm_c = M4L4_Symmetry(
-                D_complex=D_complex,
-                L_complex=L_complex,
-                linker=linker,
-            )
-            symm_list['base'] = symm_c.base()
-
-        elif string == 'm8l6face':
-            symm_list = {}
-            linker = linkers[4]
-
-            # Predefined list of symmetries.
-            symm_c = M8L6_Symmetry(
-                D_complex=D_complex,
-                L_complex=L_complex,
-                linker=linker,
-            )
-            symm_list['d2'] = symm_c.d2()
-            symm_list['th1'] = symm_c.th1()
-            symm_list['th2'] = symm_c.th2()
-            symm_list['td'] = symm_c.td()
-            symm_list['tl'] = symm_c.tl()
-            symm_list['s41'] = symm_c.s41()
-            symm_list['s42'] = symm_c.s42()
-            symm_list['s61'] = symm_c.s61()
-            symm_list['s62'] = symm_c.s62()
-            symm_list['d31'] = symm_c.d31()
-            symm_list['d32'] = symm_c.d32()
-            symm_list['d31n'] = symm_c.d31n()
-            symm_list['d32n'] = symm_c.d32n()
-            symm_list['c2v'] = symm_c.c2v()
-            symm_list['c2h'] = symm_c.c2h()
-
-        elif string == 'm6l2l3':
-            symm_list = {}
-            linker3 = linkers[3]
-            linker4 = linkers[4]
-
-            # Predefined list of symmetries.
-            symm_c = M6L2L3_Symmetry(
-                D_complex=D_complex,
-                L_complex=L_complex,
-                linker3=linker3,
-                linker4=linker4,
-            )
-            symm_list['base'] = symm_c.base()
-
-        elif string == 'm8l6knot':
-            symm_list = {}
-            linker = linkers[4]
-
-            # Predefined list of symmetries.
-            symm_c = M8L6Knot_Symmetry(
-                D_complex=D_complex,
-                L_complex=L_complex,
-                linker=linker,
-            )
-            symm_list['d3c3'] = symm_c.d3c3()
-        else:
-            raise KeyError(f'{string} not in defined')
+        # Predefined list of symmetries.
+        symm_c = M8L6_Symmetry(
+            D_complex=D_complex,
+            L_complex=L_complex,
+            linker=linker,
+        )
+        symm_list['d2'] = symm_c.d2()
+        symm_list['th1'] = symm_c.th1()
+        symm_list['th2'] = symm_c.th2()
+        symm_list['td'] = symm_c.td()
+        symm_list['tl'] = symm_c.tl()
+        symm_list['s41'] = symm_c.s41()
+        symm_list['s42'] = symm_c.s42()
+        symm_list['s61'] = symm_c.s61()
+        symm_list['s62'] = symm_c.s62()
+        symm_list['d31'] = symm_c.d31()
+        symm_list['d32'] = symm_c.d32()
+        symm_list['d31n'] = symm_c.d31n()
+        symm_list['d32n'] = symm_c.d32n()
+        symm_list['c2v'] = symm_c.c2v()
+        symm_list['c2h'] = symm_c.c2h()
 
         print(f'{len(symm_list)} symmetries to build')
         return symm_list
@@ -808,7 +788,7 @@ class HoCube(CageSet):
 
         # Get topology function as object to be used in following list.
         # Homoleptic cage with tetratopic ligand.
-        tet_topo_names = ['m8l6face', 'm8l6knot']
+        tet_topo_names = ['m8l6face']
         cages_to_build = []
         for topo_name in tet_topo_names:
             tet_topo_fn = available_topologies(string=topo_name)
@@ -850,207 +830,3 @@ class HoCube(CageSet):
                 cages_to_build.append(i)
 
         return cages_to_build
-
-
-class HetPrism(CageSet):
-    """
-    Class that builds and analyses stk.ConstructuedMolecules.
-
-    Represents heteroleptic prism cages and all necessary homoleptic
-    cages.
-
-    """
-
-    def define_cages_to_build(self, ligand_dir, complex_dir):
-        """
-        Defines the name and objects of all cages to build.
-
-        """
-
-        # Get Delta and Lambda complex.
-        D_complex_name, D_complex, L_complex_name, L_complex = (
-            self._get_complex_info(complex_dir=complex_dir)
-        )
-
-        D_charge, D_free_e = self._get_complex_properties(
-            complex_name=D_complex_name
-        )
-        L_charge, L_free_e = self._get_complex_properties(
-            complex_name=L_complex_name
-        )
-
-        # Get linker and dictionary.
-        tet_prop, tet_linker = self._get_ligand(
-            type_name='tetratopic',
-            ligand_dir=ligand_dir
-        )
-        tri_prop, tri_linker = self._get_ligand(
-            type_name='tritopic',
-            ligand_dir=ligand_dir
-        )
-
-        # Get topology function as object to be used in following list.
-        # Homoleptic cage with tetratopic ligand.
-        tet_topo_name = 'm8l6face'
-        tet_topo_fn = available_topologies(string=tet_topo_name)
-        # Homoleptic cage with tritopic ligand.
-        tri_topo_name = 'm4l4spacer'
-        tri_topo_fn = available_topologies(string=tri_topo_name)
-        # Heteroleptic cage with tetratopic + tritopic ligand.
-        pri_topo_name = 'm6l2l3'
-        pri_topo_fn = available_topologies(string=pri_topo_name)
-
-        # Define symmetries of each topology.
-        tet_symmetries_to_build = self.get_cage_symmetries(
-            string=tet_topo_name,
-            D_complex=D_complex,
-            L_complex=L_complex,
-            linkers={4: tet_linker},
-        )
-        tri_symmetries_to_build = self.get_cage_symmetries(
-            string=tri_topo_name,
-            D_complex=D_complex,
-            L_complex=L_complex,
-            linkers={3: tri_linker},
-        )
-        pri_symmetries_to_build = self.get_cage_symmetries(
-            string=pri_topo_name,
-            D_complex=D_complex,
-            L_complex=L_complex,
-            linkers={4: tet_linker, 3: tri_linker},
-        )
-
-        tet_cages = self.iterate_over_symmetries(
-            base_name=(
-                f"C_{self.cage_set_dict['corner_name']}_"
-                f"{self.cage_set_dict['tetratopic']}"
-            ),
-            topo_name=tet_topo_name,
-            topo_fn=tet_topo_fn,
-            symmetries_to_build=tet_symmetries_to_build,
-            # Set charge properties based on ligand occurances.
-            charge_prop={
-                'D': int(D_charge),
-                'L': int(L_charge),
-                '3': 0,
-                '4': tet_prop['net_charge']*6,
-            },
-            # Set free e properties based on ligand occurances.
-            mult_prop={
-                'D': D_free_e,
-                'L': L_free_e,
-                '3': [0],
-                '4': [
-                    int(i)*6 for i in tet_prop['total_unpaired_e']
-                ],
-            },
-        )
-        tri_cages = self.iterate_over_symmetries(
-            base_name=(
-                f"T_{self.cage_set_dict['corner_name']}_"
-                f"{self.cage_set_dict['tritopic']}"
-            ),
-            topo_name=tri_topo_name,
-            topo_fn=tri_topo_fn,
-            symmetries_to_build=tri_symmetries_to_build,
-            # Set charge properties based on ligand occurances.
-            charge_prop={
-                'D': int(D_charge),
-                'L': int(L_charge),
-                '3': tri_prop['net_charge']*4,
-                '4': 0,
-            },
-            # Set free e properties based on ligand occurances.
-            mult_prop={
-                'D': D_free_e,
-                'L': L_free_e,
-                '3': [
-                    int(i)*4 for i in tri_prop['total_unpaired_e']
-                ],
-                '4': [0],
-            },
-        )
-        pri_cages = self.iterate_over_symmetries(
-            base_name=(
-                f"P_{self.cage_set_dict['corner_name']}_"
-                f"{self.cage_set_dict['tritopic']}_"
-                f"{self.cage_set_dict['tetratopic']}"
-            ),
-            topo_name=pri_topo_name,
-            topo_fn=pri_topo_fn,
-            symmetries_to_build=pri_symmetries_to_build,
-            # Set charge properties based on ligand occurances.
-            charge_prop={
-                'D': int(D_charge),
-                'L': int(L_charge),
-                '3': tri_prop['net_charge']*2,
-                '4': tet_prop['net_charge']*3,
-            },
-            # Set free e properties based on ligand occurances.
-            mult_prop={
-                'D': D_free_e,
-                'L': L_free_e,
-                '3': [
-                    int(i)*2 for i in tri_prop['total_unpaired_e']
-                ],
-                '4': [
-                    int(i)*3 for i in tet_prop['total_unpaired_e']
-                ],
-            },
-        )
-
-        return tet_cages + tri_cages + pri_cages
-
-    def plot_min_OPs_avg_PV(self, X, Y, T):
-        topo_c_m = {
-            'm4l4spacer': ('#E074AF', 'o', r'M$_4$L$_4$'),
-            'm8l6face': ('#AFE074', 'X', r'M$_8$L$_6$'),
-            'm6l2l3': ('#74AFE0', 'P', r'M$_6$L$^a_2$L$^b_3$')
-        }
-
-        Cs = [
-            topo_c_m[C.topology_string][0]
-            for C in self.cages_to_build
-        ]
-        print(len(X), len(Y), len(Cs))
-
-        fig, ax = plt.subplots(figsize=(8, 5))
-        for x, y, t in zip(X, Y, T):
-            ax.scatter(
-                x,
-                y,
-                c=topo_c_m[t][0],
-                edgecolors='k',
-                marker=topo_c_m[t][1],
-                alpha=1.0,
-                s=80
-            )
-        # Set number of ticks for x-axis
-        ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.set_xlabel(r'pore volume [$\mathrm{\AA}^3$]', fontsize=16)
-        ax.set_ylabel(r'min. $q_{\mathrm{oct}}$', fontsize=16)
-        ax.set_xlim(0, 2000)
-        ax.set_ylim(0, 1)
-
-        # Implement legend.
-        for i in topo_c_m:
-            ax.scatter(
-                -1000,
-                -1000,
-                c=topo_c_m[i][0],
-                edgecolors='k',
-                marker=topo_c_m[i][1],
-                alpha=1.0,
-                s=80,
-                label=topo_c_m[i][2]
-            )
-
-        ax.legend(fontsize=16)
-
-        fig.tight_layout()
-        fig.savefig(
-            f'{self.name}_minOPsVSporevol.pdf',
-            dpi=720,
-            bbox_inches='tight'
-        )
-        plt.close()
