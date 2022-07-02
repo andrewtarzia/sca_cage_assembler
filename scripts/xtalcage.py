@@ -30,11 +30,8 @@ from utilities import (
     get_organic_linkers,
     get_atom_distance,
     calculate_abs_imine_torsions,
-    calculate_molecule_planarity,
     get_order_values,
-    optimize_conformer,
 )
-import env_set
 
 
 class XtalCage:
