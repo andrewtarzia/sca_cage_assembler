@@ -16,12 +16,6 @@ Dependancies:
 The file `environment.yml` defines a Python 3.9 conda env used for this project.
 
 
-Extracting new topologies
-=========================
-
-Handled in `topology_extraction` directory.
-
-
 Acknowledgements
 ================
 
