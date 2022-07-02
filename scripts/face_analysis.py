@@ -255,8 +255,13 @@ def calculate_face_properties(face, paths):
         p2b_d = get_atom_distance(face, path2b[0], path2b[1])
         mismatch1 = (abs(p1a_d-p1b_d)/max([p1a_d, p1b_d])) * 100
         mismatch2 = (abs(p2a_d-p2b_d)/max([p2a_d, p2b_d])) * 100
+        difference1 = abs(p1a_d-p1b_d)
+        difference2 = abs(p2a_d-p2b_d)
 
-        properties[path] = (mismatch1, mismatch2)
+        properties[path] = {
+            'mms': (mismatch1, mismatch2),
+            'dif': (difference1, difference2),
+        }
 
     return properties
 
@@ -311,11 +316,14 @@ def visualise_face(face, face_name, paths):
         p2b_d = get_atom_distance(face, path2b[0], path2b[1])
         mismatch1 = (abs(p1a_d-p1b_d)/max([p1a_d, p1b_d])) * 100
         mismatch2 = (abs(p2a_d-p2b_d)/max([p2a_d, p2b_d])) * 100
+        difference1 = abs(p1a_d-p1b_d)
+        difference2 = abs(p2a_d-p2b_d)
 
         string += (
             f'{path}: ({round(p1a_d, 2)}, {round(p1b_d, 2)}), '
             f'({round(p2a_d, 2)}, {round(p2b_d, 2)}) '
-            f'AR: {round(mismatch1, 2)}%, {round(mismatch2, 2)}%\n'
+            f'AR: {round(mismatch1, 2)}%, {round(mismatch2, 2)}%'
+            f'AB: {round(difference1, 2)}A, {round(difference2, 2)}A\n'
         )
 
         # Plot paths.
@@ -395,11 +403,11 @@ def plot_face_mismatches(data, name, types='metals'):
     avg = {}
 
     for face in data:
-        m1[face] = data[face][types][0]
-        m2[face] = data[face][types][1]
-        avg[face] = np.average(data[face][types])
+        m1[face] = data[face][types]['mms'][0]
+        m2[face] = data[face][types]['mms'][1]
+        avg[face] = np.average(data[face][types]['mms'])
         diff[face] = abs(
-            data[face][types][0] - data[face][types][1]
+            data[face][types]['mms'][0] - data[face][types]['mms'][1]
         )
 
     x_ticks = [face_convert(i) for i in data]
@@ -479,6 +487,104 @@ def plot_face_mismatches(data, name, types='metals'):
     else:
         fig.savefig(
             f'f_mismatch_{types}_{name}.pdf',
+            dpi=720,
+            bbox_inches='tight'
+        )
+    plt.close()
+
+
+def plot_face_differences(data, name, types='metals'):
+
+    m1 = {}
+    m2 = {}
+    diff = {}
+    avg = {}
+
+    for face in data:
+        m1[face] = data[face][types]['dif'][0]
+        m2[face] = data[face][types]['dif'][1]
+        avg[face] = np.average(data[face][types]['dif'])
+        diff[face] = abs(
+            data[face][types]['dif'][0] - data[face][types]['dif'][1]
+        )
+
+    x_ticks = [face_convert(i) for i in data]
+    x_ticklabels = [f'${i}$' for i in data]
+
+    # width = 0.9
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    ax.scatter(
+        x=[face_convert(i)-0.1 for i in m1],
+        y=[m1[i] for i in m1],
+        # width=width,
+        facecolor='grey',
+        # edgecolor='k',
+        # linewidth=2,
+        s=80,
+        marker='o',
+        alpha=0.6,
+        # label='corner 1',
+    )
+
+    ax.scatter(
+        x=[face_convert(i)+0.1 for i in m2],
+        y=[m2[i] for i in m2],
+        # width=width,
+        facecolor='grey',
+        # edgecolor='k',
+        # linewidth=2,
+        s=80,
+        marker='o',
+        alpha=0.6,
+        label=r'$D_\mathrm{F}$',
+    )
+
+    ax.plot(
+        [face_convert(i) for i in avg],
+        [avg[i] for i in avg],
+        # width=width,
+        color='gold',
+        # edgecolor='k',
+        marker='o',
+        markersize=9,
+        linewidth=4,
+        alpha=1,
+        label='average',
+    )
+
+    ax.scatter(
+        x=[face_convert(i) for i in diff],
+        y=[diff[i] for i in diff],
+        # width=width,
+        facecolor='k',
+        edgecolor='k',
+        # linewidth=2,
+        s=100,
+        marker='D',
+        alpha=1,
+        label='difference',
+    )
+
+    # Set number of ticks for x-axis
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.set_ylabel('difference [$\mathrm{\AA}$]', fontsize=16)
+    ax.set_ylim(0, 20)
+    # Set number of ticks for x-axis
+    ax.set_xticks(x_ticks)
+    ax.set_xticklabels(x_ticklabels)
+    ax.legend(fontsize=16)
+
+    fig.tight_layout()
+    if types == 'metals':
+        fig.savefig(
+            f'f_differences_{name}.pdf',
+            dpi=720,
+            bbox_inches='tight'
+        )
+    else:
+        fig.savefig(
+            f'f_differences_{types}_{name}.pdf',
             dpi=720,
             bbox_inches='tight'
         )
@@ -582,6 +688,8 @@ def heatmap(
     maps = np.zeros((xshape, yshape))
     for i, lig in enumerate(data_dict):
         da = data_dict[lig]
+        print(da)
+        raise SystemExit()
         for j, face in enumerate(da):
             maps[i][j] = np.average(da[face]['metals'])
 
@@ -728,9 +836,9 @@ def main():
             )
             print(
                 f":: {face_name}: "
-                f"{np.average(face_properties['metals'])}, "
-                f"{np.average(face_properties['Ns'])}, "
-                f"{np.average(face_properties['Cs'])}, "
+                f"{np.average(face_properties['metals']['dif'])}, "
+                f"{np.average(face_properties['Ns']['dif'])}, "
+                f"{np.average(face_properties['Cs']['dif'])}, "
             )
             lig_faces[face_t] = face_properties
 
@@ -755,15 +863,17 @@ def main():
             )
             print(
                 f":: {long_face_name}: "
-                f"{np.average(long_face_properties['metals'])}, "
-                f"{np.average(long_face_properties['Ns'])}, "
-                f"{np.average(long_face_properties['Cs'])}, "
+                f"{np.average(long_face_properties['metals']['dif'])}, "
+                f"{np.average(long_face_properties['Ns']['dif'])}, "
+                f"{np.average(long_face_properties['Cs']['dif'])}, "
             )
             long_lig_faces[face_t] = long_face_properties
 
         plot_face_mismatches(data=lig_faces, name=lig)
         face_matches[lig] = lig_faces
         plot_face_mismatches(data=long_lig_faces, name=f'{lig}_long')
+        plot_face_differences(data=lig_faces, name=lig)
+        plot_face_differences(data=long_lig_faces, name=f'{lig}_long')
         long_face_matches[lig] = long_lig_faces
 
     heatmap(
