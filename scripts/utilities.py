@@ -1312,7 +1312,6 @@ def convert_symm_names(symm_name):
         'd32n': r'D$_{3, 2n}$',
         'c2v': r'C$_{2h}$',
         'c2h': r'C$_{2v}$',
-        'd3c3': r'knot',
     }
 
     return new_names[symm_name]
@@ -1321,16 +1320,13 @@ def convert_symm_names(symm_name):
 def convert_lig_names_from_cage(lig_name):
 
     new_names = {
-        'quad2_1': '1-1',
-        'quad2_12': '1-2',
-        'quad2_2': '1-3',
-        'quad2_5': '3-1',
-        'quad2_16': '3-2',
-        'quad2_17': '3-3',
-        'quad2_3': '2-1',
-        'quad2_8': '2-2',
-        'quad2_9': '2-3',
-        'quad2_10': '2-4',
+        'quad2_1': '7',
+        'quad2_12': '3',
+        'quad2_2': '6',
+        'quad2_5': '1',
+        'quad2_16': '2',
+        'quad2_3': '4',
+        'quad2_8': '5',
     }
 
     return new_names[lig_name]
