@@ -70,8 +70,10 @@ def plot_dists(json_files, data_name, xlabel, xprops):
     plt.close()
 
 
-def plot_ladev_planedev(json_files, series_props, series_map):
+def plot_ladev_planedev(json_files):
     fig, ax = plt.subplots(figsize=(8, 5))
+
+    prop = {'c': 'gold', 'm': 'o'}
 
     for i, _file in enumerate(json_files):
         with open(_file, 'r') as f:
@@ -86,7 +88,6 @@ def plot_ladev_planedev(json_files, series_props, series_map):
         )
         # measures = [i-min(measures) for i in measures]
         name = _file.replace('_flex_measure.json', '')
-        prop = series_props[series_map[name]]
         ax.scatter(
             x=x,
             y=y,
@@ -97,18 +98,6 @@ def plot_ladev_planedev(json_files, series_props, series_map):
             s=160,
         )
 
-    for prop in series_props:
-        ax.scatter(
-            [], [],
-            c=series_props[prop]['c'],
-            marker=series_props[prop]['m'],
-            alpha=1.0,
-            edgecolor='k',
-            s=160,
-            label=f'series {prop}',
-        )
-
-    ax.legend(fontsize=16)
     ax.tick_params(labelsize=16, bottom=True)
     ax.set_xlabel(r'long-axis deviation [$\mathrm{\AA}$]', fontsize=16)
     ax.set_ylabel(r'plane deviation [$\mathrm{\AA}$]', fontsize=16)
@@ -166,9 +155,11 @@ def plot_vectangle_energy_permol(json_files):
         plt.close()
 
 
-def plot_ladev_angle(json_files, series_props, series_map):
+def plot_ladev_angle(json_files):
     # xbins = np.arange(0, 15, xwidth)
     fig, ax = plt.subplots(figsize=(8, 5))
+
+    prop = {'c': 'gold', 'm': 'o'}
 
     for i, _file in enumerate(json_files):
         with open(_file, 'r') as f:
@@ -184,7 +175,6 @@ def plot_ladev_angle(json_files, series_props, series_map):
         )
 
         name = _file.replace('_flex_measure.json', '')
-        prop = series_props[series_map[name]]
         ax.scatter(
             x=x,
             y=y,
@@ -195,18 +185,6 @@ def plot_ladev_angle(json_files, series_props, series_map):
             s=160,
         )
 
-    for prop in series_props:
-        ax.scatter(
-            [], [],
-            c=series_props[prop]['c'],
-            marker=series_props[prop]['m'],
-            alpha=1.0,
-            edgecolor='k',
-            s=160,
-            label=f'series {prop}',
-        )
-
-    ax.legend(fontsize=16)
     ax.tick_params(labelsize=16, bottom=True)
     ax.set_xlabel(r'long-axis deviation [$\mathrm{\AA}$]', fontsize=16)
     ax.set_ylabel(r'vector angle deviation [degrees]', fontsize=16)
@@ -228,23 +206,6 @@ def main():
         sys.exit()
 
     json_files = glob('*_flex_measure.json')
-    series_map = {
-        'quad2_1': '1',
-        'quad2_12': '1',
-        'quad2_2': '1',
-        'quad2_3': '2',
-        'quad2_8': '2',
-        'quad2_9': '2',
-        'quad2_10': '2',
-        'quad2_5': '3',
-        'quad2_16': '3',
-        'quad2_17': '3',
-    }
-    series_props = {
-        '1': {'c': colors_i_like()[9], 'm': 'o'},
-        '2': {'c': colors_i_like()[4], 'm': 'X'},
-        '3': {'c': colors_i_like()[11], 'm': 's'},
-    }
 
     plot_dists(
         json_files=json_files,
@@ -258,8 +219,8 @@ def main():
         xlabel=r'vector angle deviation [degrees]',
         xprops=(0., 90., 5.),
     )
-    plot_ladev_planedev(json_files, series_props, series_map)
-    plot_ladev_angle(json_files, series_props, series_map)
+    plot_ladev_planedev(json_files)
+    plot_ladev_angle(json_files)
     plot_vectangle_energy_permol(json_files)
 
 
