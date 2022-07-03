@@ -90,7 +90,7 @@ def plot_all_ligand_properties(json_files, candms, expts):
 def plot_MM_vs_AR(json_files, candms, expts):
     _figure_path = 'figures'
 
-    fig, ax = plt.subplots(nrows=2, sharex=True,figsize=(8, 7))
+    fig, ax = plt.subplots(figsize=(8, 5))
     stabs = {
         'i': {'ar': [], 'stab': [], 'long_stab': []},
         'ii': {'ar': [], 'stab': [], 'long_stab': []},
@@ -122,13 +122,13 @@ def plot_MM_vs_AR(json_files, candms, expts):
         if face not in ['i', 'ii']:  # , 'iii']:
             continue
         c, m = candms[face]
-        XY = [
-            (y, x) for y, x
-            in sorted(
-                zip(stabs[face]['ar'], stabs[face]['stab']),
-                key=lambda pair: pair[0]
-            )
-        ]
+        # XY = [
+        #     (y, x) for y, x
+        #     in sorted(
+        #         zip(stabs[face]['ar'], stabs[face]['stab']),
+        #         key=lambda pair: pair[0]
+        #     )
+        # ]
         XY2 = [
             (y, x) for y, x
             in sorted(
@@ -136,48 +136,33 @@ def plot_MM_vs_AR(json_files, candms, expts):
                 key=lambda pair: pair[0]
             )
         ]
-        print(XY)
-        # input()
-        X = [i[0] for i in XY]
-        Y = [i[1] for i in XY]
-        ax[0].plot(
-            X,
-            Y,
-            c=c,
-            # edgecolors='k',
-            marker=m,
-            alpha=1.0,
-            markersize=10,
-            linestyle='dashed',
-            label=f'{face}'
-        )
         X = [i[0] for i in XY2]
         Y = [i[1] for i in XY2]
-        ax[1].plot(
+        ax.plot(
             X,
             Y,
             c=c,
             # edgecolors='k',
             marker=m,
             alpha=1.0,
-            markersize=10,
+            markersize=12,
             linestyle='dashed',
             label=f'{face}'
         )
 
-    ax[0].tick_params(axis='both', which='major', labelsize=16)
-    ax[1].tick_params(axis='both', which='major', labelsize=16)
+    # ax[0].tick_params(axis='both', which='major', labelsize=16)
+    ax.tick_params(axis='both', which='major', labelsize=16)
     # ax[1].set_xlabel('aspect ratio [1:X]', fontsize=16)
-    ax[1].set_xlabel(
+    ax.set_xlabel(
         r'aspect difference [$\mathrm{\AA}$]', fontsize=16
     )
-    ax[0].set_ylabel(r'avg. mismatch [$\mathrm{\AA}$]', fontsize=16)
-    ax[1].set_ylabel(r'avg. mismatch [$\mathrm{\AA}$]', fontsize=16)
-    ax[0].set_xlim(0, 8)
-    ax[1].set_xlim(0, 8)
-    ax[0].set_ylim(0, 7)
-    ax[1].set_ylim(0, 7)
-    ax[1].legend(fontsize=16, ncol=3)
+    # ax[0].set_ylabel(r'avg. mismatch [$\mathrm{\AA}$]', fontsize=16)
+    ax.set_ylabel(r'avg. mismatch [$\mathrm{\AA}$]', fontsize=16)
+    # ax[0].set_xlim(0, 8)
+    ax.set_xlim(0, 8)
+    # ax[0].set_ylim(0, 7)
+    ax.set_ylim(0, 7)
+    ax.legend(fontsize=16, ncol=3)
     fig.savefig(
         os.path.join(_figure_path, 'all_ligand_MM_vs_AR.pdf'),
         dpi=720,
