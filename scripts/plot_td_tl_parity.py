@@ -43,6 +43,7 @@ def main():
     int_angle = {}
     cu8 = {}
     lsesum = {}
+    porediam = {}
     for i, row in all_cage_data.iterrows():
         symm = row['symmetry']
         if row['m_cube_shape'] is None:
@@ -58,30 +59,39 @@ def main():
             cu8[cage_set] = {}
         if cage_set not in lsesum:
             lsesum[cage_set] = {}
+        if cage_set not in porediam:
+            porediam[cage_set] = {}
 
         int_angle[cage_set][symm] = float(row['maxintangledev'])
         lsesum[cage_set][symm] = float(row['lsesum'])
         cu8[cage_set][symm] = float(row['m_cube_shape'])
+        porediam[cage_set][symm] = float(row['porediam'])
 
-    print('a', int_angle)
-    print('b', lsesum)
-    print('c', cu8)
+    print('a', int_angle, '\n')
+    print('b', lsesum, '\n')
+    print('c', cu8, '\n')
+    print('d', porediam, '\n')
 
     props = {
         'm_cube_shape': (
             cu8,
             'CU-8 cube measure',
-            (0, 2.2),
+            (0, 0.8),
         ),
         'lsesum': (
             lsesum,
             r'sum strain energy [kJ mol$^{-1}$]',
-            (1500, 3000),
+            (1500, 2200),
         ),
         'maxintangledev': (
             int_angle,
             r'max. interior angle deviation [degrees]',
-            (0, 12),
+            (0, 4),
+        ),
+        'porediam': (
+            porediam,
+            r'pore diameter [$\mathrm{\AA}$]',
+            (0, 20),
         ),
     }
 
