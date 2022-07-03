@@ -150,26 +150,26 @@ def plot_values(C_data, Br_data, N_data, output_name):
         names.append(name)
         positions.append(int(name))
 
-    if 'ABs' not in output_name:
-        ax.scatter(
-            positions, cars,
-            c='gray',
-            edgecolors='k',
-            marker='o',
-            alpha=1.0,
-            s=120,
-            label='C-C',
-        )
+    # if 'ABs' not in output_name:
+    #     ax.scatter(
+    #         positions, cars,
+    #         c='gray',
+    #         edgecolors='k',
+    #         marker='o',
+    #         alpha=1.0,
+    #         s=120,
+    #         label='C-C',
+    #     )
 
-        ax.scatter(
-            positions, nars,
-            c='skyblue',
-            edgecolors='k',
-            marker='X',
-            alpha=1.0,
-            s=120,
-            label='N-N',
-        )
+    #     ax.scatter(
+    #         positions, nars,
+    #         c='skyblue',
+    #         edgecolors='k',
+    #         marker='X',
+    #         alpha=1.0,
+    #         s=120,
+    #         label='N-N',
+    #     )
 
     ax.scatter(
         positions, brars,
