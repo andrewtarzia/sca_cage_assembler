@@ -53,7 +53,7 @@ def main():
     ax.set_xticks(x_pos)
     ax.set_xticklabels([str(i) for i in x_pos])
     ax.set_xlim(0, max(x_pos)+1)
-    ax.set_xlabel('structure', fontsize=16)
+    ax.set_xlabel('test model', fontsize=16)
     ax.set_ylabel('CU-8 shape measure', fontsize=16)
 
     fig.tight_layout()
