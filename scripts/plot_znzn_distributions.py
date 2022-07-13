@@ -78,11 +78,13 @@ def main():
         xtal_pairs = get_pairwise_dists(xtal_structure)
         print(xtal_pairs)
 
+        xmin = 9
+        xmax = 16.5
         fig, ax = plt.subplots(figsize=(8, 3))
         ax.hist(
             meta_pairs,
-            bins=np.arange(8, 30, 0.25),
-            density=True,
+            bins=np.arange(xmin, xmax, 0.2),
+            density=False,
             color='k',
             alpha=1.0,
             histtype='step',
@@ -91,9 +93,9 @@ def main():
         )
         ax.hist(
             xtal_pairs,
-            bins=np.arange(8, 30, 0.25),
-            density=True,
-            color='r',
+            bins=np.arange(xmin, xmax, 0.2),
+            density=False,
+            color='#e71989',
             alpha=1.0,
             histtype='step',
             lw=2,
@@ -101,7 +103,7 @@ def main():
         )
         ax.tick_params(axis='both', which='major', labelsize=16)
         ax.set_xlabel(r'distance [$\mathrm{\AA}$]', fontsize=16)
-        ax.set_ylabel('frequency', fontsize=16)
+        ax.set_ylabel('count', fontsize=16)
         fig.legend(fontsize=16)
 
         fig.tight_layout()
