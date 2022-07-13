@@ -672,7 +672,7 @@ def heatmap(
     vmax,
 ):
 
-    faces = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii']
+    faces = ['i', 'ii', 'iii', 'iv', 'v']  # , 'vi', 'vii']
     _expt_lig_data = {
         'quad2_12': 'ii',
         'quad2_8': 'iii',
