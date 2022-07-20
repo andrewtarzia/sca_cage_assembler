@@ -17,7 +17,6 @@ import sys
 import matplotlib.pyplot as plt
 
 
-
 def distribution_plot(df, col_name, sets_to_plot):
     _figure_path = 'figures'
 
@@ -212,12 +211,68 @@ def plot_set_energies(data, filename, sets_to_plot):
     )
 
     ax.tick_params(axis='both', which='major', labelsize=16)
-    ax.set_xlabel('ligand', fontsize=16)
+    ax.set_xlabel('subcomponent', fontsize=16)
     ax.set_ylabel(r'rel. energy [kJmol$^{-1}$]', fontsize=16)
     # ax.set_xlim((0, 1))
     ax.set_ylim(-0.1, None)
     ax.set_xticks([i[0] for i in _x_names])
     ax.set_xticklabels([i[1] for i in _x_names])
+
+    fig.tight_layout()
+    fig.savefig(
+        filename,
+        dpi=720,
+        bbox_inches='tight'
+    )
+    plt.close()
+
+
+def plot_set_parities(dftdata, xtbdata, filename, sets_to_plot):
+
+    fig, ax = plt.subplots(figsize=(5, 5))
+
+    for cageset in sets_to_plot:
+        if cageset != 'cl1_quad2_12':
+            continue
+        xtb_set_values = xtbdata[cageset]
+        dft_set_values = dftdata[cageset]
+
+        all_energies = []
+        for i in xtb_set_values:
+            if xtb_set_values[i][1] is True:
+                formed_pair = (
+                    (xtb_set_values[i][0], dft_set_values[i][0])
+                )
+            all_energies.append(
+                (xtb_set_values[i][0], dft_set_values[i][0])
+            )
+
+        minx_energy = min([i[0] for i in all_energies])
+        miny_energy = min([i[1] for i in all_energies])
+        ax.scatter(
+            x=[
+                (i[0]-minx_energy)*2625.5 for i in all_energies
+            ],
+            y=[
+                (i[1]-miny_energy)*2625.5 for i in all_energies
+            ],
+            c='gray',
+            s=40,
+            alpha=0.5,
+        )
+        ax.scatter(
+            x=[(formed_pair[0]-minx_energy)*2625.5],
+            y=[(formed_pair[1]-miny_energy)*2625.5],
+            c='gold',
+            edgecolors='k',
+            s=180,
+        )
+
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.set_xlabel(r'rel. GFN2-xTB energy [kJmol$^{-1}$]', fontsize=16)
+    ax.set_ylabel(r'rel. DFT energy [kJmol$^{-1}$]', fontsize=16)
+    ax.set_xlim(0, 600)
+    ax.set_ylim(0, 600)
 
     fig.tight_layout()
     fig.savefig(
@@ -248,13 +303,13 @@ def main():
 
     # Define sets.
     sets_to_plot = {
-        'cl1_quad2_5': '1',
-        'cl1_quad2_16': '2',
-        'cl1_quad2_12': '3',
-        'cl1_quad2_3': '4',
-        'cl1_quad2_8': '5',
-        'cl1_quad2_2': '6',
-        'cl1_quad2_1': '7',
+        'cl1_quad2_5': 'A',
+        'cl1_quad2_16': 'B',
+        'cl1_quad2_12': 'C',
+        'cl1_quad2_3': 'D',
+        'cl1_quad2_8': 'E',
+        'cl1_quad2_2': 'F',
+        'cl1_quad2_1': 'G',
     }
     target_cols = [
         'octop', 'rellsesum', 'minitors', 'lsesum',
@@ -269,14 +324,17 @@ def main():
             sets_to_plot=sets_to_plot,
         )
 
-    # Get total energies from GFN.
+
     set_gfn_energies = {i: {} for i in sets_to_plot}
+    set_dft_energies = {i: {} for i in sets_to_plot}
     for i, row in all_cage_properties.iterrows():
         setname = row['cageset']
         if setname not in sets_to_plot:
             continue
         symm = row['symmetry']
         forms = True if row['outcome'] == 1 else False
+
+        # Get total energies from GFN.
         ey_file = f'C_{setname}_{symm}_optc.ey'
         if not os.path.exists(ey_file):
             print(ey_file, 'missing')
@@ -286,7 +344,23 @@ def main():
         total_energy = float(lines[0].rstrip())
         set_gfn_energies[setname][symm] = (total_energy, forms)
 
-    # Get total energies from DFT.
+        # Get total energies from DFT.
+        ey_file = os.path.join(
+            'set_dft_run', f'C_{setname}_{symm}_optc_opt.out'
+        )
+        if not os.path.exists(ey_file):
+            print(ey_file, 'missing')
+            continue
+        with open(ey_file, 'r') as f:
+            for line in f.readlines():
+                if (
+                    'ENERGY| Total FORCE_EVAL ( QS ) energy [a.u.]:'
+                ) in line:
+                    energy_line = line
+                    break
+
+        total_energy = float(energy_line.strip().split()[-1])
+        set_dft_energies[setname][symm] = (total_energy, forms)
 
     # Plot relative energy cf. more stable symmetry of expt symmetry.
     plot_set_energies(
@@ -294,12 +368,15 @@ def main():
         filename=os.path.join(_figure_path, 'set_energies_xtb.pdf'),
         sets_to_plot=sets_to_plot,
     )
-    raise SystemExit('waiting on DFT')
-    plot_set_energies(
-        data=set_dft_energies,
-        filename='set_energies_dft.pdf',
+    print(set_gfn_energies)
+    print('---')
+    plot_set_parities(
+        dftdata=set_dft_energies,
+        xtbdata=set_gfn_energies,
+        filename=os.path.join(_figure_path, 'set_energies_dft.pdf'),
         sets_to_plot=sets_to_plot,
     )
+    print(set_dft_energies)
 
 
 if __name__ == "__main__":

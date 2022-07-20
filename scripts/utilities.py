@@ -1348,37 +1348,48 @@ def calculate_interior_face_angles(mol, metal_atom_ids, face_sets):
 def convert_symm_names(symm_name):
 
     new_names = {
-        'd2': r'D$_2$',
-        'th1': r'T$_{h, 1}$',
-        'th2': r'T$_{h, 2}$',
-        'td': r'T$_{\Delta}$',
-        'tl': r'T$_{\Lambda}$',
-        's41': r'S$_{4, 1}$',
-        's42': r'S$_{4, 2}$',
-        's61': r'S$_{6, 1}$',
-        's62': r'S$_{6, 2}$',
-        'd31': r'D$_{3, 1}$',
-        'd32': r'D$_{3, 2}$',
-        'd31n': r'D$_{3, 1n}$',
-        'd32n': r'D$_{3, 2n}$',
-        'c2v': r'C$_{2h}$',
-        'c2h': r'C$_{2v}$',
+        'd2': r'\textit{D}$_2$',
+        'th1': r'\textit{T}$_h$1',
+        'th2': r'\textit{T}$_h$2',
+        'td': r'\textit{T}$_{\Delta}$',
+        'tl': r'\textit{T}$_{\Lambda}$',
+        's41': r'\textit{S}$_4$1',
+        's42': r'\textit{S}$_4$2',
+        's61': r'\textit{S}$_6$1',
+        's62': r'\textit{S}$_6$2',
+        'd31': r'\textit{D}$_3$1',
+        'd32': r'\textit{D}$_3$2',
+        'd31n': r'\textit{D}$_3$1n',
+        'd32n': r'\textit{D}$_3$2n',
+        'c2v': r'\textit{C}$_{2h}$',
+        'c2h': r'\textit{C}$_{2v}$',
     }
 
     return new_names[symm_name]
 
 
-def convert_lig_names_from_cage(lig_name):
+def convert_lig_names_from_cage(lig_name, as_int=False):
 
-    new_names = {
-        'quad2_1': '7',
-        'quad2_12': '3',
-        'quad2_2': '6',
-        'quad2_5': '1',
-        'quad2_16': '2',
-        'quad2_3': '4',
-        'quad2_8': '5',
-    }
+    if as_int:
+        new_names = {
+            'quad2_5': 1,
+            'quad2_16': 2,
+            'quad2_12': 3,
+            'quad2_3': 4,
+            'quad2_8': 5,
+            'quad2_2': 6,
+            'quad2_1': 7,
+        }
+    else:
+        new_names = {
+            'quad2_5': 'A',  # '1',
+            'quad2_16': 'B',  # '2',
+            'quad2_12': 'C',  # '3',
+            'quad2_3': 'D',  # '4',
+            'quad2_8': 'E',  # '5',
+            'quad2_2': 'F',  # '6',
+            'quad2_1': 'G',  # '7',
+        }
 
     return new_names[lig_name]
 
