@@ -211,7 +211,7 @@ def plot_set_energies(data, filename, sets_to_plot):
     )
 
     ax.tick_params(axis='both', which='major', labelsize=16)
-    ax.set_xlabel('subcomponent', fontsize=16)
+    ax.set_xlabel('tetra-aniline', fontsize=16)
     ax.set_ylabel(r'rel. energy [kJmol$^{-1}$]', fontsize=16)
     # ax.set_xlim((0, 1))
     ax.set_ylim(-0.1, None)
