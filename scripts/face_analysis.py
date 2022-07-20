@@ -17,6 +17,7 @@ from os.path import exists, join
 import matplotlib.pyplot as plt
 from glob import glob
 import numpy as np
+from scipy.fftpack import diff
 
 import stk
 import stko
@@ -41,19 +42,19 @@ def load_complex(filename):
     # Need to define more than one placer id for complexes to ensure
     # alignment -- use the NCCN plane (attached to the Br) to define
     # the orientation of the complex.
-    complex = stk.BuildingBlock.init_from_file(
+    metal_complex = stk.BuildingBlock.init_from_file(
         filename,
         functional_groups=[fgfactory]
     )
 
-    return name, complex
+    return name, metal_complex
 
 
-def optimize_complex(complex, name):
+def optimize_complex(metal_complex, name):
 
     opt_name = f'{name}_opt.mol'
     if exists(opt_name):
-        return complex.with_structure_from_file(opt_name)
+        return metal_complex.with_structure_from_file(opt_name)
     else:
         print(f'doing UFF4MOF optimisation for {name}')
         gulp_opt = stko.GulpUFFOptimizer(
@@ -61,9 +62,9 @@ def optimize_complex(complex, name):
             metal_FF=metal_FFs(CN=6),
             output_dir=f'{name}_uff1'
         )
-        gulp_opt.assign_FF(complex)
-        complex = gulp_opt.optimize(mol=complex)
-        complex.write(f'{name}_uff1.mol')
+        gulp_opt.assign_FF(metal_complex)
+        metal_complex = gulp_opt.optimize(mol=metal_complex)
+        metal_complex.write(f'{name}_uff1.mol')
 
         print(f'doing xTB optimisation for {name}')
         xtb_opt = stko.XTB(
@@ -78,8 +79,9 @@ def optimize_complex(complex, name):
             calculate_hessian=False,
             unlimited_memory=True
         )
-        complex = xtb_opt.optimize(mol=complex)
-        complex.write(f'{name}_opt.mol')
+        metal_complex = xtb_opt.optimize(mol=metal_complex)
+        metal_complex.write(f'{name}_opt.mol')
+        return metal_complex
 
 
 def load_ligands(directory):
@@ -231,7 +233,7 @@ def get_all_bond_lengths(face):
     return all_bls
 
 
-def calculate_face_properties(face, paths):
+def calculate_face_properties(face, paths, face_type):
     """
     Calculate geometrical properties of a face.
 
@@ -244,23 +246,21 @@ def calculate_face_properties(face, paths):
     }
     for path in paths:
         path_atom_ids = paths[path]
-        # Get mismatches.
-        path1a = (path_atom_ids[1], path_atom_ids[0])
-        path1b = (path_atom_ids[-1], path_atom_ids[0])
-        path2a = (path_atom_ids[1], path_atom_ids[2])
-        path2b = (path_atom_ids[-1], path_atom_ids[2])
-        p1a_d = get_atom_distance(face, path1a[0], path1a[1])
-        p1b_d = get_atom_distance(face, path1b[0], path1b[1])
-        p2a_d = get_atom_distance(face, path2a[0], path2a[1])
-        p2b_d = get_atom_distance(face, path2b[0], path2b[1])
-        mismatch1 = (abs(p1a_d-p1b_d)/max([p1a_d, p1b_d])) * 100
-        mismatch2 = (abs(p2a_d-p2b_d)/max([p2a_d, p2b_d])) * 100
-        difference1 = abs(p1a_d-p1b_d)
-        difference2 = abs(p2a_d-p2b_d)
+        mismatch_values = calculate_path_mismatch(
+            face=face,
+            path_ids=path_atom_ids,
+            face_type=face_type,
+        )
 
         properties[path] = {
-            'mms': (mismatch1, mismatch2),
-            'dif': (difference1, difference2),
+            'mms': (
+                mismatch_values['mismatch1'],
+                mismatch_values['mismatch2'],
+            ),
+            'dif': (
+                mismatch_values['difference1'],
+                mismatch_values['difference2'],
+            ),
         }
 
     return properties
@@ -285,7 +285,81 @@ def show_long_axis(face, face_name):
         f.write(string)
 
 
-def visualise_face(face, face_name, paths):
+def calculate_path_mismatch(face, path_ids, face_type):
+    if face_type == 'v':
+        path1a = (path_ids[2], path_ids[1])
+        path1b = (path_ids[0], path_ids[1])
+        path2a = (path_ids[2], path_ids[-1])
+        path2b = (path_ids[0], path_ids[-1])
+    else:
+        path1a = (path_ids[1], path_ids[0])
+        path1b = (path_ids[-1], path_ids[0])
+        path2a = (path_ids[1], path_ids[2])
+        path2b = (path_ids[-1], path_ids[2])
+    p1a_d = get_atom_distance(face, path1a[0], path1a[1])
+    p1b_d = get_atom_distance(face, path1b[0], path1b[1])
+    p2a_d = get_atom_distance(face, path2a[0], path2a[1])
+    p2b_d = get_atom_distance(face, path2b[0], path2b[1])
+    mismatch1 = (abs(p1a_d-p1b_d)/max([p1a_d, p1b_d])) * 100
+    mismatch2 = (abs(p2a_d-p2b_d)/max([p2a_d, p2b_d])) * 100
+    difference1 = abs(p1a_d-p1b_d)
+    difference2 = abs(p2a_d-p2b_d)
+
+    xys = (
+        (
+            (
+                # X coordinates of vector 1, 2.
+                tuple(face.get_atomic_positions(path1a[0]))[0][0],
+                tuple(face.get_atomic_positions(path1a[1]))[0][0],
+                tuple(face.get_atomic_positions(path1b[0]))[0][0],
+                tuple(face.get_atomic_positions(path1b[1]))[0][0],
+            ),
+            (
+                # Y coordinates of vector 1, 2.
+                tuple(face.get_atomic_positions(path1a[0]))[0][1],
+                tuple(face.get_atomic_positions(path1a[1]))[0][1],
+                tuple(face.get_atomic_positions(path1b[0]))[0][1],
+                tuple(face.get_atomic_positions(path1b[1]))[0][1],
+            ),
+            'r',
+        ),
+        (
+            (
+                # X coordinates of vector 3, 4.
+                tuple(face.get_atomic_positions(path2a[0]))[0][0],
+                tuple(face.get_atomic_positions(path2a[1]))[0][0],
+                tuple(face.get_atomic_positions(path2b[0]))[0][0],
+                tuple(face.get_atomic_positions(path2b[1]))[0][0],
+            ),
+            (
+                # Y coordinates of vector 3, 4.
+                tuple(face.get_atomic_positions(path2a[0]))[0][1],
+                tuple(face.get_atomic_positions(path2a[1]))[0][1],
+                tuple(face.get_atomic_positions(path2b[0]))[0][1],
+                tuple(face.get_atomic_positions(path2b[1]))[0][1],
+            ),
+            'skyblue',
+        ),
+    )
+
+    return {
+        'path1a': path1a,
+        'path1b': path1b,
+        'path2a': path2a,
+        'path2b': path2b,
+        'p1a_d': p1a_d,
+        'p1b_d': p1b_d,
+        'p2a_d': p2a_d,
+        'p2b_d': p2b_d,
+        'mismatch1': mismatch1,
+        'mismatch2': mismatch2,
+        'difference1': difference1,
+        'difference2': difference2,
+        'xys': xys,
+    }
+
+
+def visualise_face(face, face_name, face_type, paths):
     """
     Plot a visualisation of the face.
 
@@ -304,39 +378,33 @@ def visualise_face(face, face_name, paths):
     ymin = 100
     ymax = -100
     for path in paths:
+        if path != 'metals':
+            continue
         path_atom_ids = paths[path]
         # Get mismatches.
-        path1a = (path_atom_ids[1], path_atom_ids[0])
-        path1b = (path_atom_ids[-1], path_atom_ids[0])
-        path2a = (path_atom_ids[1], path_atom_ids[2])
-        path2b = (path_atom_ids[-1], path_atom_ids[2])
-        p1a_d = get_atom_distance(face, path1a[0], path1a[1])
-        p1b_d = get_atom_distance(face, path1b[0], path1b[1])
-        p2a_d = get_atom_distance(face, path2a[0], path2a[1])
-        p2b_d = get_atom_distance(face, path2b[0], path2b[1])
-        mismatch1 = (abs(p1a_d-p1b_d)/max([p1a_d, p1b_d])) * 100
-        mismatch2 = (abs(p2a_d-p2b_d)/max([p2a_d, p2b_d])) * 100
-        difference1 = abs(p1a_d-p1b_d)
-        difference2 = abs(p2a_d-p2b_d)
+        mismatch_values = calculate_path_mismatch(
+            face=face,
+            path_ids=path_atom_ids,
+            face_type=face_type,
+        )
 
         string += (
-            f'{path}: ({round(p1a_d, 2)}, {round(p1b_d, 2)}), '
-            f'({round(p2a_d, 2)}, {round(p2b_d, 2)}) '
-            f'AR: {round(mismatch1, 2)}%, {round(mismatch2, 2)}%'
-            f'AB: {round(difference1, 2)}A, {round(difference2, 2)}A\n'
+            f"{path}: ({round(mismatch_values['p1a_d'], 2)}, "
+            f"{round(mismatch_values['p1b_d'], 2)}), "
+            f"({round(mismatch_values['p2a_d'], 2)}, "
+            f"{round(mismatch_values['p2b_d'], 2)}) "
+            f"AR: {round(mismatch_values['mismatch1'], 2)}%, "
+            f"{round(mismatch_values['mismatch2'], 2)}% "
+            f"AB: {round(mismatch_values['difference1'], 2)}A, "
+            f"{round(mismatch_values['difference2'], 2)}A\n"
         )
 
         # Plot paths.
-        for pp in [path1a, path1b, path2a, path2b]:
-            pos1 = tuple(face.get_atomic_positions(pp[0]))[0]
-            pos2 = tuple(face.get_atomic_positions(pp[1]))[0]
-            x1 = pos1[0]
-            y1 = pos1[1]
-            x2 = pos2[0]
-            y2 = pos2[1]
+        for xys in mismatch_values['xys']:
+
             ax.plot(
-                [x1, x2], [y1, y2],
-                c=plot_properties[path]['c'],
+                xys[0], xys[1],
+                c=xys[2],
                 lw=2
             )
         # Plot atom positions.
@@ -368,14 +436,14 @@ def visualise_face(face, face_name, paths):
     plt.close()
 
 
-def get_face_properties(face, face_name, paths):
+def get_face_properties(face, face_name, face_type, paths):
 
     json_file = f'{face_name}_properties.json'
     if exists(json_file):
         with open(json_file, 'r') as f:
             data = json.load(f)
     else:
-        data = calculate_face_properties(face, paths)
+        data = calculate_face_properties(face, paths, face_type)
         with open(json_file, 'w') as f:
             json.dump(data, f)
 
@@ -828,11 +896,11 @@ def main():
             paths = get_paths(opt_face, face_name)
 
             # For visualisation.
-            visualise_face(opt_face, face_name, paths)
+            visualise_face(opt_face, face_name, face_t, paths)
 
             # Measure properties.
             face_properties = get_face_properties(
-                opt_face, face_name, paths
+                opt_face, face_name, face_t, paths
             )
             print(
                 f":: {face_name}: "
@@ -859,7 +927,7 @@ def main():
 
             # Measure properties.
             long_face_properties = get_face_properties(
-                long_opt_face, long_face_name, paths
+                long_opt_face, long_face_name, face_t, paths
             )
             print(
                 f":: {long_face_name}: "
