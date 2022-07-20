@@ -147,7 +147,7 @@ def main():
                 points[simplex, 0],
                 points[simplex, 1],
                 c=all_e_vs_x[symm]['c'],
-                lw=1,
+                lw=2,
                 alpha=1.0,
                 label=label,
             )
@@ -155,11 +155,11 @@ def main():
     ax.scatter(
         forms_x,
         forms_ye,
-        c='none',
+        c='k',
         edgecolors='k',
         marker='o',
         alpha=1.0,
-        s=120,
+        s=80,
         rasterized=True,
         label='forms',
     )
@@ -168,10 +168,10 @@ def main():
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_xlabel('CU-8 cube measure', fontsize=16)
     ax.set_ylabel(
-        r'rel. sum strain energy [kJmol$^{-1}$]',
+        r'rel. sum strain energy [kJ mol$^{-1}$]',
         fontsize=16,
     )
-    ax.set_xlim((-0.1, 2))
+    # ax.set_xlim((-0.1, 5))
     # ax.set_ylim(yprops[col_name][1])
     ax.legend(fontsize=16, ncol=3)
 

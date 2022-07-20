@@ -16,6 +16,8 @@ import os
 import sys
 import matplotlib.pyplot as plt
 
+from utilities import convert_symm_names
+
 
 
 def distribution_plot(df, col_name):
@@ -62,23 +64,7 @@ def distribution_plot(df, col_name):
         ),
     }
 
-    symm_labels = {
-        'd2': r'D$_2$',
-        'th1': r'T$_{h, 1}$',
-        'th2': r'T$_{h, 2}$',
-        'td': r'T$_{\Delta}$',
-        'tl': r'T$_{\Lambda}$',
-        's41': r'S$_{4, 1}$',
-        's42': r'S$_{4, 2}$',
-        's61': r'S$_{6, 1}$',
-        's62': r'S$_{6, 2}$',
-        'd31': r'D$_{3, 1}$',
-        'd32': r'D$_{3, 2}$',
-        'd31n': r'D$_{3, 1n}$',
-        'd32n': r'D$_{3, 2n}$',
-        'c2v': r'C$_{2h}$',
-        'c2h': r'C$_{2v}$',
-    }
+    symm_labels = convert_symm_names()
 
     fig, ax = plt.subplots(figsize=(8, 5))
 

@@ -1345,27 +1345,29 @@ def calculate_interior_face_angles(mol, metal_atom_ids, face_sets):
     return cube_angles
 
 
-def convert_symm_names(symm_name):
+def convert_symm_names(symm_name=None):
 
     new_names = {
-        'd2': r'\textit{D}$_2$',
-        'th1': r'\textit{T}$_h$1',
-        'th2': r'\textit{T}$_h$2',
-        'td': r'\textit{T}$_{\Delta}$',
-        'tl': r'\textit{T}$_{\Lambda}$',
-        's41': r'\textit{S}$_4$1',
-        's42': r'\textit{S}$_4$2',
-        's61': r'\textit{S}$_6$1',
-        's62': r'\textit{S}$_6$2',
-        'd31': r'\textit{D}$_3$1',
-        'd32': r'\textit{D}$_3$2',
-        'd31n': r'\textit{D}$_3$1n',
-        'd32n': r'\textit{D}$_3$2n',
-        'c2v': r'\textit{C}$_{2h}$',
-        'c2h': r'\textit{C}$_{2v}$',
+        'd2': r'$D_\mathrm{2}$',
+        'th1': r'$T_\mathrm{h}$1',
+        'th2': r'$T_\mathrm{h}$2',
+        'td': r'$T_\mathrm{\Delta}$',
+        'tl': r'$T_\mathrm{\Lambda}$',
+        's41': r'$S_\mathrm{4}$1',
+        's42': r'$S_\mathrm{4}$2',
+        's61': r'$S_\mathrm{6}$1',
+        's62': r'$S_\mathrm{6}$2',
+        'd31': r'$D_\mathrm{3}$1',
+        'd32': r'$D_\mathrm{3}$2',
+        'd31n': r'$D_\mathrm{3}$1n',
+        'd32n': r'$D_\mathrm{3}$2n',
+        'c2v': r'$C_\mathrm{2h}$',
+        'c2h': r'$C_\mathrm{2v}$',
     }
-
-    return new_names[symm_name]
+    if symm_name is None:
+        return new_names
+    else:
+        return new_names[symm_name]
 
 
 def convert_lig_names_from_cage(lig_name, as_int=False):
