@@ -146,9 +146,8 @@ def plot_values(C_data, Br_data, N_data, output_name):
         cars.append(C_data[lig])
         brars.append(Br_data[lig])
         nars.append(N_data[lig])
-        name = convert_lig_names_from_cage(lig)
-        names.append(name)
-        positions.append(int(name))
+        names.append(convert_lig_names_from_cage(lig))
+        positions.append(convert_lig_names_from_cage(lig, as_int=True))
 
     # if 'ABs' not in output_name:
     #     ax.scatter(
@@ -182,7 +181,7 @@ def plot_values(C_data, Br_data, N_data, output_name):
     )
 
     ax.tick_params(axis='both', which='major', labelsize=16)
-    ax.set_xlabel('ligand name', fontsize=16)
+    ax.set_xlabel('subcomponent', fontsize=16)
     ax.set_xlim(0.0, max(positions)+1)
     if 'ARs' in output_name:
         ax.set_ylabel('aspect ratio [1:X]', fontsize=16)
@@ -192,7 +191,7 @@ def plot_values(C_data, Br_data, N_data, output_name):
         ax.set_ylim(0.0, 8)
     ax.set_xticks(positions)
     ax.set_xticklabels(names)
-    ax.legend(fontsize=16, ncol=3)
+    # ax.legend(fontsize=16, ncol=3)
     fig.savefig(
         output_name,
         dpi=720,
