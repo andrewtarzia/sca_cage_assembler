@@ -188,7 +188,7 @@ class CageSet:
             )
             with open(face_prop_file, 'r') as f:
                 data = json.load(f)
-            properties[face_type] = np.average(data['metals']['dif'])
+            properties[face_type] = data['metals']['dif']
 
         return properties
 
@@ -219,7 +219,7 @@ class CageSet:
             )
             with open(face_prop_file, 'r') as f:
                 data = json.load(f)
-            properties[face_type] = np.average(data['metals']['dif'])
+            properties[face_type] = data['metals']['dif']
 
         return properties
 

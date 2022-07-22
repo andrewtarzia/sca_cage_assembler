@@ -254,10 +254,22 @@ def calculate_face_properties(face, paths, face_type):
         properties[path] = {
             'mms': (
                 mismatch_values['mismatch1'],
+                mismatch_values['mismatch2'],
             ),
             'dif': (
                 mismatch_values['difference1'],
+                mismatch_values['difference2'],
             ),
+            'distances': {
+                'path1': (
+                    mismatch_values['p1a_d'],
+                    mismatch_values['p1b_d'],
+                ),
+                'path2': (
+                    mismatch_values['p2a_d'],
+                    mismatch_values['p2b_d'],
+                ),
+            },
         }
 
     return properties
@@ -284,35 +296,49 @@ def show_long_axis(face, face_name):
 
 def calculate_path_mismatch(face, path_ids, face_type):
     if face_type == 'i':
-        path1a = (path_ids[2], path_ids[-1])
-        path1b = (path_ids[-1], path_ids[0])
+        path1a = (path_ids[2], path_ids[3])
+        path1b = (path_ids[3], path_ids[0])
+        path2a = (path_ids[0], path_ids[1])
+        path2b = (path_ids[1], path_ids[2])
     elif face_type == 'ii':
-        path1a = (path_ids[2], path_ids[-1])
-        path1b = (path_ids[-1], path_ids[0])
+        path1a = (path_ids[2], path_ids[3])
+        path1b = (path_ids[3], path_ids[0])
+        path2a = (path_ids[0], path_ids[1])
+        path2b = (path_ids[1], path_ids[2])
     elif face_type == 'iii':
-        path1a = (path_ids[2], path_ids[-1])
-        path1b = (path_ids[-1], path_ids[0])
+        path1a = (path_ids[3], path_ids[0])
+        path1b = (path_ids[1], path_ids[0])
+        path2a = (path_ids[2], path_ids[3])
+        path2b = (path_ids[1], path_ids[2])
     elif face_type == 'iv':
-        path1a = (path_ids[2], path_ids[-1])
-        path1b = (path_ids[-1], path_ids[0])
+        path1a = (path_ids[2], path_ids[3])
+        path1b = (path_ids[3], path_ids[0])
+        path2a = (path_ids[0], path_ids[1])
+        path2b = (path_ids[1], path_ids[2])
     elif face_type == 'v':
-        path1a = (path_ids[2], path_ids[1])
-        path1b = (path_ids[0], path_ids[1])
+        path1a = (path_ids[0], path_ids[1])
+        path1b = (path_ids[1], path_ids[2])
+        path2a = (path_ids[2], path_ids[3])
+        path2b = (path_ids[3], path_ids[0])
     elif face_type == 'vi':
         path1a = (path_ids[1], path_ids[2])
-        path1b = (path_ids[-1], path_ids[0])
+        path1b = (path_ids[3], path_ids[0])
+        path2a = (path_ids[2], path_ids[3])
+        path2b = (path_ids[0], path_ids[1])
     elif face_type == 'vii':
-        path1a = (path_ids[2], path_ids[-1])
+        path1a = (path_ids[2], path_ids[3])
         path1b = (path_ids[0], path_ids[1])
+        path2a = (path_ids[0], path_ids[3])
+        path2b = (path_ids[2], path_ids[1])
 
     p1a_d = get_atom_distance(face, path1a[0], path1a[1])
     p1b_d = get_atom_distance(face, path1b[0], path1b[1])
-    # p2a_d = get_atom_distance(face, path2a[0], path2a[1])
-    # p2b_d = get_atom_distance(face, path2b[0], path2b[1])
+    p2a_d = get_atom_distance(face, path2a[0], path2a[1])
+    p2b_d = get_atom_distance(face, path2b[0], path2b[1])
     mismatch1 = (abs(p1a_d-p1b_d)/max([p1a_d, p1b_d])) * 100
-    # mismatch2 = (abs(p2a_d-p2b_d)/max([p2a_d, p2b_d])) * 100
+    mismatch2 = (abs(p2a_d-p2b_d)/max([p2a_d, p2b_d])) * 100
     difference1 = abs(p1a_d-p1b_d)
-    # difference2 = abs(p2a_d-p2b_d)
+    difference2 = abs(p2a_d-p2b_d)
 
     xys = (
         (
@@ -328,7 +354,7 @@ def calculate_path_mismatch(face, path_ids, face_type):
                 tuple(face.get_atomic_positions(path1a[1]))[0][1],
 
             ),
-            'r',
+            'r', '-',
         ),
         (
             (
@@ -341,23 +367,51 @@ def calculate_path_mismatch(face, path_ids, face_type):
                 tuple(face.get_atomic_positions(path1b[0]))[0][1],
                 tuple(face.get_atomic_positions(path1b[1]))[0][1],
             ),
-            'skyblue',
+            'skyblue', '-',
+        ),
+        (
+            (
+                # X coordinates of vector 1.
+                tuple(face.get_atomic_positions(path2a[0]))[0][0],
+                tuple(face.get_atomic_positions(path2a[1]))[0][0],
+
+            ),
+            (
+                # Y coordinates of vector 1.
+                tuple(face.get_atomic_positions(path2a[0]))[0][1],
+                tuple(face.get_atomic_positions(path2a[1]))[0][1],
+
+            ),
+            'orange', '--',
+        ),
+        (
+            (
+                # X coordinates of vector 2.
+                tuple(face.get_atomic_positions(path2b[0]))[0][0],
+                tuple(face.get_atomic_positions(path2b[1]))[0][0],
+            ),
+            (
+                # Y coordinates of vector 2.
+                tuple(face.get_atomic_positions(path2b[0]))[0][1],
+                tuple(face.get_atomic_positions(path2b[1]))[0][1],
+            ),
+            'green', '--',
         ),
     )
 
     return {
         'path1a': path1a,
         'path1b': path1b,
-        # 'path2a': path2a,
-        # 'path2b': path2b,
+        'path2a': path2a,
+        'path2b': path2b,
         'p1a_d': p1a_d,
         'p1b_d': p1b_d,
-        # 'p2a_d': p2a_d,
-        # 'p2b_d': p2b_d,
+        'p2a_d': p2a_d,
+        'p2b_d': p2b_d,
         'mismatch1': mismatch1,
-        # 'mismatch2': mismatch2,
+        'mismatch2': mismatch2,
         'difference1': difference1,
-        # 'difference2': difference2,
+        'difference2': difference2,
         'xys': xys,
     }
 
@@ -394,12 +448,12 @@ def visualise_face(face, face_name, face_type, paths):
         string += (
             f"{path}: ({round(mismatch_values['p1a_d'], 2)}, "
             f"{round(mismatch_values['p1b_d'], 2)}), "
-            # f"({round(mismatch_values['p2a_d'], 2)}, "
-            # f"{round(mismatch_values['p2b_d'], 2)}) "
+            f"({round(mismatch_values['p2a_d'], 2)}, "
+            f"{round(mismatch_values['p2b_d'], 2)}) "
             f"AR: {round(mismatch_values['mismatch1'], 2)}%, "
-            # f"{round(mismatch_values['mismatch2'], 2)}% "
+            f"{round(mismatch_values['mismatch2'], 2)}% "
             f"AB: {round(mismatch_values['difference1'], 2)}A, "
-            # f"{round(mismatch_values['difference2'], 2)}A\n"
+            f"{round(mismatch_values['difference2'], 2)}A\n"
         )
 
         # Plot paths.
@@ -408,6 +462,7 @@ def visualise_face(face, face_name, face_type, paths):
                 xys[0], xys[1],
                 c=xys[2],
                 lw=2,
+                linestyle=xys[3],
             )
         # Plot atom positions.
         for i in face.get_atomic_positions(path_atom_ids):
@@ -474,7 +529,7 @@ def plot_face_mismatches(data, name, types='metals'):
 
     for face in data:
         m1[face] = data[face][types]['mms'][0]
-        # m2[face] = data[face][types]['mms'][1]
+        m2[face] = data[face][types]['mms'][1]
         # avg[face] = np.average(data[face][types]['mms'])
         # diff[face] = abs(
         #     data[face][types]['mms'][0] - data[face][types]['mms'][1]
@@ -497,21 +552,21 @@ def plot_face_mismatches(data, name, types='metals'):
         marker='o',
         alpha=1.0,
         # label='corner 1',
-        label=r'$M_\mathrm{F}$',
+        # label=r'$M_\mathrm{F}$',
     )
 
-    # ax.scatter(
-    #     x=[face_convert(i)+0.1 for i in m2],
-    #     y=[m2[i] for i in m2],
-    #     # width=width,
-    #     facecolor='grey',
-    #     # edgecolor='k',
-    #     # linewidth=2,
-    #     s=80,
-    #     marker='o',
-    #     alpha=0.6,
-    #     label=r'$M_\mathrm{F}$',
-    # )
+    ax.scatter(
+        x=[face_convert(i)+0.1 for i in m2],
+        y=[m2[i] for i in m2],
+        # width=width,
+        facecolor='gold',
+        edgecolor='k',
+        # linewidth=2,
+        s=80,
+        marker='o',
+        alpha=1.0,
+        label=r'$M_\mathrm{F}$',
+    )
 
     # ax.plot(
     #     [face_convert(i) for i in avg],
@@ -546,7 +601,7 @@ def plot_face_mismatches(data, name, types='metals'):
     # Set number of ticks for x-axis
     ax.set_xticks(x_ticks)
     ax.set_xticklabels(x_ticklabels)
-    # ax.legend(fontsize=16)
+    ax.legend(fontsize=16)
 
     fig.tight_layout()
     if types == 'metals':
@@ -573,7 +628,7 @@ def plot_face_differences(data, name, types='metals'):
 
     for face in data:
         m1[face] = data[face][types]['dif'][0]
-        # m2[face] = data[face][types]['dif'][1]
+        m2[face] = data[face][types]['dif'][1]
         # avg[face] = np.average(data[face][types]['dif'])
         # diff[face] = abs(
         #     data[face][types]['dif'][0] - data[face][types]['dif'][1]
@@ -598,18 +653,18 @@ def plot_face_differences(data, name, types='metals'):
         # label='corner 1',
     )
 
-    # ax.scatter(
-    #     x=[face_convert(i)+0.1 for i in m2],
-    #     y=[m2[i] for i in m2],
-    #     # width=width,
-    #     facecolor='grey',
-    #     # edgecolor='k',
-    #     # linewidth=2,
-    #     s=80,
-    #     marker='o',
-    #     alpha=0.6,
-    #     label=r'$D_\mathrm{F}$',
-    # )
+    ax.scatter(
+        x=[face_convert(i)+0.1 for i in m2],
+        y=[m2[i] for i in m2],
+        # width=width,
+        facecolor='gold',
+        edgecolor='k',
+        # linewidth=2,
+        s=80,
+        marker='o',
+        alpha=1.0,
+        label=r'$D_\mathrm{F}$',
+    )
 
     # ax.plot(
     #     [face_convert(i) for i in avg],
@@ -644,7 +699,7 @@ def plot_face_differences(data, name, types='metals'):
     # Set number of ticks for x-axis
     ax.set_xticks(x_ticks)
     ax.set_xticklabels(x_ticklabels)
-    # ax.legend(fontsize=16)
+    ax.legend(fontsize=16)
 
     fig.tight_layout()
     if types == 'metals':
@@ -898,9 +953,6 @@ def main():
             # Get the paths to use in visualisation and calculation.
             paths = get_paths(opt_face, face_name)
 
-            # For visualisation.
-            visualise_face(opt_face, face_name, face_t, paths)
-
             # Measure properties.
             face_properties = get_face_properties(
                 opt_face, face_name, face_t, paths
@@ -927,7 +979,8 @@ def main():
 
             # Get the paths to use in visualisation and calculation.
             paths = get_paths(long_opt_face, long_face_name)
-
+            # For visualisation.
+            visualise_face(long_opt_face, face_name, face_t, paths)
             # Measure properties.
             long_face_properties = get_face_properties(
                 long_opt_face, long_face_name, face_t, paths
