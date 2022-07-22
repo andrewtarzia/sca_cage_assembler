@@ -11,7 +11,6 @@ Date Created: 08 Nov 2020
 
 """
 
-from ast import Raise
 from glob import glob
 import os
 import json
@@ -119,7 +118,7 @@ def plot_MM_vs_AR(json_files, candms, expts):
             )
 
     for face in stabs:
-        if face not in ['i', 'ii']:  # , 'iii']:
+        if face in ['iii', 'v']:
             continue
         c, m = candms[face]
         # XY = [
@@ -138,6 +137,10 @@ def plot_MM_vs_AR(json_files, candms, expts):
         ]
         X = [i[0] for i in XY2]
         Y = [i[1] for i in XY2]
+        if face in ['i', 'ii']:
+            ls = '-'
+        else:
+            ls = 'dashed'
         ax.plot(
             X,
             Y,
@@ -145,8 +148,9 @@ def plot_MM_vs_AR(json_files, candms, expts):
             # edgecolors='k',
             marker=m,
             alpha=1.0,
-            markersize=12,
-            linestyle='dashed',
+            markersize=8,
+            linewidth=3,
+            linestyle=ls,
             label=f'{face}'
         )
 
@@ -157,12 +161,12 @@ def plot_MM_vs_AR(json_files, candms, expts):
         r'aspect difference [$\mathrm{\AA}$]', fontsize=16
     )
     # ax[0].set_ylabel(r'avg. mismatch [$\mathrm{\AA}$]', fontsize=16)
-    ax.set_ylabel(r'avg. mismatch [$\mathrm{\AA}$]', fontsize=16)
+    ax.set_ylabel(r'mismatch [$\mathrm{\AA}$]', fontsize=16)
     # ax[0].set_xlim(0, 8)
-    ax.set_xlim(0, 8)
+    ax.set_xlim(0, 7)
     # ax[0].set_ylim(0, 7)
-    ax.set_ylim(0, 7)
-    ax.legend(fontsize=16, ncol=3)
+    ax.set_ylim(0, 10)
+    ax.legend(fontsize=16, ncol=5)
     fig.savefig(
         os.path.join(_figure_path, 'all_ligand_MM_vs_AR.pdf'),
         dpi=720,
@@ -206,7 +210,9 @@ def main():
         'vi': (colors_i_like()[5], 'p'),
         'vii': (colors_i_like()[7], '^'),
     }
-    plot_all_ligand_properties(json_files, candms, experimental_results)
+    # plot_all_ligand_properties(
+    #     json_files, candms, experimental_results,
+    # )
     plot_MM_vs_AR(json_files, candms, experimental_results)
 
 

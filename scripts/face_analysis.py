@@ -17,7 +17,6 @@ from os.path import exists, join
 import matplotlib.pyplot as plt
 from glob import glob
 import numpy as np
-from scipy.fftpack import diff
 
 import stk
 import stko
@@ -255,11 +254,9 @@ def calculate_face_properties(face, paths, face_type):
         properties[path] = {
             'mms': (
                 mismatch_values['mismatch1'],
-                mismatch_values['mismatch2'],
             ),
             'dif': (
                 mismatch_values['difference1'],
-                mismatch_values['difference2'],
             ),
         }
 
@@ -286,57 +283,63 @@ def show_long_axis(face, face_name):
 
 
 def calculate_path_mismatch(face, path_ids, face_type):
-    if face_type == 'v':
+    if face_type == 'i':
+        path1a = (path_ids[2], path_ids[-1])
+        path1b = (path_ids[-1], path_ids[0])
+    elif face_type == 'ii':
+        path1a = (path_ids[2], path_ids[-1])
+        path1b = (path_ids[-1], path_ids[0])
+    elif face_type == 'iii':
+        path1a = (path_ids[2], path_ids[-1])
+        path1b = (path_ids[-1], path_ids[0])
+    elif face_type == 'iv':
+        path1a = (path_ids[2], path_ids[-1])
+        path1b = (path_ids[-1], path_ids[0])
+    elif face_type == 'v':
         path1a = (path_ids[2], path_ids[1])
         path1b = (path_ids[0], path_ids[1])
-        path2a = (path_ids[2], path_ids[-1])
-        path2b = (path_ids[0], path_ids[-1])
-    else:
-        path1a = (path_ids[1], path_ids[0])
+    elif face_type == 'vi':
+        path1a = (path_ids[1], path_ids[2])
         path1b = (path_ids[-1], path_ids[0])
-        path2a = (path_ids[1], path_ids[2])
-        path2b = (path_ids[-1], path_ids[2])
+    elif face_type == 'vii':
+        path1a = (path_ids[2], path_ids[-1])
+        path1b = (path_ids[0], path_ids[1])
+
     p1a_d = get_atom_distance(face, path1a[0], path1a[1])
     p1b_d = get_atom_distance(face, path1b[0], path1b[1])
-    p2a_d = get_atom_distance(face, path2a[0], path2a[1])
-    p2b_d = get_atom_distance(face, path2b[0], path2b[1])
+    # p2a_d = get_atom_distance(face, path2a[0], path2a[1])
+    # p2b_d = get_atom_distance(face, path2b[0], path2b[1])
     mismatch1 = (abs(p1a_d-p1b_d)/max([p1a_d, p1b_d])) * 100
-    mismatch2 = (abs(p2a_d-p2b_d)/max([p2a_d, p2b_d])) * 100
+    # mismatch2 = (abs(p2a_d-p2b_d)/max([p2a_d, p2b_d])) * 100
     difference1 = abs(p1a_d-p1b_d)
-    difference2 = abs(p2a_d-p2b_d)
+    # difference2 = abs(p2a_d-p2b_d)
 
     xys = (
         (
             (
-                # X coordinates of vector 1, 2.
+                # X coordinates of vector 1.
                 tuple(face.get_atomic_positions(path1a[0]))[0][0],
                 tuple(face.get_atomic_positions(path1a[1]))[0][0],
-                tuple(face.get_atomic_positions(path1b[0]))[0][0],
-                tuple(face.get_atomic_positions(path1b[1]))[0][0],
+
             ),
             (
-                # Y coordinates of vector 1, 2.
+                # Y coordinates of vector 1.
                 tuple(face.get_atomic_positions(path1a[0]))[0][1],
                 tuple(face.get_atomic_positions(path1a[1]))[0][1],
-                tuple(face.get_atomic_positions(path1b[0]))[0][1],
-                tuple(face.get_atomic_positions(path1b[1]))[0][1],
+
             ),
             'r',
         ),
         (
             (
-                # X coordinates of vector 3, 4.
-                tuple(face.get_atomic_positions(path2a[0]))[0][0],
-                tuple(face.get_atomic_positions(path2a[1]))[0][0],
-                tuple(face.get_atomic_positions(path2b[0]))[0][0],
-                tuple(face.get_atomic_positions(path2b[1]))[0][0],
+                # X coordinates of vector 2.
+                tuple(face.get_atomic_positions(path1b[0]))[0][0],
+                tuple(face.get_atomic_positions(path1b[1]))[0][0],
             ),
             (
-                # Y coordinates of vector 3, 4.
-                tuple(face.get_atomic_positions(path2a[0]))[0][1],
-                tuple(face.get_atomic_positions(path2a[1]))[0][1],
-                tuple(face.get_atomic_positions(path2b[0]))[0][1],
-                tuple(face.get_atomic_positions(path2b[1]))[0][1],
+                # Y coordinates of vector 2.
+                tuple(face.get_atomic_positions(path1b[0]))[0][1],
+                tuple(face.get_atomic_positions(path1b[1]))[0][1],
             ),
             'skyblue',
         ),
@@ -345,16 +348,16 @@ def calculate_path_mismatch(face, path_ids, face_type):
     return {
         'path1a': path1a,
         'path1b': path1b,
-        'path2a': path2a,
-        'path2b': path2b,
+        # 'path2a': path2a,
+        # 'path2b': path2b,
         'p1a_d': p1a_d,
         'p1b_d': p1b_d,
-        'p2a_d': p2a_d,
-        'p2b_d': p2b_d,
+        # 'p2a_d': p2a_d,
+        # 'p2b_d': p2b_d,
         'mismatch1': mismatch1,
-        'mismatch2': mismatch2,
+        # 'mismatch2': mismatch2,
         'difference1': difference1,
-        'difference2': difference2,
+        # 'difference2': difference2,
         'xys': xys,
     }
 
@@ -391,21 +394,20 @@ def visualise_face(face, face_name, face_type, paths):
         string += (
             f"{path}: ({round(mismatch_values['p1a_d'], 2)}, "
             f"{round(mismatch_values['p1b_d'], 2)}), "
-            f"({round(mismatch_values['p2a_d'], 2)}, "
-            f"{round(mismatch_values['p2b_d'], 2)}) "
+            # f"({round(mismatch_values['p2a_d'], 2)}, "
+            # f"{round(mismatch_values['p2b_d'], 2)}) "
             f"AR: {round(mismatch_values['mismatch1'], 2)}%, "
-            f"{round(mismatch_values['mismatch2'], 2)}% "
+            # f"{round(mismatch_values['mismatch2'], 2)}% "
             f"AB: {round(mismatch_values['difference1'], 2)}A, "
-            f"{round(mismatch_values['difference2'], 2)}A\n"
+            # f"{round(mismatch_values['difference2'], 2)}A\n"
         )
 
         # Plot paths.
         for xys in mismatch_values['xys']:
-
             ax.plot(
                 xys[0], xys[1],
                 c=xys[2],
-                lw=2
+                lw=2,
             )
         # Plot atom positions.
         for i in face.get_atomic_positions(path_atom_ids):
@@ -472,11 +474,11 @@ def plot_face_mismatches(data, name, types='metals'):
 
     for face in data:
         m1[face] = data[face][types]['mms'][0]
-        m2[face] = data[face][types]['mms'][1]
-        avg[face] = np.average(data[face][types]['mms'])
-        diff[face] = abs(
-            data[face][types]['mms'][0] - data[face][types]['mms'][1]
-        )
+        # m2[face] = data[face][types]['mms'][1]
+        # avg[face] = np.average(data[face][types]['mms'])
+        # diff[face] = abs(
+        #     data[face][types]['mms'][0] - data[face][types]['mms'][1]
+        # )
 
     x_ticks = [face_convert(i) for i in data]
     x_ticklabels = [f'${i}$' for i in data]
@@ -488,53 +490,54 @@ def plot_face_mismatches(data, name, types='metals'):
         x=[face_convert(i)-0.1 for i in m1],
         y=[m1[i] for i in m1],
         # width=width,
-        facecolor='grey',
-        # edgecolor='k',
+        facecolor='gold',
+        edgecolor='k',
         # linewidth=2,
         s=80,
         marker='o',
-        alpha=0.6,
+        alpha=1.0,
         # label='corner 1',
-    )
-
-    ax.scatter(
-        x=[face_convert(i)+0.1 for i in m2],
-        y=[m2[i] for i in m2],
-        # width=width,
-        facecolor='grey',
-        # edgecolor='k',
-        # linewidth=2,
-        s=80,
-        marker='o',
-        alpha=0.6,
         label=r'$M_\mathrm{F}$',
     )
 
-    ax.plot(
-        [face_convert(i) for i in avg],
-        [avg[i] for i in avg],
-        # width=width,
-        color='gold',
-        # edgecolor='k',
-        marker='o',
-        markersize=9,
-        linewidth=4,
-        alpha=1,
-        label='average',
-    )
+    # ax.scatter(
+    #     x=[face_convert(i)+0.1 for i in m2],
+    #     y=[m2[i] for i in m2],
+    #     # width=width,
+    #     facecolor='grey',
+    #     # edgecolor='k',
+    #     # linewidth=2,
+    #     s=80,
+    #     marker='o',
+    #     alpha=0.6,
+    #     label=r'$M_\mathrm{F}$',
+    # )
 
-    ax.scatter(
-        x=[face_convert(i) for i in diff],
-        y=[diff[i] for i in diff],
-        # width=width,
-        facecolor='k',
-        edgecolor='k',
-        # linewidth=2,
-        s=100,
-        marker='D',
-        alpha=1,
-        label='difference',
-    )
+    # ax.plot(
+    #     [face_convert(i) for i in avg],
+    #     [avg[i] for i in avg],
+    #     # width=width,
+    #     color='gold',
+    #     # edgecolor='k',
+    #     marker='o',
+    #     markersize=9,
+    #     linewidth=4,
+    #     alpha=1,
+    #     label='average',
+    # )
+
+    # ax.scatter(
+    #     x=[face_convert(i) for i in diff],
+    #     y=[diff[i] for i in diff],
+    #     # width=width,
+    #     facecolor='k',
+    #     edgecolor='k',
+    #     # linewidth=2,
+    #     s=100,
+    #     marker='D',
+    #     alpha=1,
+    #     label='difference',
+    # )
 
     # Set number of ticks for x-axis
     ax.tick_params(axis='both', which='major', labelsize=16)
@@ -543,7 +546,7 @@ def plot_face_mismatches(data, name, types='metals'):
     # Set number of ticks for x-axis
     ax.set_xticks(x_ticks)
     ax.set_xticklabels(x_ticklabels)
-    ax.legend(fontsize=16)
+    # ax.legend(fontsize=16)
 
     fig.tight_layout()
     if types == 'metals':
@@ -570,11 +573,11 @@ def plot_face_differences(data, name, types='metals'):
 
     for face in data:
         m1[face] = data[face][types]['dif'][0]
-        m2[face] = data[face][types]['dif'][1]
-        avg[face] = np.average(data[face][types]['dif'])
-        diff[face] = abs(
-            data[face][types]['dif'][0] - data[face][types]['dif'][1]
-        )
+        # m2[face] = data[face][types]['dif'][1]
+        # avg[face] = np.average(data[face][types]['dif'])
+        # diff[face] = abs(
+        #     data[face][types]['dif'][0] - data[face][types]['dif'][1]
+        # )
 
     x_ticks = [face_convert(i) for i in data]
     x_ticklabels = [f'${i}$' for i in data]
@@ -586,53 +589,53 @@ def plot_face_differences(data, name, types='metals'):
         x=[face_convert(i)-0.1 for i in m1],
         y=[m1[i] for i in m1],
         # width=width,
-        facecolor='grey',
-        # edgecolor='k',
+        facecolor='gold',
+        edgecolor='k',
         # linewidth=2,
         s=80,
         marker='o',
-        alpha=0.6,
+        alpha=1.0,
         # label='corner 1',
     )
 
-    ax.scatter(
-        x=[face_convert(i)+0.1 for i in m2],
-        y=[m2[i] for i in m2],
-        # width=width,
-        facecolor='grey',
-        # edgecolor='k',
-        # linewidth=2,
-        s=80,
-        marker='o',
-        alpha=0.6,
-        label=r'$D_\mathrm{F}$',
-    )
+    # ax.scatter(
+    #     x=[face_convert(i)+0.1 for i in m2],
+    #     y=[m2[i] for i in m2],
+    #     # width=width,
+    #     facecolor='grey',
+    #     # edgecolor='k',
+    #     # linewidth=2,
+    #     s=80,
+    #     marker='o',
+    #     alpha=0.6,
+    #     label=r'$D_\mathrm{F}$',
+    # )
 
-    ax.plot(
-        [face_convert(i) for i in avg],
-        [avg[i] for i in avg],
-        # width=width,
-        color='gold',
-        # edgecolor='k',
-        marker='o',
-        markersize=9,
-        linewidth=4,
-        alpha=1,
-        label='average',
-    )
+    # ax.plot(
+    #     [face_convert(i) for i in avg],
+    #     [avg[i] for i in avg],
+    #     # width=width,
+    #     color='gold',
+    #     # edgecolor='k',
+    #     marker='o',
+    #     markersize=9,
+    #     linewidth=4,
+    #     alpha=1,
+    #     label='average',
+    # )
 
-    ax.scatter(
-        x=[face_convert(i) for i in diff],
-        y=[diff[i] for i in diff],
-        # width=width,
-        facecolor='k',
-        edgecolor='k',
-        # linewidth=2,
-        s=100,
-        marker='D',
-        alpha=1,
-        label='difference',
-    )
+    # ax.scatter(
+    #     x=[face_convert(i) for i in diff],
+    #     y=[diff[i] for i in diff],
+    #     # width=width,
+    #     facecolor='k',
+    #     edgecolor='k',
+    #     # linewidth=2,
+    #     s=100,
+    #     marker='D',
+    #     alpha=1,
+    #     label='difference',
+    # )
 
     # Set number of ticks for x-axis
     ax.tick_params(axis='both', which='major', labelsize=16)
@@ -641,7 +644,7 @@ def plot_face_differences(data, name, types='metals'):
     # Set number of ticks for x-axis
     ax.set_xticks(x_ticks)
     ax.set_xticklabels(x_ticklabels)
-    ax.legend(fontsize=16)
+    # ax.legend(fontsize=16)
 
     fig.tight_layout()
     if types == 'metals':
