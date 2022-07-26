@@ -14,7 +14,7 @@ import os
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
-from utilities import read_lib
+from utilities import read_lib, convert_lig_names_from_cage
 
 
 def parity_plot(df, xray_df, col_name, pairings):
@@ -84,6 +84,12 @@ def parity_plot(df, xray_df, col_name, pairings):
             marker='o',
             alpha=1.0,
             s=120,
+        )
+        ax.text(
+            x=calc_data,
+            y=xray_data,
+            s=convert_lig_names_from_cage(cs[4:]),
+            fontsize=16,
         )
 
     ax.plot(

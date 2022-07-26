@@ -17,7 +17,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-from utilities import convert_symm_names
+from utilities import convert_lig_names_from_cage, convert_symm_names
 
 
 def main():
@@ -77,21 +77,25 @@ def main():
             cu8,
             'CU-8 cube measure',
             (0, 0.8),
+            0.02,
         ),
         'lsesum': (
             lsesum,
             r'sum strain energy [kJ mol$^{-1}$]',
             (1500, 2200),
+            -20,
         ),
         'maxintangledev': (
             int_angle,
             r'max. interior angle deviation [degrees]',
             (0, 4),
+            0.02,
         ),
         'porediam': (
             porediam,
             r'pore diameter [$\mathrm{\AA}$]',
             (0, 20),
+            0.5,
         ),
     }
 
@@ -101,6 +105,7 @@ def main():
         for cs in props[prop][0]:
             x = props[prop][0][cs]['tl']
             y = props[prop][0][cs]['td']
+            print(cs)
             ax.scatter(
                 x,
                 y,
@@ -109,6 +114,12 @@ def main():
                 marker='o',
                 s=120,
                 alpha=1.0,
+            )
+            ax.text(
+                x=x+props[prop][3],
+                y=y+props[prop][3],
+                s=convert_lig_names_from_cage(cs[4:]),
+                fontsize=16,
             )
 
         fake_xs = np.linspace(props[prop][2][0], props[prop][2][1], 10)
