@@ -59,7 +59,7 @@ def main():
     xtals = {}
     for expt in expt_data:
         xtals[expt_data[expt]['xtal_struct_name']] = {
-            'cage_set': expt,
+            'cage_set': expt_data[expt]['cage_set'],
             'symmetry_name': expt_data[expt]['symmetry'],
             'ligand_name': expt_data[expt]['ligand_name'],
             'complexes': tuple(expt_data[expt]['complexes']),
@@ -72,7 +72,8 @@ def main():
         'jd301': 6,
         'jd326': 0,
         'jd354': 15,
-        'jd370': 0,
+        'jd370l': 0,
+        'jd370d': 9,
     }
 
     for xtal in xtals:

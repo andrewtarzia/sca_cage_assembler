@@ -183,7 +183,8 @@ def main():
 
     # List of the cages that are known to form, including symmetry.
     experimentals = [
-        f"C_{i}_{expt_data[i]['symmetry']}" for i in expt_data
+        f"C_{expt_data[i]['cage_set']}_{expt_data[i]['symmetry']}"
+        for i in expt_data
     ]
 
     # Build and optimise all organic molecules in lib.

@@ -194,7 +194,7 @@ def main():
     xtals = {}
     for expt in expt_data:
         xtals[expt_data[expt]['xtal_struct_name']] = {
-            'cage_set': expt,
+            'cage_set': expt_data[expt]['cage_set'],
             'symmetry_name': expt_data[expt]['symmetry'],
             'ligand_name': expt_data[expt]['ligand_name'],
             'complexes': tuple(expt_data[expt]['complexes']),

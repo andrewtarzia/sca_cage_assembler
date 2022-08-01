@@ -46,13 +46,12 @@ def main():
         expt_lib_file = sys.argv[2]
 
     expt_data = read_lib(expt_lib_file)
-    print(expt_data)
 
     _figure_path = 'figures'
 
-    for cs in expt_data:
-        cs_data = expt_data[cs]
-        print(cs_data)
+    for xray_name in expt_data:
+        cs = xray_name.split('-')[0]
+        cs_data = expt_data[xray_name]
         symm = cs_data['symmetry']
         xname = cs_data['xtal_struct_name']
         xtal_file = os.path.join(
@@ -108,7 +107,7 @@ def main():
 
         fig.tight_layout()
         fig.savefig(
-            os.path.join(_figure_path, f"znzndist_{cs}.pdf"),
+            os.path.join(_figure_path, f"znzndist_{xray_name}.pdf"),
             dpi=720,
             bbox_inches='tight'
         )

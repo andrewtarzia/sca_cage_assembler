@@ -300,7 +300,8 @@ def main():
     experimental_results = {}
     for expt in expt_data:
         if expt_data[expt]['face'] is not None:
-            experimental_results[expt] = expt_data[expt]['face']
+            cs = expt_data[expt]['cage_set']
+            experimental_results[cs] = expt_data[expt]['face']
 
     candms = {
         'i': (colors_i_like()[11], 'o'),

@@ -14,7 +14,7 @@ import os
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
-from utilities import read_lib, convert_lig_names_from_cage
+from utilities import convert_symm_names, read_lib, convert_lig_names_from_cage
 
 
 def parity_plot(df, xray_df, col_name, pairings):
@@ -56,13 +56,14 @@ def parity_plot(df, xray_df, col_name, pairings):
         ),
         'maxintangledev': (
             r'max. interior angle deviation [degrees]',
-            (0, 1),
+            (0, 2),
             'max'
         ),
     }
 
     struct_map = {
-        i: pairings[i]['xtal_struct_name']
+        (i.split('-')[0], pairings[i]['symmetry']):
+        pairings[i]['xtal_struct_name']
         for i in pairings
     }
 
@@ -72,10 +73,17 @@ def parity_plot(df, xray_df, col_name, pairings):
 
     for i, row in forms_df.iterrows():
         cs = row['cageset']
-        xray_name = struct_map[cs]
+        symm = row['symmetry']
+        xray_name = struct_map[(cs, symm)]
         xray_row = xray_df[xray_df['cageset'] == xray_name]
         calc_data = row[col_name]
         xray_data = xray_row[col_name]
+        if cs == 'cl1_quad2_5':
+            stext = convert_symm_names(symm)
+            ttext = convert_lig_names_from_cage(cs[4:])+'-'+stext
+        else:
+            ttext = convert_lig_names_from_cage(cs[4:])
+
         ax.scatter(
             calc_data,
             xray_data,
@@ -88,7 +96,7 @@ def parity_plot(df, xray_df, col_name, pairings):
         ax.text(
             x=calc_data,
             y=xray_data,
-            s=convert_lig_names_from_cage(cs[4:]),
+            s=ttext,
             fontsize=16,
         )
 
