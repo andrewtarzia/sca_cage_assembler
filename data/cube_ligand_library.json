@@ -68,15 +68,5 @@
         "net_charge": 0,
         "total_unpaired_e": [0],
         "calculate_flex": true
-    },
-    "quad2_1": {
-        "smiles": "Brc1ccc(-c2cc(-c3ccc(Br)cc3)c3ccc4c(-c5ccc(Br)cc5)cc(-c5ccc(Br)cc5)c5ccc2c3c54)cc1",
-        "file_loc": "manual/",
-        "experimental": true,
-        "check_orientations": true,
-        "no_metals": 0,
-        "net_charge": 0,
-        "total_unpaired_e": [0],
-        "calculate_flex": true
     }
 }
