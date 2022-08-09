@@ -686,7 +686,8 @@ def calculate_ligand_SE(
     org_ligs,
     smiles_keys,
     output_json,
-    file_prefix=None
+    file_prefix=None,
+    solvent=None,
 ):
     """
     Calculate the strain energy of each ligand in the cage.
@@ -708,6 +709,10 @@ def calculate_ligand_SE(
         Eventual file name is:
         "file_prefix"{number of atoms}_{idx}_{i}.mol
         Where `idx` determines if a molecule is unique by smiles.
+
+    solvent: :class:`str`
+        None if gas phase, otherwise a string matching a solvent
+        model available in xtb.
 
     Returns
     -------
@@ -742,7 +747,8 @@ def calculate_ligand_SE(
                 calculate_energy(
                     name=lig.replace('.mol', ''),
                     mol=stk_lig,
-                    ey_file=ey_file
+                    ey_file=ey_file,
+                    solvent=solvent,
                 )
             # Read energy.
             # kJ/mol.
@@ -757,7 +763,8 @@ def calculate_ligand_SE(
                 calculate_energy(
                     name=opt_lig_n,
                     mol=opt_mol,
-                    ey_file=opt_lig_ey
+                    ey_file=opt_lig_ey,
+                    solvent=solvent,
                 )
             # Read energy.
             # kJ/mol.
@@ -1380,7 +1387,7 @@ def convert_lig_names_from_cage(lig_name, as_int=False):
             'quad2_3': 4,
             'quad2_8': 5,
             'quad2_2': 6,
-            'quad2_1': 7,
+            # 'quad2_1': 7,
         }
     else:
         new_names = {
@@ -1390,7 +1397,7 @@ def convert_lig_names_from_cage(lig_name, as_int=False):
             'quad2_3': 'D',  # '4',
             'quad2_8': 'E',  # '5',
             'quad2_2': 'F',  # '6',
-            'quad2_1': 'G',  # '7',
+            # 'quad2_1': 'G',  # '7',
         }
 
     return new_names[lig_name]

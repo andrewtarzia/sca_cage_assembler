@@ -52,16 +52,16 @@ def main():
         'd2': {'d': [], 'c': 'k', 'm': 'o'},
         # 'th1': {'d': [], 'c': 'r', 'm': 'D'},
         'th2': {'d': [], 'c': 'r', 'm': 'X'},
-        # 'td': {'d': [], 'c': 'r', 'm': 'o'},
-        'tl': {'d': [], 'c': 'gold', 'm': 'P'},
+        'td': {'d': [], 'c': 'r', 'm': 'o'},
+        'tl': {'d': [], 'c': 'r', 'm': 'P'},
         # 's41': {'d': [], 'c': 'gold', 'm': 'X'},
         # 's42': {'d': [], 'c': 'gold', 'm': 'D'},
         # 's61': {'d': [], 'c': 'gray', 'm': 'X'},
         's62': {'d': [], 'c': 'gray', 'm': 'D'},
         # 'd31': {'d': [], 'c': 'skyblue', 'm': 'P'},
         'd32': {'d': [], 'c': 'skyblue', 'm': 'o'},
-        # 'd31n': {'d': [], 'c': 'b', 'm': 'P'},
-        # 'd32n': {'d': [], 'c': 'b', 'm': 'o'},
+        'd31n': {'d': [], 'c': 'skyblue', 'm': 'P'},
+        'd32n': {'d': [], 'c': 'skyblue', 'm': 'o'},
         # 'c2v': {'d': [], 'c': 'green', 'm': 'o'},
         # 'c2h': {'d': [], 'c': 'green', 'm': 'X'},
     }
@@ -130,9 +130,26 @@ def main():
         bbox_inches='tight'
     )
     plt.close()
+    print('use faces, change colours, use multiple axes')
 
-    fig, ax = plt.subplots(figsize=(8, 5))
-    for symm in all_e_vs_x:
+
+    # Subplots are organized in a Rows x Cols Grid
+    # Tot and Cols are known
+    tot = len(all_e_vs_x)
+    cols = 2
+    # Compute Rows required
+    rows = tot // cols
+    #     EDIT for correct number of rows:
+    #     If one additional row is necessary -> add one:
+    if tot % cols != 0:
+        rows += 1
+
+    # Create a Position index
+    position = range(1, tot + 1)
+
+    fig = plt.figure(1, figsize=(8, 8))
+    for k, symm in enumerate(all_e_vs_x):
+        ax = fig.add_subplot(rows, cols, position[k])
         points = np.array((
             [i[0] for i in all_e_vs_x[symm]['d']],
             [i[1] for i in all_e_vs_x[symm]['d']],
@@ -141,39 +158,48 @@ def main():
         for i, simplex in enumerate(hull.simplices):
             if i == 0:
                 label = convert_symm_names(symm)
+                ax.set_title(label, fontsize=16)
             else:
                 label = None
             ax.plot(
                 points[simplex, 0],
                 points[simplex, 1],
-                c=all_e_vs_x[symm]['c'],
+                c='k',  # all_e_vs_x[symm]['c'],
                 lw=2,
                 alpha=1.0,
-                label=label,
+                # label=label,
             )
+        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.set_xlabel('CU-8 cube measure', fontsize=16)
+        ax.set_ylabel(
+            r'rel. sum strain energy [kJ mol$^{-1}$]',
+            fontsize=16,
+        )
 
-    ax.scatter(
-        forms_x,
-        forms_ye,
-        c='k',
-        edgecolors='k',
-        marker='o',
-        alpha=1.0,
-        s=80,
-        rasterized=True,
-        label='forms',
-    )
+        ax.set_xlim(0, 8)
+        ax.set_ylim(0, 300)
+    # ax.scatter(
+    #     forms_x,
+    #     forms_ye,
+    #     c='k',
+    #     edgecolors='k',
+    #     marker='o',
+    #     alpha=1.0,
+    #     s=80,
+    #     rasterized=True,
+    #     label='forms',
+    # )
 
     # Set number of ticks for x-axis
-    ax.tick_params(axis='both', which='major', labelsize=16)
-    ax.set_xlabel('CU-8 cube measure', fontsize=16)
-    ax.set_ylabel(
-        r'rel. sum strain energy [kJ mol$^{-1}$]',
-        fontsize=16,
-    )
+    # ax.tick_params(axis='both', which='major', labelsize=16)
+    # ax.set_xlabel('CU-8 cube measure', fontsize=16)
+    # ax.set_ylabel(
+    #     r'rel. sum strain energy [kJ mol$^{-1}$]',
+    #     fontsize=16,
+    # )
     # ax.set_xlim((-0.1, 5))
     # ax.set_ylim(yprops[col_name][1])
-    ax.legend(fontsize=16, ncol=3)
+    # ax.legend(fontsize=16, ncol=3)
 
     fig.tight_layout()
     fig.savefig(

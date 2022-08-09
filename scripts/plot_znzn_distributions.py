@@ -14,7 +14,7 @@ import os
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
-from utilities import read_lib
+from utilities import convert_symm_names, read_lib, convert_lig_names_from_cage
 import scipy.spatial.distance
 
 
@@ -54,6 +54,11 @@ def main():
         cs_data = expt_data[xray_name]
         symm = cs_data['symmetry']
         xname = cs_data['xtal_struct_name']
+        lig_name = cs_data['ligand_name']
+        title = (
+            f'tetra-aniline: {convert_lig_names_from_cage(lig_name)}'
+            f'- {convert_symm_names(symm)}'
+        )
         xtal_file = os.path.join(
             xray_structure_path,
             f'{xname}_M.mol'
@@ -78,7 +83,7 @@ def main():
         print(xtal_pairs)
 
         xmin = 9
-        xmax = 16.5
+        xmax = 30
         fig, ax = plt.subplots(figsize=(8, 3))
         ax.hist(
             meta_pairs,
@@ -100,9 +105,11 @@ def main():
             lw=2,
             label='xray'
         )
+        print(max(xtal_pairs))
         ax.tick_params(axis='both', which='major', labelsize=16)
         ax.set_xlabel(r'distance [$\mathrm{\AA}$]', fontsize=16)
         ax.set_ylabel('count', fontsize=16)
+        ax.set_title(title, fontsize=16)
         fig.legend(fontsize=16)
 
         fig.tight_layout()

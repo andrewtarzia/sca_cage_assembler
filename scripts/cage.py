@@ -630,8 +630,10 @@ class Cage:
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
             output_json=f'{self.ls_file}.json',
-            file_prefix=f'{self.base_name}_sg'
+            file_prefix=f'{self.base_name}_sg',
+            solvent=self.cage_set_dict['solvent'],
         )
+
         imine_torsion_dict = calculate_abs_imine_torsions(
             org_ligs=org_ligs,
         )

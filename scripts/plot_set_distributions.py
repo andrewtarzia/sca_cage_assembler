@@ -152,7 +152,7 @@ def plot_set_energies(data, filename, sets_to_plot):
         all_energies = []
         for i in set_values:
             if set_values[i][1] is True:
-                formed_symm.append((i, set_values[i]))
+                formed_symm.append((i, set_values[i][0]))
             all_energies.append(set_values[i][0])
 
         if cageset == 'cl1_quad2_1':
@@ -164,19 +164,25 @@ def plot_set_energies(data, filename, sets_to_plot):
             stab_energies.append(-100)
 
         else:
-            if len(formed_symm) != 1:
+            if len(formed_symm) < 1:
                 raise ValueError(
                     'Missing something; there should be one True case.'
                 )
-            stabilisation_energy = (
-                formed_symm[0][1][0] - min(all_energies)
-            )
-            stab_energies.append(stabilisation_energy*2625.5)
+
             other_energies = [
                 (i-min(all_energies))*2625.5 for i in all_energies
             ]
             _x_positions += 1
             _x_names.append((_x_positions, print_name))
+            for i in formed_symm:
+                print(i)
+                stabilisation_energy = (
+                    i[1] - min(all_energies)
+                )
+                stab_energies.append(
+                    (_x_positions, stabilisation_energy*2625.5)
+                )
+                print(stab_energies)
 
         parts = ax.violinplot(
             other_energies,
@@ -203,8 +209,8 @@ def plot_set_energies(data, filename, sets_to_plot):
         )
 
     ax.scatter(
-        x=range(1, _x_positions+1),
-        y=stab_energies,
+        x=[i[0] for i in stab_energies],
+        y=[i[1] for i in stab_energies],
         c='gold',
         edgecolors='k',
         s=180,
@@ -309,7 +315,7 @@ def main():
         'cl1_quad2_3': 'D',
         'cl1_quad2_8': 'E',
         'cl1_quad2_2': 'F',
-        'cl1_quad2_1': 'G',
+        # 'cl1_quad2_1': 'G',
     }
     target_cols = [
         'octop', 'rellsesum', 'minitors', 'lsesum',
