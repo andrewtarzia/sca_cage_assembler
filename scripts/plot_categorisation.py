@@ -71,9 +71,11 @@ def categorisation_plot(df, xray_df, col_name):
     does_not_form_df = df[df['outcome'] == 0]
 
     forms = list(forms_df[col_name])
+    # names = list(forms_df['cageset'])
     does_not_form = list(does_not_form_df[col_name])
     xray = list(xray_df[col_name])
     for i in forms:
+    # for i, j in zip(forms, names):
         ax.scatter(
             0.25+(dx*(np.random.random() - 0.5) * 2),
             i,
@@ -83,6 +85,11 @@ def categorisation_plot(df, xray_df, col_name):
             alpha=1.0,
             s=120,
         )
+        # ax.text(
+        #     x=0.25+(dx*(np.random.random() - 0.5) * 2),
+        #     y=i,
+        #     s=f'{j}',
+        # )
 
     if col_name not in dont_show:
         for i in xray:

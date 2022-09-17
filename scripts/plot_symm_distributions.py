@@ -161,12 +161,18 @@ def line_plot(df, col_name):
         'cl1_quad2_2': 'F',  # '6',
     }
 
+    feasible_syms = {
+        'd2', 'th2', 'td', 'tl', 's62', 'd32', 'd31n', 'd32n'
+    }
+
     for cs in cage_sets:
         fig, ax = plt.subplots(figsize=(8, 4))
         _x_positions = 0
         _x_names = []
         forms = []
         does_not_form = []
+        unfeasible = []
+        feasible = []
 
         cs_df = df[df['cageset'] == cs]
 
@@ -175,7 +181,6 @@ def line_plot(df, col_name):
             set_df = cs_df[cs_df['symmetry'] == symm]
             _x_positions += 1
             _x_names.append((_x_positions, print_name))
-            cset_ys = []
             for i, row in set_df.iterrows():
                 outcome = True if row['outcome'] == 1 else False
                 y_val = row[col_name]
@@ -184,18 +189,21 @@ def line_plot(df, col_name):
                 if outcome:
                     forms.append((_x_positions, float(y_val)))
                 else:
-                    does_not_form.append((_x_positions, float(y_val)))
-                cset_ys.append(float(y_val))
+                    # does_not_form.append((_x_positions, float(y_val)))
+                    if symm in feasible_syms:
+                        feasible.append((_x_positions, float(y_val)))
+                    else:
+                        unfeasible.append((_x_positions, float(y_val)))
 
-        ax.scatter(
-            x=[i[0] for i in does_not_form],
-            y=[i[1] for i in does_not_form],
-            c='gray',
-            marker='o',
-            alpha=1.0,
-            s=120,
-            label='does not form',
-        )
+        # ax.scatter(
+        #     x=[i[0] for i in does_not_form],
+        #     y=[i[1] for i in does_not_form],
+        #     c='gray',
+        #     marker='o',
+        #     alpha=1.0,
+        #     s=120,
+        #     label='does not form',
+        # )
         ax.scatter(
             x=[i[0] for i in forms],
             y=[i[1] for i in forms],
@@ -205,6 +213,24 @@ def line_plot(df, col_name):
             alpha=1.0,
             s=180,
             label='forms',
+        )
+        ax.scatter(
+            x=[i[0] for i in unfeasible],
+            y=[i[1] for i in unfeasible],
+            c='r',
+            marker='o',
+            alpha=1.0,
+            s=120,
+            label='unfeasible',
+        )
+        ax.scatter(
+            x=[i[0] for i in feasible],
+            y=[i[1] for i in feasible],
+            c='gray',
+            marker='o',
+            alpha=1.0,
+            s=120,
+            label='feasible',
         )
 
         # Set number of ticks for x-axis

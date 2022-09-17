@@ -120,7 +120,7 @@ def plot_MM_vs_AR(json_files, candms, expts):
     for face in stabs:
         if face in ['iii', 'v']:
             continue
-        c, m = candms[face]
+        c, m, lab = candms[face]
         XY1 = [
             (y, x) for y, x
             in sorted(
@@ -151,7 +151,7 @@ def plot_MM_vs_AR(json_files, candms, expts):
             markersize=8,
             linewidth=3,
             linestyle=ls,
-            label=f'{face}'
+            label=f'{lab}'
         )
 
     # ax[0].tick_params(axis='both', which='major', labelsize=16)
@@ -208,7 +208,7 @@ def plot_MM_vs_AR_full(json_files, candms, expts):
             )
 
     for face in stabs:
-        c, m = candms[face]
+        c, m, lab = candms[face]
         XY1 = [
             (y, x) for y, x
             in sorted(
@@ -304,13 +304,13 @@ def main():
             experimental_results[cs] = expt_data[expt]['face']
 
     candms = {
-        'i': (colors_i_like()[11], 'o'),
-        'ii': (colors_i_like()[4], 'X'),
-        'iii': (colors_i_like()[9], 's'),
-        'iv': (colors_i_like()[10], 'D'),
-        'v': (colors_i_like()[3], 'P'),
-        'vi': (colors_i_like()[5], 'p'),
-        'vii': (colors_i_like()[7], '^'),
+        'i': (colors_i_like()[11], 'o', 'E1'),
+        'ii': (colors_i_like()[4], 'X', 'E4'),
+        'iii': (colors_i_like()[9], 's', 'E1'),
+        'iv': (colors_i_like()[10], 'D', 'E5'),
+        'v': (colors_i_like()[3], 'P', 'E1'),
+        'vi': (colors_i_like()[5], 'p', 'E6'),
+        'vii': (colors_i_like()[7], '^', 'E7'),
     }
     # plot_all_ligand_properties(
     #     json_files, candms, experimental_results,
