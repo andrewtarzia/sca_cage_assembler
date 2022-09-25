@@ -47,7 +47,6 @@ For visualisation.
 plot shape measure:
     Directory to run in: ``PROJDIR``/shape_tests/
 
-    Command:
     .. code-block::
 
         python CODEDIR/cage_structures/scripts/plot_shape_measure_examples.py
