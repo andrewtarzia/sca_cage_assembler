@@ -8,7 +8,7 @@ from subcomponent self-assembly.
 
 Code is for the paper at DOI: XX
 
-If you have any issues contact me at `andrew dot tarzia at gmail dot com`
+If you have any issues contact me at ``andrew dot tarzia at gmail dot com``
 
 Installation
 ============
@@ -17,23 +17,23 @@ To install this code, you can clone this repo. It is written to be used followin
 
 Dependancies:
 
-The file `environment.yml` defines a Python 3.9 conda env used for this project.
+The file ``environment.yml`` defines a Python 3.9 conda env used for this project.
 
-The file `env_set.py` sets the directories used in this work based on my workstation (Ubuntu 18, 20 or 22). This will require editting for any other machine.
+The file ``env_set.py`` sets the directories used in this work based on my workstation (Ubuntu 18, 20 or 22). This will require editting for any other machine.
 
 The external software used:
 
-`CREST` version `2.9` from https://github.com/crest-lab/crest
+``CREST`` version ``2.9`` from https://github.com/crest-lab/crest
 
-`Gulp` version `5,1` from http://gulp.curtin.edu.au/gulp/
+``Gulp`` version ``5.1`` from http://gulp.curtin.edu.au/gulp/
 
-`Shape` version `2.1` from http://www.ee.ub.edu/index.php?option=com_content&view=article&id=575:shape-available&catid=80:news&Itemid=466
+``Shape`` version ``2.1`` from http://www.ee.ub.edu/index.php?option=com_content&view=article&id=575:shape-available&catid=80:news&Itemid=466
 
 
 Workflow used
 =============
 
-**Note** The file `env_set.py` sets the directories used in this work based on my workstation (Ubuntu 18, 20 or 22). This will require editting for any other machine.
+**Note** The file ``env_set.py`` sets the directories used in this work based on my workstation (Ubuntu 18, 20 or 22). This will require editting for any other machine.
 
 I attempt to highlight steps based on their part in the process (e.g. construction or analysis). Not all steps are necessary for what a user may want to do. Although, this project was so involved that many parts of the code are inter-related in an inconveniant to new usage. If so, please contact me for suggestions.
 
