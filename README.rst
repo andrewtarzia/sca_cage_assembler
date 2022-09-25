@@ -35,12 +35,30 @@ Workflow used
 
 **Note** The file ``env_set.py`` sets the directories used in this work based on my workstation (Ubuntu 18, 20 or 22). This will require editting for any other machine.
 
+``CODEDIR`` must be set by the user.
+
 I attempt to highlight steps based on their part in the process (e.g. construction or analysis). Not all steps are necessary for what a user may want to do. Although, this project was so involved that many parts of the code are inter-related in an inconveniant to new usage. If so, please contact me for suggestions.
 
+For visualisation.
+------------------
 
-plot_shape_measure
-	in shape_tests/
-	python ~/thesource/cage_structures/scripts/plot_shape_measure_examples.py
+plot shape measure
+	Directory: in shape_tests/
+	Command: ``python CODEDIR/cage_structures/scripts/plot_shape_measure_examples.py``
+
+For construction.
+------------------
+
+
+
+For analysis/plotting.
+------------------
+
+
+
+
+
+
 
 
 ligand building:
