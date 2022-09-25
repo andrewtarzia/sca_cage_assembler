@@ -47,7 +47,10 @@ For visualisation.
 plot shape measure:
     Directory to run in: ``PROJDIR``/shape_tests/
 
-    Command: ``python CODEDIR/cage_structures/scripts/plot_shape_measure_examples.py``
+    Command:
+    .. code-block::
+
+        python CODEDIR/cage_structures/scripts/plot_shape_measure_examples.py
 
 
 For ligand construction and analysis.
@@ -71,7 +74,7 @@ ligand building:
 Ligand AR analysis:
     Directory to run in: ``PROJDIR``/ligand_library/
 
-        analyses the aspect ratio of the ligands before and after reaction.
+    Performs: analysis of the aspect ratio of the ligands before and after reaction.
 
     Command: ``python CODEDIR/cage_structures/scripts/calculate_ligand_ARs.py``
 
@@ -79,7 +82,7 @@ Ligand AR analysis:
 flex analysis:
     Directory to run in: ``PROJDIR``/flex_analysis/
 
-        analyses the conformer flex of all ligands
+    Performs: analysis of the conformer flex of all ligands
 
     Command: ``python CODEDIR/cage_structures/scripts/flexibility_analysis.py ../ CODEDIR/cage_structures/data/cube_ligand_library.json``
 
