@@ -35,17 +35,8 @@ Workflow used
 
 **Note** The file ``env_set.py`` sets the directories used in this work based on my workstation (Ubuntu 18, 20 or 22). This will require editting for any other machine.
 
-``CODEDIR`` must be set by the user - where the code is.
-
-``PROJDIR`` must be set by the user - where the user wants the data to be generated.
-
-``CODEDIR``            command-line option "a"
--b file       options can have arguments
-              and long descriptions
---long        options can be long also
---input=file  long options can also have
-              arguments
-/V            DOS/VMS-style options too
+:CODEDIR: must be set by the user - where the code is.
+:PROJDIR: must be set by the user - where the user wants the data to be generated.
 
 I attempt to highlight steps based on their part in the process (e.g. construction or analysis). Not all steps are necessary for what a user may want to do. Although, this project was so involved that many parts of the code are inter-related in an inconveniant to new usage. If so, please contact me for suggestions.
 
