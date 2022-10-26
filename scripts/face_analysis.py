@@ -243,6 +243,26 @@ def calculate_face_properties(face, paths, face_type):
         'Ns': None,
         'Cs': None,
     }
+
+    # Calculate N-N distance for this face based on long axis.
+    path_atom_ids = paths['Ns']
+    path1 = (
+        (path_atom_ids[0], path_atom_ids[1]),
+        (path_atom_ids[0], path_atom_ids[3]),
+    )
+    path2 = (
+        (path_atom_ids[2], path_atom_ids[1]),
+        (path_atom_ids[2], path_atom_ids[3]),
+    )
+
+    p1a_d = get_atom_distance(face, path1[0][0], path1[0][1])
+    p1b_d = get_atom_distance(face, path1[1][0], path1[1][1])
+    p2a_d = get_atom_distance(face, path2[0][0], path2[0][1])
+    p2b_d = get_atom_distance(face, path2[1][0], path2[1][1])
+    difference1 = abs(p1a_d-p1b_d)
+    difference2 = abs(p2a_d-p2b_d)
+    aspect_differences = (difference1, difference2)
+
     for path in paths:
         path_atom_ids = paths[path]
         mismatch_values = calculate_path_mismatch(
@@ -252,6 +272,7 @@ def calculate_face_properties(face, paths, face_type):
         )
 
         properties[path] = {
+            'aspect_differences': aspect_differences,
             'mms': (
                 mismatch_values['mismatch1'],
                 mismatch_values['mismatch2'],
