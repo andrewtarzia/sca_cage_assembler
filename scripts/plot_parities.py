@@ -14,51 +14,53 @@ import os
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
-from utilities import convert_symm_names, read_lib, convert_lig_names_from_cage
+from utilities import (
+    convert_symm_names, read_lib, convert_lig_names_from_cage,
+)
 
 
 def parity_plot(df, xray_df, col_name, pairings):
     _figure_path = 'figures'
 
     yprops = {
-        'octop': (
-            r'min. $q_{\mathrm{oct}}$', (0, 1), 'min'
-        ),
+        # 'octop': (
+        #     r'min. $q_{\mathrm{oct}}$', (0, 1), 'min'
+        # ),
         'm_cube_shape': ('CU-8 cube measure', (0, 1.6), 'min'),
-        'rellsesum': (
-            r'rel. sum strain energy [kJmol$^{-1}$]',
-            (-10, 1000),
-            'max'
-        ),
-        'lsesum': (
-            r'sum strain energy [kJmol$^{-1}$]',
-            (None, None),
-            'max'
-        ),
-        'minitors': (
-            r'min. imine torsion [degrees]', (160, 180), 'min'
-        ),
-        'maxcrplan': (
-            r'max. ligand distortion [$\mathrm{\AA}$]',
-            (50, 200),
-            'max'
-        ),
-        'maxMLlength': (
-            r'max. N-Zn bond length [$\mathrm{\AA}$]',
-            (2.1, 2.4),
-            'max'
-        ),
+        # 'rellsesum': (
+        #     r'rel. sum strain energy [kJmol$^{-1}$]',
+        #     (-10, 1000),
+        #     'max'
+        # ),
+        # 'lsesum': (
+        #     r'sum strain energy [kJmol$^{-1}$]',
+        #     (None, None),
+        #     'max'
+        # ),
+        # 'minitors': (
+        #     r'min. imine torsion [degrees]', (160, 180), 'min'
+        # ),
+        # 'maxcrplan': (
+        #     r'max. ligand distortion [$\mathrm{\AA}$]',
+        #     (50, 200),
+        #     'max'
+        # ),
+        # 'maxMLlength': (
+        #     r'max. N-Zn bond length [$\mathrm{\AA}$]',
+        #     (2.1, 2.4),
+        #     'max'
+        # ),
         'porediam': (
             r'pore diameter [$\mathrm{\AA}$]', (5, 15), 'min'
         ),
-        'relformatione': (
-            r'rel. formation energy [kJmol$^{-1}$]', (-10, 1000), 'max'
-        ),
-        'maxintangledev': (
-            r'max. interior angle deviation [degrees]',
-            (0, 2),
-            'max'
-        ),
+        # 'relformatione': (
+        #     r'rel. formation energy [kJmol$^{-1}$]', (-10, 1000), 'max'
+        # ),
+        # 'maxintangledev': (
+        #     r'max. interior angle deviation [degrees]',
+        #     (0, 2),
+        #     'max'
+        # ),
     }
 
     struct_map = {
@@ -74,15 +76,16 @@ def parity_plot(df, xray_df, col_name, pairings):
     for i, row in forms_df.iterrows():
         cs = row['cageset']
         symm = row['symmetry']
+        if cs == 'cl1_quad2_5' and symm == 'tl':
+            print('no')
+            continue
+
         xray_name = struct_map[(cs, symm)]
         xray_row = xray_df[xray_df['cageset'] == xray_name]
         calc_data = row[col_name]
         xray_data = xray_row[col_name]
-        if cs == 'cl1_quad2_5':
-            stext = convert_symm_names(symm)
-            ttext = convert_lig_names_from_cage(cs[4:])+'-'+stext
-        else:
-            ttext = convert_lig_names_from_cage(cs[4:])
+
+        ttext = str(convert_lig_names_from_cage(cs[4:], as_int=True))
 
         ax.scatter(
             calc_data,
@@ -151,9 +154,10 @@ def main():
 
     print(all_cage_properties.columns)
     target_cols = [
-        'octop', 'minitors',
-        'maxcrplan', 'maxMLlength', 'porediam',
-        'maxintangledev',
+        # 'octop', 'minitors',
+        # 'maxcrplan', 'maxMLlength',
+        'porediam',
+        # 'maxintangledev',
         'm_cube_shape',
     ]
     for col_name in target_cols:

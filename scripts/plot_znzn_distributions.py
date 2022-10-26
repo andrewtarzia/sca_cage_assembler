@@ -55,9 +55,13 @@ def main():
         symm = cs_data['symmetry']
         xname = cs_data['xtal_struct_name']
         lig_name = cs_data['ligand_name']
+        if cs == 'cl1_quad2_5' and symm == 'tl':
+            print('no')
+            continue
+        print(cs, symm)
         title = (
-            f'tetra-aniline: {convert_lig_names_from_cage(lig_name)}'
-            f'- {convert_symm_names(symm)}'
+            f'{convert_lig_names_from_cage(lig_name, as_int=True)} '
+            f'- {convert_symm_names(symm, no_symbol=True)}'
         )
         xtal_file = os.path.join(
             xray_structure_path,
@@ -65,6 +69,7 @@ def main():
         )
         meta_file = f'{cs}_{symm}_optc_M.mol'
         calc_file = f'C_{cs}_{symm}_optc.mol'
+
         xtal_structure = stk.BuildingBlock.init_from_file(xtal_file)
         calc_structure = stk.BuildingBlock.init_from_file(calc_file)
         metal_atom_ids = [
@@ -86,24 +91,26 @@ def main():
         xmax = 30
         fig, ax = plt.subplots(figsize=(8, 3))
         ax.hist(
-            meta_pairs,
+            x=meta_pairs,
             bins=np.arange(xmin, xmax, 0.2),
             density=False,
             color='k',
             alpha=1.0,
-            histtype='step',
-            lw=2,
-            label='calculated'
+            histtype="stepfilled",
+            lw=1,
+            label='calculated',
+            edgecolor="k",
         )
         ax.hist(
-            xtal_pairs,
+            x=xtal_pairs,
             bins=np.arange(xmin, xmax, 0.2),
             density=False,
             color='#e71989',
-            alpha=1.0,
-            histtype='step',
-            lw=2,
-            label='xray'
+            alpha=0.8,
+            histtype="stepfilled",
+            lw=1,
+            label='X-ray',
+            edgecolor="white",
         )
         print(max(xtal_pairs))
         ax.tick_params(axis='both', which='major', labelsize=16)

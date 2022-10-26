@@ -217,7 +217,7 @@ def plot_set_energies(data, filename, sets_to_plot):
     )
 
     ax.tick_params(axis='both', which='major', labelsize=16)
-    ax.set_xlabel('tetra-aniline', fontsize=16)
+    # ax.set_xlabel('tetra-aniline', fontsize=16)
     ax.set_ylabel(r'rel. energy [kJmol$^{-1}$]', fontsize=16)
     # ax.set_xlim((0, 1))
     ax.set_ylim(-0.1, None)
@@ -309,12 +309,12 @@ def main():
 
     # Define sets.
     sets_to_plot = {
-        'cl1_quad2_5': 'A',
-        'cl1_quad2_16': 'B',
-        'cl1_quad2_12': 'C',
-        'cl1_quad2_3': 'D',
-        'cl1_quad2_8': 'E',
-        'cl1_quad2_2': 'F',
+        'cl1_quad2_5': '1',
+        'cl1_quad2_16': '2',
+        'cl1_quad2_12': '3',
+        'cl1_quad2_3': '4',
+        'cl1_quad2_8': '5',
+        'cl1_quad2_2': '6',
         # 'cl1_quad2_1': 'G',
     }
     target_cols = [
@@ -338,6 +338,11 @@ def main():
         if setname not in sets_to_plot:
             continue
         symm = row['symmetry']
+        print(symm)
+        if symm == 'tl':
+            print('no')
+            continue
+
         forms = True if row['outcome'] == 1 else False
 
         # Get total energies from GFN.

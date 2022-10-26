@@ -16,6 +16,7 @@ import pandas as pd
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from sqlalchemy import true
 
 from utilities import convert_lig_names_from_cage, convert_symm_names
 
@@ -40,7 +41,6 @@ def main():
         pd.notnull(all_cage_data), None
     )
 
-    int_angle = {}
     cu8 = {}
     lsesum = {}
     porediam = {}
@@ -48,13 +48,9 @@ def main():
         symm = row['symmetry']
         if row['m_cube_shape'] is None:
             continue
-        if row['maxintangledev'] is None:
-            continue
         if symm not in ('tl', 'td'):
             continue
         cage_set = row['cageset']
-        if cage_set not in int_angle:
-            int_angle[cage_set] = {}
         if cage_set not in cu8:
             cu8[cage_set] = {}
         if cage_set not in lsesum:
@@ -62,12 +58,10 @@ def main():
         if cage_set not in porediam:
             porediam[cage_set] = {}
 
-        int_angle[cage_set][symm] = float(row['maxintangledev'])
         lsesum[cage_set][symm] = float(row['lsesum'])
         cu8[cage_set][symm] = float(row['m_cube_shape'])
         porediam[cage_set][symm] = float(row['porediam'])
 
-    print('a', int_angle, '\n')
     print('b', lsesum, '\n')
     print('c', cu8, '\n')
     print('d', porediam, '\n')
@@ -76,7 +70,7 @@ def main():
         'm_cube_shape': (
             cu8,
             'CU-8 cube measure',
-            (0, 0.8),
+            (0, 1.0),
             0.02,
         ),
         'lsesum': (
@@ -84,12 +78,6 @@ def main():
             r'sum strain energy [kJ mol$^{-1}$]',
             (1500, 2200),
             -20,
-        ),
-        'maxintangledev': (
-            int_angle,
-            r'max. interior angle deviation [degrees]',
-            (0, 4),
-            0.02,
         ),
         'porediam': (
             porediam,
@@ -118,7 +106,7 @@ def main():
             ax.text(
                 x=x+props[prop][3],
                 y=y+props[prop][3],
-                s=convert_lig_names_from_cage(cs[4:]),
+                s=convert_lig_names_from_cage(cs[4:], as_int=true),
                 fontsize=16,
             )
 

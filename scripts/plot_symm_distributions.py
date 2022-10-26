@@ -21,44 +21,44 @@ from utilities import convert_lig_names_from_cage, convert_symm_names
 
 def yproperties():
     return {
-        'octop': (
-            r'min. $q_{\mathrm{oct}}$', (None, None), 'min'
-        ),
+        # 'octop': (
+        #     r'min. $q_{\mathrm{oct}}$', (None, None), 'min'
+        # ),
         'm_cube_shape': ('CU-8 cube measure', (-0.5, None), 'min'),
         'rellsesum': (
             r'rel. sum strain energy [kJ mol$^{-1}$]',
             (-10, 1000),
             'max'
         ),
-        'lsesum': (
-            r'sum strain energy [kJ mol$^{-1}$]',
-            (None, None),
-            'max'
-        ),
-        'minitors': (
-            r'min. imine torsion [degrees]', (None, None), 'min'
-        ),
-        'maxcrplan': (
-            r'max. ligand distortion [$\mathrm{\AA}$]',
-            (None, None),
-            'max'
-        ),
-        'maxMLlength': (
-            r'max. N-Zn bond length [$\mathrm{\AA}$]',
-            (None, None),
-            'max'
-        ),
-        'porediam': (
-            r'pore diameter [$\mathrm{\AA}$]', (None, None), 'min'
-        ),
-        'relformatione': (
-            r'rel. formation energy [kJ mol$^{-1}$]', (-10, 1000), 'max'
-        ),
-        'maxintangledev': (
-            r'max. interior angle deviation [degrees]',
-            (None, None),
-            'max'
-        ),
+        # 'lsesum': (
+        #     r'sum strain energy [kJ mol$^{-1}$]',
+        #     (None, None),
+        #     'max'
+        # ),
+        # 'minitors': (
+        #     r'min. imine torsion [degrees]', (None, None), 'min'
+        # ),
+        # 'maxcrplan': (
+        #     r'max. ligand distortion [$\mathrm{\AA}$]',
+        #     (None, None),
+        #     'max'
+        # ),
+        # 'maxMLlength': (
+        #     r'max. N-Zn bond length [$\mathrm{\AA}$]',
+        #     (None, None),
+        #     'max'
+        # ),
+        # 'porediam': (
+        #     r'pore diameter [$\mathrm{\AA}$]', (None, None), 'min'
+        # ),
+        # 'relformatione': (
+        #     r'rel. formation energy [kJ mol$^{-1}$]', (-10, 1000), 'max'
+        # ),
+        # 'maxintangledev': (
+        #     r'max. interior angle deviation [degrees]',
+        #     (None, None),
+        #     'max'
+        # ),
     }
 
 
@@ -67,7 +67,7 @@ def distribution_plot(df, col_name):
 
     yprops = yproperties()
 
-    symm_labels = convert_symm_names()
+    symm_labels = convert_symm_names(no_symbol=True)
 
     fig, ax = plt.subplots(figsize=(8, 5))
 
@@ -76,6 +76,10 @@ def distribution_plot(df, col_name):
     forms = []
     does_not_form = []
     for symm in symm_labels:
+
+        if symm == 'tl':
+            print('no')
+            continue
         print_name = symm_labels[symm]
         set_df = df[df['symmetry'] == symm]
         _x_positions += 1
@@ -130,6 +134,9 @@ def distribution_plot(df, col_name):
         label='forms',
     )
 
+    if col_name == 'm_cube_shape':
+        ax.axhline(y=0, lw=2, linestyle='--', c='k')
+
     # Set number of ticks for x-axis
     ax.tick_params(axis='both', which='major', labelsize=16)
     ax.set_ylabel(yprops[col_name][0], fontsize=16)
@@ -150,15 +157,15 @@ def line_plot(df, col_name):
     _figure_path = 'figures'
 
     yprops = yproperties()
-    symm_labels = convert_symm_names()
+    symm_labels = convert_symm_names(no_symbol=True)
 
     cage_sets = {
-        'cl1_quad2_5': 'A',  # '1',
-        'cl1_quad2_16': 'B',  # '2',
-        'cl1_quad2_12': 'C',  # '3',
-        'cl1_quad2_3': 'D',  # '4',
-        'cl1_quad2_8': 'E',  # '5',
-        'cl1_quad2_2': 'F',  # '6',
+        'cl1_quad2_5': '1',
+        'cl1_quad2_16': '2',
+        'cl1_quad2_12': '3',
+        'cl1_quad2_3': '4',
+        'cl1_quad2_8': '5',
+        'cl1_quad2_2': '6',
     }
 
     feasible_syms = {
@@ -177,6 +184,9 @@ def line_plot(df, col_name):
         cs_df = df[df['cageset'] == cs]
 
         for symm in symm_labels:
+            if symm == 'tl':
+                print('no')
+                continue
             print_name = symm_labels[symm]
             set_df = cs_df[cs_df['symmetry'] == symm]
             _x_positions += 1
@@ -184,6 +194,7 @@ def line_plot(df, col_name):
             for i, row in set_df.iterrows():
                 outcome = True if row['outcome'] == 1 else False
                 y_val = row[col_name]
+
                 if y_val is None:
                     continue
                 if outcome:
@@ -218,7 +229,8 @@ def line_plot(df, col_name):
             x=[i[0] for i in unfeasible],
             y=[i[1] for i in unfeasible],
             c='r',
-            marker='o',
+            marker='D',
+            edgecolors='k',
             alpha=1.0,
             s=120,
             label='unfeasible',
@@ -227,11 +239,14 @@ def line_plot(df, col_name):
             x=[i[0] for i in feasible],
             y=[i[1] for i in feasible],
             c='gray',
-            marker='o',
+            marker='P',
+            edgecolors='k',
             alpha=1.0,
             s=120,
             label='feasible',
         )
+
+        ax.axhline(y=0, lw=2, linestyle='--', c='k')
 
         # Set number of ticks for x-axis
         ax.tick_params(axis='both', which='major', labelsize=16)
@@ -239,7 +254,7 @@ def line_plot(df, col_name):
         ax.set_ylim(yprops[col_name][1])
         ax.set_xticks([i[0] for i in _x_names])
         ax.set_xticklabels([i[1] for i in _x_names], rotation=45)
-        ax.set_title(f'tetra-aniline: {cage_sets[cs]}', fontsize=16)
+        ax.set_title(f'{cage_sets[cs]}', fontsize=16)
         fig.legend(fontsize=16)
         fig.tight_layout()
         fig.savefig(
@@ -268,10 +283,12 @@ def main():
     )
 
     target_cols = [
-        'octop', 'rellsesum', 'minitors', 'lsesum',
-        'maxcrplan', 'maxMLlength', 'porediam',
-        'relformatione', 'maxintangledev',
-        'm_cube_shape'
+        # 'octop',
+        'rellsesum',
+        # 'minitors', 'lsesum',
+        # 'maxcrplan', 'maxMLlength', 'porediam',
+        # 'relformatione', 'maxintangledev',
+        'm_cube_shape',
     ]
     for col_name in target_cols:
         distribution_plot(
