@@ -123,9 +123,6 @@ def get_lowest_energy_conformers(
         "file_prefix"{number of atoms}_{idx}_{i}.mol
         Where `idx` determines if a molecule is unique by smiles.
 
-    ligand_dir : :class:`str`
-        Location of built ligands.
-
     """
 
     for lig in org_ligs:
@@ -768,6 +765,8 @@ def calculate_ligand_SE(
                 )
             # Read energy.
             # kJ/mol.
+            print(opt_lig_ey, filename_, opt_lig_n)
+            input()
             E_free = read_gfnx2xtb_eyfile(opt_lig_ey)
             # Add to list the strain energy:
             # (E(extracted) - E(optimised/free))
@@ -1352,32 +1351,51 @@ def calculate_interior_face_angles(mol, metal_atom_ids, face_sets):
     return cube_angles
 
 
-def convert_symm_names(symm_name=None):
+def convert_symm_names(symm_name=None, no_symbol=False):
 
-    new_names = {
-        'd2': r'$D_\mathrm{2}$',
-        'th1': r'$T_\mathrm{h}$1',
-        'th2': r'$T_\mathrm{h}$2',
-        'td': r'$T_\mathrm{\Delta}$',
-        'tl': r'$T_\mathrm{\Lambda}$',
-        's41': r'$S_\mathrm{4}$1',
-        's42': r'$S_\mathrm{4}$2',
-        's61': r'$S_\mathrm{6}$1',
-        's62': r'$S_\mathrm{6}$2',
-        'd31': r'$D_\mathrm{3}$1',
-        'd32': r'$D_\mathrm{3}$2',
-        'd31n': r'$D_\mathrm{3}$1n',
-        'd32n': r'$D_\mathrm{3}$2n',
-        'c2v': r'$C_\mathrm{2h}$',
-        'c2h': r'$C_\mathrm{2v}$',
-    }
+    if no_symbol:
+        new_names = {
+            'd2': r'$D_\mathrm{2}$1',
+            'th1': r'$T_\mathrm{h}$1',
+            'th2': r'$T_\mathrm{h}$2',
+            'td': r'$T$1',
+            # 'tl': r'$T_\mathrm{\Lambda}$',
+            's41': r'$S_\mathrm{4}$1',
+            's42': r'$S_\mathrm{4}$2',
+            's61': r'$S_\mathrm{6}$1',
+            's62': r'$S_\mathrm{6}$2',
+            'd31': r'$D_\mathrm{3}$1',
+            'd32': r'$D_\mathrm{3}$2',
+            'd31n': r'$D_\mathrm{3}$1n',
+            'd32n': r'$D_\mathrm{3}$2n',
+            'c2v': r'$C_\mathrm{2h}$1',
+            'c2h': r'$C_\mathrm{2v}$1',
+        }
+    else:
+        new_names = {
+            'd2': r'$D_\mathrm{2}$',
+            'th1': r'$T_\mathrm{h}$1',
+            'th2': r'$T_\mathrm{h}$2',
+            'td': r'$T$1-$\mathrm{\Delta}$',
+            'tl': r'$T$1-$\mathrm{\Lambda}$',
+            's41': r'$S_\mathrm{4}$1',
+            's42': r'$S_\mathrm{4}$2',
+            's61': r'$S_\mathrm{6}$1',
+            's62': r'$S_\mathrm{6}$2',
+            'd31': r'$D_\mathrm{3}$1',
+            'd32': r'$D_\mathrm{3}$2',
+            'd31n': r'$D_\mathrm{3}$1n',
+            'd32n': r'$D_\mathrm{3}$2n',
+            'c2v': r'$C_\mathrm{2h}$',
+            'c2h': r'$C_\mathrm{2v}$',
+        }
     if symm_name is None:
         return new_names
     else:
         return new_names[symm_name]
 
 
-def convert_lig_names_from_cage(lig_name, as_int=False):
+def convert_lig_names_from_cage(lig_name, as_int=False, as_sub=False):
 
     if as_int:
         new_names = {
@@ -1389,14 +1407,24 @@ def convert_lig_names_from_cage(lig_name, as_int=False):
             'quad2_2': 6,
             # 'quad2_1': 7,
         }
+    elif as_sub:
+        new_names = {
+            'quad2_5': '$\\bf{A}$',  # '1',
+            'quad2_16': '$\\bf{B}$',  # '2',
+            'quad2_12': '$\\bf{C}$',  # '3',
+            'quad2_3': '$\\bf{D}$',  # '4',
+            'quad2_8': '$\\bf{E}$',  # '5',
+            'quad2_2': '$\\bf{F}$',  # '6',
+            # 'quad2_1': 7,
+        }
     else:
         new_names = {
-            'quad2_5': 'A',  # '1',
-            'quad2_16': 'B',  # '2',
-            'quad2_12': 'C',  # '3',
-            'quad2_3': 'D',  # '4',
-            'quad2_8': 'E',  # '5',
-            'quad2_2': 'F',  # '6',
+            'quad2_5': '$\\bf{A}$-Br',  # '1',
+            'quad2_16': '$\\bf{B}$-Br',  # '2',
+            'quad2_12': '$\\bf{C}$-Br',  # '3',
+            'quad2_3': '$\\bf{D}$-Br',  # '4',
+            'quad2_8': '$\\bf{E}$-Br',  # '5',
+            'quad2_2': '$\\bf{F}$-Br',  # '6',
             # 'quad2_1': 'G',  # '7',
         }
 
