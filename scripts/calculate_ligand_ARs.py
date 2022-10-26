@@ -176,12 +176,12 @@ def plot_values(C_data, Br_data, N_data, output_name):
         edgecolors='k',
         marker='s',
         alpha=1.0,
-        s=120,
+        s=150,
         label='Br-Br',
     )
 
     ax.tick_params(axis='both', which='major', labelsize=16)
-    ax.set_xlabel('subcomponent', fontsize=16)
+    ax.set_xlabel('building block', fontsize=16)
     ax.set_xlim(0.0, max(positions)+1)
     if 'ARs' in output_name:
         ax.set_ylabel('aspect ratio [1:X]', fontsize=16)
