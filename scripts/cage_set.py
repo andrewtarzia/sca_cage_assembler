@@ -68,9 +68,11 @@ class CageSet:
             ligand_dir
         )
         # Get ligand:face properties.
-        self.face_properties = self._get_face_properties(ligand_dir)
-        self.face_long_properties = self._get_face_long_properties(
-            ligand_dir
+        self.face_properties = self._get_face_properties(
+            ligand_dir, long_opt=False,
+        )
+        self.face_long_properties = self._get_face_properties(
+            ligand_dir, long_opt=True,
         )
         # Get ligand flexibility.
         self.flex_properties = self._get_flex_properties(ligand_dir)
@@ -161,16 +163,22 @@ class CageSet:
 
         return calculate_ideal_pore_size(planar_tet_linker)
 
-    def _get_face_properties(self, ligand_dir):
+    def _get_face_properties(self, ligand_dir, long_opt):
         """
         Load hypothetical face mismatches of tetratopic ligand.
 
         """
 
+        if long_opt is True:
+            ending = '_long_properties.json'
+        else:
+            ending = '_properties.json'
+
+
         face_dir = join(ligand_dir, 'face_analysis')
         face_topologies = face_topology_dict()
         face_prop_files = (
-            join(face_dir, f'F_{self.name}_{i}_properties.json')
+            join(face_dir, f'F_{self.name}_{i}{ending}')
             for i in face_topologies
         )
 
@@ -188,40 +196,15 @@ class CageSet:
             )
             with open(face_prop_file, 'r') as f:
                 data = json.load(f)
-            properties[face_type] = data['metals']['dif']
 
-        return properties
-
-    def _get_face_long_properties(self, ligand_dir):
-        """
-        Load hypothetical face mismatches of tetratopic ligand.
-
-        """
-
-        face_dir = join(ligand_dir, 'face_analysis')
-        face_topologies = face_topology_dict()
-        face_prop_files = (
-            join(face_dir, f'F_{self.name}_{i}_long_properties.json')
-            for i in face_topologies
-        )
-
-        properties = {}
-        for face_prop_file in face_prop_files:
-            if not exists(face_prop_file):
-                raise FileNotFoundError(
-                    f'{face_prop_file} does not exist. Make sure face '
-                    'analysis has been run.'
-                )
-
-            # Get average of all mismatches for face.
-            face_type = (
-                face_prop_file.replace(face_dir, '').split('_')[4]
+            properties[face_type] = (
+                data['metals']['dif'][0],
+                data['metals']['dif'][1],
+                np.average(data['metals']['aspect_differences']),
             )
-            with open(face_prop_file, 'r') as f:
-                data = json.load(f)
-            properties[face_type] = data['metals']['dif']
 
         return properties
+
 
     def _get_flex_properties(self, ligand_dir):
         """
