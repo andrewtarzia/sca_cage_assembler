@@ -206,6 +206,10 @@ def line_plot(df, col_name):
                     else:
                         unfeasible.append((_x_positions, float(y_val)))
 
+        print(_x_names)
+        print(cs, feasible)
+        print(cs, forms)
+        print(cs, unfeasible)
         # ax.scatter(
         #     x=[i[0] for i in does_not_form],
         #     y=[i[1] for i in does_not_form],
@@ -254,7 +258,8 @@ def line_plot(df, col_name):
         ax.set_ylim(yprops[col_name][1])
         ax.set_xticks([i[0] for i in _x_names])
         ax.set_xticklabels([i[1] for i in _x_names], rotation=45)
-        ax.set_title(f'{cage_sets[cs]}', fontsize=16)
+        bolded = '$\\bf{' + cage_sets[cs] + '}$'
+        ax.set_title(f'pseudo-cube {bolded}', fontsize=16)
         fig.legend(fontsize=16)
         fig.tight_layout()
         fig.savefig(
