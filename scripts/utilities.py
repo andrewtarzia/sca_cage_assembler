@@ -766,7 +766,6 @@ def calculate_ligand_SE(
             # Read energy.
             # kJ/mol.
             print(opt_lig_ey, filename_, opt_lig_n)
-            input()
             E_free = read_gfnx2xtb_eyfile(opt_lig_ey)
             # Add to list the strain energy:
             # (E(extracted) - E(optimised/free))
