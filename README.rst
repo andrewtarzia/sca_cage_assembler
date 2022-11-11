@@ -6,20 +6,10 @@ Overview
 A Python module for generating and analysing metal-organic cages formed
 from subcomponent self-assembly.
 
-Installation
-============
+Warning
+=======
 
-To get ``XX``, you can clone this repo.
-
-Dependancies:
-
-The file `environment.yml` defines a Python 3.9 conda env used for this project.
-
-
-Extracting new topologies
-=========================
-
-Handled in `topology_extraction` directory.
+This code is old and was not used in production, the main brance `cubism-production` contains the up-to-date code.
 
 
 Acknowledgements
