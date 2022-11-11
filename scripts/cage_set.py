@@ -201,6 +201,7 @@ class CageSet:
                 data['metals']['dif'][0],
                 data['metals']['dif'][1],
                 np.average(data['metals']['aspect_differences']),
+                np.average(data['Ns']['dif']),
             )
 
         return properties
