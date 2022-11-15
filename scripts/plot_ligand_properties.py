@@ -299,7 +299,7 @@ def plot_MM_vs_NN(json_files, candms, expts, full=False, short=False, grouped=Fa
         ylim = (0, 6)
     else:
         ncol = 5
-        ylim = (0, 10)
+        ylim = (0, 12)
 
     fig, ax = plt.subplots(figsize=(8, 5))
     stabs = {
