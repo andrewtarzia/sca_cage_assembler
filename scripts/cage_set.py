@@ -198,8 +198,7 @@ class CageSet:
                 data = json.load(f)
 
             properties[face_type] = (
-                data['metals']['dif'][0],
-                data['metals']['dif'][1],
+                np.average(data['metals']['dif']),
                 np.average(data['metals']['aspect_differences']),
                 np.average(data['Ns']['dif']),
             )

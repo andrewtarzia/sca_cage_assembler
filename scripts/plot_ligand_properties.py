@@ -127,13 +127,13 @@ def plot_MM_vs_AR(json_files, candms, expts, full=False, short=False, grouped=Fa
 
     fig, ax = plt.subplots(figsize=(8, 5))
     stabs = {
-        'i': {'ar': [], 'stab2': [], 'stab1': [], 'name': []},
-        'ii': {'ar': [], 'stab2': [], 'stab1': [], 'name': []},
-        'iii': {'ar': [], 'stab2': [], 'stab1': [], 'name': []},
-        'iv': {'ar': [], 'stab2': [], 'stab1': [], 'name': []},
-        'v': {'ar': [], 'stab2': [], 'stab1': [], 'name': []},
-        'vi': {'ar': [], 'stab2': [], 'stab1': [], 'name': []},
-        'vii': {'ar': [], 'stab2': [], 'stab1': [], 'name': []},
+        'i': {'ar': [], 'avgMDif': [], 'name': []},
+        'ii': {'ar': [], 'avgMDif': [], 'name': []},
+        'iii': {'ar': [], 'avgMDif': [], 'name': []},
+        'iv': {'ar': [], 'avgMDif': [], 'name': []},
+        'v': {'ar': [], 'avgMDif': [], 'name': []},
+        'vi': {'ar': [], 'avgMDif': [], 'name': []},
+        'vii': {'ar': [], 'avgMDif': [], 'name': []},
     }
     for i in json_files:
         cage_set = i.replace('_ligand_measures.json', '')
@@ -145,13 +145,10 @@ def plot_MM_vs_AR(json_files, candms, expts, full=False, short=False, grouped=Fa
         lname = cage_set.replace('cl1_', '')
         for face in cage_set_data[dict_key]:
             stabs[face]['ar'].append(
-                cage_set_data[dict_key][face][2]
-            )
-            stabs[face]['stab1'].append(
-                cage_set_data[dict_key][face][0]
-            )
-            stabs[face]['stab2'].append(
                 cage_set_data[dict_key][face][1]
+            )
+            stabs[face]['avgMDif'].append(
+                cage_set_data[dict_key][face][0]
             )
             stabs[face]['name'].append(
                 (
@@ -170,7 +167,7 @@ def plot_MM_vs_AR(json_files, candms, expts, full=False, short=False, grouped=Fa
             in sorted(
                 zip(
                     stabs[face]['ar'],
-                    stabs[face]['stab1'],
+                    stabs[face]['avgMDif'],
                     stabs[face]['name'],
                 ),
                 key=lambda pair: pair[0]
@@ -274,6 +271,8 @@ def plot_MM_vs_AR(json_files, candms, expts, full=False, short=False, grouped=Fa
     )
 
     plt.close()
+    print(f'all_ligand_MM_vs_AR{addon}{suffix}.pdf')
+
 
 
 def plot_MM_vs_NN(json_files, candms, expts, full=False, short=False, grouped=False):
@@ -304,13 +303,13 @@ def plot_MM_vs_NN(json_files, candms, expts, full=False, short=False, grouped=Fa
 
     fig, ax = plt.subplots(figsize=(8, 5))
     stabs = {
-        'i': {'nn': [], 'stab2': [], 'stab1': [], 'name': []},
-        'ii': {'nn': [], 'stab2': [], 'stab1': [], 'name': []},
-        'iii': {'nn': [], 'stab2': [], 'stab1': [], 'name': []},
-        'iv': {'nn': [], 'stab2': [], 'stab1': [], 'name': []},
-        'v': {'nn': [], 'stab2': [], 'stab1': [], 'name': []},
-        'vi': {'nn': [], 'stab2': [], 'stab1': [], 'name': []},
-        'vii': {'nn': [], 'stab2': [], 'stab1': [], 'name': []},
+        'i': {'nn': [], 'avgMDif': [], 'name': []},
+        'ii': {'nn': [], 'avgMDif': [], 'name': []},
+        'iii': {'nn': [], 'avgMDif': [], 'name': []},
+        'iv': {'nn': [], 'avgMDif': [], 'name': []},
+        'v': {'nn': [], 'avgMDif': [], 'name': []},
+        'vi': {'nn': [], 'avgMDif': [], 'name': []},
+        'vii': {'nn': [], 'avgMDif': [], 'name': []},
     }
     for i in json_files:
         cage_set = i.replace('_ligand_measures.json', '')
@@ -322,13 +321,10 @@ def plot_MM_vs_NN(json_files, candms, expts, full=False, short=False, grouped=Fa
         lname = cage_set.replace('cl1_', '')
         for face in cage_set_data[dict_key]:
             stabs[face]['nn'].append(
-                cage_set_data[dict_key][face][3]
+                cage_set_data[dict_key][face][2]
             )
-            stabs[face]['stab1'].append(
+            stabs[face]['avgMDif'].append(
                 cage_set_data[dict_key][face][0]
-            )
-            stabs[face]['stab2'].append(
-                cage_set_data[dict_key][face][1]
             )
             stabs[face]['name'].append(
                 (
@@ -347,7 +343,7 @@ def plot_MM_vs_NN(json_files, candms, expts, full=False, short=False, grouped=Fa
             in sorted(
                 zip(
                     stabs[face]['nn'],
-                    stabs[face]['stab1'],
+                    stabs[face]['avgMDif'],
                     stabs[face]['name'],
                 ),
                 key=lambda pair: pair[0]
