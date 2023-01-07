@@ -338,10 +338,6 @@ def main():
         if setname not in sets_to_plot:
             continue
         symm = row['symmetry']
-        print(symm)
-        if symm == 'tl':
-            print('no')
-            continue
 
         forms = True if row['outcome'] == 1 else False
 
@@ -353,7 +349,8 @@ def main():
         with open(ey_file, 'r') as f:
             lines = f.readlines()
         total_energy = float(lines[0].rstrip())
-        set_gfn_energies[setname][symm] = (total_energy, forms)
+        if symm != 'tl':
+            set_gfn_energies[setname][symm] = (total_energy, forms)
 
         # Get total energies from DFT.
         ey_file = os.path.join(
@@ -363,15 +360,16 @@ def main():
             print(ey_file, 'missing')
             continue
         with open(ey_file, 'r') as f:
+            # It is the final form of this that we want, so no break.
             for line in f.readlines():
                 if (
                     'ENERGY| Total FORCE_EVAL ( QS ) energy [a.u.]:'
                 ) in line:
                     energy_line = line
-                    break
 
         total_energy = float(energy_line.strip().split()[-1])
-        set_dft_energies[setname][symm] = (total_energy, forms)
+        if symm != 'tl':
+            set_dft_energies[setname][symm] = (total_energy, forms)
 
     # Plot relative energy cf. more stable symmetry of expt symmetry.
     plot_set_energies(
