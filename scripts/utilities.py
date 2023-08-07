@@ -50,48 +50,60 @@ def get_lowest_energy_conformer(name, mol, conf_dir, settings):
 
     # Check for missing settings.
     req_settings = [
-        'final_opt_level', 'conf_opt_level', 'charge', 'no_unpaired_e',
-        'max_runs', 'calc_hessian', 'solvent', 'nc', 'crest_exec',
-        'etemp', 'keepdir', 'cross', 'md_len', 'ewin', 'speed_setting'
+        "final_opt_level",
+        "conf_opt_level",
+        "charge",
+        "no_unpaired_e",
+        "max_runs",
+        "calc_hessian",
+        "solvent",
+        "nc",
+        "crest_exec",
+        "etemp",
+        "keepdir",
+        "cross",
+        "md_len",
+        "ewin",
+        "speed_setting",
     ]
     for i in req_settings:
         if i not in settings:
             raise MissingSettingError(
-                f'Settings missing {i}. Has {settings.keys()}.'
+                f"Settings missing {i}. Has {settings.keys()}."
             )
 
     low_e_conf = crest_conformer_search(
         molecule=mol,
         output_dir=conf_dir,
         gfn_version=2,
-        nc=settings['nc'],
-        opt_level=settings['conf_opt_level'],
-        charge=settings['charge'],
-        etemp=settings['etemp'],
-        no_unpaired_e=settings['no_unpaired_e'],
-        keepdir=settings['keepdir'],
-        cross=settings['cross'],
-        md_len=settings['md_len'],
-        ewin=settings['ewin'],
-        speed_setting=settings['speed_setting'],
-        solvent=settings['solvent'],
+        nc=settings["nc"],
+        opt_level=settings["conf_opt_level"],
+        charge=settings["charge"],
+        etemp=settings["etemp"],
+        no_unpaired_e=settings["no_unpaired_e"],
+        keepdir=settings["keepdir"],
+        cross=settings["cross"],
+        md_len=settings["md_len"],
+        ewin=settings["ewin"],
+        speed_setting=settings["speed_setting"],
+        solvent=settings["solvent"],
     )
 
     # Save lowest energy conformer.
-    low_e_conf.write(os.path.join(conf_dir, 'low_e_unopt.mol'))
+    low_e_conf.write(os.path.join(conf_dir, "low_e_unopt.mol"))
 
     # Optimize lowest energy conformer at opt_level.
     low_e_conf = optimize_conformer(
-        name=f'{name}_low_e_opt',
+        name=f"{name}_low_e_opt",
         mol=low_e_conf,
-        opt_level=settings['final_opt_level'],
-        charge=settings['charge'],
-        no_unpaired_e=settings['no_unpaired_e'],
-        max_runs=settings['max_runs'],
-        calc_hessian=settings['calc_hessian'],
-        solvent=settings['solvent']
+        opt_level=settings["final_opt_level"],
+        charge=settings["charge"],
+        no_unpaired_e=settings["no_unpaired_e"],
+        max_runs=settings["max_runs"],
+        calc_hessian=settings["calc_hessian"],
+        solvent=settings["solvent"],
     )
-    low_e_conf.write(os.path.join(conf_dir, 'low_e_opt.mol'))
+    low_e_conf.write(os.path.join(conf_dir, "low_e_opt.mol"))
 
     # Return molecule.
     return low_e_conf
@@ -130,10 +142,10 @@ def get_lowest_energy_conformers(
         smiles_key = stk.Smiles().get_key(stk_lig)
         idx = smiles_keys[smiles_key]
         sgt = str(stk_lig.get_num_atoms())
-        final_filename_ = f'{file_prefix}{sgt}_{idx}_opt.mol'
-        ligand_name_ = file_prefix.split('_sg')[0].split('_')[2:]
+        final_filename_ = f"{file_prefix}{sgt}_{idx}_opt.mol"
+        ligand_name_ = file_prefix.split("_sg")[0].split("_")[2:]
         if len(ligand_name_) > 1:
-            ligand_name_ = '_'.join(ligand_name_)
+            ligand_name_ = "_".join(ligand_name_)
         else:
             ligand_name_ = ligand_name_[0]
 
@@ -141,31 +153,29 @@ def get_lowest_energy_conformers(
             continue
         else:
             print(
-                '......calculating lowest energy conformer of '
-                f'{ligand_name_}'
+                "......calculating lowest energy conformer of "
+                f"{ligand_name_}"
             )
             # Get low energy conformer using CREST.
-            conf_dir = f'{ligand_name_}_xtbcrest_confs'
+            conf_dir = f"{ligand_name_}_xtbcrest_confs"
             if not os.path.exists(conf_dir):
                 os.mkdir(conf_dir)
             low_e_conf = get_lowest_energy_conformer(
                 name=ligand_name_,
                 mol=stk_lig,
                 conf_dir=conf_dir,
-                settings=env_set.crest_conformer_settings(
-                    solvent=None
-                ),
+                settings=env_set.crest_conformer_settings(solvent=None),
             )
             # In cage specific case, we want this optimised with solvent.
             low_e_conf = optimize_conformer(
-                name=ligand_name_+'low_e_opt',
+                name=ligand_name_ + "low_e_opt",
                 mol=low_e_conf,
-                opt_level=settings['final_opt_level'],
-                charge=settings['charge'],
-                no_unpaired_e=settings['no_unpaired_e'],
-                max_runs=settings['max_runs'],
-                calc_hessian=settings['calc_hessian'],
-                solvent=settings['solvent']
+                opt_level=settings["final_opt_level"],
+                charge=settings["charge"],
+                no_unpaired_e=settings["no_unpaired_e"],
+                max_runs=settings["max_runs"],
+                calc_hessian=settings["calc_hessian"],
+                solvent=settings["solvent"],
             )
             low_e_conf.write(final_filename_)
 
@@ -173,22 +183,22 @@ def get_lowest_energy_conformers(
 def optimize_conformer(
     name,
     mol,
-    opt_level='extreme',
+    opt_level="extreme",
     charge=0,
     no_unpaired_e=0,
     max_runs=1,
     calc_hessian=False,
-    solvent=None
+    solvent=None,
 ):
     """
     Run simple GFN-xTB optimisation of molecule.
 
     """
 
-    print(f'....optimizing {name}')
+    print(f"....optimizing {name}")
     xtb_opt = stko.XTB(
         xtb_path=env_set.xtb_path(),
-        output_dir=f'{name}_opt',
+        output_dir=f"{name}_opt",
         gfn_version=2,
         num_cores=6,
         opt_level=opt_level,
@@ -230,7 +240,7 @@ def crest_conformer_search(
 
     """
 
-    print('..........doing GFN-2 CREST optimisation')
+    print("..........doing GFN-2 CREST optimisation")
     xtb_crest = stko.XTBCREST(
         crest_path=env_set.crest_path(),
         xtb_path=env_set.xtb_path(),
@@ -269,9 +279,9 @@ def convert_stk_to_pymatgen(stk_mol):
         Corresponding pymatgen Molecule.
 
     """
-    stk_mol.write('temp.xyz')
-    pmg_mol = pmg.Molecule.from_file('temp.xyz')
-    os.system('rm temp.xyz')
+    stk_mol.write("temp.xyz")
+    pmg_mol = pmg.Molecule.from_file("temp.xyz")
+    os.system("rm temp.xyz")
 
     return pmg_mol
 
@@ -306,10 +316,7 @@ def get_element_sites(molecule, atomic_no):
 
 
 def calculate_sites_order_values(
-    molecule,
-    site_idxs,
-    target_species_type=None,
-    neigh_idxs=None
+    molecule, site_idxs, target_species_type=None, neigh_idxs=None
 ):
     """
     Calculate order parameters around metal centres.
@@ -355,11 +362,11 @@ def calculate_sites_order_values(
 
     # Define local order parameters class based on desired types.
     types = [
-        'oct',  # Octahedra OP.
-        'sq_plan',  # Square planar envs.
-        'q2',  # l=2 Steinhardt OP.
-        'q4',  # l=4 Steinhardt OP.
-        'q6',  # l=6 Steinhardt OP.
+        "oct",  # Octahedra OP.
+        "sq_plan",  # Square planar envs.
+        "q2",  # l=2 Steinhardt OP.
+        "q4",  # l=4 Steinhardt OP.
+        "q6",  # l=6 Steinhardt OP.
     ]
     loc_ops = LocalStructOrderParams(
         types=types,
@@ -367,9 +374,7 @@ def calculate_sites_order_values(
     if neigh_idxs is None:
         for site in site_idxs:
             site_results = loc_ops.get_order_parameters(
-                structure=molecule,
-                n=site,
-                target_spec=[targ_species]
+                structure=molecule, n=site, target_spec=[targ_species]
             )
             results[site] = {i: j for i, j in zip(types, site_results)}
     else:
@@ -378,7 +383,7 @@ def calculate_sites_order_values(
                 structure=molecule,
                 n=site,
                 indices_neighs=neigh,
-                target_spec=targ_species
+                target_spec=targ_species,
             )
             results[site] = {i: j for i, j in zip(types, site_results)}
 
@@ -430,9 +435,7 @@ def get_order_values(mol, metal, per_site=False):
             neighs.append(a_neigh)
 
     order_values = calculate_sites_order_values(
-        molecule=pmg_mol,
-        site_idxs=sites,
-        neigh_idxs=neighs
+        molecule=pmg_mol, site_idxs=sites, neigh_idxs=neighs
     )
 
     if per_site:
@@ -448,9 +451,9 @@ def get_order_values(mol, metal, per_site=False):
         results = {
             # OP: (min, max, avg)
             i: {
-                'min': min(OP_lists[i]),
-                'max': max(OP_lists[i]),
-                'avg': np.average(OP_lists[i])
+                "min": min(OP_lists[i]),
+                "max": max(OP_lists[i]),
+                "avg": np.average(OP_lists[i]),
             }
             for i in OP_lists
         }
@@ -517,42 +520,31 @@ def get_organic_linkers(cage, metal_atom_nos, file_prefix=None):
         # Get atoms from nodes.
         atoms = list(cg)
         atom_ids = [i.get_id() for i in atoms]
-        cage.write(
-            'temporary_linker.mol',
-            atom_ids=atom_ids
-        )
+        cage.write("temporary_linker.mol", atom_ids=atom_ids)
         temporary_linker = stk.BuildingBlock.init_from_file(
-            'temporary_linker.mol'
+            "temporary_linker.mol"
         ).with_canonical_atom_ordering()
         smiles_key = stk.Smiles().get_key(temporary_linker)
         if smiles_key not in smiles_keys:
-            smiles_keys[smiles_key] = len(smiles_keys.values())+1
+            smiles_keys[smiles_key] = len(smiles_keys.values()) + 1
         idx = smiles_keys[smiles_key]
         sgt = str(len(atoms))
         # Write to mol file.
         if file_prefix is None:
-            filename_ = f'organic_linker_s{sgt}_{idx}_{i}.mol'
+            filename_ = f"organic_linker_s{sgt}_{idx}_{i}.mol"
         else:
-            filename_ = f'{file_prefix}{sgt}_{idx}_{i}.mol'
+            filename_ = f"{file_prefix}{sgt}_{idx}_{i}.mol"
 
         org_lig[filename_] = temporary_linker
-        os.system('rm temporary_linker.mol')
+        os.system("rm temporary_linker.mol")
         # Rewrite to fix atom ids.
         org_lig[filename_].write(filename_)
-        org_lig[filename_] = stk.BuildingBlock.init_from_file(
-            filename_
-        )
+        org_lig[filename_] = stk.BuildingBlock.init_from_file(filename_)
 
     return org_lig, smiles_keys
 
 
-def draw_and_save_grid(
-    mol_list,
-    names,
-    subImgSize,
-    mol_per_row,
-    filename
-):
+def draw_and_save_grid(mol_list, names, subImgSize, mol_per_row, filename):
     """
     Draw RDKit molecules and save SVG.
 
@@ -562,12 +554,9 @@ def draw_and_save_grid(
         molsPerRow=mol_per_row,
         subImgSize=subImgSize,
         legends=names,
-        useSVG=True
+        useSVG=True,
     )
-    save_svg(
-        filename=filename,
-        string=img
-    )
+    save_svg(filename=filename, string=img)
 
 
 def mol_list2grid(
@@ -576,7 +565,7 @@ def mol_list2grid(
     mol_per_row,
     maxrows,
     subImgSize=(200, 200),
-    names=None
+    names=None,
 ):
     """
     Produce a grid of molecules in mol_list.
@@ -598,14 +587,14 @@ def mol_list2grid(
                 new_names.append(names[i])
             # make image
             chk1 = len(new_mol_list) == mol_per_row * maxrows
-            chk2 = i == len(molecules)-1
+            chk2 = i == len(molecules) - 1
             if chk1 or chk2:
                 draw_and_save_grid(
                     mol_list=new_mol_list,
                     mol_per_row=mol_per_row,
                     subImgSize=subImgSize,
                     names=new_names,
-                    filename=f'{filename}_{count}.svg'
+                    filename=f"{filename}_{count}.svg",
                 )
                 # img.save(filename + '_' + str(count) + '.png')
                 new_mol_list = []
@@ -617,7 +606,7 @@ def mol_list2grid(
             mol_per_row=mol_per_row,
             subImgSize=subImgSize,
             names=names,
-            filename=f'{filename}.svg'
+            filename=f"{filename}.svg",
         )
 
 
@@ -627,7 +616,7 @@ def save_svg(filename, string):
 
     """
 
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write(string)
 
 
@@ -637,21 +626,15 @@ def read_gfnx2xtb_eyfile(file):
 
     """
 
-    with open(file, 'r') as f:
+    with open(file, "r") as f:
         lines = f.readlines()
         ey = float(lines[0].rstrip())
 
-    return ey*2625.5
+    return ey * 2625.5
 
 
 def calculate_energy(
-    name,
-    mol,
-    ey_file,
-    xtb_path=None,
-    charge=0,
-    no_unpaired_e=0,
-    solvent=None
+    name, mol, ey_file, xtb_path=None, charge=0, no_unpaired_e=0, solvent=None
 ):
     """
     Calculate GFN-xTB energy of molecule.
@@ -661,10 +644,10 @@ def calculate_energy(
     if xtb_path is None:
         xtb_path = env_set.xtb_path()
 
-    print(f'....getting energy of {name}')
+    print(f"....getting energy of {name}")
     xtb_energy = stko.XTBEnergy(
         xtb_path=env_set.xtb_path(),
-        output_dir=f'{name}_ey',
+        output_dir=f"{name}_ey",
         num_cores=6,
         charge=charge,
         num_unpaired_electrons=no_unpaired_e,
@@ -675,7 +658,7 @@ def calculate_energy(
     )
     energy = xtb_energy.get_energy(mol)
 
-    with open(ey_file, 'w') as f:
+    with open(ey_file, "w") as f:
         f.write(str(energy))
 
 
@@ -724,25 +707,25 @@ def calculate_ligand_SE(
         # Iterate over ligands.
         for lig in org_ligs:
             stk_lig = org_ligs[lig]
-            ey_file = lig.replace('mol', 'ey')
+            ey_file = lig.replace("mol", "ey")
             smiles_key = stk.Smiles().get_key(stk_lig)
             idx = smiles_keys[smiles_key]
             sgt = str(stk_lig.get_num_atoms())
             # Get optimized ligand name that excludes any cage
             # information.
             if file_prefix is None:
-                filename_ = f'organic_linker_s{sgt}_{idx}_opt.mol'
-                opt_lig_ey = f'organic_linker_s{sgt}_{idx}_opt.ey'
-                opt_lig_n = f'organic_linker_s{sgt}_{idx}_opt'
+                filename_ = f"organic_linker_s{sgt}_{idx}_opt.mol"
+                opt_lig_ey = f"organic_linker_s{sgt}_{idx}_opt.ey"
+                opt_lig_n = f"organic_linker_s{sgt}_{idx}_opt"
             else:
-                filename_ = f'{file_prefix}{sgt}_{idx}_opt.mol'
-                opt_lig_ey = f'{file_prefix}{sgt}_{idx}_opt.ey'
-                opt_lig_n = f'{file_prefix}{sgt}_{idx}_opt'
+                filename_ = f"{file_prefix}{sgt}_{idx}_opt.mol"
+                opt_lig_ey = f"{file_prefix}{sgt}_{idx}_opt.ey"
+                opt_lig_n = f"{file_prefix}{sgt}_{idx}_opt"
 
             # Calculate energy of extracted ligand.
             if not os.path.exists(ey_file):
                 calculate_energy(
-                    name=lig.replace('.mol', ''),
+                    name=lig.replace(".mol", ""),
                     mol=stk_lig,
                     ey_file=ey_file,
                     solvent=solvent,
@@ -753,9 +736,7 @@ def calculate_ligand_SE(
 
             # Calculate energy of optimised ligand.
             # Load in lowest energy conformer.
-            opt_mol = stk.BuildingBlock.init_from_file(
-                filename_
-            )
+            opt_mol = stk.BuildingBlock.init_from_file(filename_)
             if not os.path.exists(opt_lig_ey):
                 calculate_energy(
                     name=opt_lig_n,
@@ -774,11 +755,11 @@ def calculate_ligand_SE(
             strain_energies[lig] = lse
 
         # Write data.
-        with open(output_json, 'w') as f:
+        with open(output_json, "w") as f:
             json.dump(strain_energies, f)
 
     # Get data.
-    with open(output_json, 'r') as f:
+    with open(output_json, "r") as f:
         strain_energies = json.load(f)
 
     return strain_energies
@@ -863,7 +844,7 @@ def calculate_abs_imine_torsions(org_ligs, smarts=None):
 
     if smarts is None:
         # C-N=C(H)-C(X)-X, where X != H.
-        smarts = '[#6]-[#7X2]=[#6X3H1]-[#6X3!H1]'
+        smarts = "[#6]-[#7X2]=[#6X3H1]-[#6X3!H1]"
 
     torsions = {}
     # Iterate over ligands.
@@ -876,18 +857,10 @@ def calculate_abs_imine_torsions(org_ligs, smarts=None):
         torsion_list = []
         for atom_ids in query_ids:
             torsion = get_dihedral(
-                pt1=tuple(
-                    stk_lig.get_atomic_positions(atom_ids[0])
-                )[0],
-                pt2=tuple(
-                    stk_lig.get_atomic_positions(atom_ids[1])
-                )[0],
-                pt3=tuple(
-                    stk_lig.get_atomic_positions(atom_ids[2])
-                )[0],
-                pt4=tuple(
-                    stk_lig.get_atomic_positions(atom_ids[3])
-                )[0]
+                pt1=tuple(stk_lig.get_atomic_positions(atom_ids[0]))[0],
+                pt2=tuple(stk_lig.get_atomic_positions(atom_ids[1]))[0],
+                pt3=tuple(stk_lig.get_atomic_positions(atom_ids[2]))[0],
+                pt4=tuple(stk_lig.get_atomic_positions(atom_ids[3]))[0],
             )
             torsion_list.append(abs(torsion))
 
@@ -941,8 +914,7 @@ def get_atom_distance(molecule, atom1_id, atom2_id):
     position_matrix = molecule.get_position_matrix()
 
     distance = euclidean(
-        u=position_matrix[atom1_id],
-        v=position_matrix[atom2_id]
+        u=position_matrix[atom1_id], v=position_matrix[atom2_id]
     )
 
     return float(distance)
@@ -955,10 +927,12 @@ def shortest_distance_to_plane(plane, point):
     """
 
     top = abs(
-        plane[0]*point[0] + plane[1]*point[1] +
-        plane[2]*point[2] - plane[3]
+        plane[0] * point[0]
+        + plane[1] * point[1]
+        + plane[2] * point[2]
+        - plane[3]
     )
-    bottom = np.sqrt(plane[0]**2 + plane[1]**2 + plane[2]**2)
+    bottom = np.sqrt(plane[0] ** 2 + plane[1] ** 2 + plane[2] ** 2)
     distance = top / bottom
     return distance
 
@@ -995,16 +969,21 @@ def calculate_molecule_planarity(mol, plane_ids=None, atom_ids=None):
     centroid = mol.get_centroid(atom_ids=plane_ids)
     normal = mol.get_plane_normal(atom_ids=plane_ids)
     # Plane of equation ax + by + cz = d.
-    atom_plane = np.append(normal, np.sum(normal*centroid))
+    atom_plane = np.append(normal, np.sum(normal * centroid))
     # Define the plane deviation as the sum of the distance of all
     # atoms from the plane defined by all atoms.
-    plane_dev = sum([
-        shortest_distance_to_plane(
-            atom_plane,
-            tuple(mol.get_atomic_positions(atom_ids=i.get_id()), )[0]
-        )
-        for i in mol.get_atoms() if i.get_id() in atom_ids
-    ])
+    plane_dev = sum(
+        [
+            shortest_distance_to_plane(
+                atom_plane,
+                tuple(
+                    mol.get_atomic_positions(atom_ids=i.get_id()),
+                )[0],
+            )
+            for i in mol.get_atoms()
+            if i.get_id() in atom_ids
+        ]
+    )
 
     return plane_dev
 
@@ -1052,21 +1031,6 @@ def angle_between(v1, v2, normal=None):
     return angle
 
 
-def read_lib(lib_file):
-    """
-    Read lib file.
-
-    Returns dictionary.
-
-    """
-
-    print(f'reading {lib_file}')
-    with open(lib_file, 'rb') as f:
-        lib = json.load(f)
-
-    return lib
-
-
 def calculate_binding_AR(mol, atom_ids=None):
     """
     Calculate ligand aspect ratio based on binder positions.
@@ -1084,12 +1048,11 @@ def calculate_binding_AR(mol, atom_ids=None):
         if mol.get_num_functional_groups() != 4:
             return None
         target_atom_ids = [
-            list(fg.get_bonder_ids())
-            for fg in mol.get_functional_groups()
+            list(fg.get_bonder_ids()) for fg in mol.get_functional_groups()
         ]
     else:
         if len(atom_ids) != 4:
-            raise ValueError('Requires exactly four target atom ids.')
+            raise ValueError("Requires exactly four target atom ids.")
         target_atom_ids = atom_ids
 
     atom_dists = sorted(
@@ -1097,23 +1060,17 @@ def calculate_binding_AR(mol, atom_ids=None):
             (idx1, idx2, get_atom_distance(mol, idx1, idx2))
             for idx1, idx2 in combinations(target_atom_ids, r=2)
         ],
-        key=lambda a: a[2]
+        key=lambda a: a[2],
     )
 
-    far_binder_pair = (
-        atom_dists[-1][0],
-        atom_dists[-1][1]
-    )
+    far_binder_pair = (atom_dists[-1][0], atom_dists[-1][1])
     ARs = []
     for fg_id in far_binder_pair:
-        ds = sorted([
-            i[2] for i in atom_dists
-            if fg_id in (i[0], i[1])
-        ])
-        AR = ds[1]/min(ds)
+        ds = sorted([i[2] for i in atom_dists if fg_id in (i[0], i[1])])
+        AR = ds[1] / min(ds)
         ARs.append(AR)
 
-    ligand_AR = sum(ARs)/len(ARs)
+    ligand_AR = sum(ARs) / len(ARs)
     return ligand_AR
 
 
@@ -1135,12 +1092,11 @@ def calculate_binding_ABS(mol, atom_ids=None):
         if mol.get_num_functional_groups() != 4:
             return None
         target_atom_ids = [
-            list(fg.get_bonder_ids())
-            for fg in mol.get_functional_groups()
+            list(fg.get_bonder_ids()) for fg in mol.get_functional_groups()
         ]
     else:
         if len(atom_ids) != 4:
-            raise ValueError('Requires exactly four target atom ids.')
+            raise ValueError("Requires exactly four target atom ids.")
         target_atom_ids = atom_ids
 
     atom_dists = sorted(
@@ -1148,30 +1104,22 @@ def calculate_binding_ABS(mol, atom_ids=None):
             (idx1, idx2, get_atom_distance(mol, idx1, idx2))
             for idx1, idx2 in combinations(target_atom_ids, r=2)
         ],
-        key=lambda a: a[2]
+        key=lambda a: a[2],
     )
 
-    far_binder_pair = (
-        atom_dists[-1][0],
-        atom_dists[-1][1]
-    )
+    far_binder_pair = (atom_dists[-1][0], atom_dists[-1][1])
     ABSs = []
     for fg_id in far_binder_pair:
-        ds = sorted([
-            i[2] for i in atom_dists
-            if fg_id in (i[0], i[1])
-        ])
-        AB = ds[1]-ds[0]
+        ds = sorted([i[2] for i in atom_dists if fg_id in (i[0], i[1])])
+        AB = ds[1] - ds[0]
         ABSs.append(AB)
 
-    ligand_AB = sum(ABSs)/len(ABSs)
+    ligand_AB = sum(ABSs) / len(ABSs)
     return ligand_AB
 
 
 def calculate_metal_ligand_distance(
-    mol,
-    metal_atomic_number,
-    ligand_atomic_number
+    mol, metal_atomic_number, ligand_atomic_number
 ):
     """
     Calculate all bond lengths in mol between metal and ligand atoms.
@@ -1233,31 +1181,26 @@ def calculate_ideal_pore_size(mol):
         return None
 
     deleter_atom_ids = [
-        list(fg.get_deleter_ids())
-        for fg in mol.get_functional_groups()
+        list(fg.get_deleter_ids()) for fg in mol.get_functional_groups()
     ]
     deleter_atom_dists = sorted(
         [
             (idx1, idx2, get_atom_distance(mol, idx1, idx2))
             for idx1, idx2 in combinations(deleter_atom_ids, r=2)
         ],
-        key=lambda a: a[2]
+        key=lambda a: a[2],
     )
 
-    far_binder_pair = (
-        deleter_atom_dists[-1][0],
-        deleter_atom_dists[-1][1]
-    )
+    far_binder_pair = (deleter_atom_dists[-1][0], deleter_atom_dists[-1][1])
     short_distances = []
     for fg_id in far_binder_pair:
-        ds = sorted([
-            i[2] for i in deleter_atom_dists
-            if fg_id in (i[0], i[1])
-        ])
+        ds = sorted(
+            [i[2] for i in deleter_atom_dists if fg_id in (i[0], i[1])]
+        )
         short_distance = min(ds)
         short_distances.append(short_distance)
 
-    return sum(short_distances)/len(short_distances)
+    return sum(short_distances) / len(short_distances)
 
 
 def output_face_atoms(mol, metal_atom_ids, face_sets, prefix):
@@ -1267,16 +1210,16 @@ def output_face_atoms(mol, metal_atom_ids, face_sets, prefix):
     """
 
     _face_atom_types = {
-        '001': 'H',
-        '100': 'O',
-        '010': 'F',
-        '00-1': 'N',
-        '-100': 'C',
-        '0-10': 'B',
+        "001": "H",
+        "100": "O",
+        "010": "F",
+        "00-1": "N",
+        "-100": "C",
+        "0-10": "B",
     }
 
     atom_count = 0
-    xyz_file = f'{prefix}_metal_faces.xyz'
+    xyz_file = f"{prefix}_metal_faces.xyz"
     atoms = []
     for fs in face_sets.sets:
         fsv = face_sets.vertices[fs]
@@ -1284,19 +1227,21 @@ def output_face_atoms(mol, metal_atom_ids, face_sets, prefix):
         fs_atom_positions = mol.get_atomic_positions(fs_atom_ids)
 
         for ai, ap in zip(fs_atom_ids, fs_atom_positions):
-            atoms.append((
-                _face_atom_types[fs],
-                ap[0],
-                ap[1],
-                ap[2],
-                ai,
-            ))
+            atoms.append(
+                (
+                    _face_atom_types[fs],
+                    ap[0],
+                    ap[1],
+                    ap[2],
+                    ai,
+                )
+            )
             atom_count += 1
 
-    with open(xyz_file, 'w') as f:
-        f.write(f'{atom_count}\n\n')
+    with open(xyz_file, "w") as f:
+        f.write(f"{atom_count}\n\n")
         for ma in atoms:
-            f.write(f'{ma[0]} {ma[1]} {ma[2]} {ma[3]} {ma[4]}\n')
+            f.write(f"{ma[0]} {ma[1]} {ma[2]} {ma[3]} {ma[4]}\n")
 
 
 def calculate_interior_face_angles(mol, metal_atom_ids, face_sets):
@@ -1308,7 +1253,7 @@ def calculate_interior_face_angles(mol, metal_atom_ids, face_sets):
     pos_mat = mol.get_position_matrix()
 
     metal_metal_vectors = {
-        (idx1, idx2): pos_mat[idx2]-pos_mat[idx1]
+        (idx1, idx2): pos_mat[idx2] - pos_mat[idx1]
         for idx1, idx2 in permutations(metal_atom_ids, r=2)
     }
 
@@ -1321,11 +1266,7 @@ def calculate_interior_face_angles(mol, metal_atom_ids, face_sets):
         # Calculate the interior angles based on connected metals.
         interior_angles = {}
         for idx in fsv:
-            conn = [
-                j
-                for i in fsc if idx in i
-                for j in i if j != idx
-            ]
+            conn = [j for i in fsc if idx in i for j in i if j != idx]
             fs_idx = metal_atom_ids[idx]
             fs_conn = [metal_atom_ids[i] for i in conn]
 
@@ -1335,13 +1276,11 @@ def calculate_interior_face_angles(mol, metal_atom_ids, face_sets):
             # print(idx, pair1, pair2)
             vector1 = metal_metal_vectors[(pair1)]
             vector2 = metal_metal_vectors[(pair2)]
-            interior_angle = np.degrees(
-                angle_between(vector1, vector2)
-            )
+            interior_angle = np.degrees(angle_between(vector1, vector2))
             if interior_angle < 75 or interior_angle > 105:
                 print(
-                    f'Interior angle: {interior_angle} - suggests bad '
-                    'optimisation.'
+                    f"Interior angle: {interior_angle} - suggests bad "
+                    "optimisation."
                 )
             interior_angles[idx] = interior_angle
 
@@ -1354,39 +1293,39 @@ def convert_symm_names(symm_name=None, no_symbol=False):
 
     if no_symbol:
         new_names = {
-            'd2': r'$D_\mathrm{2}$1',
-            'th1': r'$T_\mathrm{h}$1',
-            'th2': r'$T_\mathrm{h}$2',
-            'td': r'$T$1',
+            "d2": r"$D_\mathrm{2}$1",
+            "th1": r"$T_\mathrm{h}$1",
+            "th2": r"$T_\mathrm{h}$2",
+            "td": r"$T$1",
             # 'tl': r'$T_\mathrm{\Lambda}$',
-            's41': r'$S_\mathrm{4}$1',
-            's42': r'$S_\mathrm{4}$2',
-            's61': r'$S_\mathrm{6}$1',
-            's62': r'$S_\mathrm{6}$2',
-            'd31': r'$D_\mathrm{3}$1',
-            'd32': r'$D_\mathrm{3}$2',
-            'd31n': r'$D_\mathrm{3}$1n',
-            'd32n': r'$D_\mathrm{3}$2n',
-            'c2v': r'$C_\mathrm{2h}$1',
-            'c2h': r'$C_\mathrm{2v}$1',
+            "s41": r"$S_\mathrm{4}$1",
+            "s42": r"$S_\mathrm{4}$2",
+            "s61": r"$S_\mathrm{6}$1",
+            "s62": r"$S_\mathrm{6}$2",
+            "d31": r"$D_\mathrm{3}$1",
+            "d32": r"$D_\mathrm{3}$2",
+            "d31n": r"$D_\mathrm{3}$1n",
+            "d32n": r"$D_\mathrm{3}$2n",
+            "c2v": r"$C_\mathrm{2h}$1",
+            "c2h": r"$C_\mathrm{2v}$1",
         }
     else:
         new_names = {
-            'd2': r'$D_\mathrm{2}$',
-            'th1': r'$T_\mathrm{h}$1',
-            'th2': r'$T_\mathrm{h}$2',
-            'td': r'$T$1-$\mathrm{\Delta}$',
-            'tl': r'$T$1-$\mathrm{\Lambda}$',
-            's41': r'$S_\mathrm{4}$1',
-            's42': r'$S_\mathrm{4}$2',
-            's61': r'$S_\mathrm{6}$1',
-            's62': r'$S_\mathrm{6}$2',
-            'd31': r'$D_\mathrm{3}$1',
-            'd32': r'$D_\mathrm{3}$2',
-            'd31n': r'$D_\mathrm{3}$1n',
-            'd32n': r'$D_\mathrm{3}$2n',
-            'c2v': r'$C_\mathrm{2h}$',
-            'c2h': r'$C_\mathrm{2v}$',
+            "d2": r"$D_\mathrm{2}$",
+            "th1": r"$T_\mathrm{h}$1",
+            "th2": r"$T_\mathrm{h}$2",
+            "td": r"$T$1-$\mathrm{\Delta}$",
+            "tl": r"$T$1-$\mathrm{\Lambda}$",
+            "s41": r"$S_\mathrm{4}$1",
+            "s42": r"$S_\mathrm{4}$2",
+            "s61": r"$S_\mathrm{6}$1",
+            "s62": r"$S_\mathrm{6}$2",
+            "d31": r"$D_\mathrm{3}$1",
+            "d32": r"$D_\mathrm{3}$2",
+            "d31n": r"$D_\mathrm{3}$1n",
+            "d32n": r"$D_\mathrm{3}$2n",
+            "c2v": r"$C_\mathrm{2h}$",
+            "c2h": r"$C_\mathrm{2v}$",
         }
     if symm_name is None:
         return new_names
@@ -1398,96 +1337,36 @@ def convert_lig_names_from_cage(lig_name, as_int=False, as_sub=False):
 
     if as_int:
         new_names = {
-            'quad2_5': 1,
-            'quad2_16': 2,
-            'quad2_12': 3,
-            'quad2_3': 4,
-            'quad2_8': 5,
-            'quad2_2': 6,
+            "quad2_5": 1,
+            "quad2_16": 2,
+            "quad2_12": 3,
+            "quad2_3": 4,
+            "quad2_8": 5,
+            "quad2_2": 6,
             # 'quad2_1': 7,
         }
     elif as_sub:
         new_names = {
-            'quad2_5': '$\\bf{A}$',  # '1',
-            'quad2_16': '$\\bf{B}$',  # '2',
-            'quad2_12': '$\\bf{C}$',  # '3',
-            'quad2_3': '$\\bf{D}$',  # '4',
-            'quad2_8': '$\\bf{E}$',  # '5',
-            'quad2_2': '$\\bf{F}$',  # '6',
+            "quad2_5": "$\\bf{A}$",  # '1',
+            "quad2_16": "$\\bf{B}$",  # '2',
+            "quad2_12": "$\\bf{C}$",  # '3',
+            "quad2_3": "$\\bf{D}$",  # '4',
+            "quad2_8": "$\\bf{E}$",  # '5',
+            "quad2_2": "$\\bf{F}$",  # '6',
             # 'quad2_1': 7,
         }
     else:
         new_names = {
-            'quad2_5': '$\\bf{A}$-Br',  # '1',
-            'quad2_16': '$\\bf{B}$-Br',  # '2',
-            'quad2_12': '$\\bf{C}$-Br',  # '3',
-            'quad2_3': '$\\bf{D}$-Br',  # '4',
-            'quad2_8': '$\\bf{E}$-Br',  # '5',
-            'quad2_2': '$\\bf{F}$-Br',  # '6',
+            "quad2_5": "$\\bf{A}$-Br",  # '1',
+            "quad2_16": "$\\bf{B}$-Br",  # '2',
+            "quad2_12": "$\\bf{C}$-Br",  # '3',
+            "quad2_3": "$\\bf{D}$-Br",  # '4',
+            "quad2_8": "$\\bf{E}$-Br",  # '5',
+            "quad2_2": "$\\bf{F}$-Br",  # '6',
             # 'quad2_1': 'G',  # '7',
         }
 
     return new_names[lig_name]
-
-
-def get_planar_conformer(molecule, N=100):
-    cids, confs = build_conformers(
-        mol=molecule,
-        N=N,
-        ETKDG_version='v3'
-    )
-    print('getting optimal conformer...')
-    min_plane_dev = 100000000
-    min_cid = -10
-
-    new_molecule = molecule.clone()
-
-    for cid in cids:
-
-        # Update stk_mol to conformer geometry.
-        new_molecule = update_from_rdkit_conf(
-            stk_mol=new_molecule,
-            rdk_mol=confs,
-            conf_id=cid
-        )
-
-        plane_dev = calculate_molecule_planarity(new_molecule)
-        if plane_dev < min_plane_dev:
-            min_cid = cid
-            min_plane_dev = plane_dev
-            molecule = update_from_rdkit_conf(
-                stk_mol=molecule,
-                rdk_mol=confs,
-                conf_id=min_cid
-            )
-
-    return molecule
-
-
-def planarfy(ligands):
-    """
-    Get the most planar conformer of each ligand.
-
-    This is done by determining the ETKDG conformer with the smallest
-    plane deviation from its plane of best fit.
-
-    """
-
-    new_ligands = {}
-
-    for ligand in ligands:
-        planar_file = f'{ligand}_planar.mol'
-        if os.path.exists(planar_file):
-            opt_lig = ligands[ligand].with_structure_from_file(
-                planar_file
-            )
-        else:
-            print(f'doing {ligand}...')
-            opt_lig = get_planar_conformer(ligands[ligand])
-            opt_lig.write(planar_file)
-        new_ligands[ligand] = opt_lig
-
-    return new_ligands
 
 
 def split_xyz_file(num_atoms, xyz_file):
@@ -1496,13 +1375,13 @@ def split_xyz_file(num_atoms, xyz_file):
 
     """
 
-    with open(xyz_file, 'r') as f:
+    with open(xyz_file, "r") as f:
         lines = f.readlines()
 
     file_strings = []
     string = []
     for line in lines:
-        if f' {num_atoms} ' in f' {line.strip()} ':
+        if f" {num_atoms} " in f" {line.strip()} ":
             if len(string) == 0:
                 string.append(line)
             else:
@@ -1516,8 +1395,8 @@ def split_xyz_file(num_atoms, xyz_file):
 
     out_files = []
     for i, fs in enumerate(file_strings):
-        file_name = xyz_file.replace('.xyz', f'_s{i}.xyz')
-        with open(file_name, 'w') as f:
+        file_name = xyz_file.replace(".xyz", f"_s{i}.xyz")
+        with open(file_name, "w") as f:
             for line in fs:
                 f.write(line)
         out_files.append(file_name)
@@ -1540,59 +1419,59 @@ def start_at_0(data_dict):
 def get_plottables(measures, name):
 
     plottables = {
-        'octop': {
-            'data': measures['octop'],
-            'ylabel': r'min. $q_{\mathrm{oct}}$',
-            'ylim': (0, 1),
-            'filename': f'{name}_minOPs.pdf'
+        "octop": {
+            "data": measures["octop"],
+            "ylabel": r"min. $q_{\mathrm{oct}}$",
+            "ylim": (0, 1),
+            "filename": f"{name}_minOPs.pdf",
         },
-        'm_cube_shape': {
-            'data': measures['m_cube_shape'],
-            'ylabel': 'CU-8 shape measure',
-            'ylim': (0, 1),
-            'filename': f'{name}_cubeshape.pdf'
+        "m_cube_shape": {
+            "data": measures["m_cube_shape"],
+            "ylabel": "CU-8 shape measure",
+            "ylim": (0, 1),
+            "filename": f"{name}_cubeshape.pdf",
         },
-        'lsesum': {
-            'data': start_at_0(data_dict=measures['lsesum']),
-            'ylabel': r'rel. sum strain energy [kJmol$^{-1}$]',
-            'ylim': (0, 500),
-            'filename': f'{name}_sumLSE.pdf'
+        "lsesum": {
+            "data": start_at_0(data_dict=measures["lsesum"]),
+            "ylabel": r"rel. sum strain energy [kJmol$^{-1}$]",
+            "ylim": (0, 500),
+            "filename": f"{name}_sumLSE.pdf",
         },
-        'minitors': {
-            'data': measures['minitors'],
-            'ylabel': r'min. imine torsion [degrees]',
-            'ylim': (0, 185),
-            'filename': f'{name}_mintors.pdf'
+        "minitors": {
+            "data": measures["minitors"],
+            "ylabel": r"min. imine torsion [degrees]",
+            "ylim": (0, 185),
+            "filename": f"{name}_mintors.pdf",
         },
-        'maxcrplan': {
-            'data': measures['maxcrplan'],
-            'ylabel': r'max. core planarity [$\mathrm{\AA}$]',
-            'ylim': (0, 185),
-            'filename': f'{name}_maxcrplane.pdf'
+        "maxcrplan": {
+            "data": measures["maxcrplan"],
+            "ylabel": r"max. core planarity [$\mathrm{\AA}$]",
+            "ylim": (0, 185),
+            "filename": f"{name}_maxcrplane.pdf",
         },
-        'maxintangledev': {
-            'data': measures['maxintangledev'],
-            'ylabel': r'max. interior angle deviation [$^{\circ}$]',
-            'ylim': (-0.5, 10),
-            'filename': f'{name}_maxintangledev.pdf'
+        "maxintangledev": {
+            "data": measures["maxintangledev"],
+            "ylabel": r"max. interior angle deviation [$^{\circ}$]",
+            "ylim": (-0.5, 10),
+            "filename": f"{name}_maxintangledev.pdf",
         },
-        'maxMLlength': {
-            'data': measures['maxMLlength'],
-            'ylabel': r'max. N-Zn bond length [$\mathrm{\AA}$]',
-            'ylim': (2, 2.5),
-            'filename': f'{name}_maxmld.pdf'
+        "maxMLlength": {
+            "data": measures["maxMLlength"],
+            "ylabel": r"max. N-Zn bond length [$\mathrm{\AA}$]",
+            "ylim": (2, 2.5),
+            "filename": f"{name}_maxmld.pdf",
         },
-        'porediam': {
-            'data': measures['porediam'],
-            'ylabel': r'pore diamater [$\mathrm{\AA}$]',
-            'ylim': (0, 20),
-            'filename': f'{name}_porediam.pdf'
+        "porediam": {
+            "data": measures["porediam"],
+            "ylabel": r"pore diamater [$\mathrm{\AA}$]",
+            "ylim": (0, 20),
+            "filename": f"{name}_porediam.pdf",
         },
-        'formatione': {
-            'data': start_at_0(data_dict=measures['formatione']),
-            'ylabel': r'rel. formation energy [kJmol$^{-1}$]',
-            'ylim': (-10, 1000),
-            'filename': f'{name}_relfe.pdf'
+        "formatione": {
+            "data": start_at_0(data_dict=measures["formatione"]),
+            "ylabel": r"rel. formation energy [kJmol$^{-1}$]",
+            "ylim": (-10, 1000),
+            "filename": f"{name}_relfe.pdf",
         },
     }
 
@@ -1609,26 +1488,23 @@ def calculate_cube_shape_measure(name, molecule):
     """
 
     if molecule.get_num_atoms() != 8:
-        raise ValueError('Molecule does not have 8 atoms.')
+        raise ValueError("Molecule does not have 8 atoms.")
 
-    shape_dicts = (
-        ref_shape_dict()['cube'],
-        ref_shape_dict()['octagon']
-    )
-    n_verts = list(set([i['vertices'] for i in shape_dicts]))
+    shape_dicts = (ref_shape_dict()["cube"], ref_shape_dict()["octagon"])
+    n_verts = list(set([i["vertices"] for i in shape_dicts]))
     if len(n_verts) != 1:
-        raise ValueError('Different vertex shapes selected.')
+        raise ValueError("Different vertex shapes selected.")
 
-    input_file = f'{name}_shp.dat'
-    std_out = f'{name}_shp.out'
-    output_file = f'{name}_shp.tab'
+    input_file = f"{name}_shp.dat"
+    std_out = f"{name}_shp.out"
+    output_file = f"{name}_shp.tab"
     write_shape_input_file(
         input_file=input_file,
         name=name,
         structure=molecule,
         num_vertices=n_verts[0],
         central_atom_id=0,
-        ref_shapes=[i['code'] for i in shape_dicts],
+        ref_shapes=[i["code"] for i in shape_dicts],
     )
 
     run_shape(input_file, env_set.shape_path(), std_out)
@@ -1638,15 +1514,15 @@ def calculate_cube_shape_measure(name, molecule):
 
 def ref_shape_dict():
     return {
-        'cube': {
-            'vertices': '8',
-            'label': 'CU-8',
-            'code': '4',
+        "cube": {
+            "vertices": "8",
+            "label": "CU-8",
+            "code": "4",
         },
-        'octagon': {
-            'vertices': '8',
-            'label': 'OP-8',
-            'code': '1',
+        "octagon": {
+            "vertices": "8",
+            "label": "OP-8",
+            "code": "1",
         },
     }
 
@@ -1664,20 +1540,20 @@ def write_shape_input_file(
 
     """
 
-    title = '$shape run by Andrew Tarzia.\n'
-    size_of_poly = f'{num_vertices} {central_atom_id}\n'
-    codes = ' '.join(ref_shapes)+'\n'
+    title = "$shape run by Andrew Tarzia.\n"
+    size_of_poly = f"{num_vertices} {central_atom_id}\n"
+    codes = " ".join(ref_shapes) + "\n"
 
-    structure_string = f'{name}\n'
+    structure_string = f"{name}\n"
     pos_mat = structure.get_position_matrix()
     for atom in structure.get_atoms():
         ele = atom.__class__.__name__
         x, y, z = pos_mat[atom.get_id()]
-        structure_string += f'{ele} {x} {y} {z}\n'
+        structure_string += f"{ele} {x} {y} {z}\n"
 
-    string = title+size_of_poly+codes+structure_string
+    string = title + size_of_poly + codes + structure_string
 
-    with open(input_file, 'w') as f:
+    with open(input_file, "w") as f:
         f.write(string)
 
 
@@ -1687,8 +1563,8 @@ def run_shape(input_file, shape_path, std_out):
 
     """
 
-    cmd = f'{shape_path} {input_file}'
-    with open(std_out, 'w') as f:
+    cmd = f"{shape_path} {input_file}"
+    with open(std_out, "w") as f:
         # Note that sp.call will hold the program until completion
         # of the calculation.
         sp.call(
@@ -1697,7 +1573,7 @@ def run_shape(input_file, shape_path, std_out):
             stdout=f,
             stderr=sp.PIPE,
             # Shell is required to run complex arguments.
-            shell=True
+            shell=True,
         )
 
 
@@ -1707,26 +1583,24 @@ def collect_all_shape_values(output_file):
 
     """
 
-    with open(output_file, 'r') as f:
+    with open(output_file, "r") as f:
         lines = f.readlines()
 
     label_idx_map = {}
     for line in reversed(lines):
-        if 'Structure' in line:
+        if "Structure" in line:
             line = [
                 i.strip()
-                for i in line.rstrip().split(']')[1].split(' ')
+                for i in line.rstrip().split("]")[1].split(" ")
                 if i.strip()
             ]
             for idx, symb in enumerate(line):
                 label_idx_map[symb] = idx
             break
-        line = [i.strip() for i in line.rstrip().split(',')]
+        line = [i.strip() for i in line.rstrip().split(",")]
         values = line
 
-    shapes = {
-        i: float(values[1+label_idx_map[i]]) for i in label_idx_map
-    }
+    shapes = {i: float(values[1 + label_idx_map[i]]) for i in label_idx_map}
 
     return shapes
 
@@ -1784,16 +1658,14 @@ def build_conformers(mol, N, ETKDG_version=None):
             numThreads=4,
         )
 
-    elif ETKDG_version == 'v3':
+    elif ETKDG_version == "v3":
         params = rdkit.ETKDGv3()
         params.randomSeed = 1000
         cids = rdkit.EmbedMultipleConfs(
-            mol=molecule,
-            numConfs=N,
-            params=params
+            mol=molecule, numConfs=N, params=params
         )
 
-    print(f'there are {molecule.GetNumConformers()} conformers')
+    print(f"there are {molecule.GetNumConformers()} conformers")
     return cids, molecule
 
 
@@ -1819,18 +1691,14 @@ def reorient_linker(molecule):
     )
 
     fg_bonder_centroid = molecule.get_centroid(
-        atom_ids=next(
-            molecule.get_functional_groups()
-        ).get_placer_ids(),
+        atom_ids=next(molecule.get_functional_groups()).get_placer_ids(),
     )
     edge_position = target_coords[0]
-    molecule = (
-        molecule.with_rotation_to_minimize_angle(
-            start=fg_bonder_centroid - centroid_pos,
-            target=edge_position - edge_centroid,
-            axis=edge_normal,
-            origin=centroid_pos,
-        )
+    molecule = molecule.with_rotation_to_minimize_angle(
+        start=fg_bonder_centroid - centroid_pos,
+        target=edge_position - edge_centroid,
+        axis=edge_normal,
+        origin=centroid_pos,
     )
 
     # Flatten wrt to xy plane.
@@ -1860,12 +1728,10 @@ def reorient_linker(molecule):
             points=np.array(target_coords),
         ),
     )
-    molecule = (
-        molecule.with_rotation_to_minimize_angle(
-            start=long_axis_vector,
-            target=[1, 0, 0],
-            axis=edge_normal,
-            origin=centroid_pos,
-        )
+    molecule = molecule.with_rotation_to_minimize_angle(
+        start=long_axis_vector,
+        target=[1, 0, 0],
+        axis=edge_normal,
+        origin=centroid_pos,
     )
     return molecule
