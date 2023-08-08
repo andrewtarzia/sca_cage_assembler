@@ -17,6 +17,11 @@ import logging
 
 from env_set import read_envset_json, read_json
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+)
+
 
 def build_organics(ligs, environment):
 

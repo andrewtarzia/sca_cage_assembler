@@ -21,7 +21,7 @@ def read_envset_json(file):
 
 def xtb_path():
     return pathlib.Path(
-        "/home/atarzia/miniconda3/envs/large_polyhedra/bin/xtb"
+        "/home/atarzia/miniconda3/envs/large_aa_polyhedra/bin/xtb"
     )
 
 
