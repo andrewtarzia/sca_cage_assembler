@@ -64,7 +64,7 @@ Usage: build_ligand_library.py env_set_file
 
     environment = read_envset_json(env_set_file)
 
-    ligs = read_json(environment["lib_file"])
+    ligs = read_json(environment["ligand_file"])
 
     # Build and optimise all organic molecules in lib.
     build_organics(ligs, environment)

@@ -456,7 +456,7 @@ def write_csv(cage_sets, experimentals):
     Write a .csv file with all numerical values for cage library.
 
     """
-
+    raise NotImplementedError('rewrite this')
     cage_set_data = {}
     for cage_set in cage_sets:
         measures = cage_set_properties(cage_set)

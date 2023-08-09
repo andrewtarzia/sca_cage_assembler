@@ -12,29 +12,34 @@ Date Created: 27 Jan 2020
 """
 
 import sys
-from os.path import exists
+import logging
+import os
 
-from cage_set import HoCube
 from cage_analysis import write_csv
-from utilities import read_lib
+
+from env_set import read_envset_json, read_json
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+)
 
 
 def build_cages(
     ligands,
     complexes,
     cage_set_lib,
-    ligand_directory,
-    complex_directory,
-    read_data,
+    environment,
 ):
 
-    cage_sets = []
+    cages = []
     for name in cage_set_lib:
-        print(f'------------- doing {name}:')
-        cage_set_c = cage_set_lib[name]
-        compl_names = cage_set_c['corners']
-        comps = {i: complexes[i] for i in compl_names}
-
+        logging.info(f'doing cage set: {name}')
+        cage_set_definition = cage_set_lib[name]
+        complexes = {i: complexes[i] for i in cage_set_definition['corners']}
+        print(cage_set_definition)
+        print(complexes)
+        raise SystemExit()
         cage_set = HoCube(
             name=name,
             cage_set_dict=cage_set_c,
@@ -130,56 +135,29 @@ def build_cages(
 
         cage_sets.append(cage_set)
 
-    return cage_sets
+    return cages
 
 
 def main():
-    first_line = (
-        'Usage: build_cube_library.py lig_lib_file prism_lib_file '
-        'compl_lib_file lig_directory compl_directory read_data '
-        'expt_lib_file'
-    )
-    if (not len(sys.argv) == 8):
-        print(f"""
-{first_line}
+    if (not len(sys.argv) == 2):
+        print("""
+Usage: build_cage_library.py env_set_file
 
-    ligand_lib_file : (str)
-        File containing ligand information (XXXXX)
+    env_set_file : (str)
+        File containing environment set file.
 
-    complex_lib_file : (str)
-        File containing complex information (XXXXX).
-
-    cage_set_lib_file : (str)
-        File containing cage information (XXXXX).
-
-    ligand_directory : (str)
-        Directory with required ligand structures.
-
-    complex_directory : (str)
-        Directory with required complex structures.
-
-    read_data : (str)
-        't' if cage analysis can be read from CageSet.properties_file.
-        All other strings gives False.
-
-    expt_lib_file : (str)
-        File containing experimental symmetry  information (XXXXX).
 
     """)
         sys.exit()
     else:
-        ligand_lib_file = sys.argv[1]
-        complex_lib_file = sys.argv[2]
-        cage_set_lib_file = sys.argv[3]
-        ligand_directory = sys.argv[4]
-        complex_directory = sys.argv[5]
-        read_data = True if sys.argv[6] == 't' else False
-        expt_lib_file = sys.argv[7]
+        env_set_file = sys.argv[1]
 
-    cage_set_lib = read_lib(cage_set_lib_file)
-    complexes = read_lib(complex_lib_file)
-    ligands = read_lib(ligand_lib_file)
-    expt_data = read_lib(expt_lib_file)
+    environment = read_envset_json(env_set_file)
+
+    cage_set_lib = read_json(environment["cage_file"])
+    complexes = read_json(environment["complex_file"])
+    ligands = read_json(environment["ligand_file"])
+    expt_data = read_json(environment['experiment_file'])
 
     # List of the cages that are known to form, including symmetry.
     experimentals = [
@@ -188,15 +166,13 @@ def main():
     ]
 
     # Build and optimise all organic molecules in lib.
-    cage_sets = build_cages(
+    cages = build_cages(
         ligands=ligands,
         complexes=complexes,
         cage_set_lib=cage_set_lib,
-        ligand_directory=ligand_directory,
-        complex_directory=complex_directory,
-        read_data=read_data,
+        environment=environment,
     )
-    write_csv(cage_sets, experimentals)
+    write_csv(cages, experimentals)
 
 
 if __name__ == "__main__":
