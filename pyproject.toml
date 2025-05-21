@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sca_cage_assembler"
+maintainers = [{ name = "Andrew Tarzia", email = "andrew.tarzia@gmail.com" }]
+dependencies = []
+requires-python = "== 3.9"
+dynamic = ["version"]
+readme = "README.rst"
+
+
+[tool.setuptools.packages.find]
+where = [
+    # list of folders that contain the packages (["."] by default)
+    "scripts",
+    "spindle-production",
+]
+
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["ANN401", "COM812", "ISC001", "FBT001", "FBT002"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

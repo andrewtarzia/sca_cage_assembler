@@ -6,7 +6,9 @@ Overview
 A Python module for generating and analysing metal-organic cages formed
 from subcomponent self-assembly.
 
-Code is for the paper at DOI: 10.1002/anie.202217987
+Code in `scripts` is for the paper at DOI: 10.1002/anie.202217987
+
+Spindles code is in `spindle-production` for the paper at DOI: TBD
 
 If you have any issues contact me at ``andrew dot tarzia at gmail dot com``
 
