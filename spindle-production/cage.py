@@ -115,7 +115,7 @@ class Cage:
             calc_dir = (
                 output_dir / f"cage_opt_{self.name}_uff"
                 if cg is False
-                else f"cage_opt_{self.name}_uffCG"
+                else output_dir / f"cage_opt_{self.name}_uffCG"
             )
             print(f"..doing UFF4MOF optimisation of {self.name}")
             print(f"Conjugate Gradient: {cg}, Max steps: {maxcyc}")
@@ -144,7 +144,7 @@ class Cage:
             calc_dir = (
                 output_dir / f"cage_opt_{self.name}_uff"
                 if cg is False
-                else f"cage_opt_{self.name}_uffCG"
+                else output_dir / f"cage_opt_{self.name}_uffCG"
             )
             print(f"..doing UFF4MOF optimisation of {self.name}")
             print(f"Conjugate Gradient: {cg}, Max steps: {maxcyc}")

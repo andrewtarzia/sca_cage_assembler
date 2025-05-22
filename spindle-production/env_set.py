@@ -8,4 +8,4 @@ def xtb_path():
 
 
 def gulp_path():
-    return pathlib.Path("/home/atarzia/software/gulp-5.1/Src/gulp/gulp")
+    return pathlib.Path("/home/atarzia/software/gulp-6.2/Src/gulp")
