@@ -72,10 +72,12 @@ def build_cages(
                     scale_steps=scale_steps,
                     output_dir=cage_directory,
                 )
+
             if cage.optimized is False:
                 cage_set.built_cage_properties[cage.name] = {
                     "optimized": cage.optimized,
                 }
+
             else:
                 cage.analyze_ligand_strain(
                     # Assumes only one type of metal atom.

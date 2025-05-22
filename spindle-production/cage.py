@@ -135,7 +135,6 @@ class Cage:
                 str(output_dir / f"{self.uff4mof_CG_file}.mol")
             )
 
-        raise SystemExit
         # Run if uff4mof opt output does not exist.
         if not exists(output_dir / f"{self.uff4mof_file}.mol"):
             cg = False
@@ -164,7 +163,6 @@ class Cage:
                 str(output_dir / f"{self.uff4mof_file}.mol")
             )
 
-        raise SystemExit
         # Run if uff4mof MD output does not exist.
         if not exists(output_dir / f"{self.uffMD_file}.mol"):
             print(f"..doing UFF4MOF MD of {self.name}")
@@ -191,7 +189,6 @@ class Cage:
                 str(output_dir / f"{self.uffMD_file}.mol")
             )
 
-        raise SystemExit
         try:
             print(f"..........doing XTB optimisation of {self.name}")
             xtb_opt = stko.XTB(
