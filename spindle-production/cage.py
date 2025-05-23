@@ -9,6 +9,13 @@ import pywindow as pw
 import stk
 import stko
 from cage_building import metal_FFs
+from utilities import (
+    calculate_abs_imine_torsions,
+    calculate_ligand_SE,
+    calculate_metal_ligand_distance,
+    get_lowest_energy_conformers,
+    get_organic_linkers,
+)
 
 
 class UnexpectedNumLigandsError(Exception): ...
@@ -251,15 +258,16 @@ class Cage:
         metal_atom_no,
         expected_ligands,
         free_e,
+        output_dir,
     ):
         """Analyse cage ligand geometry for strain."""
-        print(f"....analyzing ligand geometry of {self.name}")
         # Collect the atomic positions of the organic linkers in the
         # cage for analysis.
         org_ligs, smiles_keys = get_organic_linkers(
             cage=self.cage,
             metal_atom_nos=(metal_atom_no,),
             file_prefix=f"{self.name}_sg",
+            output_dir=output_dir,
         )
 
         num_unique_ligands = len(set(smiles_keys.values()))
@@ -278,39 +286,32 @@ class Cage:
             settings=env_set.crest_conformer_settings(
                 solvent=self.cage_set_dict["solvent"],
             ),
-        )
-
-        self.calculate_formation_energy(
-            org_ligs=org_ligs,
-            smiles_keys=smiles_keys,
-            file_prefix=f"{self.base_name}_sg",
-            cage_free_e=free_e,
+            output_dir=output_dir,
         )
 
         lse_dict = calculate_ligand_SE(
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
-            output_json=f"{self.ls_file}.json",
+            output_json=output_dir / f"{self.ls_file}.json",
             file_prefix=f"{self.base_name}_sg",
             solvent=self.cage_set_dict["solvent"],
+            output_dir=output_dir,
         )
 
         imine_torsion_dict = calculate_abs_imine_torsions(
             org_ligs=org_ligs,
         )
         for ol in imine_torsion_dict:
-            if len(imine_torsion_dict[ol]) != 4:
+            if len(imine_torsion_dict[ol]) != 4:  # noqa: PLR2004
                 msg = (
                     f"{len(imine_torsion_dict[ol])} minies found, "
                     "but 4 expected."
                 )
                 raise ValueError(msg)
-        planarity_dict = calculate_ligand_planarities(org_ligs=org_ligs)
 
         self.ls_data = {
             "strain_energies": lse_dict,
             "imine_torsions": imine_torsion_dict,
-            "core_planarities": planarity_dict,
         }
 
     def analyze_metal_strain(self):
@@ -322,11 +323,12 @@ class Cage:
             ligand_atomic_number=7,
         )
 
-    def analyze_porosity(self, dump_molecule=False):
+    def analyze_porosity(self, output_dir, dump_molecule=False):
         """Analyse cage porosity with pywindow."""
         # Check if output file exists.
         if not exists(f"{self.pw_file}.json"):
             print(f"....analyzing porosity of {self.name}")
+
             # Load cage into pywindow.
             self.cage.write("temp.xyz")
             pw_cage = pw.MolecularSystem.load_file("temp.xyz")
@@ -347,10 +349,13 @@ class Cage:
                 }
 
             # Save files.
-            pw_cage_mol.dump_properties_json(f"{self.pw_file}.json")
+            pw_cage_mol.dump_properties_json(
+                str(output_dir / f"{self.pw_file}.json")
+            )
             if dump_molecule:
                 pw_cage_mol.dump_molecule(
-                    f"{self.pw_file}.pdb", include_coms=True
+                    str(output_dir / f"{self.pw_file}.pdb"),
+                    include_coms=True,
                 )
 
         # Get data.
