@@ -72,7 +72,7 @@ def build_cages(
                     scale_steps=scale_steps,
                     output_dir=cage_directory,
                 )
-            continue
+
             if cage.optimized is False:
                 cage_set.built_cage_properties[cage.name] = {
                     "optimized": cage.optimized,
@@ -87,20 +87,18 @@ def build_cages(
                     ),
                     expected_ligands=expected_ligands,
                     free_e=default_free_e,
+                    output_dir=cage_directory,
                 )
 
-                cage.analyze_cube_likeness()
                 cage.analyze_metal_strain()
-                cage.analyze_porosity()
+                cage.analyze_porosity(output_dir=cage_directory)
                 cage_set.built_cage_properties[cage.name] = {
                     "optimized": cage.optimized,
                     "pw_prop": cage.pw_data,
-                    "op_prop": cage.op_data,
-                    "fe_prop": cage.fe_data,
                     "li_prop": cage.ls_data,
                     "bl_prop": cage.bl_data,
-                    "cl_prop": cage.cl_data,
                 }
+
             # Dump to JSON.
             cage_set.dump_properties()
 
