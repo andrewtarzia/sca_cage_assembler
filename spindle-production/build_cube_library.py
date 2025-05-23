@@ -72,7 +72,7 @@ def build_cages(
                     scale_steps=scale_steps,
                     output_dir=cage_directory,
                 )
-
+            continue
             if cage.optimized is False:
                 cage_set.built_cage_properties[cage.name] = {
                     "optimized": cage.optimized,

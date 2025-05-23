@@ -316,9 +316,6 @@ class Cage:
     def analyze_metal_strain(self):
         """Analyse cage geometry using order parameters."""
         # Get metal-ligand binder atom bond length.
-        print(
-            "Warning! Calculate metal-ligand distance is hard-coded for Zn-N"
-        )
         self.bl_data = calculate_metal_ligand_distance(
             mol=self.cage,
             metal_atomic_number=30,
