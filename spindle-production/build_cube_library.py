@@ -96,6 +96,10 @@ def build_cages(
                     free_e=default_free_e,
                     output_dir=cage_directory,
                 )
+                cage.analyze_energy(
+                    output_dir=cage_directory,
+                    free_e=default_free_e,
+                )
 
                 cage.analyze_metal_strain()
                 cage.analyze_porosity(output_dir=cage_directory)

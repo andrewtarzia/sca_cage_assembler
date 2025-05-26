@@ -230,4 +230,4 @@ class M8L6KnotPrism(stk.cage.Cage):
     )
 
     def _get_scale(self, building_block_vertices):
-        return 3
+        return 1.0

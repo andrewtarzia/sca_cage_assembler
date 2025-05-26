@@ -186,7 +186,6 @@ def get_lowest_energy_conformers(
     org_ligs,
     smiles_keys,
     file_prefix,
-    settings,
     output_dir,
 ):
     """Determine the lowest energy conformer of cage organic linkers.
