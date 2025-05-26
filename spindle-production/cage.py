@@ -94,12 +94,12 @@ class Cage:
             )
             self.optimized = True
             return
-        print(f"....optimizing {self.name}")
+        logging.info(f"....optimizing {self.name}")
         self.optimized = None
 
         # Run if crush output does not exist.
         if not exists(output_dir / f"{self.crush_file}.mol"):
-            print(f"..doing collapser optimisation of {self.name}")
+            logging.info(f"..doing collapser optimisation of {self.name}")
             calc_dir = output_dir / f"cage_opt_{self.name}_coll"
             optimizer = stko.Collapser(
                 output_dir=calc_dir,
@@ -124,8 +124,8 @@ class Cage:
                 if cg is False
                 else output_dir / f"cage_opt_{self.name}_uffCG"
             )
-            print(f"..doing UFF4MOF optimisation of {self.name}")
-            print(f"Conjugate Gradient: {cg}, Max steps: {maxcyc}")
+            logging.info(f"..doing UFF4MOF optimisation of {self.name}")
+            logging.info(f"Conjugate Gradient: {cg}, Max steps: {maxcyc}")
             gulp_opt = stko.GulpUFFOptimizer(
                 gulp_path=env_set.gulp_path(),
                 maxcyc=maxcyc,
@@ -152,8 +152,8 @@ class Cage:
                 if cg is False
                 else output_dir / f"cage_opt_{self.name}_uffCG"
             )
-            print(f"..doing UFF4MOF optimisation of {self.name}")
-            print(f"Conjugate Gradient: {cg}, Max steps: {maxcyc}")
+            logging.info(f"..doing UFF4MOF optimisation of {self.name}")
+            logging.info(f"Conjugate Gradient: {cg}, Max steps: {maxcyc}")
             gulp_opt = stko.GulpUFFOptimizer(
                 gulp_path=env_set.gulp_path(),
                 maxcyc=maxcyc,
@@ -172,7 +172,9 @@ class Cage:
 
         # Run if uff4mof MD output does not exist.
         if not exists(output_dir / f"{self.uffMD_file}.mol"):
-            print(f"..doing UFF4MOF MD of {self.name}")
+            logging.info(f"..doing UFF4MOF MD of {self.name}")
+            temp = 1000 if "d3c3" in self.name else 400
+            prod = 20 if "d3c3" in self.name else 2
             gulp_MD = stko.GulpUFFMDOptimizer(
                 gulp_path=env_set.gulp_path(),
                 metal_FF=custom_metal_FFs,
@@ -197,7 +199,7 @@ class Cage:
             )
 
         try:
-            print(f"..........doing XTB optimisation of {self.name}")
+            logging.info(f"..........doing XTB optimisation of {self.name}")
             xtb_opt = stko.XTB(
                 xtb_path=env_set.xtb_path(),
                 output_dir=output_dir / f"cage_opt_{self.name}_xtb",
@@ -261,6 +263,7 @@ class Cage:
         output_dir,
     ):
         """Analyse cage ligand geometry for strain."""
+        logging.info(f"....analyzing strain of {self.name}")
         # Collect the atomic positions of the organic linkers in the
         # cage for analysis.
         org_ligs, smiles_keys = get_organic_linkers(
@@ -283,9 +286,6 @@ class Cage:
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
             file_prefix=f"{self.base_name}_sg",
-            settings=env_set.crest_conformer_settings(
-                solvent=self.cage_set_dict["solvent"],
-            ),
             output_dir=output_dir,
         )
 
@@ -298,9 +298,7 @@ class Cage:
             output_dir=output_dir,
         )
 
-        imine_torsion_dict = calculate_abs_imine_torsions(
-            org_ligs=org_ligs,
-        )
+        imine_torsion_dict = calculate_abs_imine_torsions(org_ligs)
         for ol in imine_torsion_dict:
             if len(imine_torsion_dict[ol]) != 4:  # noqa: PLR2004
                 msg = (
@@ -316,6 +314,7 @@ class Cage:
 
     def analyze_metal_strain(self):
         """Analyse cage geometry using order parameters."""
+        logging.info(f"....analyzing metals of {self.name}")
         # Get metal-ligand binder atom bond length.
         self.bl_data = calculate_metal_ligand_distance(
             mol=self.cage,
@@ -327,7 +326,7 @@ class Cage:
         """Analyse cage porosity with pywindow."""
         # Check if output file exists.
         if not exists(f"{self.pw_file}.json"):
-            print(f"....analyzing porosity of {self.name}")
+            logging.info(f"....analyzing porosity of {self.name}")
 
             # Load cage into pywindow.
             self.cage.write("temp.xyz")
@@ -350,16 +349,18 @@ class Cage:
 
             # Save files.
             pw_cage_mol.dump_properties_json(
-                str(output_dir / f"{self.pw_file}.json")
+                str(output_dir / f"{self.pw_file}.json"),
+                override=True,
             )
             if dump_molecule:
                 pw_cage_mol.dump_molecule(
                     str(output_dir / f"{self.pw_file}.pdb"),
                     include_coms=True,
+                    override=True,
                 )
 
         # Get data.
-        with open(f"{self.pw_file}.json") as f:
+        with (output_dir / f"{self.pw_file}.json").open() as f:
             self.pw_data = json.load(f)
 
     def __str__(self):
