@@ -1,6 +1,7 @@
 """Modules defining and building the Cage class and subclasses."""
 
 import json
+import logging
 from os import system
 from os.path import exists
 
@@ -11,6 +12,7 @@ import stko
 from cage_building import metal_FFs
 from utilities import (
     calculate_abs_imine_torsions,
+    calculate_energy,
     calculate_ligand_SE,
     calculate_metal_ligand_distance,
     get_lowest_energy_conformers,
@@ -84,6 +86,7 @@ class Cage:
         distance_cut,
         scale_steps,
         output_dir,
+        coll_fun,
     ):
         custom_metal_FFs = metal_FFs(CN=6)
 
@@ -101,12 +104,21 @@ class Cage:
         if not exists(output_dir / f"{self.crush_file}.mol"):
             logging.info(f"..doing collapser optimisation of {self.name}")
             calc_dir = output_dir / f"cage_opt_{self.name}_coll"
-            optimizer = stko.Collapser(
-                output_dir=calc_dir,
-                step_size=step_size,
-                distance_cut=distance_cut,
-                scale_steps=scale_steps,
-            )
+
+            if coll_fun.__name__ == "Collapser":
+                optimizer = coll_fun(
+                    output_dir=calc_dir,
+                    step_size=step_size,
+                    distance_cut=distance_cut,
+                    scale_steps=scale_steps,
+                )
+            elif coll_fun.__name__ == "CollapserMC":
+                optimizer = coll_fun(
+                    output_dir=calc_dir,
+                    step_size=step_size,
+                    target_bond_length=distance_cut,
+                    num_steps=2000,
+                )
             self.cage = optimizer.optimize(mol=self.cage)
             self.cage.write(str(output_dir / f"{self.crush_file}.mol"))
         else:
@@ -182,9 +194,9 @@ class Cage:
                 output_dir=output_dir / f"cage_opt_{self.name}_MD",
                 integrator="leapfrog verlet",
                 ensemble="nvt",
-                temperature=400,
+                temperature=temp,
                 equilbration=0.1,
-                production=2,
+                production=prod,
                 timestep=0.5,
                 N_conformers=10,
                 opt_conformers=False,

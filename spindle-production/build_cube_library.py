@@ -3,6 +3,7 @@
 import logging
 import pathlib
 
+import stko
 from cage_set import HoCube
 from utilities import read_lib
 
@@ -46,16 +47,20 @@ def build_cages(
             default_free_e = cage.free_electron_options[0]
             # Use a slightly different collapser threshold for
             # different topologies.
-            if cage.topology_string in ["m8l6face", "m8l6knot"]:
+            if cage.topology_string in ["m8l6face"]:
                 step_size = 0.05
                 distance_cut = 2.5
                 scale_steps = False
                 expected_ligands = 1
+                coll_fun = stko.Collapser
+            elif cage.topology_string in ["m8l6knot"]:
+                step_size = 0.1
+                distance_cut = 2
+                scale_steps = True
+                expected_ligands = 1
+                coll_fun = stko.CollapserMC
             else:
-                step_size = 0.05
-                distance_cut = 2.5
-                scale_steps = False
-                expected_ligands = 1
+                raise NotImplementedError
 
             # Check if structure has previously had optimisation
             # attempted with failure.
@@ -78,6 +83,7 @@ def build_cages(
                     distance_cut=distance_cut,
                     scale_steps=scale_steps,
                     output_dir=cage_directory,
+                    coll_fun=coll_fun,
                 )
 
             if cage.optimized is False:
