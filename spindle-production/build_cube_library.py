@@ -1,9 +1,15 @@
 """Script to build HoCube library."""
 
+import logging
 import pathlib
 
 from cage_set import HoCube
 from utilities import read_lib
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+)
 
 
 def build_cages(
@@ -34,6 +40,7 @@ def build_cages(
             cage_set.load_properties()
 
         for cage in cage_set.cages_to_build:
+            logging.info("building cage %s...", cage.name)
             cage.build(output_dir=cage_directory)
 
             default_free_e = cage.free_electron_options[0]
