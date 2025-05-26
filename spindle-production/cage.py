@@ -322,6 +322,22 @@ class Cage:
             ligand_atomic_number=7,
         )
 
+    def analyze_energy(self, output_dir, free_e):
+        """Analyse cage total energy."""
+        logging.info(f"....analyzing energy of {self.name}")
+        ey_file = output_dir / f"{self.opt_file}.ey"
+        if not ey_file.exists():
+            calculate_energy(
+                name=f"{self.opt_file}",
+                mol=self.cage,
+                xtb_path=env_set.xtb_path(),
+                ey_file=ey_file,
+                charge=self.charge,
+                no_unpaired_e=free_e,
+                solvent=self.cage_set_dict["solvent"],
+                output_dir=output_dir,
+            )
+
     def analyze_porosity(self, output_dir, dump_molecule=False):
         """Analyse cage porosity with pywindow."""
         # Check if output file exists.
