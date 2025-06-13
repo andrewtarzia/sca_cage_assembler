@@ -1,5 +1,6 @@
 """Script to build HoCube library."""
 
+import itertools as it
 import json
 import logging
 import pathlib
@@ -220,6 +221,49 @@ class GeometryAnalyser:
 
         return torsions
 
+    def _get_metal_atom_ids(
+        self,
+        molecule: stk.Molecule,
+        metal_atom_nos: tuple[int, ...],
+    ) -> list[int]:
+        return [
+            i.get_id()
+            for i in molecule.get_atoms()
+            if i.get_atomic_number() in metal_atom_nos
+        ]
+
+    def get_metal_distances(
+        self,
+        molecule: stk.Molecule,
+        metal_atom_nos: tuple[int, ...],
+    ) -> dict[tuple[int, int], float]:
+        """Get all metal atom pair distances.
+
+        Parameters:
+            molecule:
+                The molecule to analyse.
+
+            metal_atom_nos:
+                The atomic numbers to delete. Can be a tuple of one or
+                any element on periodic table.
+
+        Returns:
+            The distances and associated metal atom ids.
+
+        """
+        metal_atom_ids = self._get_metal_atom_ids(molecule, metal_atom_nos)
+        position_matrix = molecule.get_position_matrix()
+
+        distances = {}
+        for a1id, a2id in it.combinations(metal_atom_ids, 2):
+            distances[(a1id, a2id)] = stko.get_atom_distance(
+                position_matrix=position_matrix,
+                atom1_id=a1id,
+                atom2_id=a2id,
+            )
+
+        return distances
+
 
 def parity_energies(
     cage_set_lib,
@@ -424,35 +468,59 @@ def parity_geometries(
     figure_directory,
 ) -> None:
     """Plot energy parity."""
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, (ax, ax2, ax3) = plt.subplots(nrows=3, figsize=(8, 10))
 
     analyser = GeometryAnalyser()
     n_zn_distances = []
     old_n_zn_distances = []
+    zn_zn_distances = []
+    old_zn_zn_distances = []
+    n_zn_n_angles = []
+    old_n_zn_n_angles = []
+    # c_c_n_c_torsions = []
+    # old_c_c_n_c_torsions = []
     for name in cage_set_lib:
-        lses = {}
-
         structures = sorted(cage_directory.glob(f"*{name}*_optc.mol"))
-        # geoms = {}
+
         for sf in structures:
             mol = stk.BuildingBlock.init_from_file(str(sf))
             n_zn_distances.extend(analyser.calculate_bonds(mol)[("N", "Zn")])
-            # geoms[sf.stem] = {}
-            # geoms[sf.stem]["bonds"] = analyser.calculate_bonds(mol)
-            # geoms[sf.stem]["angles"] = analyser.calculate_angles(mol)
-            # geoms[sf.stem]["torsions"] = analyser.calculate_torsions(mol)
+            n_zn_n_angles.extend(
+                analyser.calculate_angles(mol)[("N", "Zn", "N")]
+            )
+            # c_c_n_c_torsions.extend(
+            #     analyser.calculate_torsions(mol)[("C", "N", "C", "C")]
+            # )
+            zn_zn_distances.extend(
+                list(
+                    analyser.get_metal_distances(
+                        molecule=mol,
+                        metal_atom_nos=(30,),
+                    ).values()
+                )
+            )
 
         structures = sorted(old_cage_directory.glob(f"*{name}*_optc.mol"))
-        # old_geoms = {}
+
         for sf in structures:
             mol = stk.BuildingBlock.init_from_file(str(sf))
             old_n_zn_distances.extend(
                 analyser.calculate_bonds(mol)[("N", "Zn")]
             )
-            # old_geoms[sf.stem] = {}
-            # old_geoms[sf.stem]["bonds"] = analyser.calculate_bonds(mol)
-            # old_geoms[sf.stem]["angles"] = analyser.calculate_angles(mol)
-            # old_geoms[sf.stem]["torsions"] = analyser.calculate_torsions(mol)
+            old_n_zn_n_angles.extend(
+                analyser.calculate_angles(mol)[("N", "Zn", "N")]
+            )
+            # old_c_c_n_c_torsions.extend(
+            #     analyser.calculate_torsions(mol)[("C", "N", "C", "C")]
+            # )
+            old_zn_zn_distances.extend(
+                list(
+                    analyser.get_metal_distances(
+                        molecule=mol,
+                        metal_atom_nos=(30,),
+                    ).values()
+                )
+            )
 
     xmin = 1.8
     xmax = 2.5
@@ -482,12 +550,77 @@ def parity_geometries(
         label="2025",
     )
 
-    # Set number of ticks for x-axis
     ax.tick_params(axis="both", which="major", labelsize=16)
     ax.set_xlabel("N-Zn distance [AA]", fontsize=16)
     ax.set_ylabel("density", fontsize=16)
     ax.set_yticks([])
     ax.legend(fontsize=16)
+
+    xmin = 5
+    xmax = 40
+    xwidth = 1
+    xbins = np.arange(xmin - xwidth, xmax + xwidth, xwidth)
+
+    ax2.hist(
+        x=old_zn_zn_distances,
+        bins=xbins,
+        density=True,
+        bottom=0,
+        histtype="stepfilled",
+        stacked=True,
+        linewidth=1.0,
+        edgecolor="k",
+        label="2022",
+    )
+    ax2.hist(
+        x=zn_zn_distances,
+        bins=xbins,
+        density=True,
+        bottom=0.2,
+        histtype="stepfilled",
+        stacked=True,
+        linewidth=1.0,
+        edgecolor="k",
+        label="2025",
+    )
+
+    ax2.tick_params(axis="both", which="major", labelsize=16)
+    ax2.set_xlabel("Zn-Zn distance [AA]", fontsize=16)
+    ax2.set_ylabel("density", fontsize=16)
+    ax2.set_yticks([])
+
+    xmin = 0
+    xmax = 180
+    xwidth = 1.0
+    xbins = np.arange(xmin - xwidth, xmax + xwidth, xwidth)
+
+    ax3.hist(
+        x=old_n_zn_n_angles,
+        bins=xbins,
+        density=True,
+        bottom=0,
+        histtype="stepfilled",
+        stacked=True,
+        linewidth=1.0,
+        edgecolor="k",
+        label="2022",
+    )
+    ax3.hist(
+        x=n_zn_n_angles,
+        bins=xbins,
+        density=True,
+        bottom=0.1,
+        histtype="stepfilled",
+        stacked=True,
+        linewidth=1.0,
+        edgecolor="k",
+        label="2025",
+    )
+
+    ax3.tick_params(axis="both", which="major", labelsize=16)
+    ax3.set_xlabel("N-Zn-N angle [deg]", fontsize=16)
+    ax3.set_ylabel("density", fontsize=16)
+    ax3.set_yticks([])
 
     fig.tight_layout()
     fig.savefig(
