@@ -91,7 +91,7 @@ class Cage:
         custom_metal_FFs = metal_FFs(CN=6)
 
         # Skip if _opt.mol exists.
-        if exists(output_dir / f"{self.opt_file}.mol"):
+        if (output_dir / f"{self.opt_file}.mol").exists():
             self.cage = self.cage.with_structure_from_file(
                 str(output_dir / f"{self.opt_file}.mol")
             )
@@ -127,7 +127,7 @@ class Cage:
             )
 
         # Run if uff4mof opt output does not exist.
-        if not exists(output_dir / f"{self.uff4mof_CG_file}.mol"):
+        if not (output_dir / f"{self.uff4mof_CG_file}.mol").exists():
             cg = True
             maxcyc = 1000
             metal_ligand_bond_order = ""

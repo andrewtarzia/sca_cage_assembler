@@ -6,6 +6,7 @@ import logging
 import pathlib
 from collections import defaultdict
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import stk
@@ -266,10 +267,10 @@ class GeometryAnalyser:
 
 
 def parity_energies(
-    cage_set_lib,
-    cage_directory,
-    old_cage_directory,
-    figure_directory,
+    cage_set_lib: dict,
+    cage_directory: pathlib.Path,
+    old_cage_directory: pathlib.Path,
+    figure_directory: pathlib.Path,
 ) -> None:
     """Plot energy parity."""
     fig, (ax, ax1) = plt.subplots(ncols=2, figsize=(10, 5))
@@ -332,6 +333,7 @@ def parity_energies(
     ax.set_ylim(0, 1000)
     ax.plot((0, 1000), (0, 1000), c="k", zorder=-2)
     ax.legend(fontsize=16)
+    ax.plot((0, 200, 200), (200, 200, 0), c="gray", zorder=-1)
 
     ax1.tick_params(axis="both", which="major", labelsize=16)
     ax1.set_xlabel("2022 rel. GFN2-xTB energy [kJmol$^{-1}$]", fontsize=16)
@@ -354,10 +356,10 @@ def parity_energies(
 
 
 def parity_strain_energies(
-    cage_set_lib,
-    old_cage_directory,
-    cage_directory,
-    figure_directory,
+    cage_set_lib: dict,
+    cage_directory: pathlib.Path,
+    old_cage_directory: pathlib.Path,
+    figure_directory: pathlib.Path,
 ) -> None:
     """Plot energy parity."""
     fig, (ax, ax1) = plt.subplots(ncols=2, figsize=(10, 5))
@@ -439,6 +441,7 @@ def parity_strain_energies(
     ax.set_xlim(0, 1000)
     ax.set_ylim(0, 1000)
     ax.plot((0, 1000), (0, 1000), c="k", zorder=-2)
+    ax.plot((0, 200, 200), (200, 200, 0), c="gray", zorder=-1)
     ax.legend(fontsize=16)
 
     ax1.tick_params(axis="both", which="major", labelsize=16)
@@ -461,11 +464,373 @@ def parity_strain_energies(
     plt.close()
 
 
-def parity_geometries(
-    cage_set_lib,
-    old_cage_directory,
-    cage_directory,
-    figure_directory,
+def grid_energies(  # noqa: PLR0915
+    cage_set_lib: dict,
+    cage_directory: pathlib.Path,
+    old_cage_directory: pathlib.Path,
+    figure_directory: pathlib.Path,
+) -> None:
+    """Plot energy parity."""
+    fig, (ax, ax1) = plt.subplots(ncols=2, figsize=(10, 5), sharey=True)
+
+    expt_ = {
+        "cl1_quad2_8": "s62",
+        "cl1_quad2_12": "th2",
+        "cl1_quad2_2": "d32",
+        "cl1_quad2_3": "th2",
+        "cl1_quad2_9": "d3c3",
+        "cl1_quad2_5": "td",
+        "cl1_quad2_16": "th2",
+    }
+    name_convention = {
+        "cl1_quad2_5": "A",
+        "cl1_quad2_16": "B",
+        "cl1_quad2_12": "C",
+        "cl1_quad2_3": "D",
+        "cl1_quad2_8": "E",
+        "cl1_quad2_2": "F",
+        "cl1_quad2_9": "X9",
+        "cl1_quad2_17": "X17",
+    }
+    name_pos = {i: j for j, i in enumerate(name_convention)}
+
+    symms_convention = {
+        "d2": r"$D_\mathrm{2}$",
+        "th1": r"$T_\mathrm{h}$1",
+        "th2": r"$T_\mathrm{h}$2",
+        "td": r"$T$1-$\mathrm{\Delta}$",
+        "tl": r"$T$1-$\mathrm{\Lambda}$",
+        "s62": r"$S_\mathrm{6}$2",
+        "d32": r"$D_\mathrm{3}$2",
+        "d31n": r"$D_\mathrm{3}$1n",
+        "d32n": r"$D_\mathrm{3}$2n",
+        "d3c3": "spindle",
+    }
+    symms = {i: j for j, i in enumerate(symms_convention)}
+
+    vmin = 0
+    vmax = 100
+    for name in cage_set_lib:
+        ey_files = sorted(cage_directory.glob(f"*{name}*_optc.ey"))
+        energies = {}
+        for eyf in ey_files:
+            with eyf.open("r") as f:
+                data = f.readlines()[0]
+            energies[eyf.stem] = float(data)
+
+        ey_files = sorted(old_cage_directory.glob(f"*{name}*_optc.ey"))
+        old_energies = {}
+        for eyf in ey_files:
+            with eyf.open("r") as f:
+                data = f.readlines()[0]
+            old_energies[eyf.stem] = float(data)
+
+        paired_keys = [i for i in energies if i in old_energies]
+        if len(paired_keys) == 0:
+            continue
+        min_energy = min(energies.values())
+        min_old_energy = min(old_energies.values())
+        for i, energy in energies.items():
+            _, cl, tet1, tet2, symmkey, _ = i.split("_")
+            if symmkey not in symms:
+                continue
+
+            ax.scatter(
+                name_pos[f"{cl}_{tet1}_{tet2}"],
+                symms[symmkey],
+                c=(energy - min_energy) * 2625.5,
+                edgecolors="k",
+                alpha=1.0,
+                s=160,
+                vmin=vmin,
+                vmax=vmax,
+                edgecolor="k",
+                marker="s",
+                cmap="Blues_r",
+            )
+
+        for i, energy in old_energies.items():
+            _, cl, tet1, tet2, symmkey, _ = i.split("_")
+            if symmkey not in symms:
+                continue
+
+            ax1.scatter(
+                name_pos[f"{cl}_{tet1}_{tet2}"],
+                symms[symmkey],
+                c=(energy - min_old_energy) * 2625.5,
+                edgecolors="k",
+                alpha=1.0,
+                s=160,
+                vmin=vmin,
+                vmax=vmax,
+                edgecolor="k",
+                marker="s",
+                cmap="Blues_r",
+            )
+
+        if name in expt_:
+            ax.scatter(
+                name_pos[name],
+                symms[expt_[name]],
+                c="r",
+                edgecolors="k",
+                alpha=1.0,
+                s=250,
+                edgecolor="r",
+                marker="s",
+                zorder=-2,
+            )
+            ax1.scatter(
+                name_pos[name],
+                symms[expt_[name]],
+                c="r",
+                edgecolors="k",
+                alpha=1.0,
+                s=250,
+                edgecolor="r",
+                marker="s",
+                zorder=-2,
+            )
+
+    ax.tick_params(axis="both", which="major", labelsize=16)
+    ax.set_title("2025 data", fontsize=16)
+    ax.set_yticks(list(symms.values()))
+    ax.set_yticklabels([symms_convention[i] for i in symms], fontsize=16)
+    ax.set_xticks(list(name_pos.values()))
+    ax.set_xticklabels(
+        [name_convention[i] for i in name_pos],
+        fontsize=16,
+    )
+
+    ax1.tick_params(axis="both", which="major", labelsize=16)
+    ax1.set_title("2022 data", fontsize=16)
+    ax1.set_xticks(list(name_pos.values()))
+    ax1.set_xticklabels(
+        [name_convention[i] for i in name_pos],
+        fontsize=16,
+    )
+
+    cbar_ax = fig.add_axes([1.01, 0.2, 0.02, 0.7])
+    cmap = mpl.cm.Blues_r
+    norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+    cbar = fig.colorbar(
+        mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
+        cax=cbar_ax,
+        orientation="vertical",
+    )
+    cbar.ax.tick_params(labelsize=16)
+    cbar.set_label("rel. GFN2-xTB energy [kJmol$^{-1}$]", fontsize=16)
+
+    fig.tight_layout()
+    fig.savefig(
+        figure_directory / "grids_energy.pdf",
+        dpi=720,
+        bbox_inches="tight",
+    )
+    fig.savefig(
+        figure_directory / "grids_energy.png",
+        dpi=720,
+        bbox_inches="tight",
+    )
+    plt.close()
+
+
+def grid_strain_energies(  # noqa: C901, PLR0915
+    cage_set_lib: dict,
+    cage_directory: pathlib.Path,
+    old_cage_directory: pathlib.Path,
+    figure_directory: pathlib.Path,
+) -> None:
+    """Plot energy parity."""
+    fig, (ax, ax1) = plt.subplots(ncols=2, figsize=(10, 5), sharey=True)
+
+    expt_ = {
+        "cl1_quad2_8": "s62",
+        "cl1_quad2_12": "th2",
+        "cl1_quad2_2": "d32",
+        "cl1_quad2_3": "th2",
+        "cl1_quad2_9": "d3c3",
+        "cl1_quad2_5": "td",
+        "cl1_quad2_16": "th2",
+    }
+    name_convention = {
+        "cl1_quad2_5": "A",
+        "cl1_quad2_16": "B",
+        "cl1_quad2_12": "C",
+        "cl1_quad2_3": "D",
+        "cl1_quad2_8": "E",
+        "cl1_quad2_2": "F",
+        "cl1_quad2_9": "X9",
+        "cl1_quad2_17": "X17",
+    }
+    name_pos = {i: j for j, i in enumerate(name_convention)}
+
+    symms_convention = {
+        "d2": r"$D_\mathrm{2}$",
+        "th1": r"$T_\mathrm{h}$1",
+        "th2": r"$T_\mathrm{h}$2",
+        "td": r"$T$1-$\mathrm{\Delta}$",
+        "tl": r"$T$1-$\mathrm{\Lambda}$",
+        "s62": r"$S_\mathrm{6}$2",
+        "d32": r"$D_\mathrm{3}$2",
+        "d31n": r"$D_\mathrm{3}$1n",
+        "d32n": r"$D_\mathrm{3}$2n",
+        "d3c3": "spindle",
+    }
+    symms = {i: j for j, i in enumerate(symms_convention)}
+
+    vmin = 0
+    vmax = 100
+    for name in cage_set_lib:
+        lses = {}
+        cs_file = cage_directory / f"{name}_CS.json"
+        with cs_file.open("r") as f:
+            cs_data = json.load(f)
+        for struct, sdata in cs_data.items():
+            if not sdata["optimized"]:
+                continue
+
+            lses[struct] = sum(
+                [
+                    sdata["li_prop"]["strain_energies"][i]
+                    for i in sdata["li_prop"]["strain_energies"]
+                ]
+            )
+
+        old_lses = {}
+        old_cs_file = old_cage_directory / f"{name}_CS.json"
+        try:
+            with old_cs_file.open("r") as f:
+                old_cs_data = json.load(f)
+        except FileNotFoundError:
+            continue
+        for struct, sdata in old_cs_data.items():
+            if not sdata["optimized"]:
+                continue
+
+            old_lses[struct] = sum(
+                [
+                    sdata["li_prop"]["strain_energies"][i]
+                    for i in sdata["li_prop"]["strain_energies"]
+                ]
+            )
+
+        paired_keys = [i for i in lses if i in old_lses]
+        if len(paired_keys) == 0:
+            continue
+
+        min_energy = min(lses.values())
+        min_old_energy = min(old_lses.values())
+        for i, energy in lses.items():
+            _, cl, tet1, tet2, symmkey = i.split("_")
+            if symmkey not in symms:
+                continue
+
+            ax.scatter(
+                name_pos[f"{cl}_{tet1}_{tet2}"],
+                symms[symmkey],
+                c=(energy - min_energy),
+                edgecolors="k",
+                alpha=1.0,
+                s=160,
+                vmin=vmin,
+                vmax=vmax,
+                edgecolor="k",
+                marker="s",
+                cmap="Blues_r",
+            )
+
+        for i, energy in old_lses.items():
+            _, cl, tet1, tet2, symmkey = i.split("_")
+            if symmkey not in symms:
+                continue
+
+            ax1.scatter(
+                name_pos[f"{cl}_{tet1}_{tet2}"],
+                symms[symmkey],
+                c=(energy - min_old_energy),
+                edgecolors="k",
+                alpha=1.0,
+                s=160,
+                vmin=vmin,
+                vmax=vmax,
+                edgecolor="k",
+                marker="s",
+                cmap="Blues_r",
+            )
+
+        if name in expt_:
+            ax.scatter(
+                name_pos[name],
+                symms[expt_[name]],
+                c="r",
+                edgecolors="k",
+                alpha=1.0,
+                s=250,
+                edgecolor="r",
+                marker="s",
+                zorder=-2,
+            )
+            ax1.scatter(
+                name_pos[name],
+                symms[expt_[name]],
+                c="r",
+                edgecolors="k",
+                alpha=1.0,
+                s=250,
+                edgecolor="r",
+                marker="s",
+                zorder=-2,
+            )
+
+    ax.tick_params(axis="both", which="major", labelsize=16)
+    ax.set_title("2025 data", fontsize=16)
+    ax.set_yticks(list(symms.values()))
+    ax.set_yticklabels([symms_convention[i] for i in symms], fontsize=16)
+    ax.set_xticks(list(name_pos.values()))
+    ax.set_xticklabels(
+        [name_convention[i] for i in name_pos],
+        fontsize=16,
+    )
+
+    ax1.tick_params(axis="both", which="major", labelsize=16)
+    ax1.set_title("2022 data", fontsize=16)
+    ax1.set_xticks(list(name_pos.values()))
+    ax1.set_xticklabels(
+        [name_convention[i] for i in name_pos],
+        fontsize=16,
+    )
+
+    cbar_ax = fig.add_axes([1.01, 0.2, 0.02, 0.7])
+    cmap = mpl.cm.Blues_r
+    norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+    cbar = fig.colorbar(
+        mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
+        cax=cbar_ax,
+        orientation="vertical",
+    )
+    cbar.ax.tick_params(labelsize=16)
+    cbar.set_label("sum strain energy [kJmol$^{-1}$]", fontsize=16)
+
+    fig.tight_layout()
+    fig.savefig(
+        figure_directory / "grids_rellse.pdf",
+        dpi=720,
+        bbox_inches="tight",
+    )
+    fig.savefig(
+        figure_directory / "grids_rellse.png",
+        dpi=720,
+        bbox_inches="tight",
+    )
+    plt.close()
+
+
+def parity_geometries(  # noqa: PLR0915
+    cage_set_lib: dict,
+    cage_directory: pathlib.Path,
+    old_cage_directory: pathlib.Path,
+    figure_directory: pathlib.Path,
 ) -> None:
     """Plot energy parity."""
     fig, (ax, ax2, ax3) = plt.subplots(nrows=3, figsize=(8, 10))
@@ -477,8 +842,7 @@ def parity_geometries(
     old_zn_zn_distances = []
     n_zn_n_angles = []
     old_n_zn_n_angles = []
-    # c_c_n_c_torsions = []
-    # old_c_c_n_c_torsions = []
+
     for name in cage_set_lib:
         structures = sorted(cage_directory.glob(f"*{name}*_optc.mol"))
 
@@ -489,8 +853,9 @@ def parity_geometries(
                 analyser.calculate_angles(mol)[("N", "Zn", "N")]
             )
             # c_c_n_c_torsions.extend(
-            #     analyser.calculate_torsions(mol)[("C", "N", "C", "C")]
-            # )
+            # analyser.calculate_torsions(mol)# noqa: ERA001
+            # [("C", "N", "C", "C")]  # noqa: ERA001
+
             zn_zn_distances.extend(
                 list(
                     analyser.get_metal_distances(
@@ -511,8 +876,9 @@ def parity_geometries(
                 analyser.calculate_angles(mol)[("N", "Zn", "N")]
             )
             # old_c_c_n_c_torsions.extend(
-            #     analyser.calculate_torsions(mol)[("C", "N", "C", "C")]
-            # )
+            # analyser.calculate_torsions(mol)  # noqa: ERA001
+            # [("C", "N", "C", "C")]  # noqa: ERA001
+
             old_zn_zn_distances.extend(
                 list(
                     analyser.get_metal_distances(
@@ -652,6 +1018,18 @@ def main() -> None:
 
     cage_set_lib = read_lib(cage_set_lib_file)
 
+    grid_energies(
+        cage_set_lib=cage_set_lib,
+        cage_directory=cage_directory,
+        old_cage_directory=working_dir / ".." / "ey_files",
+        figure_directory=figure_directory,
+    )
+    grid_strain_energies(
+        cage_set_lib=cage_set_lib,
+        cage_directory=cage_directory,
+        old_cage_directory=working_dir / ".." / "cs_jsons",
+        figure_directory=figure_directory,
+    )
     parity_energies(
         cage_set_lib=cage_set_lib,
         cage_directory=cage_directory,
@@ -664,6 +1042,7 @@ def main() -> None:
         old_cage_directory=working_dir / ".." / "cs_jsons",
         figure_directory=figure_directory,
     )
+    raise SystemExit
     parity_geometries(
         cage_set_lib=cage_set_lib,
         cage_directory=cage_directory,
