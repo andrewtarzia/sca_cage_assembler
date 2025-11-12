@@ -21,15 +21,17 @@ Dependancies:
 
 The file ``environment.yml`` defines a Python 3.9 conda env used for this project.
 
-The file ``env_set.py`` sets the directories used in this work based on my workstation (Ubuntu 18, 20 or 22). This will require editting for any other machine.
+The file ``env_set.py`` sets the directories (see the specific one in
+``spindle-production``) used in this work based on my workstation
+(Ubuntu). This will require editting for any other machine.
 
 The external software used:
 
 ``CREST`` version ``2.9`` from https://github.com/crest-lab/crest
 
-``Gulp`` version ``5.1`` from http://gulp.curtin.edu.au/gulp/
+``Gulp`` version ``6.2`` from http://gulp.curtin.edu.au/gulp/
 
-``Shape`` version ``2.1`` from http://www.ee.ub.edu/index.php?option=com_content&view=article&id=575:shape-available&catid=80:news&Itemid=466
+``Shape`` version ``2.1`` (for ``scripts``) from http://www.ee.ub.edu/index.php?option=com_content&view=article&id=575:shape-available&catid=80:news&Itemid=466
 
 
 Workflow used
@@ -38,9 +40,14 @@ Workflow used
 :CODEDIR: must be set by the user - where the code is.
 :PROJDIR: must be set by the user - where the user wants the data to be generated.
 
-**Note** The file ``env_set.py`` sets the directories used in this work based on my workstation (Ubuntu 18, 20 or 22). This will require editting for any other machine.
+I attempt to highlight steps based on their part in the process
+(e.g. construction or analysis). Not all steps are necessary for what a user
+may want to do. Although, this project was so involved that many parts of the
+code are inter-related in an inconveniant to new usage. If so, please contact
+me for suggestions.
 
-I attempt to highlight steps based on their part in the process (e.g. construction or analysis). Not all steps are necessary for what a user may want to do. Although, this project was so involved that many parts of the code are inter-related in an inconveniant to new usage. If so, please contact me for suggestions.
+For ``spindles``, many steps were not undertaken. See the README in that
+directory.
 
 For visualisation.
 ------------------
