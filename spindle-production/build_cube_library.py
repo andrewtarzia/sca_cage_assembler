@@ -129,7 +129,7 @@ def main() -> None:
     script_directory = pathlib.Path(__file__).parent.resolve()
     data_directory = script_directory / ".." / "data"
     working_dir = pathlib.Path(
-        "/home/atarzia/workingspace/spindle_project/rerun_production/"
+        "/home/atarzia/onbear/tarziaa-cont1/local/spindle_project/rerun_production/"
     )
 
     ligand_lib_file = data_directory / "spindle_ligand_library.json"

@@ -46,7 +46,7 @@ def extract_topo(working_dir):
 def main() -> None:
     """Run script."""
     working_dir = pathlib.Path(
-        "/home/atarzia/workingspace/spindle_project/rerun_production/topology_extraction"
+        "/home/atarzia/onbear/tarziaa-cont1/local/spindle_project/rerun_production/topology_extraction"
     )
 
     topo_info = extract_topo(working_dir)
