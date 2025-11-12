@@ -284,10 +284,22 @@ def parity_energies(
         "cl1_quad2_10": "quad2_10",
         "cl1_quad2_5": "quad2_5",
         "cl1_quad2_16": "quad2_16",
-        "cl1_quad2_17": "quad2_17",
+        # "cl1_quad2_17": "quad2_17",
+        # Matched to Dobson paper.
+        # "cl1_quad2_9": "A",
+        # "cl1_quad2_8": "D",
+        # "cl1_quad2_16": "E",
+        # "cl1_quad2_5": "F",
+        # "cl1_quad2_12": "G",
+        # "cl1_quad2_3": "H",
+        # "cl1_quad2_2": "I",
+        # "cl1_quad2_17": "X17",
     }
 
     for name in cage_set_lib:
+        if "_17" in name:
+            continue
+
         ey_files = sorted(cage_directory.glob(f"*{name}*_optc.ey"))
         energies = {}
         for eyf in ey_files:
@@ -373,10 +385,13 @@ def parity_strain_energies(
         "cl1_quad2_10": "quad2_10",
         "cl1_quad2_5": "quad2_5",
         "cl1_quad2_16": "quad2_16",
-        "cl1_quad2_17": "quad2_17",
+        # "cl1_quad2_17": "quad2_17",
     }
 
     for name in cage_set_lib:
+        if "_17" in name:
+            continue
+
         lses = {}
         cs_file = cage_directory / f"{name}_CS.json"
         with cs_file.open("r") as f:
@@ -464,14 +479,19 @@ def parity_strain_energies(
     plt.close()
 
 
-def grid_energies(  # noqa: PLR0915
+def grid_energies(  # noqa: C901, PLR0915
     cage_set_lib: dict,
     cage_directory: pathlib.Path,
     old_cage_directory: pathlib.Path,
     figure_directory: pathlib.Path,
 ) -> None:
     """Plot energy parity."""
-    fig, (ax, ax1) = plt.subplots(ncols=2, figsize=(10, 5), sharey=True)
+    fig, (ax, ax1) = plt.subplots(
+        ncols=2,
+        figsize=(10, 5),
+        sharex=True,
+        sharey=True,
+    )
 
     expt_ = {
         "cl1_quad2_8": "s62",
@@ -483,14 +503,15 @@ def grid_energies(  # noqa: PLR0915
         "cl1_quad2_16": "th2",
     }
     name_convention = {
-        "cl1_quad2_5": "A",
-        "cl1_quad2_16": "B",
-        "cl1_quad2_12": "C",
-        "cl1_quad2_3": "D",
-        "cl1_quad2_8": "E",
-        "cl1_quad2_2": "F",
-        "cl1_quad2_9": "X9",
-        "cl1_quad2_17": "X17",
+        # Matched to Dobson paper.
+        "cl1_quad2_9": "A",
+        "cl1_quad2_8": "D",
+        "cl1_quad2_16": "E",
+        "cl1_quad2_5": "F",
+        "cl1_quad2_12": "G",
+        "cl1_quad2_3": "H",
+        "cl1_quad2_2": "I",
+        # "cl1_quad2_17": "X17",
     }
     name_pos = {i: j for j, i in enumerate(name_convention)}
 
@@ -504,7 +525,7 @@ def grid_energies(  # noqa: PLR0915
         "d32": r"$D_\mathrm{3}$2",
         "d31n": r"$D_\mathrm{3}$1n",
         "d32n": r"$D_\mathrm{3}$2n",
-        "d3c3": "spindle",
+        "d3c3": "structure 1",
     }
     symms = {i: j for j, i in enumerate(symms_convention)}
 
@@ -535,6 +556,9 @@ def grid_energies(  # noqa: PLR0915
             if symmkey not in symms:
                 continue
 
+            if tet2 in ("10", "17"):
+                continue
+
             ax.scatter(
                 name_pos[f"{cl}_{tet1}_{tet2}"],
                 symms[symmkey],
@@ -554,6 +578,8 @@ def grid_energies(  # noqa: PLR0915
             if symmkey not in symms:
                 continue
 
+            if tet2 in ("9", "10", "17"):
+                continue
             ax1.scatter(
                 name_pos[f"{cl}_{tet1}_{tet2}"],
                 symms[symmkey],
@@ -580,6 +606,8 @@ def grid_energies(  # noqa: PLR0915
                 marker="s",
                 zorder=-2,
             )
+            if name in ("cl1_quad2_9", "cl1_quad2_10", "cl1_quad2_17"):
+                continue
             ax1.scatter(
                 name_pos[name],
                 symms[expt_[name]],
@@ -635,14 +663,19 @@ def grid_energies(  # noqa: PLR0915
     plt.close()
 
 
-def grid_strain_energies(  # noqa: C901, PLR0915
+def grid_strain_energies(  # noqa: C901, PLR0912, PLR0915
     cage_set_lib: dict,
     cage_directory: pathlib.Path,
     old_cage_directory: pathlib.Path,
     figure_directory: pathlib.Path,
 ) -> None:
     """Plot energy parity."""
-    fig, (ax, ax1) = plt.subplots(ncols=2, figsize=(10, 5), sharey=True)
+    fig, (ax, ax1) = plt.subplots(
+        ncols=2,
+        figsize=(10, 5),
+        sharex=True,
+        sharey=True,
+    )
 
     expt_ = {
         "cl1_quad2_8": "s62",
@@ -654,14 +687,15 @@ def grid_strain_energies(  # noqa: C901, PLR0915
         "cl1_quad2_16": "th2",
     }
     name_convention = {
-        "cl1_quad2_5": "A",
-        "cl1_quad2_16": "B",
-        "cl1_quad2_12": "C",
-        "cl1_quad2_3": "D",
-        "cl1_quad2_8": "E",
-        "cl1_quad2_2": "F",
-        "cl1_quad2_9": "X9",
-        "cl1_quad2_17": "X17",
+        # Matched to Dobson paper.
+        "cl1_quad2_9": "A",
+        "cl1_quad2_8": "D",
+        "cl1_quad2_16": "E",
+        "cl1_quad2_5": "F",
+        "cl1_quad2_12": "G",
+        "cl1_quad2_3": "H",
+        "cl1_quad2_2": "I",
+        # "cl1_quad2_17": "X17",
     }
     name_pos = {i: j for j, i in enumerate(name_convention)}
 
@@ -675,7 +709,7 @@ def grid_strain_energies(  # noqa: C901, PLR0915
         "d32": r"$D_\mathrm{3}$2",
         "d31n": r"$D_\mathrm{3}$1n",
         "d32n": r"$D_\mathrm{3}$2n",
-        "d3c3": "spindle",
+        "d3c3": "structure 1",
     }
     symms = {i: j for j, i in enumerate(symms_convention)}
 
@@ -726,6 +760,9 @@ def grid_strain_energies(  # noqa: C901, PLR0915
             if symmkey not in symms:
                 continue
 
+            if tet2 in ("10", "17"):
+                continue
+
             ax.scatter(
                 name_pos[f"{cl}_{tet1}_{tet2}"],
                 symms[symmkey],
@@ -745,6 +782,8 @@ def grid_strain_energies(  # noqa: C901, PLR0915
             if symmkey not in symms:
                 continue
 
+            if tet2 in ("9", "10", "17"):
+                continue
             ax1.scatter(
                 name_pos[f"{cl}_{tet1}_{tet2}"],
                 symms[symmkey],
@@ -771,6 +810,212 @@ def grid_strain_energies(  # noqa: C901, PLR0915
                 marker="s",
                 zorder=-2,
             )
+            if name in ("cl1_quad2_9", "cl1_quad2_10", "cl1_quad2_17"):
+                continue
+            ax1.scatter(
+                name_pos[name],
+                symms[expt_[name]],
+                c="r",
+                edgecolors="k",
+                alpha=1.0,
+                s=250,
+                edgecolor="r",
+                marker="s",
+                zorder=-2,
+            )
+
+    ax.tick_params(axis="both", which="major", labelsize=16)
+    ax.set_title("2025 data", fontsize=16)
+    ax.set_yticks(list(symms.values()))
+    ax.set_yticklabels([symms_convention[i] for i in symms], fontsize=16)
+    ax.set_xticks(list(name_pos.values()))
+    ax.set_xticklabels(
+        [name_convention[i] for i in name_pos],
+        fontsize=16,
+    )
+
+    ax1.tick_params(axis="both", which="major", labelsize=16)
+    ax1.set_title("2022 data", fontsize=16)
+    ax1.set_xticks(list(name_pos.values()))
+    ax1.set_xticklabels(
+        [name_convention[i] for i in name_pos],
+        fontsize=16,
+    )
+
+    cbar_ax = fig.add_axes([1.01, 0.2, 0.02, 0.7])
+    cmap = mpl.cm.Blues_r
+    norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+    cbar = fig.colorbar(
+        mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
+        cax=cbar_ax,
+        orientation="vertical",
+    )
+    cbar.ax.tick_params(labelsize=16)
+    cbar.set_label("rel. sum strain energy [kJmol$^{-1}$]", fontsize=16)
+
+    fig.tight_layout()
+    fig.savefig(
+        figure_directory / "grids_rellse.pdf",
+        dpi=720,
+        bbox_inches="tight",
+    )
+    fig.savefig(
+        figure_directory / "grids_rellse.png",
+        dpi=720,
+        bbox_inches="tight",
+    )
+    plt.close()
+
+
+def grid_tot_strain_energies(  # noqa: C901, PLR0912, PLR0915
+    cage_set_lib: dict,
+    cage_directory: pathlib.Path,
+    old_cage_directory: pathlib.Path,
+    figure_directory: pathlib.Path,
+) -> None:
+    """Plot energy parity."""
+    fig, (ax, ax1) = plt.subplots(
+        ncols=2,
+        figsize=(10, 5),
+        sharex=True,
+        sharey=True,
+    )
+
+    expt_ = {
+        "cl1_quad2_8": "s62",
+        "cl1_quad2_12": "th2",
+        "cl1_quad2_2": "d32",
+        "cl1_quad2_3": "th2",
+        "cl1_quad2_9": "d3c3",
+        "cl1_quad2_5": "td",
+        "cl1_quad2_16": "th2",
+    }
+    name_convention = {
+        # Matched to Dobson paper.
+        "cl1_quad2_9": "A",
+        "cl1_quad2_8": "D",
+        "cl1_quad2_16": "E",
+        "cl1_quad2_5": "F",
+        "cl1_quad2_12": "G",
+        "cl1_quad2_3": "H",
+        "cl1_quad2_2": "I",
+        # "cl1_quad2_17": "X17",
+    }
+    name_pos = {i: j for j, i in enumerate(name_convention)}
+
+    symms_convention = {
+        "d2": r"$D_\mathrm{2}$",
+        "th1": r"$T_\mathrm{h}$1",
+        "th2": r"$T_\mathrm{h}$2",
+        "td": r"$T$1-$\mathrm{\Delta}$",
+        "tl": r"$T$1-$\mathrm{\Lambda}$",
+        "s62": r"$S_\mathrm{6}$2",
+        "d32": r"$D_\mathrm{3}$2",
+        "d31n": r"$D_\mathrm{3}$1n",
+        "d32n": r"$D_\mathrm{3}$2n",
+        "d3c3": "structure 1",
+    }
+    symms = {i: j for j, i in enumerate(symms_convention)}
+
+    vmin = 500
+    vmax = 800
+    for name in cage_set_lib:
+        lses = {}
+        cs_file = cage_directory / f"{name}_CS.json"
+        with cs_file.open("r") as f:
+            cs_data = json.load(f)
+        for struct, sdata in cs_data.items():
+            if not sdata["optimized"]:
+                continue
+
+            lses[struct] = sum(
+                [
+                    sdata["li_prop"]["strain_energies"][i]
+                    for i in sdata["li_prop"]["strain_energies"]
+                ]
+            )
+
+        old_lses = {}
+        old_cs_file = old_cage_directory / f"{name}_CS.json"
+        try:
+            with old_cs_file.open("r") as f:
+                old_cs_data = json.load(f)
+        except FileNotFoundError:
+            continue
+        for struct, sdata in old_cs_data.items():
+            if not sdata["optimized"]:
+                continue
+
+            old_lses[struct] = sum(
+                [
+                    sdata["li_prop"]["strain_energies"][i]
+                    for i in sdata["li_prop"]["strain_energies"]
+                ]
+            )
+
+        paired_keys = [i for i in lses if i in old_lses]
+        if len(paired_keys) == 0:
+            continue
+
+        for i, energy in lses.items():
+            _, cl, tet1, tet2, symmkey = i.split("_")
+            if symmkey not in symms:
+                continue
+
+            if tet2 in ("10", "17"):
+                continue
+
+            ax.scatter(
+                name_pos[f"{cl}_{tet1}_{tet2}"],
+                symms[symmkey],
+                c=energy,
+                edgecolors="k",
+                alpha=1.0,
+                s=160,
+                vmin=vmin,
+                vmax=vmax,
+                edgecolor="k",
+                marker="s",
+                cmap="Blues_r",
+            )
+
+        for i, energy in old_lses.items():
+            _, cl, tet1, tet2, symmkey = i.split("_")
+            if symmkey not in symms:
+                continue
+
+            if tet2 in ("9", "10", "17"):
+                continue
+
+            ax1.scatter(
+                name_pos[f"{cl}_{tet1}_{tet2}"],
+                symms[symmkey],
+                c=energy,
+                edgecolors="k",
+                alpha=1.0,
+                s=160,
+                vmin=vmin,
+                vmax=vmax,
+                edgecolor="k",
+                marker="s",
+                cmap="Blues_r",
+            )
+
+        if name in expt_:
+            ax.scatter(
+                name_pos[name],
+                symms[expt_[name]],
+                c="r",
+                edgecolors="k",
+                alpha=1.0,
+                s=250,
+                edgecolor="r",
+                marker="s",
+                zorder=-2,
+            )
+
+            if name in ("cl1_quad2_9", "cl1_quad2_10", "cl1_quad2_17"):
+                continue
             ax1.scatter(
                 name_pos[name],
                 symms[expt_[name]],
@@ -814,12 +1059,89 @@ def grid_strain_energies(  # noqa: C901, PLR0915
 
     fig.tight_layout()
     fig.savefig(
-        figure_directory / "grids_rellse.pdf",
+        figure_directory / "grids_lse.pdf",
         dpi=720,
         bbox_inches="tight",
     )
     fig.savefig(
-        figure_directory / "grids_rellse.png",
+        figure_directory / "grids_lse.png",
+        dpi=720,
+        bbox_inches="tight",
+    )
+    plt.close()
+
+
+def dist_tot_strain_energies(
+    cage_directory: pathlib.Path,
+    figure_directory: pathlib.Path,
+) -> None:
+    """Plot energy parity."""
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    name_convention = {
+        # Matched to Dobson paper.
+        "cl1_quad2_9": "A",
+        "cl1_quad2_8": "D",
+        "cl1_quad2_16": "E",
+        "cl1_quad2_5": "F",
+        "cl1_quad2_12": "G",
+        "cl1_quad2_3": "H",
+        "cl1_quad2_2": "I",
+        # "cl1_quad2_17": "X17",
+    }
+    name_pos = {i: j for j, i in enumerate(name_convention)}
+
+    xys = {}
+    for name in name_pos:
+        lses = {}
+        cs_file = cage_directory / f"{name}_CS.json"
+        with cs_file.open("r") as f:
+            cs_data = json.load(f)
+        for struct, sdata in cs_data.items():
+            if not sdata["optimized"]:
+                continue
+
+            lses[struct] = sum(
+                [
+                    sdata["li_prop"]["strain_energies"][i]
+                    for i in sdata["li_prop"]["strain_energies"]
+                ]
+            )
+
+        idx = list(name_convention.keys()).index(name)
+        for value in lses.values():
+            ax.plot(
+                (idx - 0.4, idx + 0.4),
+                (value, value),
+                linewidth=2.0,
+                c="tab:blue",
+            )
+        xys[idx] = min(lses.values())
+
+    ax.plot(
+        list(xys),
+        [xys[i] for i in xys],
+        linewidth=2.0,
+        c="k",
+        marker="o",
+        markersize=8,
+        markeredgecolor="k",
+        markerfacecolor="w",
+    )
+    ax.tick_params(axis="both", which="major", labelsize=16)
+    ax.set_ylabel("frequency", fontsize=16)
+    ax.set_ylabel("sum strain energy [kJmol$^{-1}$]", fontsize=16)
+    ax.set_xticks(list(name_pos.values()))
+    ax.set_xticklabels([name_convention[i] for i in name_pos], fontsize=16)
+
+    fig.tight_layout()
+    fig.savefig(
+        figure_directory / "dist_lse.pdf",
+        dpi=720,
+        bbox_inches="tight",
+    )
+    fig.savefig(
+        figure_directory / "dist_lse.png",
         dpi=720,
         bbox_inches="tight",
     )
@@ -1007,7 +1329,7 @@ def main() -> None:
     script_directory = pathlib.Path(__file__).parent.resolve()
     data_directory = script_directory / ".." / "data"
     working_dir = pathlib.Path(
-        "/home/atarzia/workingspace/spindle_project/rerun_production/"
+        "/home/atarzia/onbear/tarziaa-cont1/local/spindle_project/rerun_production/"
     )
 
     cage_set_lib_file = data_directory / "spindle_library.json"
@@ -1028,6 +1350,16 @@ def main() -> None:
         cage_set_lib=cage_set_lib,
         cage_directory=cage_directory,
         old_cage_directory=working_dir / ".." / "cs_jsons",
+        figure_directory=figure_directory,
+    )
+    grid_tot_strain_energies(
+        cage_set_lib=cage_set_lib,
+        cage_directory=cage_directory,
+        old_cage_directory=working_dir / ".." / "cs_jsons",
+        figure_directory=figure_directory,
+    )
+    dist_tot_strain_energies(
+        cage_directory=cage_directory,
         figure_directory=figure_directory,
     )
     parity_energies(
