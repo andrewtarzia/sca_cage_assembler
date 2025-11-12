@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# Distributed under the terms of the MIT License.
-
-"""
-Module defining analysis of crystal structures.
+"""Module defining analysis of crystal structures.
 
 Author: Andrew Tarzia
 
@@ -11,43 +6,31 @@ Date Created: 11 Nov 2020
 
 """
 
-import numpy as np
 import json
-import matplotlib.pyplot as plt
-from itertools import combinations
 import os
+from itertools import combinations
+
+import matplotlib.pyplot as plt
 import networkx as nx
-
-import stk
+import numpy as np
 import pywindow as pw
-
-
+import stk
 from cage import UnexpectedNumLigands
 from utilities import (
-    convert_symm_names,
-    calculate_cube_shape_measure,
     angle_between,
-    get_organic_linkers,
-    get_atom_distance,
     calculate_abs_imine_torsions,
+    calculate_cube_shape_measure,
+    convert_symm_names,
+    get_atom_distance,
     get_order_values,
+    get_organic_linkers,
 )
 
 
 class XtalCage:
-    """
-    Generic class that analyses cage structures from x-ray structures.
+    """Generic class that analyses cage structures from x-ray structures."""
 
-    """
-
-    def __init__(
-        self,
-        name,
-        pdb_file,
-        complex_dicts,
-        cage_set_dict
-    ):
-
+    def __init__(self, name, pdb_file, complex_dicts, cage_set_dict):
         self.name = name
         self.pdb_file = pdb_file
         self.complex_dicts = complex_dicts
@@ -56,33 +39,33 @@ class XtalCage:
         self.stk_mol = stk.BuildingBlock.init_from_file(pdb_file)
         # Translate to origin.
         self.stk_mol = self.stk_mol.with_centroid([0, 0, 0])
-        self.stk_mol.write(f'{name}_stkin.mol')
+        self.stk_mol.write(f"{name}_stkin.mol")
 
     def get_metal_atom_nos(self):
-        return [i['metal_atom_no'] for i in self.complex_dicts]
+        return [i["metal_atom_no"] for i in self.complex_dicts]
 
     def get_pore_size(self):
         # Load cage into pywindow.
-        self.stk_mol.write('temp.xyz')
-        pw_cage = pw.MolecularSystem.load_file('temp.xyz')
+        self.stk_mol.write("temp.xyz")
+        pw_cage = pw.MolecularSystem.load_file("temp.xyz")
         pw_cage_mol = pw_cage.system_to_molecule()
-        os.system('rm temp.xyz')
+        os.system("rm temp.xyz")
         # Calculate pore size.
         return pw_cage_mol.calculate_pore_diameter_opt()
 
     def get_organic_linkers(self):
         org_ligs, smiles_keys = get_organic_linkers(
             cage=self.stk_mol,
-            metal_atom_nos=(self.get_metal_atom_nos()[0], ),
-            file_prefix=f'{self.name}_sg'
+            metal_atom_nos=(self.get_metal_atom_nos()[0],),
+            file_prefix=f"{self.name}_sg",
         )
         expected_ligands = 1
         num_unique_ligands = len(set(smiles_keys.values()))
         if num_unique_ligands != expected_ligands:
             raise UnexpectedNumLigands(
-                f'{self.name} had {num_unique_ligands} unique ligands'
-                f', {expected_ligands} were expected. Suggests bad '
-                'optimization.'
+                f"{self.name} had {num_unique_ligands} unique ligands"
+                f", {expected_ligands} were expected. Suggests bad "
+                "optimization."
             )
 
         return org_ligs, smiles_keys
@@ -90,7 +73,7 @@ class XtalCage:
     def calculate_abs_imine_torsions(self, org_ligs):
         return calculate_abs_imine_torsions(
             org_ligs=org_ligs,
-            smarts='[#6]-[#7X2]-[#6X3H1]-[#6X3!H1]',
+            smarts="[#6]-[#7X2]-[#6X3H1]-[#6X3!H1]",
         )
 
     def collect_lowest_energy_conformer_file(
@@ -101,31 +84,30 @@ class XtalCage:
         ligand_name,
         ligand_directory,
     ):
-
         # From cage analysis - optimized at solvent level.
         already_run_lowest_energy_cage_filename = os.path.join(
-                cage_directory, f'C_{cage_set}_sg{n_atoms}_1_opt.mol'
+            cage_directory, f"C_{cage_set}_sg{n_atoms}_1_opt.mol"
         )
-        final_filename = f'{self.name}_sg{n_atoms}_1_opt.mol'
+        final_filename = f"{self.name}_sg{n_atoms}_1_opt.mol"
 
         if os.path.exists(final_filename):
             return
-        elif os.path.exists(already_run_lowest_energy_cage_filename):
+        if os.path.exists(already_run_lowest_energy_cage_filename):
             mol = stk.BuildingBlock.init_from_file(
                 already_run_lowest_energy_cage_filename
             )
             mol.write(final_filename)
         else:
             raise FileNotFoundError(
-                f'{already_run_lowest_energy_cage_filename} does not '
-                'exist. Run build_cage_library.py'
+                f"{already_run_lowest_energy_cage_filename} does not "
+                "exist. Run build_cage_library.py"
             )
 
     def get_cage_set_measures(self, cage_directory, cage_set):
         measures_file = os.path.join(
-            cage_directory, f'{cage_set}_measures.json'
+            cage_directory, f"{cage_set}_measures.json"
         )
-        with open(measures_file, 'r') as f:
+        with open(measures_file) as f:
             return json.load(f)
 
     def plot_Y(
@@ -138,25 +120,25 @@ class XtalCage:
         ylim=None,
         show_xtal=True,
     ):
-        C = 'grey'
-        M = 'o'
+        C = "grey"
+        M = "o"
 
         fig, ax = plt.subplots(figsize=(8, 5))
         x_pos_list = []
         names_list = []
         for i, name in enumerate(data):
             if name == expt_name:
-                col = 'r'
+                col = "r"
             else:
                 col = C
-            X = i+2
-            names_list.append(convert_symm_names(name.split('_')[-1]))
+            X = i + 2
+            names_list.append(convert_symm_names(name.split("_")[-1]))
             x_pos_list.append(X)
             ax.scatter(
                 X,
                 data[name],
                 c=col,
-                edgecolors='k',
+                edgecolors="k",
                 marker=M,
                 alpha=1.0,
                 s=250,
@@ -164,52 +146,43 @@ class XtalCage:
 
         if show_xtal:
             # Add xtal data.
-            X = i+1+2
-            names_list.append('xtal')
+            X = i + 1 + 2
+            names_list.append("xtal")
             x_pos_list.append(X)
             ax.scatter(
                 X,
                 xtal_data,
-                c='gold',
-                edgecolors='k',
-                marker='X',
+                c="gold",
+                edgecolors="k",
+                marker="X",
                 alpha=1.0,
                 s=250,
             )
 
         # Set number of ticks for x-axis
-        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.tick_params(axis="both", which="major", labelsize=16)
         ax.set_ylabel(ylabel, fontsize=16)
         if show_xtal:
-            ax.set_xlim(1, i+4)
+            ax.set_xlim(1, i + 4)
         else:
-            ax.set_xlim(1, i+3)
+            ax.set_xlim(1, i + 3)
         ax.set_ylim(ylim)
         ax.set_xticks(x_pos_list)
         ax.set_xticklabels(names_list)
 
         fig.tight_layout()
-        fig.savefig(
-            filename,
-            dpi=720,
-            bbox_inches='tight'
-        )
+        fig.savefig(filename, dpi=720, bbox_inches="tight")
         plt.close()
 
     def get_min_order_value(self):
-
         op_set = get_order_values(
-            mol=self.stk_mol,
-            metal=self.get_metal_atom_nos()[0],
-            per_site=True
+            mol=self.stk_mol, metal=self.get_metal_atom_nos()[0], per_site=True
         )
-        target_OPs = [op_set[i]['oct'] for i in op_set]
+        target_OPs = [op_set[i]["oct"] for i in op_set]
         return min(target_OPs)
 
     def define_faces(self, m_structure):
-
         def update_connections(connections, id1, id2, distance):
-
             if len(connections[id1]) < 3:
                 connections[id1].append((id2, distance))
                 connections[id1].sort(key=lambda x: x[1])
@@ -217,7 +190,7 @@ class XtalCage:
                 old_list = connections[id1]
                 if distance < max([i[1] for i in old_list]):
                     old_list.pop(-1)
-                    new_list = old_list+[(id2, distance)]
+                    new_list = old_list + [(id2, distance)]
                     new_list.sort(key=lambda x: x[1])
                 else:
                     new_list = old_list.copy()
@@ -227,10 +200,7 @@ class XtalCage:
             return connections
 
         def get_connections(structure):
-
-            connections = {
-                i.get_id(): [] for i in structure.get_atoms()
-            }
+            connections = {i.get_id(): [] for i in structure.get_atoms()}
             for m_pair in combinations(structure.get_atoms(), 2):
                 m1_id = m_pair[0].get_id()
                 m2_id = m_pair[1].get_id()
@@ -273,7 +243,7 @@ class XtalCage:
                 face_atom_set.add(ordered_fa)
         if len(filtered_face_atoms) != 6:
             raise ValueError(
-                f'{len(filtered_face_atoms)} faces found, expected 6!'
+                f"{len(filtered_face_atoms)} faces found, expected 6!"
             )
 
         self.faces = {}
@@ -285,51 +255,43 @@ class XtalCage:
             self.faces[i] = (fa, opposite_id)
 
     def get_m_shape(self, mol):
-
         shapes = calculate_cube_shape_measure(self.name, mol)
-        return shapes['CU-8']
+        return shapes["CU-8"]
 
     def get_max_face_interior_angle_dev(self, mol):
-
         pos_mat = mol.get_position_matrix()
         sum_interior_angles = []
         for face in self.faces:
             interior_angles = []
-            atom_ids = [i.get_id() for i in self.faces[face][0]]*2
-            angles = [
-                atom_ids[i: i + 3]
-                for i in range(0, len(atom_ids))
-            ][: 4]
+            atom_ids = [i.get_id() for i in self.faces[face][0]] * 2
+            angles = [atom_ids[i : i + 3] for i in range(len(atom_ids))][:4]
             for trio in angles:
-                vector1 = pos_mat[trio[1]]-pos_mat[trio[0]]
-                vector2 = pos_mat[trio[1]]-pos_mat[trio[2]]
-                interior_angles.append(np.degrees(
-                    angle_between(vector1, vector2)
-                ))
+                vector1 = pos_mat[trio[1]] - pos_mat[trio[0]]
+                vector2 = pos_mat[trio[1]] - pos_mat[trio[2]]
+                interior_angles.append(
+                    np.degrees(angle_between(vector1, vector2))
+                )
             sum_interior_angles.append(sum(interior_angles))
         max_face_interior_angle_dev = max(
-            [abs(360-i) for i in sum_interior_angles]
+            [abs(360 - i) for i in sum_interior_angles]
         )
         return max_face_interior_angle_dev
 
     def write_metal_atom_structure(self):
-
         metal_atom_ids = [
-            i.get_id() for i in self.stk_mol.get_atoms()
+            i.get_id()
+            for i in self.stk_mol.get_atoms()
             if i.get_atomic_number() in self.get_metal_atom_nos()
         ]
 
         # Write to mol file.
         self.stk_mol.write(
-            f'{self.name}_M.mol',
+            f"{self.name}_M.mol",
             atom_ids=metal_atom_ids,
         )
 
     def __str__(self):
-        return (
-            f'{self.__class__.__name__}'
-            f'(name={self.name})'
-        )
+        return f"{self.__class__.__name__}(name={self.name})"
 
     def __repr__(self):
         return str(self)

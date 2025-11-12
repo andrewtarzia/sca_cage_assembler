@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# Distributed under the terms of the MIT License.
-
-"""
-Script to analyse crystal structures from PDB files.
+"""Script to analyse crystal structures from PDB files.
 
 Author: Andrew Tarzia
 
@@ -11,29 +6,27 @@ Date Created: 11 Nov 2020
 
 """
 
-
 import sys
 
 import stk
-
-from utilities import (
-    read_lib,
-    get_plottables,
-    calculate_ligand_SE,
-    calculate_ligand_planarities,
-    calculate_metal_ligand_distance,
-)
 from cage_analysis import write_xray_csv
+from utilities import (
+    calculate_ligand_planarities,
+    calculate_ligand_SE,
+    calculate_metal_ligand_distance,
+    get_plottables,
+    read_lib,
+)
 from xtalcage import XtalCage
 
 
 def main():
     first_line = (
-        'Usage: analyse_crystal_structures.py '
-        'complex_lib_file cage_set_lib_file ligand_directory '
-        'cage_directory expt_lib_file'
+        "Usage: analyse_crystal_structures.py "
+        "complex_lib_file cage_set_lib_file ligand_directory "
+        "cage_directory expt_lib_file"
     )
-    if (not len(sys.argv) == 6):
+    if not len(sys.argv) == 6:
         print(f"""
 {first_line}
 
@@ -68,119 +61,123 @@ def main():
     # List of the xtal structures and their corresponding names.
     xtals = {}
     for expt in expt_data:
-        xtals[expt_data[expt]['xtal_struct_name']] = {
-            'cage_set': expt_data[expt]['cage_set'],
-            'symmetry_name': expt_data[expt]['symmetry'],
-            'ligand_name': expt_data[expt]['ligand_name'],
-            'complexes': tuple(expt_data[expt]['complexes']),
+        xtals[expt_data[expt]["xtal_struct_name"]] = {
+            "cage_set": expt_data[expt]["cage_set"],
+            "symmetry_name": expt_data[expt]["symmetry"],
+            "ligand_name": expt_data[expt]["ligand_name"],
+            "complexes": tuple(expt_data[expt]["complexes"]),
         }
 
     xtal_cage_data = {}
     comp_cage_data = {}
     for xtal in xtals:
-        print(f'---- doing: {xtal}')
-        pdb_file = f'{xtal}.pdb'
+        print(f"---- doing: {xtal}")
+        pdb_file = f"{xtal}.pdb"
         cage_data = {}
         xtal_cage = XtalCage(
             name=xtal,
             pdb_file=pdb_file,
-            complex_dicts=[
-                complexes[i] for i in xtals[xtal]['complexes']
-            ],
-            cage_set_dict=cage_set_lib[xtals[xtal]['cage_set']]
+            complex_dicts=[complexes[i] for i in xtals[xtal]["complexes"]],
+            cage_set_dict=cage_set_lib[xtals[xtal]["cage_set"]],
         )
         org_ligs, smiles_keys = xtal_cage.get_organic_linkers()
         xtal_cage.write_metal_atom_structure()
         xtal_cage.collect_lowest_energy_conformer_file(
             cage_directory=cage_directory,
             n_atoms=[org_ligs[i].get_num_atoms() for i in org_ligs][0],
-            cage_set=xtals[xtal]['cage_set'],
-            ligand_name=xtals[xtal]['ligand_name'],
+            cage_set=xtals[xtal]["cage_set"],
+            ligand_name=xtals[xtal]["ligand_name"],
             ligand_directory=ligand_directory,
         )
 
         # Face-based analysis.
         m_structure = stk.BuildingBlock.init_from_file(
-            f'{xtal_cage.name}_M.mol'
+            f"{xtal_cage.name}_M.mol"
         )
-        cage_data['m_cube_shape'] = (
-             xtal_cage.get_m_shape(m_structure)
-         )
+        cage_data["m_cube_shape"] = xtal_cage.get_m_shape(m_structure)
         xtal_cage.define_faces(m_structure)
-        cage_data['maxintangledev'] = (
+        cage_data["maxintangledev"] = (
             xtal_cage.get_max_face_interior_angle_dev(m_structure)
         )
 
         # Full cage analysis.
-        cage_data['porediam'] = xtal_cage.get_pore_size()
-        cage_data['ML_lengths'] = calculate_metal_ligand_distance(
+        cage_data["porediam"] = xtal_cage.get_pore_size()
+        cage_data["ML_lengths"] = calculate_metal_ligand_distance(
             mol=xtal_cage.stk_mol,
             metal_atomic_number=30,
             ligand_atomic_number=7,
         )
-        cage_data['maxMLlength'] = max(cage_data['ML_lengths'])
-        cage_data['octop'] = xtal_cage.get_min_order_value()
+        cage_data["maxMLlength"] = max(cage_data["ML_lengths"])
+        cage_data["octop"] = xtal_cage.get_min_order_value()
 
         # Ligand analysis.
-        cage_data['core_planarities'] = calculate_ligand_planarities(
+        cage_data["core_planarities"] = calculate_ligand_planarities(
             org_ligs=org_ligs
         )
-        cage_data['imine_torsions'] = (
-            xtal_cage.calculate_abs_imine_torsions(org_ligs)
+        cage_data["imine_torsions"] = xtal_cage.calculate_abs_imine_torsions(
+            org_ligs
         )
-        cage_data['strain_energies'] = calculate_ligand_SE(
+        cage_data["strain_energies"] = calculate_ligand_SE(
             org_ligs=org_ligs,
             smiles_keys=smiles_keys,
-            output_json=f'{xtal_cage.name}_lse.json',
-            file_prefix=f'{xtal_cage.name}_sg'
+            output_json=f"{xtal_cage.name}_lse.json",
+            file_prefix=f"{xtal_cage.name}_sg",
         )
-        cage_data['lsesum'] = sum([
-            cage_data['strain_energies'][i]
-            for i in cage_data['strain_energies']
-        ])
-        cage_data['minitors'] = min([
-            j for i in cage_data['imine_torsions']
-            for j in cage_data['imine_torsions'][i]
-        ])
-        cage_data['maxcrplan'] = max([
-            cage_data['core_planarities'][i]
-            for i in cage_data['core_planarities']
-        ])
+        cage_data["lsesum"] = sum(
+            [
+                cage_data["strain_energies"][i]
+                for i in cage_data["strain_energies"]
+            ]
+        )
+        cage_data["minitors"] = min(
+            [
+                j
+                for i in cage_data["imine_torsions"]
+                for j in cage_data["imine_torsions"][i]
+            ]
+        )
+        cage_data["maxcrplan"] = max(
+            [
+                cage_data["core_planarities"][i]
+                for i in cage_data["core_planarities"]
+            ]
+        )
         xtal_cage_data[xtal] = cage_data
         comp_cage_data[xtal] = xtal_cage.get_cage_set_measures(
             cage_directory=cage_directory,
-            cage_set=xtals[xtal]['cage_set'],
+            cage_set=xtals[xtal]["cage_set"],
         )
 
         plottables = get_plottables(
-            measures=comp_cage_data[xtal],
-            name=xtal_cage.name
+            measures=comp_cage_data[xtal], name=xtal_cage.name
         )
 
         for p in plottables:
             p_dict = plottables[p]
-            if p in ['formatione']:
+            if p in ["formatione"]:
                 continue
-            if p in ['lsesum']:
-                xtal_data = cage_data[p] - min([
-                    i for i in comp_cage_data[xtal][p].values()
-                    if i is not None
-                ])
+            if p in ["lsesum"]:
+                xtal_data = cage_data[p] - min(
+                    [
+                        i
+                        for i in comp_cage_data[xtal][p].values()
+                        if i is not None
+                    ]
+                )
                 show_xtal = False
             else:
                 xtal_data = cage_data[p]
                 show_xtal = True
 
             expt_name = (
-                f"C_{xtals[xtal]['cage_set']}_"
-                f"{xtals[xtal]['symmetry_name']}"
+                f"C_{xtals[xtal]['cage_set']}_{xtals[xtal]['symmetry_name']}"
             )
             xtal_cage.plot_Y(
-                data=p_dict['data'],
+                data=p_dict["data"],
                 xtal_data=xtal_data,
-                ylabel=p_dict['ylabel'],
+                ylabel=p_dict["ylabel"],
                 ylim=(None, None),
-                filename=p_dict['filename'],
+                filename=p_dict["filename"],
                 expt_name=expt_name,
                 show_xtal=show_xtal,
             )

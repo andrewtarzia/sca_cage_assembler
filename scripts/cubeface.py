@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# Distributed under the terms of the MIT License.
-
-"""
-Module of classes for face construction.
+"""Module of classes for face construction.
 
 Author: Andrew Tarzia
 
@@ -11,10 +6,9 @@ Date Created: 25 Jan 2021
 
 """
 
-from scipy.spatial.distance import euclidean
 import numpy as np
-
 import stk
+from scipy.spatial.distance import euclidean
 from stk.utilities import (
     get_acute_vector,
     get_plane_normal,
@@ -22,10 +16,7 @@ from stk.utilities import (
 
 
 class FaceVertex(stk.Vertex):
-    """
-    Represents a vertex of a :class:`.CubeFace`.
-
-    """
+    """Represents a vertex of a :class:`.CubeFace`."""
 
     def __init__(
         self,
@@ -34,8 +25,7 @@ class FaceVertex(stk.Vertex):
         use_neighbor_placement=True,
         aligner_edge=0,
     ):
-        """
-        Initialize a :class:`.FaceVertex`.
+        """Initialize a :class:`.FaceVertex`.
 
         Parameters
         ----------
@@ -57,7 +47,6 @@ class FaceVertex(stk.Vertex):
             edges the vertex is connected to.
 
         """
-
         self._use_neighbor_placement = use_neighbor_placement
         self._aligner_edge = aligner_edge
         super().__init__(id, position)
@@ -69,37 +58,30 @@ class FaceVertex(stk.Vertex):
         return clone
 
     def _with_aligner_edge(self, aligner_edge):
-        """
-        Modify the instance.
-
-        """
-
+        """Modify the instance."""
         self._aligner_edge = aligner_edge
         return self
 
     def with_aligner_edge(self, aligner_edge):
-        """
-        Return a clone with a different `aligner_edge`.
+        """Return a clone with a different `aligner_edge`.
 
         Parameters
         ----------
         aligner_edge : :class:`int`
             The aligner edge of the clone.
 
-        Returns
+        Returns:
         -------
         :class:`.FaceVertex`
             The clone. Has the same type as the original instance.
 
         """
-
         return self.clone()._with_aligner_edge(aligner_edge)
 
     def use_neighbor_placement(self):
-        """
-        ``True`` if the position should be updated based on neighbors.
+        """``True`` if the position should be updated based on neighbors.
 
-        Returns
+        Returns:
         -------
         :class:`bool`
             ``True`` if the position of the vertex should be updated
@@ -107,13 +89,11 @@ class FaceVertex(stk.Vertex):
             vertices.
 
         """
-
         return self._use_neighbor_placement
 
     @classmethod
     def init_at_center(cls, id, vertices):
-        """
-        Initialize a :class:`.FaceVertex` in the middle of `vertices`.
+        """Initialize a :class:`.FaceVertex` in the middle of `vertices`.
 
         Parameters
         ----------
@@ -123,13 +103,12 @@ class FaceVertex(stk.Vertex):
         vertices : :class:`tuple` of :class:`.Vertex`
             The vertices at whose center this one needs to be.
 
-        Returns
+        Returns:
         -------
         :class:`.FaceVertex`
             The new vertex.
 
         """
-
         return cls(
             id=id,
             position=(
@@ -139,34 +118,30 @@ class FaceVertex(stk.Vertex):
         )
 
     def get_aligner_edge(self):
-        """
-        Return the aligner edge of the vertex.
+        """Return the aligner edge of the vertex.
 
-        Returns
+        Returns:
         -------
         :class:`int`
             The aligner edge.
 
         """
-
         return self._aligner_edge
 
     def __str__(self):
         return (
-            f'Vertex(id={self._id}, '
-            f'position={self._position.tolist()}, '
-            f'aligner_edge={self._aligner_edge})'
+            f"Vertex(id={self._id}, "
+            f"position={self._position.tolist()}, "
+            f"aligner_edge={self._aligner_edge})"
         )
 
 
 class MetalVertex(FaceVertex):
     def place_building_block(self, building_block, edges):
-        assert (
-            building_block.get_num_functional_groups() == 1
-        ), (
-            f'{building_block} needs to have exactly 1 functional '
-            'groups but has '
-            f'{building_block.get_num_functional_groups()}.'
+        assert building_block.get_num_functional_groups() == 1, (
+            f"{building_block} needs to have exactly 1 functional "
+            "groups but has "
+            f"{building_block.get_num_functional_groups()}."
         )
         building_block = building_block.with_centroid(
             position=self._position,
@@ -193,16 +168,14 @@ class MetalVertex(FaceVertex):
         )
 
         # Align fg vector with edge.
-        fg, = building_block.get_functional_groups()
+        (fg,) = building_block.get_functional_groups()
         fg_start_centroid = building_block.get_centroid(
             atom_ids=[i for i in fg.get_placer_ids()][:2],
         )
         fg_end_centroid = building_block.get_centroid(
             atom_ids=[i for i in fg.get_placer_ids()][2:],
         )
-        edge_centroid = (
-            sum(edge.get_position() for edge in edges) / len(edges)
-        )
+        edge_centroid = sum(edge.get_position() for edge in edges) / len(edges)
         return building_block.with_rotation_between_vectors(
             start=fg_end_centroid - fg_start_centroid,
             target=edge_centroid - self._position,
@@ -210,36 +183,26 @@ class MetalVertex(FaceVertex):
         ).get_position_matrix()
 
     def map_functional_groups_to_edges(self, building_block, edges):
-
-        return {
-            fg_id: edge.get_id() for fg_id, edge in enumerate(edges)
-        }
+        return {fg_id: edge.get_id() for fg_id, edge in enumerate(edges)}
 
 
 class LinkerVertex(FaceVertex):
-
     def place_building_block(self, building_block, edges):
-        assert (
-            building_block.get_num_functional_groups() == 4
-        ), (
-            f'{building_block} needs to have 4 functional '
-            'groups but has '
-            f'{building_block.get_num_functional_groups()}.'
+        assert building_block.get_num_functional_groups() == 4, (
+            f"{building_block} needs to have 4 functional "
+            "groups but has "
+            f"{building_block.get_num_functional_groups()}."
         )
         building_block = building_block.with_centroid(
             position=self._position,
             atom_ids=building_block.get_placer_ids(),
         )
 
-        edge_centroid = (
-            sum(edge.get_position() for edge in edges) / len(edges)
-        )
+        edge_centroid = sum(edge.get_position() for edge in edges) / len(edges)
         edge_normal = get_acute_vector(
             reference=edge_centroid,
             vector=get_plane_normal(
-                points=np.array([
-                    edge.get_position() for edge in edges
-                ]),
+                points=np.array([edge.get_position() for edge in edges]),
             ),
         )
 
@@ -249,13 +212,11 @@ class LinkerVertex(FaceVertex):
             ).get_placer_ids(),
         )
         edge_position = edges[self._aligner_edge].get_position()
-        building_block = (
-            building_block.with_rotation_to_minimize_angle(
-                start=fg_bonder_centroid - self._position,
-                target=edge_position - edge_centroid,
-                axis=edge_normal,
-                origin=self._position,
-            )
+        building_block = building_block.with_rotation_to_minimize_angle(
+            start=fg_bonder_centroid - self._position,
+            target=edge_position - edge_centroid,
+            axis=edge_normal,
+            origin=self._position,
         )
 
         # Flatten wrt to xy plane.
@@ -278,41 +239,30 @@ class LinkerVertex(FaceVertex):
         # Align long axis of molecule (defined by deleter atoms) with
         # y axis.
         long_axis_vector = building_block.get_long_axis()
-        building_block.show_long_axis(long_axis_vector, 'temp.xyz')
-        edge_centroid = (
-            sum(edge.get_position() for edge in edges) / len(edges)
-        )
+        building_block.show_long_axis(long_axis_vector, "temp.xyz")
+        edge_centroid = sum(edge.get_position() for edge in edges) / len(edges)
         edge_normal = get_acute_vector(
             reference=edge_centroid,
             vector=get_plane_normal(
-                points=np.array([
-                    edge.get_position() for edge in edges
-                ]),
+                points=np.array([edge.get_position() for edge in edges]),
             ),
         )
-        building_block = (
-            building_block.with_rotation_to_minimize_angle(
-                start=long_axis_vector,
-                target=[1, 0, 0],
-                axis=edge_normal,
-                origin=self._position,
-            )
+        building_block = building_block.with_rotation_to_minimize_angle(
+            start=long_axis_vector,
+            target=[1, 0, 0],
+            axis=edge_normal,
+            origin=self._position,
         )
         return building_block.get_position_matrix()
 
     def map_functional_groups_to_edges(self, building_block, edges):
-
         def fg_distance(edge):
             return euclidean(edge.get_position(), fg_position)
 
         # For each FG, get the closest edge.
         mapping = {}
-        for fg_id, fg in enumerate(
-            building_block.get_functional_groups()
-        ):
-            fg_position = building_block.get_centroid(
-                fg.get_placer_ids()
-            )
+        for fg_id, fg in enumerate(building_block.get_functional_groups()):
+            fg_position = building_block.get_centroid(fg.get_placer_ids())
             edges = sorted(edges, key=fg_distance)
             mapping[fg_id] = edges[0].get_id()
 
@@ -320,8 +270,7 @@ class LinkerVertex(FaceVertex):
 
 
 class CubeFace(stk.cage.Cage):
-    """
-    Represents a cage topology graph.
+    """Represents a cage topology graph.
 
     Metal building blocks with three functional groups are
     required for this topology.
@@ -358,7 +307,6 @@ class CubeFace(stk.cage.Cage):
 
     _vertex_prototypes = (
         *_vertex_prototypes,
-
         LinkerVertex(
             id=4,
             position=[0, 0, 0],

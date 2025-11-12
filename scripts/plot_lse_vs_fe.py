@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# Distributed under the terms of the MIT License.
-
-"""
-Script to plot ligand strain energy vs formation energy for all cages.
+"""Script to plot ligand strain energy vs formation energy for all cages.
 
 Author: Andrew Tarzia
 
@@ -11,19 +6,18 @@ Date Created: 08 Nov 2020
 
 """
 
-import numpy as np
-from glob import glob
 import json
 import os
 import sys
+from glob import glob
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def main():
-    first_line = (
-        'Usage: plot_lse_vs_fe.py'
-    )
-    if (not len(sys.argv) == 1):
+    first_line = "Usage: plot_lse_vs_fe.py"
+    if not len(sys.argv) == 1:
         print(f"""
 {first_line}
 
@@ -32,60 +26,48 @@ def main():
     else:
         pass
 
-    _figure_path = 'figures'
-    json_files = glob('*CS.json')
+    _figure_path = "figures"
+    json_files = glob("*CS.json")
 
     lses = []
     form_eys = []
     for i in json_files:
-        print(f'doing {i}')
-        with open(i, 'r') as f:
+        print(f"doing {i}")
+        with open(i) as f:
             cage_set_data = json.load(f)
 
-        print(
-            f'there are {len(cage_set_data.keys())} cages in this set.'
-        )
+        print(f"there are {len(cage_set_data.keys())} cages in this set.")
         for cage in cage_set_data:
             cage_data = cage_set_data[cage]
-            print(
-                f"doing cage: {cage}, optimized: "
-                f"{cage_data['optimized']}."
-            )
-            if not cage_data['optimized']:
+            print(f"doing cage: {cage}, optimized: {cage_data['optimized']}.")
+            if not cage_data["optimized"]:
                 continue
-            fe = cage_data['fe_prop']
-            li_data = cage_data['li_prop']
-            lse_sum = sum([
-                li_data['strain_energies'][i]
-                for i in li_data['strain_energies']
-            ])
+            fe = cage_data["fe_prop"]
+            li_data = cage_data["li_prop"]
+            lse_sum = sum(
+                [
+                    li_data["strain_energies"][i]
+                    for i in li_data["strain_energies"]
+                ]
+            )
             lses.append(lse_sum)
             form_eys.append(fe)
 
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.scatter(
-        lses,
-        form_eys,
-        c='gold',
-        edgecolors='k',
-        marker='o',
-        alpha=1.0,
-        s=80
+        lses, form_eys, c="gold", edgecolors="k", marker="o", alpha=1.0, s=80
     )
-    ax.plot(
-        lses,
-        np.poly1d(np.polyfit(lses, form_eys, 1))(lses),
-        c='k', lw=2
-    )
+    ax.plot(lses, np.poly1d(np.polyfit(lses, form_eys, 1))(lses), c="k", lw=2)
     # Set number of ticks for x-axis
-    ax.tick_params(axis='both', which='major', labelsize=16)
-    ax.set_xlabel(r'sum strain energy [kJmol$^{-1}$]', fontsize=16)
-    ax.set_ylabel(r'formation energy [kJmol$^{-1}$]', fontsize=16)
+    ax.tick_params(axis="both", which="major", labelsize=16)
+    ax.set_xlabel(r"sum strain energy [kJmol$^{-1}$]", fontsize=16)
+    ax.set_ylabel(r"formation energy [kJmol$^{-1}$]", fontsize=16)
 
     fig.tight_layout()
     fig.savefig(
-        os.path.join(_figure_path, 'lse_sum_vs_fe.pdf'),
-        dpi=720, bbox_inches='tight',
+        os.path.join(_figure_path, "lse_sum_vs_fe.pdf"),
+        dpi=720,
+        bbox_inches="tight",
     )
 
 

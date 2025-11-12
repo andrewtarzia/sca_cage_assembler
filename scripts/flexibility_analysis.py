@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# Distributed under the terms of the MIT License.
-
-"""
-Script to calculate flexibility measure of ligands.
+"""Script to calculate flexibility measure of ligands.
 
 Author: Andrew Tarzia
 
@@ -11,51 +6,45 @@ Date Created: 21 Oct 2020
 
 """
 
-import numpy as np
-from itertools import combinations
-import sys
-import os
-import matplotlib.pyplot as plt
 import json
+import os
+import sys
+from itertools import combinations
 
+import env_set
+import matplotlib.pyplot as plt
+import numpy as np
 import stk
-
 from plotting import colors_i_like, histogram_plot_N
 from utilities import (
-    split_xyz_file,
-    get_atom_distance,
+    angle_between,
     calculate_molecule_planarity,
+    get_atom_distance,
     get_lowest_energy_conformer,
     read_lib,
-    angle_between,
+    split_xyz_file,
 )
-import env_set
 
 
 def get_xyz_energy(file):
-
-    with open(file, 'r') as f:
+    with open(file) as f:
         line = f.readlines()[1]
 
     energy = float(line.rstrip())
 
     return energy
 
-def get_crest_ensemble_data(crest_directory):
 
-    with open(f'{crest_directory}/crest.output', 'r') as f:
+def get_crest_ensemble_data(crest_directory):
+    with open(f"{crest_directory}/crest.output") as f:
         for line in f.readlines():
             # Get number of conformers.
-            if ' number of unique conformers for further calc' in line:
-                no_conformers = (
-                    int(line.rstrip().split(' ')[-1])
-                )
+            if " number of unique conformers for further calc" in line:
+                no_conformers = int(line.rstrip().split(" ")[-1])
 
             # Get number of rotamers.
-            if 'total number unique points considered further' in line:
-                no_rotamers = (
-                    int(line.rstrip().split(' ')[-1])
-                )
+            if "total number unique points considered further" in line:
+                no_rotamers = int(line.rstrip().split(" ")[-1])
 
     return no_rotamers, no_conformers
 
@@ -66,12 +55,10 @@ def is_single_binder(molecule):
             return False
     return True
 
-def calculate_long_axis_distance(molecule, conformer_files):
 
+def calculate_long_axis_distance(molecule, conformer_files):
     if not is_single_binder(molecule):
-        raise ValueError(
-            f'{molecule} has FGs with more than one binder.'
-        )
+        raise ValueError(f"{molecule} has FGs with more than one binder.")
     long_axis_atom_pair = get_long_axis_atoms(molecule)
     pair1_cents = [
         molecule.with_structure_from_file(i).get_centroid(
@@ -86,31 +73,29 @@ def calculate_long_axis_distance(molecule, conformer_files):
         for i in conformer_files
     ]
 
-    la_dist = [
-        np.linalg.norm(i-j)
-        for i, j in zip(pair1_cents, pair2_cents)
-    ]
+    la_dist = [np.linalg.norm(i - j) for i, j in zip(pair1_cents, pair2_cents)]
     return la_dist
 
 
 def calculate_vector_angle(molecule, conformer_files):
-
     if not is_single_binder(molecule):
-        raise ValueError(
-            f'{molecule} has FGs with more than one binder.'
-        )
+        raise ValueError(f"{molecule} has FGs with more than one binder.")
 
     long_axis_atom_pair = get_long_axis_atoms(molecule)
     pair1_vectors = []
     pair2_vectors = []
     for i in conformer_files:
         conformer = molecule.with_structure_from_file(i)
-        pair1_atoms = list(conformer.get_atomic_positions(
-            atom_ids=tuple(long_axis_atom_pair[0])
-        ))
-        pair2_atoms = list(conformer.get_atomic_positions(
-            atom_ids=tuple(long_axis_atom_pair[1])
-        ))
+        pair1_atoms = list(
+            conformer.get_atomic_positions(
+                atom_ids=tuple(long_axis_atom_pair[0])
+            )
+        )
+        pair2_atoms = list(
+            conformer.get_atomic_positions(
+                atom_ids=tuple(long_axis_atom_pair[1])
+            )
+        )
         v1 = pair1_atoms[1] - pair1_atoms[0]
         v2 = pair2_atoms[1] - pair2_atoms[0]
         pair1_vectors.append(v1)
@@ -131,27 +116,23 @@ def plot_long_axis_deviation(measures, name, crest=False):
     # Can assume the first one in the list of measures is the lowest
     # energy conformer.
     fig, ax = histogram_plot_N(
-        Y=[i-measures[0] for i in measures],
+        Y=[i - measures[0] for i in measures],
         X_range=(-1.5, 1.5),
         width=0.05,
         alpha=1.0,
         color=colors_i_like()[1],
         edgecolor=colors_i_like()[1],
-        xtitle=r'long axis deviation [$\mathrm{\AA}$]',
-        N=1
+        xtitle=r"long axis deviation [$\mathrm{\AA}$]",
+        N=1,
     )
     range = abs(max(measures) - min(measures))
-    ax.set_title(f'range = {round(range, 2)}', fontsize=16)
+    ax.set_title(f"range = {round(range, 2)}", fontsize=16)
     fig.tight_layout()
     if crest:
-        filename = f'{name}_lapC_dist.pdf'
+        filename = f"{name}_lapC_dist.pdf"
     else:
-        filename = f'{name}_lap_dist.pdf'
-    fig.savefig(
-        filename,
-        dpi=720,
-        bbox_inches='tight'
-    )
+        filename = f"{name}_lap_dist.pdf"
+    fig.savefig(filename, dpi=720, bbox_inches="tight")
     plt.close()
 
 
@@ -165,26 +146,21 @@ def plot_vector_angle(measures, name, crest=False):
         alpha=1.0,
         color=colors_i_like()[1],
         edgecolor=colors_i_like()[1],
-        xtitle='vector angle [degrees]',
-        N=1
+        xtitle="vector angle [degrees]",
+        N=1,
     )
     range = abs(max(measures) - min(measures))
-    ax.set_title(f'range = {round(range, 2)}', fontsize=16)
+    ax.set_title(f"range = {round(range, 2)}", fontsize=16)
     fig.tight_layout()
     if crest:
-        filename = f'{name}_vaC_dist.pdf'
+        filename = f"{name}_vaC_dist.pdf"
     else:
-        filename = f'{name}_va_dist.pdf'
-    fig.savefig(
-        filename,
-        dpi=720,
-        bbox_inches='tight'
-    )
+        filename = f"{name}_va_dist.pdf"
+    fig.savefig(filename, dpi=720, bbox_inches="tight")
     plt.close()
 
 
 def plot_plane_deviation(measures, name, crest=False):
-
     fig, ax = histogram_plot_N(
         Y=measures,
         X_range=(0, 200),
@@ -192,26 +168,21 @@ def plot_plane_deviation(measures, name, crest=False):
         alpha=1.0,
         color=colors_i_like()[1],
         edgecolor=colors_i_like()[1],
-        xtitle=r'plane deviation [$\mathrm{\AA}$]',
-        N=1
+        xtitle=r"plane deviation [$\mathrm{\AA}$]",
+        N=1,
     )
     range = abs(max(measures) - min(measures))
-    ax.set_title(f'range = {round(range, 2)}', fontsize=16)
+    ax.set_title(f"range = {round(range, 2)}", fontsize=16)
     fig.tight_layout()
     if crest:
-        filename = f'{name}_AAplanedevC_dist.pdf'
+        filename = f"{name}_AAplanedevC_dist.pdf"
     else:
-        filename = f'{name}_AAplanedev_dist.pdf'
-    fig.savefig(
-        filename,
-        dpi=720,
-        bbox_inches='tight'
-    )
+        filename = f"{name}_AAplanedev_dist.pdf"
+    fig.savefig(filename, dpi=720, bbox_inches="tight")
     plt.close()
 
 
 def plot_binder_plane_deviation(measures, name, crest=False):
-
     fig, ax = histogram_plot_N(
         Y=measures,
         X_range=(0, 30),
@@ -219,40 +190,30 @@ def plot_binder_plane_deviation(measures, name, crest=False):
         alpha=1.0,
         color=colors_i_like()[1],
         edgecolor=colors_i_like()[1],
-        xtitle=r'binder plane deviation [$\mathrm{\AA}$]',
-        N=1
+        xtitle=r"binder plane deviation [$\mathrm{\AA}$]",
+        N=1,
     )
     range = abs(max(measures) - min(measures))
-    ax.set_title(f'range = {round(range, 2)}', fontsize=16)
+    ax.set_title(f"range = {round(range, 2)}", fontsize=16)
     fig.tight_layout()
     if crest:
-        filename = f'{name}_planedevC_dist.pdf'
+        filename = f"{name}_planedevC_dist.pdf"
     else:
-        filename = f'{name}_planedev_dist.pdf'
-    fig.savefig(
-        filename,
-        dpi=720,
-        bbox_inches='tight'
-    )
+        filename = f"{name}_planedev_dist.pdf"
+    fig.savefig(filename, dpi=720, bbox_inches="tight")
     plt.close()
 
 
 def get_long_axis_atoms(molecule):
-
     binder_atom_ids = [
-        list(fg.get_bonder_ids())
-        for fg in molecule.get_functional_groups()
+        list(fg.get_bonder_ids()) for fg in molecule.get_functional_groups()
     ]
     binder_atom_dists = sorted(
         [
-            (idx1, idx2, get_atom_distance(
-                molecule,
-                idx1,
-                idx2
-            ))
+            (idx1, idx2, get_atom_distance(molecule, idx1, idx2))
             for idx1, idx2 in combinations(binder_atom_ids, r=2)
         ],
-        key=lambda a: a[2]
+        key=lambda a: a[2],
     )
     # Can assume the ordering of the binder atom distances:
     # 0, 1: short vectors
@@ -260,21 +221,19 @@ def get_long_axis_atoms(molecule):
     # 4, 5: diagonal vectors
     # This fails when the molecule is not sufficiently anisotropic,
     # at which point it will not matter.
-    short_vector_fg_1 = (
-        binder_atom_dists[0][0], binder_atom_dists[0][1]
-    )
+    short_vector_fg_1 = (binder_atom_dists[0][0], binder_atom_dists[0][1])
     short_vector_fg_2 = (
         (binder_atom_dists[1][0], binder_atom_dists[1][1])
         if (
-            binder_atom_dists[1][0] not in short_vector_fg_1 and
-            binder_atom_dists[1][1] not in short_vector_fg_1
-        ) else
-        (binder_atom_dists[2][0], binder_atom_dists[2][1])
+            binder_atom_dists[1][0] not in short_vector_fg_1
+            and binder_atom_dists[1][1] not in short_vector_fg_1
+        )
+        else (binder_atom_dists[2][0], binder_atom_dists[2][1])
     )
 
     long_axis_atom_pairs = (
         [i[0] for i in short_vector_fg_1],
-        [i[0] for i in short_vector_fg_2]
+        [i[0] for i in short_vector_fg_2],
     )
 
     return long_axis_atom_pairs
@@ -282,10 +241,9 @@ def get_long_axis_atoms(molecule):
 
 def main():
     first_line = (
-        'Usage: flexibility_analysis.py ligand_directory '
-        'ligand_lib_file'
+        "Usage: flexibility_analysis.py ligand_directory ligand_lib_file"
     )
-    if (not len(sys.argv) == 3):
+    if not len(sys.argv) == 3:
         print(f"""
 {first_line}
 
@@ -306,24 +264,22 @@ def main():
     ligand_structures = {}
 
     for name in ligand_lib:
-        structure_file = os.path.join(
-            ligand_directory, f'{name}_opt.mol'
-        )
+        structure_file = os.path.join(ligand_directory, f"{name}_opt.mol")
         bb = stk.BuildingBlock.init_from_file(
             structure_file,
             functional_groups=[stk.BromoFactory()],
         )
-        if ligand_lib[name]['calculate_flex']:
+        if ligand_lib[name]["calculate_flex"]:
             ligand_structures[name] = bb
 
-    print(f'there are {len(ligand_structures)} structures\n')
+    print(f"there are {len(ligand_structures)} structures\n")
     for name in ligand_structures:
         lig_structure = ligand_structures[name]
-        crest_output_file = f'{name}_flex_measure.json'
+        crest_output_file = f"{name}_flex_measure.json"
         crest_data = {}
 
-        low_e_conformer_output = f'../{name}_loweconf.mol'
-        conf_dir = f'{name}_xtbcrest_confs'
+        low_e_conformer_output = f"../{name}_loweconf.mol"
+        conf_dir = f"{name}_xtbcrest_confs"
         if not os.path.exists(conf_dir):
             os.mkdir(conf_dir)
         # Crest part.
@@ -340,26 +296,25 @@ def main():
 
         # Extract some measure of conformer ensemble size.
         no_rotamers, no_conformers = get_crest_ensemble_data(
-            crest_directory=f'{conf_dir}'
+            crest_directory=f"{conf_dir}"
         )
-        crest_data['no_rotamers'] = no_rotamers
-        crest_data['no_conformers'] = no_conformers
+        crest_data["no_rotamers"] = no_rotamers
+        crest_data["no_conformers"] = no_conformers
 
         # Analyse all conformers from CREST.
         crest_conformer_files = split_xyz_file(
             num_atoms=lig_structure.get_num_atoms(),
-            xyz_file=f'{conf_dir}/crest_conformers.xyz',
+            xyz_file=f"{conf_dir}/crest_conformers.xyz",
         )
-        print(f'{name} has {len(crest_conformer_files)} conformers')
+        print(f"{name} has {len(crest_conformer_files)} conformers")
 
         # Crest energies from second line of xyz.
-        crest_data['energies'] = [
-            get_xyz_energy(i)
-            for i in crest_conformer_files
+        crest_data["energies"] = [
+            get_xyz_energy(i) for i in crest_conformer_files
         ]
 
         # Plane deviations.
-        crest_data['plane_deviations'] = [
+        crest_data["plane_deviations"] = [
             calculate_molecule_planarity(
                 mol=lig_structure.with_structure_from_file(i),
             )
@@ -371,7 +326,7 @@ def main():
             f"num conformers: {crest_data['no_conformers']}"
         )
         plot_plane_deviation(
-            measures=crest_data['plane_deviations'],
+            measures=crest_data["plane_deviations"],
             name=name,
             crest=True,
         )
@@ -389,19 +344,19 @@ def main():
                 name=name,
                 crest=True,
             )
-            crest_data['long_axis_distances'] = long_axis_distances
-            crest_data['vector_angle'] = calculate_vector_angle(
+            crest_data["long_axis_distances"] = long_axis_distances
+            crest_data["vector_angle"] = calculate_vector_angle(
                 molecule=lig_structure,
                 conformer_files=crest_conformer_files,
             )
 
             dist_width = abs(
-                max(crest_data['vector_angle'])
-                -min(crest_data['vector_angle'])
+                max(crest_data["vector_angle"])
+                - min(crest_data["vector_angle"])
             )
-            print(f': vector angle, {name}, dist width = {dist_width}')
+            print(f": vector angle, {name}, dist width = {dist_width}")
             plot_vector_angle(
-                measures=crest_data['vector_angle'],
+                measures=crest_data["vector_angle"],
                 name=name,
                 crest=True,
             )
@@ -418,7 +373,7 @@ def main():
                 fg.get_bromine().get_id()
                 for fg in lig_structure.get_functional_groups()
             ]
-            crest_data['binder_plane_deviations'] = [
+            crest_data["binder_plane_deviations"] = [
                 calculate_molecule_planarity(
                     mol=lig_structure.with_structure_from_file(i),
                     atom_ids=binder_ids,
@@ -426,15 +381,15 @@ def main():
                 for i in crest_conformer_files
             ]
             plot_binder_plane_deviation(
-                measures=crest_data['binder_plane_deviations'],
+                measures=crest_data["binder_plane_deviations"],
                 name=name,
                 crest=True,
             )
 
-        with open(crest_output_file, 'w') as f:
+        with open(crest_output_file, "w") as f:
             json.dump(crest_data, f, indent=4)
-        print('-------\n')
+        print("-------\n")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

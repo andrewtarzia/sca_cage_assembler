@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# Distributed under the terms of the MIT License.
-
-"""
-Script to plot distributions of cage properties of each symm.
+"""Script to plot distributions of cage properties of each symm.
 
 Author: Andrew Tarzia
 
@@ -11,12 +6,12 @@ Date Created: 12 Feb 2021
 
 """
 
-import pandas as pd
 import os
 import sys
-import matplotlib.pyplot as plt
 
-from utilities import convert_lig_names_from_cage, convert_symm_names
+import matplotlib.pyplot as plt
+import pandas as pd
+from utilities import convert_symm_names
 
 
 def yproperties():
@@ -24,11 +19,11 @@ def yproperties():
         # 'octop': (
         #     r'min. $q_{\mathrm{oct}}$', (None, None), 'min'
         # ),
-        'm_cube_shape': ('CU-8 cube measure', (-0.5, None), 'min'),
-        'rellsesum': (
-            r'rel. sum strain energy [kJ mol$^{-1}$]',
+        "m_cube_shape": ("CU-8 cube measure", (-0.5, None), "min"),
+        "rellsesum": (
+            r"rel. sum strain energy [kJ mol$^{-1}$]",
             (-10, 1000),
-            'max'
+            "max",
         ),
         # 'lsesum': (
         #     r'sum strain energy [kJ mol$^{-1}$]',
@@ -63,7 +58,7 @@ def yproperties():
 
 
 def distribution_plot(df, col_name):
-    _figure_path = 'figures'
+    _figure_path = "figures"
 
     yprops = yproperties()
 
@@ -76,17 +71,16 @@ def distribution_plot(df, col_name):
     forms = []
     does_not_form = []
     for symm in symm_labels:
-
-        if symm == 'tl':
-            print('no')
+        if symm == "tl":
+            print("no")
             continue
         print_name = symm_labels[symm]
-        set_df = df[df['symmetry'] == symm]
+        set_df = df[df["symmetry"] == symm]
         _x_positions += 1
         _x_names.append((_x_positions, print_name))
         cset_ys = []
         for i, row in set_df.iterrows():
-            outcome = True if row['outcome'] == 1 else False
+            outcome = True if row["outcome"] == 1 else False
             y_val = row[col_name]
             if y_val is None:
                 continue
@@ -108,37 +102,36 @@ def distribution_plot(df, col_name):
             bw_method=0.5,
         )
 
-        for pc in parts['bodies']:
-            pc.set_facecolor('gray')
-            pc.set_edgecolor('none')
+        for pc in parts["bodies"]:
+            pc.set_facecolor("gray")
+            pc.set_edgecolor("none")
             pc.set_alpha(0.3)
-
 
     ax.scatter(
         x=[i[0] for i in does_not_form],
         y=[i[1] for i in does_not_form],
-        c='gray',
-        marker='o',
+        c="gray",
+        marker="o",
         alpha=1.0,
         s=40,
-        label='does not form',
+        label="does not form",
     )
     ax.scatter(
         x=[i[0] for i in forms],
         y=[i[1] for i in forms],
-        c='gold',
-        edgecolors='k',
-        marker='o',
+        c="gold",
+        edgecolors="k",
+        marker="o",
         alpha=1.0,
         s=180,
-        label='forms',
+        label="forms",
     )
 
-    if col_name == 'm_cube_shape':
-        ax.axhline(y=0, lw=2, linestyle='--', c='k')
+    if col_name == "m_cube_shape":
+        ax.axhline(y=0, lw=2, linestyle="--", c="k")
 
     # Set number of ticks for x-axis
-    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.tick_params(axis="both", which="major", labelsize=16)
     ax.set_ylabel(yprops[col_name][0], fontsize=16)
     ax.set_ylim(yprops[col_name][1])
     ax.set_xticks([i[0] for i in _x_names])
@@ -148,29 +141,27 @@ def distribution_plot(df, col_name):
     fig.savefig(
         os.path.join(_figure_path, f"sym_distribution_{col_name}.pdf"),
         dpi=720,
-        bbox_inches='tight'
+        bbox_inches="tight",
     )
     plt.close()
 
 
 def line_plot(df, col_name):
-    _figure_path = 'figures'
+    _figure_path = "figures"
 
     yprops = yproperties()
     symm_labels = convert_symm_names(no_symbol=True)
 
     cage_sets = {
-        'cl1_quad2_5': '1',
-        'cl1_quad2_16': '2',
-        'cl1_quad2_12': '3',
-        'cl1_quad2_3': '4',
-        'cl1_quad2_8': '5',
-        'cl1_quad2_2': '6',
+        "cl1_quad2_5": "1",
+        "cl1_quad2_16": "2",
+        "cl1_quad2_12": "3",
+        "cl1_quad2_3": "4",
+        "cl1_quad2_8": "5",
+        "cl1_quad2_2": "6",
     }
 
-    feasible_syms = {
-        'd2', 'th2', 'td', 'tl', 's62', 'd32', 'd31n', 'd32n'
-    }
+    feasible_syms = {"d2", "th2", "td", "tl", "s62", "d32", "d31n", "d32n"}
 
     for cs in cage_sets:
         fig, ax = plt.subplots(figsize=(8, 4))
@@ -181,30 +172,29 @@ def line_plot(df, col_name):
         unfeasible = []
         feasible = []
 
-        cs_df = df[df['cageset'] == cs]
+        cs_df = df[df["cageset"] == cs]
 
         for symm in symm_labels:
-            if symm == 'tl':
-                print('no')
+            if symm == "tl":
+                print("no")
                 continue
             print_name = symm_labels[symm]
-            set_df = cs_df[cs_df['symmetry'] == symm]
+            set_df = cs_df[cs_df["symmetry"] == symm]
             _x_positions += 1
             _x_names.append((_x_positions, print_name))
             for i, row in set_df.iterrows():
-                outcome = True if row['outcome'] == 1 else False
+                outcome = True if row["outcome"] == 1 else False
                 y_val = row[col_name]
 
                 if y_val is None:
                     continue
                 if outcome:
                     forms.append((_x_positions, float(y_val)))
+                # does_not_form.append((_x_positions, float(y_val)))
+                elif symm in feasible_syms:
+                    feasible.append((_x_positions, float(y_val)))
                 else:
-                    # does_not_form.append((_x_positions, float(y_val)))
-                    if symm in feasible_syms:
-                        feasible.append((_x_positions, float(y_val)))
-                    else:
-                        unfeasible.append((_x_positions, float(y_val)))
+                    unfeasible.append((_x_positions, float(y_val)))
 
         print(_x_names)
         print(cs, feasible)
@@ -222,59 +212,57 @@ def line_plot(df, col_name):
         ax.scatter(
             x=[i[0] for i in forms],
             y=[i[1] for i in forms],
-            c='gold',
-            edgecolors='k',
-            marker='o',
+            c="gold",
+            edgecolors="k",
+            marker="o",
             alpha=1.0,
             s=180,
-            label='forms',
+            label="forms",
         )
         ax.scatter(
             x=[i[0] for i in unfeasible],
             y=[i[1] for i in unfeasible],
-            c='r',
-            marker='D',
-            edgecolors='k',
+            c="r",
+            marker="D",
+            edgecolors="k",
             alpha=1.0,
             s=120,
-            label='unfeasible',
+            label="unfeasible",
         )
         ax.scatter(
             x=[i[0] for i in feasible],
             y=[i[1] for i in feasible],
-            c='gray',
-            marker='P',
-            edgecolors='k',
+            c="gray",
+            marker="P",
+            edgecolors="k",
             alpha=1.0,
             s=120,
-            label='feasible',
+            label="feasible",
         )
 
-        ax.axhline(y=0, lw=2, linestyle='--', c='k')
+        ax.axhline(y=0, lw=2, linestyle="--", c="k")
 
         # Set number of ticks for x-axis
-        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.tick_params(axis="both", which="major", labelsize=16)
         ax.set_ylabel(yprops[col_name][0], fontsize=16)
         ax.set_ylim(yprops[col_name][1])
         ax.set_xticks([i[0] for i in _x_names])
         ax.set_xticklabels([i[1] for i in _x_names], rotation=45)
-        bolded = '$\\bf{' + cage_sets[cs] + '}$'
-        ax.set_title(f'pseudo-cube {bolded}', fontsize=16)
+        bolded = "$\\bf{" + cage_sets[cs] + "}$"
+        ax.set_title(f"pseudo-cube {bolded}", fontsize=16)
         fig.legend(fontsize=16)
         fig.tight_layout()
         fig.savefig(
             os.path.join(_figure_path, f"sep_lsedist_{cs}.pdf"),
             dpi=720,
-            bbox_inches='tight'
+            bbox_inches="tight",
         )
         plt.close()
 
 
 def main():
-    first_line = (
-        'Usage: plot_symm_distributions.py'
-    )
-    if (not len(sys.argv) == 1):
+    first_line = "Usage: plot_symm_distributions.py"
+    if not len(sys.argv) == 1:
         print(f"""
 {first_line}
     """)
@@ -282,25 +270,25 @@ def main():
     else:
         pass
 
-    all_cage_properties = pd.read_csv('all_cage_csv_data.csv')
+    all_cage_properties = pd.read_csv("all_cage_csv_data.csv")
     all_cage_properties = all_cage_properties.where(
         pd.notnull(all_cage_properties), None
     )
 
     target_cols = [
         # 'octop',
-        'rellsesum',
+        "rellsesum",
         # 'minitors', 'lsesum',
         # 'maxcrplan', 'maxMLlength', 'porediam',
         # 'relformatione', 'maxintangledev',
-        'm_cube_shape',
+        "m_cube_shape",
     ]
     for col_name in target_cols:
         distribution_plot(
             df=all_cage_properties,
             col_name=col_name,
         )
-        if col_name == 'rellsesum':
+        if col_name == "rellsesum":
             line_plot(
                 df=all_cage_properties,
                 col_name=col_name,

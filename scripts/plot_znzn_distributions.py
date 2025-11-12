@@ -1,21 +1,17 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# Distributed under the terms of the MIT License.
-
-"""
-Script to plot Zn-Zn distributions in calc'd and xrd structures.
+"""Script to plot Zn-Zn distributions in calc'd and xrd structures.
 
 Author: Andrew Tarzia
 
 """
 
-import stk
 import os
-import numpy as np
 import sys
+
 import matplotlib.pyplot as plt
-from utilities import convert_symm_names, read_lib, convert_lig_names_from_cage
+import numpy as np
 import scipy.spatial.distance
+import stk
+from utilities import convert_lig_names_from_cage, convert_symm_names, read_lib
 
 
 def get_pairwise_dists(stk_mol):
@@ -27,9 +23,9 @@ def get_pairwise_dists(stk_mol):
 
 def main():
     first_line = (
-        'Usage: plot_znzn_distributions.py xray_structure_path expt_lib_file'
+        "Usage: plot_znzn_distributions.py xray_structure_path expt_lib_file"
     )
-    if (not len(sys.argv) == 3):
+    if not len(sys.argv) == 3:
         print(f"""
 {first_line}
 
@@ -47,33 +43,31 @@ def main():
 
     expt_data = read_lib(expt_lib_file)
 
-    _figure_path = 'figures'
+    _figure_path = "figures"
 
     for xray_name in expt_data:
-        cs = xray_name.split('-')[0]
+        cs = xray_name.split("-")[0]
         cs_data = expt_data[xray_name]
-        symm = cs_data['symmetry']
-        xname = cs_data['xtal_struct_name']
-        lig_name = cs_data['ligand_name']
-        if cs == 'cl1_quad2_5' and symm == 'tl':
-            print('no')
+        symm = cs_data["symmetry"]
+        xname = cs_data["xtal_struct_name"]
+        lig_name = cs_data["ligand_name"]
+        if cs == "cl1_quad2_5" and symm == "tl":
+            print("no")
             continue
         print(cs, symm)
         title = (
-            f'{convert_lig_names_from_cage(lig_name, as_int=True)} '
-            f'- {convert_symm_names(symm, no_symbol=True)}'
+            f"{convert_lig_names_from_cage(lig_name, as_int=True)} "
+            f"- {convert_symm_names(symm, no_symbol=True)}"
         )
-        xtal_file = os.path.join(
-            xray_structure_path,
-            f'{xname}_M.mol'
-        )
-        meta_file = f'{cs}_{symm}_optc_M.mol'
-        calc_file = f'C_{cs}_{symm}_optc.mol'
+        xtal_file = os.path.join(xray_structure_path, f"{xname}_M.mol")
+        meta_file = f"{cs}_{symm}_optc_M.mol"
+        calc_file = f"C_{cs}_{symm}_optc.mol"
 
         xtal_structure = stk.BuildingBlock.init_from_file(xtal_file)
         calc_structure = stk.BuildingBlock.init_from_file(calc_file)
         metal_atom_ids = [
-            i.get_id() for i in calc_structure.get_atoms()
+            i.get_id()
+            for i in calc_structure.get_atoms()
             if i.get_atomic_number() == 30
         ]
 
@@ -94,28 +88,28 @@ def main():
             x=meta_pairs,
             bins=np.arange(xmin, xmax, 0.2),
             density=False,
-            color='k',
+            color="k",
             alpha=1.0,
             histtype="stepfilled",
             lw=1,
-            label='calculated',
+            label="calculated",
             edgecolor="k",
         )
         ax.hist(
             x=xtal_pairs,
             bins=np.arange(xmin, xmax, 0.2),
             density=False,
-            color='#e71989',
+            color="#e71989",
             alpha=0.8,
             histtype="stepfilled",
             lw=1,
-            label='X-ray',
+            label="X-ray",
             edgecolor="white",
         )
         print(max(xtal_pairs))
-        ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.set_xlabel(r'distance [$\mathrm{\AA}$]', fontsize=16)
-        ax.set_ylabel('count', fontsize=16)
+        ax.tick_params(axis="both", which="major", labelsize=16)
+        ax.set_xlabel(r"distance [$\mathrm{\AA}$]", fontsize=16)
+        ax.set_ylabel("count", fontsize=16)
         ax.set_title(title, fontsize=16)
         fig.legend(fontsize=16)
 
@@ -123,7 +117,7 @@ def main():
         fig.savefig(
             os.path.join(_figure_path, f"znzndist_{xray_name}.pdf"),
             dpi=720,
-            bbox_inches='tight'
+            bbox_inches="tight",
         )
         plt.close()
 

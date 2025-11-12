@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# Distributed under the terms of the MIT License.
-
-"""
-Plotting utilities module.
+"""Plotting utilities module.
 
 Author: Andrew Tarzia
 
@@ -11,15 +6,14 @@ Date Created: 15 Mar 2020
 
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib
-import matplotlib.colors as colors
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import colors
 
 
 def colors_i_like(palette=None):
-    """
-    A list of colours I like to choose from.
+    """A list of colours I like to choose from.
 
     palette options:
         None
@@ -30,51 +24,72 @@ def colors_i_like(palette=None):
         CB_pairs
 
     """
-
     if palette is None:
         return [
-            '#FA7268', '#F8A72A', '#DAF7A6', '#900C3F', '#6BADB0',
-            '#DB869D', '#F6D973', 'mediumvioletred',
-            'skyblue', 'gold', 'palegreen', 'coral',
+            "#FA7268",
+            "#F8A72A",
+            "#DAF7A6",
+            "#900C3F",
+            "#6BADB0",
+            "#DB869D",
+            "#F6D973",
+            "mediumvioletred",
+            "skyblue",
+            "gold",
+            "palegreen",
+            "coral",
         ]
-    elif palette == 'Base':
+    if palette == "Base":
+        return ["#D81B60", "#1E88E5", "#FFC107", "#FE6100", "#004D40"]
+    if palette == "IBM":
+        return ["#648FFF", "#785EF0", "#DC267F", "#FE6100", "#FFB000"]
+    if palette == "Wong":
         return [
-            '#D81B60', '#1E88E5', '#FFC107', '#FE6100', '#004D40'
+            "#000000",
+            "#E69F00",
+            "#56B4E9",
+            "#009E73",
+            "#F0E442",
+            "#0072B2",
+            "#D55E00",
+            "#CC79A7",
         ]
-    elif palette == 'IBM':
+    if palette == "Tol":
         return [
-            '#648FFF', '#785EF0', '#DC267F', '#FE6100', '#FFB000'
+            "#332288",
+            "#117733",
+            "#44AA99",
+            "#88CCEE",
+            "#DDCC77",
+            "#CC6677",
+            "#AA4499",
+            "#882255",
         ]
-    elif palette == 'Wong':
+    if palette == "CB_pairs":
         return [
-            '#000000', '#E69F00', '#56B4E9', '#009E73', '#F0E442',
-            '#0072B2', '#D55E00', '#CC79A7'
-        ]
-    elif palette == 'Tol':
-        return [
-            '#332288', '#117733', '#44AA99', '#88CCEE', '#DDCC77',
-            '#CC6677', '#AA4499', '#882255',
-        ]
-    elif palette == 'CB_pairs':
-        return [
-            '#FFC20A', '#0C7BDC', '#994F00', '#006CD1', '#E1BE6A',
-            '#40B0A6', '#E66100', '#5D3A9B', '#1AFF1A', '#4B0092',
-            '#FEFE62', '#D35FB7', '#005AB5', '#DC3220', '#1A85FF',
-            '#D41159',
+            "#FFC20A",
+            "#0C7BDC",
+            "#994F00",
+            "#006CD1",
+            "#E1BE6A",
+            "#40B0A6",
+            "#E66100",
+            "#5D3A9B",
+            "#1AFF1A",
+            "#4B0092",
+            "#FEFE62",
+            "#D35FB7",
+            "#005AB5",
+            "#DC3220",
+            "#1A85FF",
+            "#D41159",
         ]
 
 
 def heatmap(
-    data,
-    row_labels,
-    col_labels,
-    ax=None,
-    cbar_kw={},
-    cbarlabel="",
-    **kwargs
+    data, row_labels, col_labels, ax=None, cbar_kw={}, cbarlabel="", **kwargs
 ):
-    """
-    Create a heatmap from a numpy array and two lists of labels.
+    """Create a heatmap from a numpy array and two lists of labels.
 
     From: https://matplotlib.org/3.1.1/gallery/
     images_contours_and_fields/image_annotated_heatmap.html
@@ -102,7 +117,6 @@ def heatmap(
         All other arguments are forwarded to `imshow`.
 
     """
-
     if not ax:
         ax = plt.gca()
 
@@ -121,26 +135,18 @@ def heatmap(
     ax.set_yticklabels(row_labels)
 
     # Let the horizontal axes labeling appear on top.
-    ax.tick_params(
-        top=True,
-        bottom=False,
-        labeltop=True,
-        labelbottom=False
-    )
+    ax.tick_params(top=True, bottom=False, labeltop=True, labelbottom=False)
 
     # Rotate the tick labels and set their alignment.
     plt.setp(
-        ax.get_xticklabels(),
-        rotation=-30,
-        ha="right",
-        rotation_mode="anchor"
+        ax.get_xticklabels(), rotation=-30, ha="right", rotation_mode="anchor"
     )
 
     # Turn spines off and create white grid.
     for edge, spine in ax.spines.items():
         spine.set_visible(False)
-    ax.set_xticks(np.arange(data.shape[1]+1)-.5, minor=True)
-    ax.set_yticks(np.arange(data.shape[0]+1)-.5, minor=True)
+    ax.set_xticks(np.arange(data.shape[1] + 1) - 0.5, minor=True)
+    ax.set_yticks(np.arange(data.shape[0] + 1) - 0.5, minor=True)
     # ax.grid(which="minor", color="k", linestyle='-', linewidth=2)
     ax.tick_params(which="minor", bottom=False, left=False)
 
@@ -154,10 +160,9 @@ def annotate_heatmap(
     textcolors=["black", "white"],
     threshold=None,
     na_points=None,
-    **textkw
+    **textkw,
 ):
-    """
-    A function to annotate a heatmap.
+    """A function to annotate a heatmap.
 
     From: https://matplotlib.org/3.1.1/gallery/
     images_contours_and_fields/image_annotated_heatmap.html
@@ -191,7 +196,6 @@ def annotate_heatmap(
         to create the text labels.
 
     """
-
     if not isinstance(data, (list, np.ndarray)):
         data = im.get_array()
 
@@ -199,14 +203,11 @@ def annotate_heatmap(
     if threshold is not None:
         threshold = im.norm(threshold)
     else:
-        threshold = im.norm(data.max())/2.
+        threshold = im.norm(data.max()) / 2.0
 
     # Set default alignment to center, but allow it to be
     # overwritten by textkw.
-    kw = dict(
-        horizontalalignment="center",
-        verticalalignment="center"
-    )
+    kw = dict(horizontalalignment="center", verticalalignment="center")
     kw.update(textkw)
 
     # Get the formatter in case a string is supplied
@@ -218,29 +219,20 @@ def annotate_heatmap(
     texts = []
     for i in range(data.shape[0]):
         for j in range(data.shape[1]):
-            kw.update(
-                color=textcolors[int(im.norm(data[i, j]) > threshold)]
-            )
+            kw.update(color=textcolors[int(im.norm(data[i, j]) > threshold)])
             cond1 = na_points is not None
             cond2 = False if na_points is None else (i, j) in na_points
             if cond1 and cond2:
-                text = im.axes.text(j, i, 'N/A', **kw)
+                text = im.axes.text(j, i, "N/A", **kw)
             else:
-                text = im.axes.text(
-                    j,
-                    i,
-                    valfmt(data[i, j], None),
-                    **kw
-                )
+                text = im.axes.text(j, i, valfmt(data[i, j], None), **kw)
             texts.append(text)
 
     return texts
 
 
-def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0,
-                    name='shiftedcmap'):
-    """
-    Function to offset the "center" of a colormap. Useful for
+def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name="shiftedcmap"):
+    """Function to offset the "center" of a colormap. Useful for
     data with a negative min and positive max and you want the
     middle of the colormap's dynamic range to be at zero
 
@@ -264,71 +256,59 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0,
           Defaults to 1.0 (no upper ofset). Should be between
           `midpoint` and 1.0.
     """
-    cdict = {
-        'red': [],
-        'green': [],
-        'blue': [],
-        'alpha': []
-    }
+    cdict = {"red": [], "green": [], "blue": [], "alpha": []}
     # regular index to compute the colors
     reg_index = np.linspace(start, stop, 257)
     # shifted index to match the data
-    shift_index = np.hstack([
-        np.linspace(0.0, midpoint, 128, endpoint=False),
-        np.linspace(midpoint, 1.0, 129, endpoint=True)
-    ])
+    shift_index = np.hstack(
+        [
+            np.linspace(0.0, midpoint, 128, endpoint=False),
+            np.linspace(midpoint, 1.0, 129, endpoint=True),
+        ]
+    )
 
     for ri, si in zip(reg_index, shift_index):
         r, g, b, a = cmap(ri)
-        cdict['red'].append((si, r, r))
-        cdict['green'].append((si, g, g))
-        cdict['blue'].append((si, b, b))
-        cdict['alpha'].append((si, a, a))
+        cdict["red"].append((si, r, r))
+        cdict["green"].append((si, g, g))
+        cdict["blue"].append((si, b, b))
+        cdict["alpha"].append((si, a, a))
     newcmap = colors.LinearSegmentedColormap(name, cdict)
     plt.register_cmap(cmap=newcmap)
     return newcmap
 
 
-def define_plot_cmap(fig, ax, mid_point, cmap, ticks, labels,
-                     cmap_label):
-    """
-    Define cmap shifted to midpoint and plot colourbar
-
-    """
-    new_cmap = shiftedColorMap(
-        cmap,
-        midpoint=mid_point,
-        name='shifted'
-    )
+def define_plot_cmap(fig, ax, mid_point, cmap, ticks, labels, cmap_label):
+    """Define cmap shifted to midpoint and plot colourbar"""
+    new_cmap = shiftedColorMap(cmap, midpoint=mid_point, name="shifted")
     X = np.linspace(0, 1, 256)
-    cax = ax.scatter(-X-100, -X-100, c=X, cmap=new_cmap)
-    cbar = fig.colorbar(cax, ticks=ticks, spacing='proportional')
+    cax = ax.scatter(-X - 100, -X - 100, c=X, cmap=new_cmap)
+    cbar = fig.colorbar(cax, ticks=ticks, spacing="proportional")
     cbar.ax.set_yticklabels(labels, fontsize=16)
     cbar.set_label(cmap_label, fontsize=16)
     return new_cmap
 
 
 def parity_plot(X, Y, xtitle, ytitle, lim, c=None, marker=None):
-    """
-    Make parity plot.
-
-    """
+    """Make parity plot."""
     if c is None:
         C = colors_i_like()[2]
     else:
         C = c
     if marker is None:
-        M = 'o'
+        M = "o"
     else:
         M = marker
     fig, ax = plt.subplots(figsize=(5, 5))
-    ax.scatter(X, Y, c=C, edgecolors='k',
-               marker=M, alpha=1.0, s=80)
-    ax.plot(np.linspace(min(lim) - 1, max(lim) + 1, 2),
-            np.linspace(min(lim) - 1, max(lim) + 1, 2),
-            c='k', alpha=0.4)
+    ax.scatter(X, Y, c=C, edgecolors="k", marker=M, alpha=1.0, s=80)
+    ax.plot(
+        np.linspace(min(lim) - 1, max(lim) + 1, 2),
+        np.linspace(min(lim) - 1, max(lim) + 1, 2),
+        c="k",
+        alpha=0.4,
+    )
     # Set number of ticks for x-axis
-    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.tick_params(axis="both", which="major", labelsize=16)
     ax.set_xlabel(xtitle, fontsize=16)
     ax.set_ylabel(ytitle, fontsize=16)
     ax.set_xlim(lim)
@@ -346,61 +326,49 @@ def histogram_plot_N(
     xtitle,
     labels=None,
     density=False,
-    N=1
+    N=1,
 ):
-    """
-    Make histogram plot with 1 distribution.
-
-    """
-
+    """Make histogram plot with 1 distribution."""
     fig, ax = plt.subplots(figsize=(8, 5))
     X_bins = np.arange(X_range[0], X_range[1], width)
     if N == 1:
-        hist, bin_edges = np.histogram(
-            a=Y,
-            bins=X_bins,
-            density=density
-        )
+        hist, bin_edges = np.histogram(a=Y, bins=X_bins, density=density)
         ax.bar(
             bin_edges[:-1],
             hist,
-            align='edge',
+            align="edge",
             alpha=alpha,
             width=width,
             color=color,
-            edgecolor=edgecolor
+            edgecolor=edgecolor,
         )
     else:
         for i_ in range(N):
             if type(color) is not list or len(Y) != N:
-                raise ValueError(
-                    'Make sure color and Y are of length N'
-                )
+                raise ValueError("Make sure color and Y are of length N")
             hist, bin_edges = np.histogram(
-                a=Y[i_],
-                bins=X_bins,
-                density=density
+                a=Y[i_], bins=X_bins, density=density
             )
             if labels[i_] is None:
-                label = ''
+                label = ""
             else:
                 label = labels[i_]
             ax.bar(
                 bin_edges[:-1],
                 hist,
-                align='edge',
+                align="edge",
                 alpha=alpha[i_],
                 width=width,
                 color=color[i_],
                 edgecolor=edgecolor,
-                label=label
+                label=label,
             )
-    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.tick_params(axis="both", which="major", labelsize=16)
     ax.set_xlabel(xtitle, fontsize=16)
     if density is False:
-        ax.set_ylabel('count', fontsize=16)
+        ax.set_ylabel("count", fontsize=16)
     elif density is True:
-        ax.set_ylabel('frequency', fontsize=16)
+        ax.set_ylabel("frequency", fontsize=16)
     ax.set_xlim(X_range)
     if N > 1 and labels[0] is not None:
         ax.legend(fontsize=16)
