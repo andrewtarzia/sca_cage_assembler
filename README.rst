@@ -8,6 +8,8 @@ from subcomponent self-assembly.
 
 Code is for the paper at DOI: 10.1002/anie.202217987
 
+Spindles code is in spindle-production branch!
+
 If you have any issues contact me at ``andrew dot tarzia at gmail dot com``
 
 Installation
