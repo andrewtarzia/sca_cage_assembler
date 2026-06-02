@@ -8,7 +8,7 @@ from subcomponent self-assembly.
 
 Code in `scripts` is for the paper at DOI: 10.1002/anie.202217987
 
-Spindles code is in `spindle-production` for the paper at DOI: TBD
+Spindles code is in `spindle-production` for the "Assembly of a bifurcated knot via sequence selective imine condensation" at DOI: TBD
 
 If you have any issues contact me at ``andrew dot tarzia at gmail dot com``
 
